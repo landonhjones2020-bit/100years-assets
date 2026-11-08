@@ -450,6 +450,39 @@ function StructureCheck.Run(options: Options?): Result
 				if rooms and #rooms:GetChildren() == 0 then
 					fail("workspace.Bunker.Rooms is empty")
 				end
+				-- Every room carries its gameplay points; the art kit, when the place has it,
+				-- built every room; the Medbay has the spawn and the Blast Door its exit.
+				local ServerStorage = game:GetService("ServerStorage")
+				local assets = ServerStorage:FindFirstChild("Assets")
+				local kit = assets and assets:FindFirstChild("Kit")
+				local hasArt = kit ~= nil and kit:FindFirstChild("Kit_Floor") ~= nil
+				for _, room in if rooms then rooms:GetChildren() else {} do
+					local kind = room:GetAttribute("RoomType")
+					local sockets = room:FindFirstChild("Sockets")
+					if sockets and sockets:IsA("BasePart") then
+						pass()
+					else
+						fail(`room {room.Name} ({kind}) has no Sockets part`)
+					end
+					if hasArt and room:GetAttribute("Art") ~= true then
+						fail(`room {room.Name} ({kind}) was built from the graybox although the art kit is in ServerStorage.Assets`)
+					elseif hasArt then
+						pass()
+					end
+					if kind == "Medbay" then
+						if room:FindFirstChild("MedbaySpawn") then
+							pass()
+						else
+							fail(`Medbay {room.Name} has no MedbaySpawn`)
+						end
+					elseif kind == "BlastDoor" then
+						if sockets and sockets:FindFirstChild("SurfaceExit") then
+							pass()
+						else
+							fail(`Blast Door {room.Name} has no SurfaceExit socket`)
+						end
+					end
+				end
 			end
 		end
 	end

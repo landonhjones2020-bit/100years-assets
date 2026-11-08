@@ -1,31 +1,44 @@
 --!strict
 --[[
-	BunkerKit: builds the bunker's world from Rules.Bunker data (bible Section 6). This is
-	the graybox kit of Prompt 4: plain parts with the right sizes, doorways, stairs and
-	labels. The A1 art kit replaces the parts later behind the same calls.
+	BunkerKit: builds the bunker's world from Rules.Bunker data (bible Section 6).
+
+	It builds from the A1 art kit in ServerStorage.Assets (bible Section 19): the Kit_* shell
+	pieces, Kit_Rock_<Band> and Kit_Dug_<Band>, Kit_Shaft_L<level>, Kit_BlastDoor_L<level>,
+	Kit_Vent and Room_<Type>_L<level>, each copied to its cell with Grid.CellCFrame. A piece
+	the place doesn't have falls back to the Prompt 4 graybox (plain parts with the same
+	sizes), so the bunker always builds, even in a place without the art.
 
 	workspace.Bunker
-	  Frame     crust above floor 1, bedrock under floor 10, walls at the grid's two sides
-	  Rock      one block per Rock cell, named by its key ("3,-2")
+	  Frame     rock around the grid: a column each side, a row above floor 1, a row below 10
+	  Rock      one model per Rock cell, named by its key ("3,-2"); alternate cells turned
 	  Dug       one model per Dug cell, named by its graph node ("D:2,3")
 	  Rooms     one model per room, named by its id ("R4")
 
-	* Every model streams as Persistent, so the Command View always has the whole bunker
+	* Every unit streams as Persistent, so the Command View always has the whole bunker
 	  (bible Section 23).
 	* Every room has walls. A side wall gets a doorway when the cell beyond it is open
 	  (rooms connect sideways through doorways in shared walls). Cells of one room have no
 	  wall between them.
-	* Front walls carry the FrontWall tag: solid while playing, hidden in the Command View
-	  (Prompt 7).
-	* Stacked Shafts get a hole in the slab between them and a stair up from the lower one.
-	* The Medbay holds the players' spawn (it is their respawn point, Section 6).
-	* Quarters get Beds[level] beds per cell; the Reactor Core and the Blast Door get a
-	  marker. The Blast Door has a SurfaceExit attachment in its ceiling for the surface lift
-	  (Prompt 16).
+	* Front walls carry the FrontWall tag (every part of a front wall piece, and the front
+	  face of a dug cell): solid while playing, hidden in the Command View (Prompt 7).
+	* Stacked Shafts get a hole in the upper one's floor, a hole in the lower one's ceiling
+	  and the stair in the lower one.
+	* Each room has a Sockets part (invisible) with an Attachment per gameplay point its art
+	  carries: WorkSpot1.., Bed1.., Seat1.., Core, Valve1.., FuseBox, Breaker, Tap, Bench,
+	  Respawn, Door, SurfaceExit, Vent, Lift, Chute, Top, Bottom, Light1.. Numbered points
+	  count up across the room's cells from left to right; an unnumbered point that repeats
+	  gets its cell's number (Breaker, Breaker2). BunkerKit.Socket and .Sockets read them.
+	* The Medbay holds the players' spawn on its respawn pad (Section 6).
+	* Lights: two per room cell at the ceiling strip, a lantern per dug cell, the Reactor's
+	  core glow and the Kitchen's pendants. Each carries the RoomLight tag and a Unit
+	  attribute (room id or dug node) for the power system (dark rooms, blackouts).
+	* Each room gets one vent (a breach point, Section 10) in its first cell, except the
+	  Shaft and the Blast Door (the door is the surface breach point).
 ]]
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Bunker = require(Shared.Rules.Bunker)
@@ -35,8 +48,14 @@ local Grid = require(Shared.Rules.Grid)
 local BunkerKit = {}
 
 BunkerKit.FRONT_WALL_TAG = "FrontWall"
+BunkerKit.ROOM_LIGHT_TAG = "RoomLight"
 
-local DOOR_WIDTH, DOOR_HEIGHT = 8, 10 -- the A0 cell shell's doorway
+local ASSET_TAG = "Asset" -- marks the source models in ServerStorage.Assets; copies drop it
+local HALF_TURN = CFrame.Angles(0, math.pi, 0)
+
+-- Graybox (Prompt 4) ---------------------------------------------------------------------
+
+local DOOR_WIDTH, DOOR_HEIGHT = 8, 10 -- the kit's doorway
 local CRUST, BEDROCK, EDGE = 6, 6, 6 -- rock around the grid
 local SHAFT_HOLE = { FromX = 2, Depth = 8 } -- the opening between stacked Shafts, at the back right
 
@@ -64,9 +83,29 @@ local BAND_COLORS: { [string]: Color3 } = {
 	SourceChamber = Color3.fromRGB(116, 52, 52),
 }
 
-type Folders = { Root: Instance, Frame: Model, Rock: Model, Dug: Folder, Rooms: Folder }
+-- Art lights ---------------------------------------------------------------------------------
 
--- Parts --------------------------------------------------------------------------------
+type LightSpec = { Range: number, Brightness: number, Color: Color3 }
+
+local CEILING_LIGHT: LightSpec = { Range = 18, Brightness = 1, Color = Color3.fromRGB(255, 228, 188) }
+local DUG_LIGHTS: { [string]: LightSpec } = {
+	Mines = { Range = 20, Brightness = 0.9, Color = Color3.fromRGB(255, 196, 120) },
+	FloodedCaverns = { Range = 22, Brightness = 0.8, Color = Color3.fromRGB(140, 200, 210) },
+	CrystalHollows = { Range = 22, Brightness = 1, Color = Color3.fromHex("8FE3E0") },
+	SourceChamber = { Range = 22, Brightness = 1, Color = Color3.fromHex("7CFF9B") },
+}
+-- Rooms whose own Light sockets are real fixtures (the rest light from the ceiling kit).
+local ACCENT_LIGHTS: { [string]: LightSpec } = {
+	ReactorCore = { Range = 16, Brightness = 2, Color = Color3.fromHex("8FE3E0") },
+	Kitchen = { Range = 12, Brightness = 0.8, Color = Color3.fromRGB(255, 214, 160) },
+}
+local NO_VENT: { [string]: boolean } = { Shaft = true, BlastDoor = true }
+
+type Folders = { Root: Instance, Frame: Model, Rock: Model, Dug: Folder, Rooms: Folder }
+type Socket = { Name: string, CFrame: CFrame }
+type Holder = { Part: BasePart, Counters: { [string]: number }, Taken: { [string]: boolean } }
+
+-- Parts --------------------------------------------------------------------------------------
 
 -- An anchored block between two corners.
 local function block(parent: Instance, name: string, low: Vector3, high: Vector3, color: Color3, material: Enum.Material): Part?
@@ -115,7 +154,18 @@ local function newModel(name: string, parent: Instance): Model
 	return model
 end
 
-local function lamp(parent: Instance, cell: Vector3, bright: boolean)
+local function addLight(parent: Instance, spec: LightSpec, unit: string)
+	local light = Instance.new("PointLight")
+	light.Range = spec.Range
+	light.Brightness = spec.Brightness
+	light.Color = spec.Color
+	light.Shadows = false
+	light:SetAttribute("Unit", unit)
+	CollectionService:AddTag(light, BunkerKit.ROOM_LIGHT_TAG)
+	light.Parent = parent
+end
+
+local function lamp(parent: Instance, cell: Vector3, bright: boolean, unit: string)
 	local t = Grid.Tuning()
 	local y = cell.Y + t.CellHeight - 0.6
 	local part = block(
@@ -129,12 +179,11 @@ local function lamp(parent: Instance, cell: Vector3, bright: boolean)
 	if part then
 		part.CanCollide = false
 		part.CastShadow = false
-		local light = Instance.new("PointLight")
-		light.Range = if bright then 30 else 18
-		light.Brightness = if bright then 1.4 else 0.6
-		light.Color = LAMP_COLOR
-		light.Shadows = false
-		light.Parent = part
+		addLight(part, {
+			Range = if bright then 30 else 18,
+			Brightness = if bright then 1.4 else 0.6,
+			Color = LAMP_COLOR,
+		}, unit)
 	end
 end
 
@@ -157,7 +206,142 @@ local function label(wall: BasePart, text: string)
 	gui.Parent = wall
 end
 
--- Room walls and extras ----------------------------------------------------------------
+-- Art ----------------------------------------------------------------------------------------
+
+local function art(category: string, name: string): Model?
+	local assets = ServerStorage:FindFirstChild("Assets")
+	local folder = if assets then assets:FindFirstChild(category) else nil
+	local found = if folder then folder:FindFirstChild(name) else nil
+	if found and found:IsA("Model") then
+		return found
+	end
+	return nil
+end
+
+-- Has this place got the art kit? Without it the bunker is all graybox.
+function BunkerKit.HasArt(): boolean
+	return art("Kit", "Kit_Floor") ~= nil
+end
+
+-- A copy of an art model with its pivot at `at`.
+local function place(source: Model, name: string, parent: Instance, at: CFrame, persistent: boolean?): Model
+	local copy = source:Clone()
+	copy.Name = name
+	CollectionService:RemoveTag(copy, ASSET_TAG)
+	if persistent then
+		copy.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	end
+	copy:PivotTo(at)
+	copy.Parent = parent
+	return copy
+end
+
+local function piece(name: string, label_: string, parent: Instance, at: CFrame): Model?
+	local source = art("Kit", name)
+	return if source then place(source, label_, parent, at) else nil
+end
+
+-- "WorkSpot12" -> "WorkSpot", 12; "Core" -> "Core", nil.
+local function splitName(name: string): (string, number?)
+	local base, digits = string.match(name, "^(.-)(%d+)$")
+	if base and base ~= "" then
+		return base, tonumber(digits)
+	end
+	return name, nil
+end
+
+-- A placed copy's sockets (its Socket_<name> attributes, in the model's own space) in the
+-- world, sorted by name and then number.
+local function socketsOf(copy: Model): { Socket }
+	local list: { Socket } = {}
+	local pivot = copy:GetPivot()
+	for key, value in copy:GetAttributes() do
+		local name = string.match(key, "^Socket_(.+)$")
+		if name and typeof(value) == "CFrame" then
+			table.insert(list, { Name = name, CFrame = pivot * value })
+		end
+	end
+	table.sort(list, function(a: Socket, b: Socket): boolean
+		local baseA, numberA = splitName(a.Name)
+		local baseB, numberB = splitName(b.Name)
+		if baseA ~= baseB then
+			return baseA < baseB
+		end
+		return (numberA or 0) < (numberB or 0)
+	end)
+	return list
+end
+
+local function attach(part: BasePart, name: string, at: CFrame): Attachment
+	local attachment = Instance.new("Attachment")
+	attachment.Name = name
+	attachment.CFrame = part.CFrame:ToObjectSpace(at)
+	attachment.Parent = part
+	return attachment
+end
+
+local function newHolder(model: Model, at: Vector3): Holder
+	local part = Instance.new("Part")
+	part.Name = "Sockets"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = Vector3.one
+	part.CFrame = CFrame.new(at)
+	part.Parent = model
+	return { Part = part, Counters = {}, Taken = {} }
+end
+
+-- Adds a gameplay point to a room, numbered within the room (see the header).
+local function addSocket(holder: Holder, name: string, at: CFrame, cellIndex: number): Attachment
+	local base, number = splitName(name)
+	local final = name
+	if number then
+		holder.Counters[base] = (holder.Counters[base] or 0) + 1
+		final = base .. holder.Counters[base]
+	elseif holder.Taken[name] then
+		final = name .. cellIndex
+	end
+	holder.Taken[final] = true
+	return attach(holder.Part, final, at)
+end
+
+-- Every socket of a placed copy into the room's holder; returns the new attachments.
+local function collect(holder: Holder, copy: Model, cellIndex: number): { Attachment }
+	local made = {}
+	for _, socket in socketsOf(copy) do
+		table.insert(made, addSocket(holder, socket.Name, socket.CFrame, cellIndex))
+	end
+	return made
+end
+
+local function tagFront(model: Model, whole: boolean)
+	for _, item in model:GetDescendants() do
+		if item:IsA("BasePart") and (whole or item:GetAttribute("Role") == "FrontWall") then
+			CollectionService:AddTag(item, BunkerKit.FRONT_WALL_TAG)
+		end
+	end
+end
+
+-- The ceiling piece's two lamps, on its light strip.
+local function ceilingLights(copy: Model, unit: string)
+	local strip = copy:FindFirstChild("CeilingLight")
+	if not (strip and strip:IsA("BasePart")) then
+		return
+	end
+	for _, socket in socketsOf(copy) do
+		if string.match(socket.Name, "^Light%d*$") then
+			addLight(attach(strip, socket.Name, socket.CFrame), CEILING_LIGHT, unit)
+		end
+	end
+end
+
+-- Rooms: shells ------------------------------------------------------------------------------
+
+type Shape = { ShaftBelow: boolean, ShaftAbove: boolean, LeftOpen: boolean, RightOpen: boolean }
 
 -- A side wall on the plane between two cells: solid, or with a centred doorway.
 local function sideWall(parent: Instance, name: string, x0: number, x1: number, floorY: number, z: number, doorway: boolean)
@@ -174,8 +358,70 @@ local function sideWall(parent: Instance, name: string, x0: number, x1: number, 
 	block(parent, name, Vector3.new(x0, floorY + DOOR_HEIGHT, z - half), Vector3.new(x1, top, z + half), WALL_COLOR, Enum.Material.SmoothPlastic)
 end
 
--- The stair up from a Shaft to the Shaft above: a plank along the back, rising to the right.
-local function stair(parent: Instance, cell: Vector3)
+-- The art shell: per cell a floor, a ceiling with its lamps, a back and a front wall, and
+-- side walls at the room's two ends (the left one is the right-hand piece turned around).
+local function shellArt(model: Model, room: Bunker.Room, shape: Shape)
+	for offset = 0, room.Span - 1 do
+		local column = room.Column + offset
+		local key = Grid.Key(room.Floor, column)
+		local at = Grid.CellCFrame(room.Floor, column)
+		piece(if shape.ShaftBelow then "Kit_FloorHole" else "Kit_Floor", `Floor {key}`, model, at)
+		local ceiling = piece(if shape.ShaftAbove then "Kit_CeilingHole" else "Kit_Ceiling", `Ceiling {key}`, model, at)
+		if ceiling then
+			ceilingLights(ceiling, room.Id)
+		end
+		piece("Kit_WallBack", `WallBack {key}`, model, at)
+		local front = piece("Kit_WallFront", `WallFront {key}`, model, at)
+		if front then
+			tagFront(front, true)
+		end
+		if offset == 0 then
+			piece(if shape.LeftOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallLeft {key}`, model, at * HALF_TURN)
+		end
+		if offset == room.Span - 1 then
+			piece(if shape.RightOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallRight {key}`, model, at)
+		end
+	end
+end
+
+-- The graybox shell (Prompt 4): slabs, walls with doorways, a lamp per cell and a label.
+local function shellGraybox(model: Model, room: Bunker.Room, info: { [string]: any }, shape: Shape)
+	local t = Grid.Tuning()
+	local W, H, D, T, S = t.CellWidth, t.CellHeight, t.CellDepth, t.WallThickness, t.SlabThickness
+	local first = Grid.CellPosition(room.Floor, room.Column)
+	local last = Grid.CellPosition(room.Floor, room.Column + room.Span - 1)
+	local y0, z0 = first.Y, first.Z
+	local xL, xR = first.X - W / 2 - T, last.X + W / 2 + T
+	local color = ROOM_COLORS[room.Type] or DEFAULT_ROOM_COLOR
+	local hole = {
+		MinX = first.X + SHAFT_HOLE.FromX,
+		MaxX = first.X + W / 2,
+		MinZ = z0 - D / 2,
+		MaxZ = z0 - D / 2 + SHAFT_HOLE.Depth,
+	}
+
+	slab(model, "Floor", Vector3.new(xL, y0 - S, z0 - D / 2 - T), Vector3.new(xR, y0, z0 + D / 2 + T), if shape.ShaftBelow then hole else nil, color, Enum.Material.SmoothPlastic)
+	slab(model, "Ceiling", Vector3.new(xL + T, y0 + H - 0.5, z0 - D / 2), Vector3.new(xR - T, y0 + H, z0 + D / 2), if shape.ShaftAbove then hole else nil, CEILING_COLOR, Enum.Material.SmoothPlastic)
+	local back = block(model, "BackWall", Vector3.new(xL, y0, z0 - D / 2 - T), Vector3.new(xR, y0 + H, z0 - D / 2), WALL_COLOR, Enum.Material.SmoothPlastic)
+	local front = block(model, "FrontWall", Vector3.new(xL, y0, z0 + D / 2), Vector3.new(xR, y0 + H, z0 + D / 2 + T), FRONT_COLOR, Enum.Material.SmoothPlastic)
+	if front then
+		CollectionService:AddTag(front, BunkerKit.FRONT_WALL_TAG)
+	end
+	sideWall(model, "SideWallLeft", xL, xL + T, y0, z0, shape.LeftOpen)
+	sideWall(model, "SideWallRight", xR - T, xR, y0, z0, shape.RightOpen)
+	for offset = 0, room.Span - 1 do
+		lamp(model, Grid.CellPosition(room.Floor, room.Column + offset), true, room.Id)
+	end
+	if back then
+		label(back, `{info.Name}  L{room.Level}  ({room.Id})`)
+	end
+end
+
+-- Rooms: insides -----------------------------------------------------------------------------
+
+-- The graybox stair up from a Shaft to the Shaft above: a plank along the back, rising to
+-- the right.
+local function grayboxStair(parent: Instance, cell: Vector3)
 	local t = Grid.Tuning()
 	local rise = t.CellHeight + t.SlabThickness
 	local run = t.CellWidth - 4
@@ -194,9 +440,11 @@ local function stair(parent: Instance, cell: Vector3)
 	plank.Parent = parent
 end
 
-local function extras(model: Model, room: Bunker.Room, info: { [string]: any }, centre: Vector3, back: BasePart?)
+-- Graybox stand-ins for a room's furniture when its art is missing, with the same sockets.
+local function grayboxInterior(model: Model, room: Bunker.Room, info: { [string]: any }, centre: Vector3, holder: Holder)
 	local t = Grid.Tuning()
 	local y0, z0 = centre.Y, centre.Z
+	local backZ = z0 - t.CellDepth / 2
 	if room.Type == "ReactorCore" then
 		block(model, "CoreBase", Vector3.new(centre.X - 4, y0, z0 - 8), Vector3.new(centre.X + 4, y0 + 1, z0), Color3.fromRGB(60, 64, 70), Enum.Material.DiamondPlate)
 		local core = Instance.new("Part")
@@ -208,33 +456,21 @@ local function extras(model: Model, room: Bunker.Room, info: { [string]: any }, 
 		core.Material = Enum.Material.Neon
 		core.Color = Color3.fromRGB(90, 200, 230)
 		core.Parent = model
+		addSocket(holder, "Core", CFrame.new(centre.X, y0, z0 - 4), 1)
 	elseif room.Type == "BlastDoor" then
 		local door = Instance.new("Part")
 		door.Name = "Door"
 		door.Anchored = true
 		door.Shape = Enum.PartType.Cylinder
 		door.Size = Vector3.new(1, 13, 13)
-		door.CFrame = CFrame.new(centre.X, y0 + 7, z0 - t.CellDepth / 2 + 0.5) * CFrame.Angles(0, math.rad(90), 0)
+		door.CFrame = CFrame.new(centre.X, y0 + 7, backZ + 0.5) * CFrame.Angles(0, math.rad(90), 0)
 		door.Material = Enum.Material.DiamondPlate
 		door.Color = Color3.fromRGB(70, 74, 80)
 		door.Parent = model
-		if back then
-			local exit = Instance.new("Attachment")
-			exit.Name = "SurfaceExit"
-			exit.Parent = back
-			exit.WorldPosition = Vector3.new(centre.X, y0 + t.CellHeight, z0)
-		end
+		addSocket(holder, "Door", CFrame.new(centre.X, y0, backZ + 3), 1)
+		addSocket(holder, "SurfaceExit", CFrame.new(centre.X, y0 + t.CellHeight, backZ + 3), 1)
 	elseif room.Type == "Medbay" then
-		local spawn = Instance.new("SpawnLocation")
-		spawn.Name = "MedbaySpawn"
-		spawn.Anchored = true
-		spawn.Size = Vector3.new(6, 1, 6)
-		spawn.CFrame = CFrame.new(centre.X, y0 + 0.5, z0 + 6)
-		spawn.Neutral = true
-		spawn.Duration = 0
-		spawn.Color = Color3.fromRGB(196, 60, 60)
-		spawn.Material = Enum.Material.SmoothPlastic
-		spawn.Parent = model
+		addSocket(holder, "Respawn", CFrame.new(centre.X, y0, z0 + 6), 1)
 	elseif room.Type == "Quarters" and info.Beds then
 		local beds = info.Beds[room.Level]
 		for offset = 0, room.Span - 1 do
@@ -242,27 +478,104 @@ local function extras(model: Model, room: Bunker.Room, info: { [string]: any }, 
 			local pitch = (t.CellWidth - 2) / beds
 			for index = 1, beds do
 				local x = cell.X - t.CellWidth / 2 + 1 + pitch * (index - 0.5)
-				local bed = block(model, "Bed", Vector3.new(x - 1.4, y0, z0 - t.CellDepth / 2 + 0.5), Vector3.new(x + 1.4, y0 + 1.6, z0 - t.CellDepth / 2 + 7), Color3.fromRGB(120, 104, 160), Enum.Material.Fabric)
+				local bed = block(model, "Bed", Vector3.new(x - 1.4, y0, backZ + 0.5), Vector3.new(x + 1.4, y0 + 1.6, backZ + 7), Color3.fromRGB(120, 104, 160), Enum.Material.Fabric)
 				if bed then
 					bed:SetAttribute("Bed", offset * beds + index)
 				end
+				addSocket(holder, `Bed{index}`, CFrame.new(x, y0 + 1.6, backZ + 3.75), offset + 1)
 			end
 		end
 	end
 end
 
--- Units ----------------------------------------------------------------------------------
+-- A room's insides: the Blast Door set, the Shaft stair, or its furniture per cell, then
+-- its vent. Missing art falls back to the graybox. Returns whether the furniture is art.
+local function interior(model: Model, room: Bunker.Room, info: { [string]: any }, shape: Shape, centre: Vector3, holder: Holder): boolean
+	local first = Grid.CellPosition(room.Floor, room.Column)
+	local isArt = false
+	if room.Type == "BlastDoor" then
+		local source = art("Kit", `Kit_BlastDoor_L{room.Level}`)
+		if source then
+			collect(holder, place(source, "BlastDoor", model, CFrame.new(centre) * HALF_TURN), 1)
+			isArt = true
+		else
+			grayboxInterior(model, room, info, centre, holder)
+		end
+	elseif room.Type == "Shaft" then
+		isArt = BunkerKit.HasArt()
+		if shape.ShaftAbove then
+			local source = art("Kit", `Kit_Shaft_L{room.Level}`)
+			if source then
+				collect(holder, place(source, "Stair", model, Grid.CellCFrame(room.Floor, room.Column)), 1)
+			else
+				grayboxStair(model, first)
+				isArt = false
+			end
+		end
+	else
+		local source = art("Rooms", `Room_{room.Type}_L{room.Level}`)
+		if source then
+			local accent = ACCENT_LIGHTS[room.Type]
+			for offset = 0, room.Span - 1 do
+				local column = room.Column + offset
+				local copy = place(source, `Interior {Grid.Key(room.Floor, column)}`, model, Grid.CellCFrame(room.Floor, column))
+				for _, attachment in collect(holder, copy, offset + 1) do
+					if accent and string.match(attachment.Name, "^Light%d*$") then
+						addLight(attachment, accent, room.Id)
+					end
+				end
+			end
+			isArt = true
+		else
+			grayboxInterior(model, room, info, centre, holder)
+		end
+	end
+	if not NO_VENT[room.Type] then
+		local vent = piece("Kit_Vent", "Vent", model, Grid.CellCFrame(room.Floor, room.Column))
+		if vent then
+			collect(holder, vent, 1)
+		end
+	end
+	return isArt
+end
+
+-- The players' spawn on the Medbay's Respawn point: invisible on the art pad, a red pad in
+-- the graybox.
+local function medbaySpawn(model: Model, holder: Holder, visible: boolean)
+	local respawn = holder.Part:FindFirstChild("Respawn")
+	if not (respawn and respawn:IsA("Attachment")) then
+		return
+	end
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "MedbaySpawn"
+	spawn.Anchored = true
+	spawn.Neutral = true
+	spawn.Duration = 0
+	spawn.Size = Vector3.new(6, if visible then 1 else 0.2, 6)
+	spawn.CFrame = CFrame.new(respawn.WorldPosition + Vector3.new(0, spawn.Size.Y / 2, 0))
+	spawn.Material = Enum.Material.SmoothPlastic
+	spawn.Color = Color3.fromRGB(196, 60, 60)
+	if not visible then
+		spawn.Transparency = 1
+		spawn.CanCollide = false
+		spawn.CanQuery = false
+		spawn.CastShadow = false
+	end
+	for _, child in spawn:GetChildren() do
+		if child:IsA("Decal") then
+			child:Destroy()
+		end
+	end
+	spawn.Parent = model
+end
+
+-- Units --------------------------------------------------------------------------------------
 
 local function buildRoom(bunker: Bunker.Bunker, room: Bunker.Room, parent: Instance): Model
-	local t = Grid.Tuning()
-	local W, H, D, T, S = t.CellWidth, t.CellHeight, t.CellDepth, t.WallThickness, t.SlabThickness
 	local info = Config.Get("Rooms", room.Type)
 	local first = Grid.CellPosition(room.Floor, room.Column)
 	local last = Grid.CellPosition(room.Floor, room.Column + room.Span - 1)
-	local y0, z0 = first.Y, first.Z
-	local xL, xR = first.X - W / 2 - T, last.X + W / 2 + T
-	local centre = Vector3.new((first.X + last.X) / 2, y0, z0)
-	local color = ROOM_COLORS[room.Type] or DEFAULT_ROOM_COLOR
+	local centre = (first + last) / 2
 
 	local model = newModel(room.Id, parent)
 	model:SetAttribute("RoomId", room.Id)
@@ -272,44 +585,52 @@ local function buildRoom(bunker: Bunker.Bunker, room: Bunker.Room, parent: Insta
 	model:SetAttribute("Span", room.Span)
 	model:SetAttribute("Level", room.Level)
 
-	local shaftBelow = room.Type == "Shaft" and bunker:IsShaft(room.Floor + 1, room.Column)
-	local shaftAbove = room.Type == "Shaft" and bunker:IsShaft(room.Floor - 1, room.Column)
-	local hole = {
-		MinX = first.X + SHAFT_HOLE.FromX,
-		MaxX = first.X + W / 2,
-		MinZ = z0 - D / 2,
-		MaxZ = z0 - D / 2 + SHAFT_HOLE.Depth,
+	local shape: Shape = {
+		ShaftBelow = room.Type == "Shaft" and bunker:IsShaft(room.Floor + 1, room.Column),
+		ShaftAbove = room.Type == "Shaft" and bunker:IsShaft(room.Floor - 1, room.Column),
+		LeftOpen = bunker:IsOpen(room.Floor, room.Column - 1),
+		RightOpen = bunker:IsOpen(room.Floor, room.Column + room.Span),
 	}
-
-	slab(model, "Floor", Vector3.new(xL, y0 - S, z0 - D / 2 - T), Vector3.new(xR, y0, z0 + D / 2 + T), if shaftBelow then hole else nil, color, Enum.Material.SmoothPlastic)
-	slab(model, "Ceiling", Vector3.new(xL + T, y0 + H - 0.5, z0 - D / 2), Vector3.new(xR - T, y0 + H, z0 + D / 2), if shaftAbove then hole else nil, CEILING_COLOR, Enum.Material.SmoothPlastic)
-	local back = block(model, "BackWall", Vector3.new(xL, y0, z0 - D / 2 - T), Vector3.new(xR, y0 + H, z0 - D / 2), WALL_COLOR, Enum.Material.SmoothPlastic)
-	local front = block(model, "FrontWall", Vector3.new(xL, y0, z0 + D / 2), Vector3.new(xR, y0 + H, z0 + D / 2 + T), FRONT_COLOR, Enum.Material.SmoothPlastic)
-	if front then
-		CollectionService:AddTag(front, BunkerKit.FRONT_WALL_TAG)
+	local holder = newHolder(model, centre)
+	local artShell = BunkerKit.HasArt()
+	if artShell then
+		shellArt(model, room, shape)
+	else
+		shellGraybox(model, room, info, shape)
 	end
-	sideWall(model, "SideWallLeft", xL, xL + T, y0, z0, bunker:IsOpen(room.Floor, room.Column - 1))
-	sideWall(model, "SideWallRight", xR - T, xR, y0, z0, bunker:IsOpen(room.Floor, room.Column + room.Span))
-	for offset = 0, room.Span - 1 do
-		lamp(model, Grid.CellPosition(room.Floor, room.Column + offset), true)
-	end
-	if back then
-		label(back, `{info.Name}  L{room.Level}  ({room.Id})`)
-	end
-	if shaftAbove then
-		stair(model, first)
-	end
-	extras(model, room, info, centre, back)
+	local artInside = interior(model, room, info, shape, centre, holder)
+	medbaySpawn(model, holder, not artInside)
+	model:SetAttribute("Art", artShell and artInside)
 	return model
 end
 
 local function buildDug(floor: number, column: number, parent: Instance): Model
 	local t = Grid.Tuning()
+	local band = Grid.BandOf(floor)
+	local name = "D:" .. Grid.Key(floor, column)
+	local source = art("Kit", `Kit_Dug_{band.Id}`)
+	if source then
+		local model = place(source, name, parent, Grid.CellCFrame(floor, column), true)
+		model:SetAttribute("Floor", floor)
+		model:SetAttribute("Column", column)
+		model:SetAttribute("Band", band.Id)
+		model:SetAttribute("Art", true)
+		tagFront(model, false)
+		local host = model:FindFirstChild("Floor")
+		if host and host:IsA("BasePart") then
+			for _, socket in socketsOf(model) do
+				if socket.Name == "Light" then
+					addLight(attach(host, "Light", socket.CFrame), DUG_LIGHTS[band.Id] or DUG_LIGHTS.Mines, name)
+				end
+			end
+		end
+		return model
+	end
+
 	local W, H, D, T, S = t.CellWidth, t.CellHeight, t.CellDepth, t.WallThickness, t.SlabThickness
 	local cell = Grid.CellPosition(floor, column)
-	local band = Grid.BandOf(floor)
 	local rock = BAND_COLORS[band.Id] or BAND_COLORS.Mines
-	local model = newModel("D:" .. Grid.Key(floor, column), parent)
+	local model = newModel(name, parent)
 	model:SetAttribute("Floor", floor)
 	model:SetAttribute("Column", column)
 	local x0, x1 = cell.X - W / 2 - T, cell.X + W / 2 + T
@@ -319,18 +640,39 @@ local function buildDug(floor: number, column: number, parent: Instance): Model
 	if front then
 		CollectionService:AddTag(front, BunkerKit.FRONT_WALL_TAG)
 	end
-	lamp(model, cell, false)
+	lamp(model, cell, false, name)
+	return model
+end
+
+-- A rock cell's art, turned half a turn on alternate cells so the face doesn't repeat.
+local function rockArt(bandId: string, name: string, parent: Instance, floor: number, column: number): Model?
+	local source = art("Kit", `Kit_Rock_{bandId}`)
+	if not source then
+		return nil
+	end
+	local at = Grid.CellCFrame(floor, column)
+	if (floor + column) % 2 == 1 then
+		at *= HALF_TURN
+	end
+	local model = place(source, name, parent, at)
+	model:SetAttribute("Floor", floor)
+	model:SetAttribute("Column", column)
+	model:SetAttribute("Band", bandId)
 	return model
 end
 
 local function buildRock(floor: number, column: number, parent: Instance)
 	local t = Grid.Tuning()
 	local pitch = Grid.Pitch()
-	local cell = Grid.CellPosition(floor, column)
 	local band = Grid.BandOf(floor)
+	local key = Grid.Key(floor, column)
+	if rockArt(band.Id, key, parent, floor, column) then
+		return
+	end
+	local cell = Grid.CellPosition(floor, column)
 	local part = block(
 		parent,
-		Grid.Key(floor, column),
+		key,
 		Vector3.new(cell.X - pitch.X / 2, cell.Y - t.SlabThickness, cell.Z - pitch.Z / 2),
 		Vector3.new(cell.X + pitch.X / 2, cell.Y + t.CellHeight, cell.Z + pitch.Z / 2),
 		BAND_COLORS[band.Id] or BAND_COLORS.Mines,
@@ -345,6 +687,21 @@ end
 
 local function buildFrame(parent: Model)
 	local t = Grid.Tuning()
+	if art("Kit", "Kit_Rock_Mines") then
+		-- A ring of rock cells: the Mines above floor 1, the Source's rock under floor 10, and
+		-- each floor's band at the grid's two sides.
+		for floor = t.FloorMin - 1, t.FloorMax + 1 do
+			local outside = floor < t.FloorMin or floor > t.FloorMax
+			local bandId = if floor < t.FloorMin then "Mines" elseif floor > t.FloorMax then "SourceChamber" else Grid.BandOf(floor).Id
+			for column = t.ColumnMin - 1, t.ColumnMax + 1 do
+				if outside or column < t.ColumnMin or column > t.ColumnMax then
+					rockArt(bandId, `Frame {Grid.Key(floor, column)}`, parent, floor, column)
+				end
+			end
+		end
+		return
+	end
+
 	local pitch = Grid.Pitch()
 	local topCell = Grid.CellPosition(t.FloorMin, t.ColumnMin)
 	local bottomCell = Grid.CellPosition(t.FloorMax, t.ColumnMax)
@@ -363,7 +720,7 @@ local function buildFrame(parent: Model)
 	block(parent, "EdgeRight", Vector3.new(right, bottom, back), Vector3.new(right + EDGE, top + CRUST, front), crust, Enum.Material.Slate)
 end
 
--- Sync -----------------------------------------------------------------------------------
+-- Sync ---------------------------------------------------------------------------------------
 
 local function folders(root: Instance): Folders
 	local function child(name: string, className: string): Instance
@@ -418,14 +775,14 @@ function BunkerKit.Sync(bunker: Bunker.Bunker, root: Instance, dirty: { [string]
 		if not floor or not column or not Grid.OnGrid(floor, column) then
 			continue
 		end
-		local rockBlock = f.Rock:FindFirstChild(key)
+		local rock = f.Rock:FindFirstChild(key)
 		if bunker:State(floor, column) == "Rock" then
-			if not rockBlock then
+			if not rock then
 				buildRock(floor, column, f.Rock)
 			end
 		else
-			if rockBlock then
-				rockBlock:Destroy()
+			if rock then
+				rock:Destroy()
 			end
 			local unit = bunker:UnitAt(floor, column)
 			if unit then
@@ -459,6 +816,32 @@ function BunkerKit.Sync(bunker: Bunker.Bunker, root: Instance, dirty: { [string]
 			end
 		end
 	end
+end
+
+-- Queries ------------------------------------------------------------------------------------
+
+-- A room's gameplay point (an Attachment on its Sockets part), in the world.
+function BunkerKit.Socket(model: Instance, name: string): CFrame?
+	local holder = model:FindFirstChild("Sockets")
+	local attachment = if holder then holder:FindFirstChild(name) else nil
+	if attachment and attachment:IsA("Attachment") then
+		return attachment.WorldCFrame
+	end
+	return nil
+end
+
+-- A room's gameplay points whose names match a Lua pattern ("^WorkSpot%d+$"), or all.
+function BunkerKit.Sockets(model: Instance, pattern: string?): { [string]: CFrame }
+	local found: { [string]: CFrame } = {}
+	local holder = model:FindFirstChild("Sockets")
+	if holder then
+		for _, item in holder:GetChildren() do
+			if item:IsA("Attachment") and (pattern == nil or string.match(item.Name, pattern)) then
+				found[item.Name] = item.WorldCFrame
+			end
+		end
+	end
+	return found
 end
 
 -- Counts parts under the bunker (DevTools).

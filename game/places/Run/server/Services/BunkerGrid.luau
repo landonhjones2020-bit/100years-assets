@@ -363,6 +363,45 @@ local function registerCommands(dev: any)
 			return if ok then roomList() else `can't set the level: {why}`
 		end,
 	})
+	dev:Register("grid.sockets", {
+		Description = "A room's gameplay points (work spots, beds, valves...) and where they are.",
+		Usage = "grid.sockets <roomId>",
+		Run = function(_player, args): string?
+			local model = BunkerGrid:RoomModel(tostring(args[1] or ""))
+			if not model then
+				return "usage: grid.sockets <roomId> (see grid.rooms)"
+			end
+			local lines = {}
+			for name, at in BunkerKit.Sockets(model) do
+				local p = at.Position
+				table.insert(lines, string.format("%s (%.1f, %.1f, %.1f)", name, p.X, p.Y, p.Z))
+			end
+			table.sort(lines)
+			return `{model.Name}: {#lines} sockets\n{table.concat(lines, "\n")}`
+		end,
+	})
+	dev:Register("grid.art", {
+		Description = "Which units are built from the art kit and which from the graybox.",
+		Run = function(): string?
+			if not root then
+				return "no bunker world yet"
+			end
+			local art, gray = {}, {}
+			for _, folderName in { "Rooms", "Dug" } do
+				local folder = root:FindFirstChild(folderName)
+				for _, model in if folder then folder:GetChildren() else {} do
+					table.insert(if model:GetAttribute("Art") then art else gray, model.Name)
+				end
+			end
+			local lights = 0
+			for _, item in root:GetDescendants() do
+				if item:IsA("PointLight") then
+					lights += 1
+				end
+			end
+			return `art kit: {if BunkerKit.HasArt() then "yes" else "missing"}\nart: {table.concat(art, ", ")}\ngraybox: {table.concat(gray, ", ")}\n{lights} lights, {BunkerKit.PartCount(root)} parts`
+		end,
+	})
 	dev:Register("grid.rebuild", {
 		Description = "Rebuild the whole bunker world from the data.",
 		Run = function(): string?
@@ -415,7 +454,8 @@ function BunkerGrid:Start()
 		open += 1
 	end
 	log:Info(
-		"bunker built: %d rooms, %d open cells, %d parts in %.1f ms",
+		"bunker built from the %s: %d rooms, %d open cells, %d parts in %.1f ms",
+		if BunkerKit.HasArt() then "art kit" else "graybox",
 		#bunker:AllRooms(),
 		open,
 		BunkerKit.PartCount(folder),
