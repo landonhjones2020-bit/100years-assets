@@ -4,10 +4,11 @@ R15_TestWave,Animations/R15,clip,Setup,,,,,verified,106072736219880,pipeline tes
 Palette_Color,Palette,texture,Setup,,,,,in_studio,117311354483821,decal; image rbxassetid://131636360909441 (ServerStorage.Assets PaletteColor)
 Palette_Metalness,Palette,texture,Setup,,,,,in_studio,110154044758914,decal; image rbxassetid://92929300444943 (PaletteMetalness)
 Palette_Roughness,Palette,texture,Setup,,,,,in_studio,137250713243017,decal; image rbxassetid://133306500207344 (PaletteRoughness)
-Room_Kitchen_L1,Rooms,model,A0,,5000,,,planned,,"proposed A0 room: Kitchen level 1, one cell (shell 2,000 + furniture 3,000)"
-Weapon_ServiceRevolver,Weapons,model,A0,,1500,,,planned,,"proposed A0 weapon: chrome, gunmetal and walnut; grip and muzzle sockets"
-Monster_HollowMiner,Monsters,model,A0,,4000,,,planned,,"proposed A0 monster: Mines brute, segmented rig with Motor6Ds"
-Resident_Common,Residents,model,A0,,2500,,,planned,,"proposed A0 resident: R15 segmented kit, Work Overalls, tint skin"
-Resident_Walk,Animations/Resident,clip,A0,,,,,planned,,proposed A0 clip: resident walk
-HollowMiner_Attack,Animations/HollowMiner,clip,A0,,,,,planned,,proposed A0 clip: Hollow Miner attack
+Room_Kitchen_L1,Rooms,model,A0,30.52x15.77x29.7,3000,2992,brass;chrome;cream;gunmetal;hazard;mint;navy;pine;porcelain;rubber;rust;signal;steel;teal;walnut,exported,,"proposed A0 room: Kitchen level 1, one cell (shell 2,000 + furniture 3,000)"
+Weapon_ServiceRevolver,Weapons,model,A0,0.52x1.434x2.198,1500,796,brass;chrome;gunmetal;rubber;steel;walnut,exported,,"proposed A0 weapon: chrome, gunmetal and walnut; grip and muzzle sockets"
+Monster_HollowMiner,Monsters,model,A0,5.762x6.799x5.886,4000,2142,basalt;glow;gunmetal;hazard;leather;olive;pine;rubber;steel;stone,exported,,"proposed A0 monster: Mines brute, segmented rig with Motor6Ds"
+Resident_Common,Residents,model,A0,3.894x5.837x1.522,2500,2268,brass;cream;leather;navy;rubber;teal;tint,exported,,"proposed A0 resident: R15 segmented kit, Work Overalls, tint skin"
+HollowMiner_Attack,Animations/HollowMiner,clip,A0,,,,,exported,,"A0 clip: Hollow Miner overhead pickaxe strike, Action priority, Hit marker 0.7 s"
 UI_StyleTest,UI,ui,A0,,,,,planned,,"Landon 2026-11-07: themed UI, no generic Roblox look; Class Shop in The Frame + HUD skinned with the kit"
+R15_ResidentWalk,Animations/R15,clip,A0,,,,,exported,,"A0 clip: resident walk, R15 rig, Movement priority, 1 s loop"
+Kit_CellShell,Kit,model,A0,34x18x34,2000,1636,basalt;chrome;copper;cream;gunmetal;hazard;sandstone;signal;steel;teal,exported,,"A0 kit: one 32x16x32 cell shell, doors on both side walls; rooms sit inside it"

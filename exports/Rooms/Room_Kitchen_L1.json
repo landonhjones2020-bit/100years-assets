@@ -1,0 +1,450 @@
+{
+ "asset": "Room_Kitchen_L1",
+ "category": "Rooms",
+ "format": 1,
+ "size": [
+  30.52,
+  15.77,
+  29.7
+ ],
+ "tris": 2992,
+ "pivot": [
+  -0.66,
+  0.02,
+  -1.15
+ ],
+ "parts": [
+  {
+   "name": "Fridge",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "porcelain",
+    "rubber",
+    "steel"
+   ],
+   "offset": [
+    13.4,
+    3.547,
+    14.255
+   ],
+   "size": [
+    3.62,
+    7.105,
+    3.29
+   ],
+   "tris": 232
+  },
+  {
+   "name": "Stove",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "mint",
+    "navy",
+    "porcelain",
+    "rubber",
+    "signal"
+   ],
+   "offset": [
+    8.6,
+    2.438,
+    14.335
+   ],
+   "size": [
+    4.1,
+    4.675,
+    3.23
+   ],
+   "tris": 488
+  },
+  {
+   "name": "Counter",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "gunmetal",
+    "mint",
+    "porcelain",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.3,
+    2.325,
+    14.55
+   ],
+   "size": [
+    12.5,
+    4.65,
+    2.8
+   ],
+   "tris": 348
+  },
+  {
+   "name": "WallCabinets",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "mint",
+    "teal"
+   ],
+   "offset": [
+    0.3,
+    9.3,
+    15.12
+   ],
+   "size": [
+    12.2,
+    2.6,
+    1.76
+   ],
+   "tris": 176
+  },
+  {
+   "name": "Shelves",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "gunmetal",
+    "rust",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    -11.6,
+    4.338,
+    15.15
+   ],
+   "size": [
+    6.0,
+    8.675,
+    1.6
+   ],
+   "tris": 424
+  },
+  {
+   "name": "Table",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.365,
+    -1.0
+   ],
+   "size": [
+    6.12,
+    2.73,
+    3.72
+   ],
+   "tris": 120
+  },
+  {
+   "name": "Chairs",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    1.625,
+    -1.0
+   ],
+   "size": [
+    4.7,
+    3.25,
+    7.2
+   ],
+   "tris": 416
+  },
+  {
+   "name": "Rug",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "navy",
+    "porcelain"
+   ],
+   "offset": [
+    0.0,
+    0.047,
+    -1.0
+   ],
+   "size": [
+    12.6,
+    0.065,
+    9.6
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Lamps",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    13.414,
+    -1.0
+   ],
+   "size": [
+    5.9,
+    4.672,
+    1.9
+   ],
+   "tris": 136
+  },
+  {
+   "name": "LampBulbs",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    11.15,
+    -1.0
+   ],
+   "size": [
+    4.48,
+    0.64,
+    0.554
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Clock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "navy"
+   ],
+   "offset": [
+    15.808,
+    10.5,
+    6.0
+   ],
+   "size": [
+    0.224,
+    2.34,
+    2.34
+   ],
+   "tris": 140
+  },
+  {
+   "name": "Poster",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "navy",
+    "rust",
+    "signal",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    13.4,
+    11.0,
+    15.855
+   ],
+   "size": [
+    3.4,
+    4.4,
+    0.29
+   ],
+   "tris": 152
+  },
+  {
+   "name": "Crates",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -12.6,
+    2.5,
+    -10.675
+   ],
+   "size": [
+    2.94,
+    5.04,
+    6.05
+   ],
+   "tris": 204
+  }
+ ],
+ "meta": {
+  "room": "Kitchen",
+  "level": 1,
+  "workers": 2,
+  "shell": "Kit_CellShell"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Light1": {
+   "p": [
+    2.0,
+    10.9,
+    -1.0
+   ],
+   "yaw": 0.0
+  },
+  "Light2": {
+   "p": [
+    -2.0,
+    10.9,
+    -1.0
+   ],
+   "yaw": 0.0
+  },
+  "Seat1": {
+   "p": [
+    1.6,
+    0.0,
+    -3.75
+   ],
+   "yaw": 180.0
+  },
+  "Seat2": {
+   "p": [
+    -1.6,
+    0.0,
+    -3.75
+   ],
+   "yaw": 180.0
+  },
+  "Seat3": {
+   "p": [
+    1.6,
+    0.0,
+    1.75
+   ],
+   "yaw": 0.0
+  },
+  "Seat4": {
+   "p": [
+    -1.6,
+    0.0,
+    1.75
+   ],
+   "yaw": 0.0
+  },
+  "Table": {
+   "p": [
+    0.0,
+    0.0,
+    -1.0
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot1": {
+   "p": [
+    8.6,
+    0.0,
+    12.0
+   ],
+   "yaw": 180.0
+  },
+  "WorkSpot2": {
+   "p": [
+    0.6,
+    0.0,
+    12.4
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "51518e83a3cbc60d"
+}

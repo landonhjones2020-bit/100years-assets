@@ -27,6 +27,7 @@ local AssetSetup = {}
 local TOLERANCE = 0.01
 local FIDELITY: { [string]: Enum.CollisionFidelity } = {
 	none = Enum.CollisionFidelity.Box,
+	query = Enum.CollisionFidelity.Box,
 	box = Enum.CollisionFidelity.Box,
 	hull = Enum.CollisionFidelity.Hull,
 	precise = Enum.CollisionFidelity.PreciseConvexDecomposition,
@@ -84,10 +85,10 @@ function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchH
 				tostring(size), tostring(rel), tostring(offset)))
 			problems += 1
 		end
-		local collide = spec.collision ~= "none"
+		local collide = spec.collision ~= "none" and spec.collision ~= "query"
 		part.Anchored = true
 		part.CanCollide = collide
-		part.CanQuery = collide
+		part.CanQuery = collide or spec.collision == "query"
 		part.CanTouch = collide
 		part.CollisionFidelity = FIDELITY[spec.collision] or Enum.CollisionFidelity.Box
 		part.CastShadow = spec.castShadow

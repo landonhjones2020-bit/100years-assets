@@ -58,7 +58,7 @@ ASSET_NAME = re.compile(r"^[A-Z][A-Za-z0-9]*_[A-Z][A-Za-z0-9]*(_[A-Za-z0-9]+)?$"
 MATERIALS = {"SmoothPlastic", "Plastic", "Metal", "DiamondPlate", "Wood", "WoodPlanks", "Fabric",
              "Glass", "Neon", "Concrete", "Brick", "Slate", "Granite", "Pebble", "Cobblestone",
              "Rock", "Sand", "Ice", "Foil", "Marble", "CorrodedMetal", "ForceField"}
-COLLISION = {"none", "box", "hull", "precise"}
+COLLISION = {"none", "query", "box", "hull", "precise"}
 
 # ------------------------------------------------------------------------------------------
 # Palette
@@ -380,7 +380,9 @@ def tag(obj, part: str, swatch_name: str, mat: str = "SmoothPlastic", *, collisi
     swatch_name   palette swatch for all its faces (paint() overrides chosen faces).
     mat           Roblox Enum.Material. Use SmoothPlastic unless the part must glow (Neon)
                   or be see-through (Glass): roughness and metalness come from the palette.
-    collision     "none" | "box" | "hull" | "precise" -> CanCollide + CollisionFidelity.
+    collision     "none" (decoration: no collision, no queries) | "query" (no collision,
+                  but raycasts hit it: rig body parts, so guns and taps can find them) |
+                  "box" | "hull" | "precise" (CanCollide with that CollisionFidelity).
     smooth_angle  edges sharper than this stay hard; None = fully faceted.
     role          runtime role so code can find the part (keeps it a separate MeshPart).
     tint          preview colour for faces on the "tint" swatch (their real colour is set in
@@ -518,7 +520,12 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
     groups: dict[tuple, list] = {}
     order: list[tuple] = []
     for o in objs:
-        k = _group_key(o) if merge else ("__solo__", o["sf_part"])
+        if merge == "part":       # rooms and kits: one MeshPart per named piece of furniture
+            k = (o["sf_part"],) + _group_key(o)
+        elif merge:
+            k = _group_key(o)
+        else:
+            k = ("__solo__", o.name)
         if k not in groups:
             groups[k] = []
             order.append(k)
@@ -555,7 +562,14 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
             used.add(s["name"])
             for loop in f.loops:
                 loop[uv].uv = s["uv"]
-        name = grp[0].get("sf_bone") if (len(grp) > 1 and grp[0].get("sf_bone")) else grp[0]["sf_part"]
+        # A bone's main group (plain material, no role) takes the bone's name, so it becomes
+        # the rig part itself; glowing or see-through extras keep their own part names and
+        # are welded to that bone part in Studio.
+        first = grp[0]
+        main = (first.get("sf_bone") and not first.get("sf_role")
+                and first["sf_material"] not in ("Neon", "Glass", "ForceField")
+                and first["sf_transparency"] == 0)
+        name = first["sf_bone"] if main else first["sf_part"]
         while name in taken:
             name += "_"
         taken.add(name)
@@ -600,8 +614,8 @@ def _export_fbx(temps: list, path: str) -> None:
 
 
 def export_asset(asset: str, category: str, *, pivot=None, sockets: dict | None = None,
-                 meta: dict | None = None, rig=None, merge: bool = True,
-                 budget: int | None = None, step: str = "") -> dict:
+                 meta: dict | None = None, rig=None, rig_meta: dict | None = None,
+                 merge: bool = True, budget: int | None = None, step: str = "") -> dict:
     """Export every tagged object in the scene as one Roblox asset.
 
     asset     Category_Name[_Variant], e.g. "Prop_SupplyCrate". Studio Model name too.
@@ -611,7 +625,9 @@ def export_asset(asset: str, category: str, *, pivot=None, sockets: dict | None 
               Blender world space. Studio stores each as a CFrame attribute "Socket_<name>".
     rig       armature for rigid-part rigs: parts export in the rest pose, and the sidecar
               gets the joints so Studio can build the Motor6Ds.
-    merge     merge parts that share settings into one MeshPart (default; fewer parts).
+    merge     True: merge parts that share settings into one MeshPart (fewest parts; props,
+              weapons, rigs). "part": merge only pieces with the same part name, so each named
+              piece of furniture keeps its own collision box (rooms, kits). False: no merging.
     budget    triangle budget from the bible (Section 19); exceeding it is an error.
     """
     if not ASSET_NAME.match(asset):
@@ -687,7 +703,7 @@ def export_asset(asset: str, category: str, *, pivot=None, sockets: dict | None 
             out[sname] = {"p": [_r3(c) for c in to_roblox(Vector(loc) - pv)], "yaw": _r3(float(yaw))}
         doc["sockets"] = dict(sorted(out.items()))
     if rig is not None:
-        doc["rig"] = _rig_info(rig, pv)
+        doc["rig"] = _rig_info(rig, pv, rig_meta or {})
         rig.data.pose_position = "POSE"
         bpy.context.view_layer.update()
     with open(fbx_path, "rb") as f:
@@ -758,9 +774,24 @@ def _setup_render(res=512, samples=24, transparent=False):
     if sc.world is None:
         sc.world = bpy.data.worlds.new("World")
     sc.world.use_nodes = True
-    bg = sc.world.node_tree.nodes.get("Background")
+    nt = sc.world.node_tree
+    bg = nt.nodes.get("Background")
     bg.inputs[0].default_value = (0.30, 0.31, 0.34, 1)
     bg.inputs[1].default_value = 0.9
+    # Camera rays that miss everything see the floor colour, so wide room shots show no
+    # horizon; every other ray still gets the grey ambient light.
+    if "SF_CamBG" not in nt.nodes:
+        cam_bg = nt.nodes.new("ShaderNodeBackground")
+        cam_bg.name = "SF_CamBG"
+        lp = nt.nodes.new("ShaderNodeLightPath")
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        out = next(n for n in nt.nodes if n.type == "OUTPUT_WORLD")
+        nt.links.new(lp.outputs["Is Camera Ray"], mix.inputs[0])
+        nt.links.new(bg.outputs[0], mix.inputs[1])
+        nt.links.new(cam_bg.outputs[0], mix.inputs[2])
+        nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    nt.nodes["SF_CamBG"].inputs[0].default_value = (0.042, 0.047, 0.054, 1)
+    nt.nodes["SF_CamBG"].inputs[1].default_value = 1.0
 
 
 def _light(name, kind, loc, energy, size=2.0, target=(0, 0, 0)):
@@ -799,10 +830,14 @@ def _clear_preview_rig():
             bpy.data.objects.remove(o, do_unlink=True)
 
 
-def render_preview(asset: str, category: str, res=512, samples=24, merge=True) -> str:
-    """Two-panel preview of exactly what exports: (1) front 3/4 view, (2) rear 3/4 view with
-    a 1-stud reference cube. Built from the export meshes, so palette UVs are what you see."""
+def render_preview(asset: str, category: str, res=512, samples=24, merge=True,
+                   views=None, out_name: str | None = None) -> str:
+    """Preview of exactly what exports, one panel per view: by default (1) front 3/4 view,
+    (2) rear 3/4 view with a 1-stud reference cube. Built from the export meshes in the
+    current pose, so palette UVs (and a rig's pose) are what you see. views = [(yaw, pitch,
+    with_ref_cube), ...]; out_name overrides the file name (e.g. "<asset>_walk")."""
     from PIL import Image
+    views = views or ((-35, 26, False), (150, 22, True))
     out_dir = os.path.join(REPO, "previews", category)
     os.makedirs(out_dir, exist_ok=True)
     objs = _tagged_objects()
@@ -829,7 +864,7 @@ def render_preview(asset: str, category: str, res=512, samples=24, merge=True) -
     floor.data.materials.append(_flat_material("#3A3D42", roughness=0.9))
     _setup_render(res, samples)
     paths = []
-    for i, (yaw, pitch, with_ref) in enumerate(((-35, 26, False), (150, 22, True))):
+    for i, (yaw, pitch, with_ref) in enumerate(views):
         for o in list(bpy.context.scene.objects):
             if o.name.startswith(("PreviewCam", "Key", "Fill", "Rim", "RefCube")):
                 bpy.data.objects.remove(o, do_unlink=True)
@@ -855,7 +890,7 @@ def render_preview(asset: str, category: str, res=512, samples=24, merge=True) -
     combo = Image.new("RGB", (res * len(ims), res))
     for i, im in enumerate(ims):
         combo.paste(im, (i * res, 0))
-    out = os.path.join(out_dir, f"{asset}.png")
+    out = os.path.join(out_dir, f"{out_name or asset}.png")
     combo.save(out)
     for p in paths:
         os.remove(p)
@@ -904,13 +939,67 @@ def bind(obj, arm, bone: str):
     return obj
 
 
-def _rig_info(arm, pv: Vector) -> dict:
+def _rig_info(arm, pv: Vector, meta: dict) -> dict:
+    """Joints for Studio, Roblox axes relative to the pivot. meta may carry:
+    joint_names {bone: Motor6D name} (default "<bone>Joint"), root (root part name, default
+    "HumanoidRootPart"), hrp_size [x, y, z] and hrp_center (Blender xyz) for the root part,
+    hip_height, rig_type ("R15" or "Custom")."""
+    names = meta.get("joint_names", {})
     bones = []
     for b in arm.data.bones:  # parents come before children
         head_w = arm.matrix_world @ b.head_local
         bones.append({"name": b.name, "parent": b.parent.name if b.parent else None,
+                      "jointName": names.get(b.name, f"{b.name}Joint"),
                       "joint": [_r3(c) for c in to_roblox(head_w - pv)]})
-    return {"bones": bones}
+    info = {"bones": bones, "root": meta.get("root", "HumanoidRootPart"),
+            "rigType": meta.get("rig_type", "Custom")}
+    if "hrp_size" in meta:
+        info["hrpSize"] = [_r3(v) for v in meta["hrp_size"]]
+        info["hrpCenter"] = [_r3(c) for c in to_roblox(Vector(meta["hrp_center"]) - pv)]
+    if "hip_height" in meta:
+        info["hipHeight"] = _r3(meta["hip_height"])
+    return info
+
+
+def make_rig(name: str, joints: list[tuple]):
+    """Armature whose bones all point straight up from their joint, roll 0.
+
+    joints = [(bone, parent_or_None, (x, y, z) joint in Blender space), ...]. With every bone
+    upright, a bone's local axes are: X = world X (character's left), Y = up, Z = forward
+    (world -Y). So for limbs hanging down: forward swing = negative X rotation, knee bend =
+    positive X, left-arm raise outward = positive Z (right arm: negative Z), twist = Y.
+    """
+    return make_armature(name, [(b, p, h, (h[0], h[1], h[2] + 0.3)) for b, p, h in joints])
+
+
+R15_JOINTS = {  # joint name -> (part1/bone, parent bone)
+    "Root": ("LowerTorso", None), "Waist": ("UpperTorso", "LowerTorso"), "Neck": ("Head", "UpperTorso"),
+    "LeftShoulder": ("LeftUpperArm", "UpperTorso"), "LeftElbow": ("LeftLowerArm", "LeftUpperArm"),
+    "LeftWrist": ("LeftHand", "LeftLowerArm"), "RightShoulder": ("RightUpperArm", "UpperTorso"),
+    "RightElbow": ("RightLowerArm", "RightUpperArm"), "RightWrist": ("RightHand", "RightLowerArm"),
+    "LeftHip": ("LeftUpperLeg", "LowerTorso"), "LeftKnee": ("LeftLowerLeg", "LeftUpperLeg"),
+    "LeftAnkle": ("LeftFoot", "LeftLowerLeg"), "RightHip": ("RightUpperLeg", "LowerTorso"),
+    "RightKnee": ("RightLowerLeg", "RightUpperLeg"), "RightAnkle": ("RightFoot", "RightLowerLeg"),
+}
+
+
+def r15_rig(name: str = "R15"):
+    """The standard R15 skeleton measured in Studio (rigs/R15.json), in Blender space with
+    the ground at z = 0. Returns (armature, rig_meta for export_asset)."""
+    with open(os.path.join(REPO, "rigs", "R15.json")) as f:
+        r15 = json.load(f)
+    hip = r15["hipHeight"]
+    ground = -(hip + r15["hrp"]["size"][1] / 2)          # y of the ground, relative to the HRP centre
+
+    def to_b(p):                                         # Roblox (rel. HRP) -> Blender (ground z = 0)
+        return (-p[0], p[2], p[1] - ground)
+
+    joints = [(bone, parent, to_b(r15["joints"][jn]["pos"])) for jn, (bone, parent) in R15_JOINTS.items()]
+    arm = make_rig(name, joints)
+    meta = {"rig_type": "R15", "root": "HumanoidRootPart", "hip_height": hip,
+            "joint_names": {bone: jn for jn, (bone, _p) in R15_JOINTS.items()},
+            "hrp_size": r15["hrp"]["size"], "hrp_center": (0.0, 0.0, -ground)}
+    return arm, meta
 
 
 _EASE_STYLE = {"LINEAR": 0, "CONSTANT": 1, "ELASTIC": 2, "CUBIC": 3, "BOUNCE": 4, "BEZIER": 5,
@@ -974,13 +1063,17 @@ def _euler_for_roblox(R) -> tuple[float, float, float]:
     return (e.x, e.y, e.z)
 
 
-def export_clips(arm, rig_name: str, actions: list, root: str | None = None) -> list[str]:
+def export_clips(arm, rig_name: str, actions: list, root: str | None = None,
+                 markers: dict | None = None) -> list[str]:
     """Write each action as animations/<rig>/<clip>.json (keys in Roblox axes, relative to
     rest) and animations/<rig>/<clip>.rbxmx (KeyframeSequence for the Assets API).
 
-    root  name of the root part (e.g. "HumanoidRootPart") when it is not a bone itself;
-          it becomes the outer Pose that every bone hangs under.
+    root     name of the root part (e.g. "HumanoidRootPart") when it is not a bone itself;
+             it becomes the outer Pose that every bone hangs under.
+    markers  {clip name: {marker name: seconds}}, e.g. {"Attack": {"Hit": 0.667}}: written as
+             KeyframeMarkers (GetMarkerReachedSignal) and kept in the JSON for Config.
     """
+    markers = markers or {}
     scene = bpy.context.scene
     bones = [b.name for b in arm.data.bones]
     parent = {b.name: (b.parent.name if b.parent else root) for b in arm.data.bones}
@@ -1025,7 +1118,7 @@ def export_clips(arm, rig_name: str, actions: list, root: str | None = None) -> 
             per_bone[bname] = keys
         clip = {"rig": rig_name, "clip": act.name, "length": _r3((end - start) / fps),
                 "loop": bool(act.get("sf_loop", True)), "priority": act.get("sf_priority", "Action"),
-                "root": root, "parents": parent, "keys": per_bone}
+                "root": root, "parents": parent, "markers": markers.get(act.name, {}), "keys": per_bone}
         jpath = os.path.join(out_dir, f"{act.name}.json")
         with open(jpath, "w") as f:
             json.dump(clip, f, indent=1)
@@ -1114,9 +1207,20 @@ def write_keyframe_sequence(path: str, clip: dict) -> str:
                     f'<float name="Weight">{weight}</float></Properties>{kids}</Item>')
 
         poses = "".join(pose_xml(r) for r in sorted(roots))
+        marks = "".join(
+            f'<Item class="KeyframeMarker" referent="{nref()}"><Properties>'
+            f'<string name="Name">{escape(m)}</string><string name="Value"></string></Properties></Item>'
+            for m, mt in clip.get("markers", {}).items() if abs(mt - t) < 1e-3)
         frames.append(f'<Item class="Keyframe" referent="{nref()}"><Properties>'
                       f'<string name="Name">Keyframe</string><float name="Time">{_num(t)}</float>'
-                      f'</Properties>{poses}</Item>')
+                      f'</Properties>{poses}{marks}</Item>')
+    for m, mt in clip.get("markers", {}).items():   # a marker between keys gets its own keyframe
+        if not any(abs(mt - t) < 1e-3 for t in times):
+            frames.append(f'<Item class="Keyframe" referent="{nref()}"><Properties>'
+                          f'<string name="Name">{escape(m)}</string><float name="Time">{_num(mt)}</float>'
+                          f'</Properties><Item class="KeyframeMarker" referent="{nref()}"><Properties>'
+                          f'<string name="Name">{escape(m)}</string><string name="Value"></string>'
+                          f'</Properties></Item></Item>')
     # make sure the clip lasts its full length
     if times and clip["length"] - times[-1] > 1e-6:
         frames.append(f'<Item class="Keyframe" referent="{nref()}"><Properties>'

@@ -1,0 +1,589 @@
+{
+ "asset": "Resident_Common",
+ "category": "Residents",
+ "format": 1,
+ "size": [
+  3.894,
+  5.837,
+  1.522
+ ],
+ "tris": 2268,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "LowerTorso",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LowerTorso",
+   "tint": null,
+   "swatches": [
+    "brass",
+    "leather",
+    "teal"
+   ],
+   "offset": [
+    -0.085,
+    2.095,
+    0.021
+   ],
+   "size": [
+    2.15,
+    0.71,
+    1.18
+   ],
+   "tris": 176
+  },
+  {
+   "name": "UpperTorso",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "UpperTorso",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "navy",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    3.2,
+    0.023
+   ],
+   "size": [
+    2.092,
+    1.62,
+    1.154
+   ],
+   "tris": 264
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": "#C58F6A",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    0.0,
+    4.7,
+    -0.034
+   ],
+   "size": [
+    1.558,
+    1.62,
+    1.37
+   ],
+   "tris": 384
+  },
+  {
+   "name": "Head_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": "Hair",
+   "bone": "Head",
+   "tint": "#5B3A24",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    0.0,
+    5.2,
+    0.026
+   ],
+   "size": [
+    1.48,
+    1.201,
+    1.47
+   ],
+   "tris": 284
+  },
+  {
+   "name": "LeftUpperArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftUpperArm",
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -1.5,
+    3.468,
+    0.051
+   ],
+   "size": [
+    0.894,
+    1.095,
+    0.94
+   ],
+   "tris": 192
+  },
+  {
+   "name": "LeftLowerArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLowerArm",
+   "tint": "#C58F6A",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    -1.5,
+    2.58,
+    0.051
+   ],
+   "size": [
+    0.685,
+    0.8,
+    0.72
+   ],
+   "tris": 36
+  },
+  {
+   "name": "LeftHand",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftHand",
+   "tint": "#C58F6A",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    -1.53,
+    1.98,
+    -0.019
+   ],
+   "size": [
+    0.5,
+    0.52,
+    0.66
+   ],
+   "tris": 88
+  },
+  {
+   "name": "RightUpperArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightUpperArm",
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    1.5,
+    3.468,
+    0.051
+   ],
+   "size": [
+    0.894,
+    1.095,
+    0.94
+   ],
+   "tris": 192
+  },
+  {
+   "name": "RightLowerArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLowerArm",
+   "tint": "#C58F6A",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    1.5,
+    2.58,
+    0.051
+   ],
+   "size": [
+    0.685,
+    0.8,
+    0.72
+   ],
+   "tris": 36
+  },
+  {
+   "name": "RightHand",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightHand",
+   "tint": "#C58F6A",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    1.53,
+    1.98,
+    -0.019
+   ],
+   "size": [
+    0.5,
+    0.52,
+    0.66
+   ],
+   "tris": 88
+  },
+  {
+   "name": "LeftUpperLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftUpperLeg",
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -0.5,
+    1.6,
+    0.051
+   ],
+   "size": [
+    0.9,
+    0.98,
+    0.96
+   ],
+   "tris": 44
+  },
+  {
+   "name": "LeftLowerLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLowerLeg",
+   "tint": null,
+   "swatches": [
+    "leather",
+    "teal"
+   ],
+   "offset": [
+    -0.5,
+    0.725,
+    0.051
+   ],
+   "size": [
+    0.9,
+    0.95,
+    0.98
+   ],
+   "tris": 132
+  },
+  {
+   "name": "LeftFoot",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFoot",
+   "tint": null,
+   "swatches": [
+    "leather",
+    "rubber"
+   ],
+   "offset": [
+    -0.5,
+    0.195,
+    -0.119
+   ],
+   "size": [
+    0.78,
+    0.39,
+    1.18
+   ],
+   "tris": 88
+  },
+  {
+   "name": "RightUpperLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightUpperLeg",
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    0.5,
+    1.6,
+    0.051
+   ],
+   "size": [
+    0.9,
+    0.98,
+    0.96
+   ],
+   "tris": 44
+  },
+  {
+   "name": "RightLowerLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLowerLeg",
+   "tint": null,
+   "swatches": [
+    "leather",
+    "teal"
+   ],
+   "offset": [
+    0.5,
+    0.725,
+    0.051
+   ],
+   "size": [
+    0.9,
+    0.95,
+    0.98
+   ],
+   "tris": 132
+  },
+  {
+   "name": "RightFoot",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFoot",
+   "tint": null,
+   "swatches": [
+    "leather",
+    "rubber"
+   ],
+   "offset": [
+    0.5,
+    0.195,
+    -0.119
+   ],
+   "size": [
+    0.78,
+    0.39,
+    1.18
+   ],
+   "tris": 88
+  }
+ ],
+ "meta": {
+  "outfit": "Work Overalls",
+  "face": "Face_Resident_Smile",
+  "faceDecalFace": "Front"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "LowerTorso",
+    "parent": null,
+    "jointName": "Root",
+    "joint": [
+     0.0,
+     2.0,
+     0.051
+    ]
+   },
+   {
+    "name": "UpperTorso",
+    "parent": "LowerTorso",
+    "jointName": "Waist",
+    "joint": [
+     0.0,
+     2.4,
+     0.051
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "UpperTorso",
+    "jointName": "Neck",
+    "joint": [
+     0.0,
+     4.0,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftUpperArm",
+    "parent": "UpperTorso",
+    "jointName": "LeftShoulder",
+    "joint": [
+     -1.0,
+     3.763,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftLowerArm",
+    "parent": "LeftUpperArm",
+    "jointName": "LeftElbow",
+    "joint": [
+     -1.5,
+     3.035,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftHand",
+    "parent": "LeftLowerArm",
+    "jointName": "LeftWrist",
+    "joint": [
+     -1.5,
+     2.275,
+     0.051
+    ]
+   },
+   {
+    "name": "RightUpperArm",
+    "parent": "UpperTorso",
+    "jointName": "RightShoulder",
+    "joint": [
+     1.0,
+     3.763,
+     0.051
+    ]
+   },
+   {
+    "name": "RightLowerArm",
+    "parent": "RightUpperArm",
+    "jointName": "RightElbow",
+    "joint": [
+     1.5,
+     3.035,
+     0.051
+    ]
+   },
+   {
+    "name": "RightHand",
+    "parent": "RightLowerArm",
+    "jointName": "RightWrist",
+    "joint": [
+     1.5,
+     2.275,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftUpperLeg",
+    "parent": "LowerTorso",
+    "jointName": "LeftHip",
+    "joint": [
+     -0.5,
+     2.0,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftLowerLeg",
+    "parent": "LeftUpperLeg",
+    "jointName": "LeftKnee",
+    "joint": [
+     -0.5,
+     1.178,
+     0.051
+    ]
+   },
+   {
+    "name": "LeftFoot",
+    "parent": "LeftLowerLeg",
+    "jointName": "LeftAnkle",
+    "joint": [
+     -0.5,
+     0.252,
+     0.051
+    ]
+   },
+   {
+    "name": "RightUpperLeg",
+    "parent": "LowerTorso",
+    "jointName": "RightHip",
+    "joint": [
+     0.5,
+     2.0,
+     0.051
+    ]
+   },
+   {
+    "name": "RightLowerLeg",
+    "parent": "RightUpperLeg",
+    "jointName": "RightKnee",
+    "joint": [
+     0.5,
+     1.178,
+     0.051
+    ]
+   },
+   {
+    "name": "RightFoot",
+    "parent": "RightLowerLeg",
+    "jointName": "RightAnkle",
+    "joint": [
+     0.5,
+     0.252,
+     0.051
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "R15",
+  "hrpSize": [
+   2,
+   2,
+   1
+  ],
+  "hrpCenter": [
+   0.0,
+   3.0,
+   0.051
+  ],
+  "hipHeight": 2
+ },
+ "fbx_sha1": "c813249f840a8c60"
+}
