@@ -31,7 +31,8 @@ def sidecar(asset: str) -> dict:
     d["parts"] = [{k: v for k, v in p.items() if v is not None} for p in d["parts"]]
     for p in d["parts"]:
         p["swatches"] = p.get("swatches", [])[:1]
-    d.pop("export", None)
+    for unused in ("export", "meta", "format", "pivot"):     # AssetSetup never reads these
+        d.pop(unused, None)
     return d
 
 
