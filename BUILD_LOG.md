@@ -18,6 +18,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 5: over-the-shoulder camera, wall fade, zoom caps (both places) | ✅ done 2026-11-08 | Run and Lobby playtests with real key and mouse-button presses; mouse, stick and touch look still need a person; `game/reports/P05_Camera.md`, `previews/Game/P05_*.jpg` |
 | Landon's answers to the Prompt 3 and 4 questions | ✅ built and in the bible 2026-11-08 | Run playtest (boss and final Surges, resting) and data tests (HP per cell); addenda in `P03_RunLifecycle.md` and `P04_BunkerGrid.md` |
 | Prompt 6: The Frame and HUD skeleton (Frame both places, HUD in Run) | ✅ built 2026-11-08, waiting for Landon's AutoScale Lite pass | Run and Lobby playtests with real clicks and keys; `game/reports/P06_FrameHUD.md`, `previews/Game/P06_Studio_sheet.jpg` |
+| Prompt 7: Command View (Run) | ✅ done 2026-11-08 | Run playtests with real keys, clicks, drags and the wheel, plus graphics level 1; Lobby start check; gamepad and touch still need a person; `game/reports/P07_CommandView.md`, `previews/Game/P07_Studio_sheet.jpg` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -34,6 +35,58 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 7, the Command View
+
+Game code builds `p7-009237e` to `p7-719607b`. The last one is code asset 95026446991297
+revision 21, installed in Run and Lobby: StructureCheck 0 errors (Run 282 checks, Lobby 206),
+68 data tests passed. The Frame's Command View page went in as a patch (both places), plus an
+in-place patch that clips zone C.
+
+**Done**
+* Code:
+  * CommandViewController (docked Frame, camera, pan, zoom, picking, room, open-cell and rock
+    details, the build menu, overlays, ghosts, blinking labels, the damage edge);
+  * PingService with the `PingCell` and `CellPinged` remotes, and pings on the mini-map;
+  * Rules.CommandView and Bunker.FromSnapshot;
+  * `cv.*` and `cell.ping` dev commands.
+* Studio: `Cabinet.Pages.CommandView`, `DamageEdge` and the view's templates in both places'
+  Frame; `Templates.MapPing` in the HUD (Run).
+
+**Verified in Studio**
+* Opening and closing:
+  * a real Tab, and a real click on the HUD button (Left Alt held), opened it;
+  * Tab and Backspace closed it, and the camera came back to the shoulder.
+* Picking a room, an open cell and rock with real clicks gave the right panels. A real click on
+  Upgrade armed "PROPOSE LEVEL 2", greyed out.
+* Moving the view: drag, D and the wheel move it, and the held character didn't move.
+* Pings: the Ping button and G both reached the server, and the pin showed in the view and on
+  the mini-map.
+* Two hits flashed the edge twice.
+* Graphics level 1 draws the bunker (see Findings 1).
+* Screenshots: `previews/Game/P07_Studio_*.jpg`, sheet `P07_Studio_sheet.jpg`.
+
+**Findings**
+1. **Draw distance.** At the lowest graphics level Roblox draws parts only to about 500 studs
+   (level 2: about 800). The first camera, 794 studs out, showed an empty view there. The
+   camera now stops at 440 studs and widens its field of view when zooming out.
+2. **Studio's input tool** gives y below the 87-pixel top bar (y 400 arrived as 487 in
+   `GetMouseLocation`). The code was right; tests click at GUI coordinates.
+3. Marks, labels and pings had been centred on the cell's floor line (`Grid.CellPosition` is
+   the interior floor). They now cover the interior, floor to ceiling.
+4. The overlay legend sat under the build menu's 19 rows; it now heads the detail panel.
+5. **Roblox's Select button.** Roblox takes the gamepad's Select (View) button for its own UI
+   selection unless `GuiService.AutoSelectGuiEnabled` is off. It is now off; this still needs
+   a real controller.
+
+**Landon to do**
+* Answer the two Bible Questions in `game/reports/P07_CommandView.md`:
+  1. Tab and the player list;
+  2. the widest view: pan, or zoom out to the full width with perspective.
+* On a phone with graphics at 1, open the Command View and check that the bunker draws and
+  that a drag pans without walking the character.
+* With a controller: the View button opens it; the sticks, A and D-pad up work.
+* The AutoScale Lite pass now covers the Command View page too (Frame, both places).
 
 ## 2026-11-08 (late night): Prompt 6, The Frame and the HUD
 

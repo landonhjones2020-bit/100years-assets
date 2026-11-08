@@ -1,7 +1,7 @@
 {
- "built": "2026-11-08T22:38:38Z",
- "commit": "c29648ba805a9c20e01db68007b2009481c58984",
- "label": "p6-c29648b",
+ "built": "2026-11-08T23:22:19Z",
+ "commit": "719607b8aa49fa790ddcadd79f04cb999fd312a8",
+ "label": "p7-719607b",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -177,7 +177,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "4925584b"
+    "Hash": "ee69cb68"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -202,12 +202,12 @@
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "f84078cc"
+    "Hash": "a85d7772"
    },
    "ReplicatedStorage.Shared.Rules.Bunker": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Bunker.luau",
-    "Hash": "4eb4c587"
+    "Hash": "821b99ef"
    },
    "ReplicatedStorage.Shared.Rules.CameraRig": {
     "Class": "ModuleScript",
@@ -218,6 +218,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Clock.luau",
     "Hash": "1bb3659b"
+   },
+   "ReplicatedStorage.Shared.Rules.CommandView": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/CommandView.luau",
+    "Hash": "37fb85c5"
    },
    "ReplicatedStorage.Shared.Rules.Grid": {
     "Class": "ModuleScript",
@@ -242,7 +247,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "24f83021"
+    "Hash": "b310069d"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -292,12 +297,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "98293fdb"
+    "Hash": "9ea8fb0e"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "db3ec0c2"
+    "Hash": "1d721280"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -327,7 +332,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "678ef45b"
+    "Hash": "7520c432"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -339,25 +344,30 @@
     "From": "game/client/Controllers/CameraController.luau",
     "Hash": "d694dc7f"
    },
+   "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/CommandViewController.luau",
+    "Hash": "831eddeb"
+   },
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/DevController.luau",
-    "Hash": "e3acc3e3"
+    "Hash": "498fce6f"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "9012843a"
+    "Hash": "fefb9815"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/InputController.luau",
-    "Hash": "2249cea7"
+    "Hash": "1f320952"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.MiniMapController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/MiniMapController.luau",
-    "Hash": "0bc72741"
+    "Hash": "27c700d1"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",
@@ -367,7 +377,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "42602de7"
+    "Hash": "37e3f00d"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
@@ -564,7 +574,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "4925584b"
+    "Hash": "ee69cb68"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -589,12 +599,12 @@
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "f84078cc"
+    "Hash": "a85d7772"
    },
    "ReplicatedStorage.Shared.Rules.Bunker": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Bunker.luau",
-    "Hash": "4eb4c587"
+    "Hash": "821b99ef"
    },
    "ReplicatedStorage.Shared.Rules.CameraRig": {
     "Class": "ModuleScript",
@@ -605,6 +615,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Clock.luau",
     "Hash": "1bb3659b"
+   },
+   "ReplicatedStorage.Shared.Rules.CommandView": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/CommandView.luau",
+    "Hash": "37fb85c5"
    },
    "ReplicatedStorage.Shared.Rules.Grid": {
     "Class": "ModuleScript",
@@ -629,7 +644,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "24f83021"
+    "Hash": "b310069d"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -679,12 +694,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "98293fdb"
+    "Hash": "9ea8fb0e"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "db3ec0c2"
+    "Hash": "1d721280"
    },
    "ServerScriptService.Lib.BunkerKit": {
     "Class": "ModuleScript",
@@ -716,6 +731,11 @@
     "From": "game/places/Run/server/Services/ObjectiveService.luau",
     "Hash": "38bc4259"
    },
+   "ServerScriptService.Services.PingService": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Services/PingService.luau",
+    "Hash": "3e354418"
+   },
    "ServerScriptService.Services.ProfileService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/ProfileService.luau",
@@ -739,7 +759,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "678ef45b"
+    "Hash": "7520c432"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -751,25 +771,30 @@
     "From": "game/client/Controllers/CameraController.luau",
     "Hash": "d694dc7f"
    },
+   "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/CommandViewController.luau",
+    "Hash": "831eddeb"
+   },
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/DevController.luau",
-    "Hash": "e3acc3e3"
+    "Hash": "498fce6f"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "9012843a"
+    "Hash": "fefb9815"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/InputController.luau",
-    "Hash": "2249cea7"
+    "Hash": "1f320952"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.MiniMapController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/MiniMapController.luau",
-    "Hash": "0bc72741"
+    "Hash": "27c700d1"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",
@@ -779,7 +804,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "42602de7"
+    "Hash": "37e3f00d"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
