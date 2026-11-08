@@ -45,6 +45,7 @@ local Bunker = require(Shared.Rules.Bunker)
 local CV = require(Shared.Rules.CommandView)
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
+local Construction = require(Shared.Rules.Construction)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
@@ -255,7 +256,59 @@ end
 
 local function context(): CV.Context
 	local era = table.find(Config.Ids("Eras"), RunState.Get("Era") or "") or 1
-	return { Era = era, Deepest = currentBunker():DeepestFloor(), Unlocked = nil }
+	local unlocked = {}
+	for roomType in replica:All("Unlocked") do
+		unlocked[roomType] = true
+	end
+	return { Era = era, Deepest = currentBunker():DeepestFloor(), Unlocked = unlocked }
+end
+
+-- The stockpile as EconomyService replicates it (RunState, one value per resource).
+local function stockNow(): { [string]: number }
+	local stock = {}
+	for _, id in Config.Ids("Resources") do
+		if RunState.Fields[id] then
+			local value = RunState.Get(id)
+			if type(value) == "number" then
+				stock[id] = value
+			end
+		end
+	end
+	return stock
+end
+
+local function covers(thing: any, floor: number, column: number): boolean
+	return type(thing) == "table" and thing.Floor == floor and type(thing.Column) == "number"
+		and column >= thing.Column and column < thing.Column + (thing.Span or 1)
+end
+
+-- The construction site on a cell (BuildService's Sites collection), if any.
+local function siteAt(floor: number, column: number): any
+	for _, site in replica:All("Sites") do
+		if covers(site, floor, column) then
+			return site
+		end
+	end
+	return nil
+end
+
+-- The open vote (live or waiting) whose proposal covers a cell, if any.
+local function voteAt(floor: number, column: number): any
+	for _, vote in replica:All("Votes") do
+		if type(vote) == "table" and (vote.Status == "Live" or vote.Status == "Queued") and covers(vote.Subject, floor, column) then
+			return vote
+		end
+	end
+	return nil
+end
+
+-- "120 SCRAP" when the stockpile can pay, else "120 SCRAP · 40 SHORT", and whether it can.
+local function costLine(costs: { [string]: number }): (string, boolean)
+	local ok, short, missing = Construction.CanAfford(costs, stockNow())
+	if ok or not short then
+		return CV.CostText(costs), true
+	end
+	return `{CV.CostText(costs)}  ·  {missing} {string.upper(Config.Get("Resources", short).Name)} SHORT`, false
 end
 
 local function roomName(roomType: string): string
@@ -395,10 +448,14 @@ local function setMainAction()
 		ui:SetMainAction(nil)
 		return
 	end
-	local label = if current.Action == "Build" then `Propose {roomName(current.RoomType or "")}`
-		elseif current.Action == "Upgrade" then `Propose level {current.Level}`
-		elseif current.Action == "Merge" then "Propose merge"
-		else "Propose teardown"
+	-- solo runs have no votes (Section 8, rule 6): the choice applies at once
+	local verb = if (RunState.Get("ReadyNeeded") or 1) <= 1 then
+		(if current.Action == "Build" then "Build" elseif current.Action == "Upgrade" then "Upgrade to" elseif current.Action == "Merge" then "Merge" else "Tear down")
+		else "Propose"
+	local label = if current.Action == "Build" then `{verb} {roomName(current.RoomType or "")}`
+		elseif current.Action == "Upgrade" then (if verb == "Propose" then `Propose level {current.Level}` else `Upgrade to level {current.Level}`)
+		elseif current.Action == "Merge" then (if verb == "Propose" then "Propose merge" else "Merge")
+		else (if verb == "Propose" then "Propose teardown" else "Tear down")
 	local handler = handlers[current.Action]
 	ui:SetMainAction({
 		Label = label,
@@ -407,6 +464,9 @@ local function setMainAction()
 			local h = handlers[current.Action]
 			if h then
 				h(current)
+				-- proposed: the panel shows the proposal once the vote replicates
+				choice = nil
+				refreshDetail()
 			end
 		end,
 	})
@@ -430,16 +490,25 @@ local function showRoom(roomId: string)
 		section(3, "Output", `{info.Output.Base} {resource.Name} per cell a cycle at level 1, with average workers`)
 	end
 	section(4, "What it does", info.Text)
+	-- a proposal already open on this room: no second one until it closes (Section 8)
+	local openVote = voteAt(room.Floor, room.Column)
+	if openVote then
+		section(5, "Proposal open", `{openVote.ProposerName}: {openVote.Title}. Vote on the banner.`)
+	end
 	local order = 1
 	if room.Level < 3 then
 		local nextLevel = room.Level + 1
-		local costs = {}
-		for resource, amount in info.Costs[nextLevel] or {} do
-			costs[resource] = amount * room.Span
+		local costs = Construction.CostsAt(room.Type, nextLevel, room.Span)
+		local value, affordable = costLine(costs)
+		local research = Construction.ResearchFor(room.Type, nextLevel)
+		local have = RunState.Get("Research") or 0
+		local enabled = affordable and have >= research and not openVote
+		if research > 0 then
+			value = if affordable and have < research then `Needs {research} Lab research ({math.floor(have)} so far)`
+				else `{value}  ·  {research} LAB RESEARCH`
 		end
-		local research = if nextLevel == 3 and info.Research then `  ·  {info.Research} LAB RESEARCH` else ""
-		optionRow(order, `Upgrade to level {nextLevel}`, CV.CostText(costs) .. research, true,
-			{ Action = "Upgrade", Floor = room.Floor, Column = room.Column, RoomId = roomId, Level = nextLevel })
+		optionRow(order, `Upgrade to level {nextLevel}`, value, enabled,
+			if enabled then { Action = "Upgrade", Floor = room.Floor, Column = room.Column, RoomId = roomId, Level = nextLevel } else nil)
 		order += 1
 	end
 	for _, column in { room.Column - 1, room.Column + room.Span } do
@@ -448,21 +517,38 @@ local function showRoom(roomId: string)
 		if other and other.Id ~= roomId then
 			local ok, why = b:CanMerge(roomId, other.Id)
 			if ok or other.Type == room.Type then
-				optionRow(order, `Merge with the {roomName(other.Type)}`, if ok then `{room.Span + other.Span} cells together` else sentence(why or ""), ok,
-					{ Action = "Merge", Floor = room.Floor, Column = room.Column, RoomId = roomId, Other = other.Id })
+				local can = ok and not openVote and not voteAt(other.Floor, other.Column)
+				optionRow(order, `Merge with the {roomName(other.Type)}`, if ok then `{room.Span + other.Span} cells together` else sentence(why or ""), can,
+					if can then { Action = "Merge", Floor = room.Floor, Column = room.Column, RoomId = roomId, Other = other.Id } else nil)
 				order += 1
 			end
 		end
 	end
 	local canRemove, why = b:CanRemove(roomId)
-	optionRow(order, "Tear down", if canRemove then "Its cells become open cells again" else (why or ""), canRemove,
-		{ Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId })
+	local can = canRemove and not openVote
+	optionRow(order, "Tear down", if canRemove then "Its cells become open cells again" else sentence(why or ""), can,
+		if can then { Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId } else nil)
 end
 
 local function showOpenCell(floor: number, column: number)
 	local detail = part("Cabinet.Pages.CommandView.Detail")
-	detail:FindFirstChild("Name").Text = "OPEN CELL"
 	detail:FindFirstChild("Sub").Text = `FLOOR {floor}  ·  COLUMN {column}  ·  {string.upper(Grid.BandOf(floor).Name)}`
+	local site = siteAt(floor, column)
+	if site then
+		detail:FindFirstChild("Name").Text = "UNDER CONSTRUCTION"
+		section(1, "Building", `A {roomName(site.Type)}: {math.floor((site.Progress or 0) * 100)}% built.`)
+		section(2, "Help", if (site.Helpers or 0) > 0
+			then `{site.Helpers} helping; each one builds it 25% faster.`
+			else "Stand in the cell to build it faster.")
+		return
+	end
+	local vote = voteAt(floor, column)
+	if vote then
+		detail:FindFirstChild("Name").Text = "PROPOSED"
+		section(1, "Vote", `{vote.ProposerName}: {vote.Title}. Vote on the banner.`)
+		return
+	end
+	detail:FindFirstChild("Name").Text = "OPEN CELL"
 	section(1, "Build here", "Pick a room type, then propose it to the team.")
 	local b = currentBunker()
 	local ctx = context()
@@ -477,8 +563,9 @@ local function showOpenCell(floor: number, column: number)
 	local order = 1
 	for _, entry in available do
 		local info = Config.Get("Rooms", entry.Type)
-		optionRow(order, info.Name, CV.CostText(info.Costs[1]), true,
-			{ Action = "Build", Floor = floor, Column = column, RoomType = entry.Type })
+		local value, affordable = costLine(Construction.CostsAt(entry.Type, 1))
+		optionRow(order, info.Name, value, affordable,
+			if affordable then { Action = "Build", Floor = floor, Column = column, RoomType = entry.Type } else nil)
 		order += 1
 	end
 	for _, entry in locked do
@@ -529,16 +616,23 @@ local function showOverlayLegend()
 	section(0, `{tab} overlay`, if overlays[tab] then text else `{text} No readings yet.`)
 end
 
+local lastRefreshed: string? = nil -- the selection the panel last showed
+
 refreshDetail = function()
 	if not open then
 		return
 	end
+	-- a refresh of the same selection (a vote's tally, a site's progress) keeps the menu's scroll
+	local options = part("Cabinet.Pages.CommandView.Detail.Options")
+	local key = if selected then Grid.Key(selected[1], selected[2]) else ""
+	local scroll = if key == lastRefreshed then options.CanvasPosition else Vector2.zero
+	lastRefreshed = key
 	for _, connection in rowConnections do
 		connection:Disconnect()
 	end
 	table.clear(rowConnections)
 	clear(part("Cabinet.Pages.CommandView.Detail.Body"))
-	clear(part("Cabinet.Pages.CommandView.Detail.Options"))
+	clear(options)
 	local cell = selected
 	if not cell then
 		choice = nil
@@ -556,6 +650,11 @@ refreshDetail = function()
 	end
 	showOverlayLegend()
 	setMainAction()
+	if scroll ~= Vector2.zero then
+		task.defer(function()
+			options.CanvasPosition = scroll -- after the list layout has sized the canvas again
+		end)
+	end
 end
 
 -- Selecting and pinging -------------------------------------------------------------------------
@@ -991,6 +1090,16 @@ function CommandViewController:ShowGhost(id: string, floor: number, column: numb
 	ghosts[id] = { Frame = mark, Floor = floor, Column = column, Span = span }
 end
 
+-- Changes a ghost's label (a site's progress: "KITCHEN 45%").
+function CommandViewController:SetGhostLabel(id: string, label: string)
+	local ghost = ghosts[id]
+	local text = ghost and ghost.Frame:FindFirstChild("Label")
+	if text then
+		text.Text = string.upper(label)
+		text.Visible = true
+	end
+end
+
 function CommandViewController:HideGhost(id: string)
 	local ghost = ghosts[id]
 	if ghost then
@@ -1100,6 +1209,30 @@ function CommandViewController:Start()
 			refreshDetail()
 		end
 	end)
+	-- sites, votes, unlocks and the stockpile change what the panel offers: refresh it, at most
+	-- twice a second
+	local pending = false
+	local function soon()
+		if open and not pending then
+			pending = true
+			task.delay(0.5, function()
+				pending = false
+				if open then
+					refreshDetail()
+				end
+			end)
+		end
+	end
+	for _, name in { "Sites", "Votes", "Unlocked" } do
+		replica:Changed(name):Connect(soon)
+	end
+	for _, id in Config.Ids("Resources") do
+		if RunState.Fields[id] then
+			RunState.Changed(id):Connect(soon)
+		end
+	end
+	RunState.Changed("Research"):Connect(soon)
+	RunState.Changed("ReadyNeeded"):Connect(soon)
 	Remotes.OnClient("CellPinged", onPinged)
 	CollectionService:GetInstanceAddedSignal(FRONT_WALL_TAG):Connect(function(item: Instance)
 		if open and item:IsA("BasePart") then

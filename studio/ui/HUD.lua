@@ -65,17 +65,11 @@ local ready = button(sg, "Ready", { pos = { 0.606, 0.022 }, size = { 0.08, 0.064
 new("ImageLabel", ready.Content, "Lamp", { pos = { 0.16, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.36 }, aspect = 1, dom = "H",
 	sprite = "Lamp_Off" })
 text(ready.Content, "Label", "READY", { pos = { 0.28, 0.2 }, size = { 0.44, 0.42 }, font = F.label, color = COL.cream })
+--@include HUD_ReadyKey.lua
 text(ready.Content, "Count", "", { pos = { 0.28, 0.58 }, size = { 0.44, 0.24 }, font = F.num, color = COL.cream, transp = 0.2 })
 
--- Under the clock: the vote telegram (Prompt 8), then the full-width banner
-local vote = new("ImageLabel", sg, "VoteBanner", { pos = { 0.5, 0.19 }, anchor = { 0.5, 0 }, size = { 0.36, 0.088 }, aspect = 7.28,
-	sprite = "Telegram", visible = false })
-text(vote, "Proposal", "", { pos = { 0.045, 0.36 }, size = { 0.58, 0.26 }, font = F.typed, color = COL.navy })
-text(vote, "Tally", "", { pos = { 0.045, 0.63 }, size = { 0.4, 0.2 }, font = F.num, color = COL.ink })
-for _, v in { { "Yes", "YES", 0.65, "Button_Leaf_Up", "Button_Leaf_Down" }, { "No", "NO", 0.815, "Button_Rust_Up", "Button_Rust_Down" } } do
-	local b = button(vote, v[1], { pos = { v[3], 0.22 }, size = { 0.15, 0.62 } }, { v[4], v[5] })
-	text(b.Content, "Label", v[2], { pos = { 0.15, 0.22 }, size = { 0.7, 0.56 }, font = F.title, color = COL.cream, alignX = CENTER })
-end
+-- Under the clock: the full-width banner. The vote telegram sits between them in its own
+-- ScreenGui (studio/ui/Votes.lua), so it stays up while a Frame screen hides the HUD.
 local banner = new("ImageLabel", sg, "Banner", { pos = { 0.5, 0.29 }, anchor = { 0.5, 0 }, size = { 0.62, 0.066 }, sprite = "Panel_Navy",
 	visible = false, z = 5 })
 new("ImageLabel", banner, "Icon", { pos = { 0.02, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.62 }, aspect = 1, dom = "H",

@@ -65,6 +65,26 @@ local DEFINITIONS: { [string]: Definition } = {
 		Doc = "Ping a bunker cell (floor, column) from the Command View; PingService shows it to the team.",
 	},
 
+	Propose = {
+		To = "Server",
+		Place = "Run",
+		Args = {
+			Check.enum({ "Build", "Upgrade", "Merge", "TearDown" }),
+			Check.integer(1, 10),
+			Check.integer(-6, 6),
+			Check.string(24, { pattern = "^%w*$" }),
+		},
+		Rate = { Burst = 3, PerSecond = 0.5 },
+		Doc = "Propose construction from the Command View: action, floor, column, and the room type (Build) or the other room's id (Merge); BuildService checks it and VoteService puts it to the team.",
+	},
+	CastVote = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^V%d+$", min = 2 }), Check.enum({ "Yes", "No" }) },
+		Rate = { Burst = 6, PerSecond = 2 },
+		Doc = "Vote yes or no on the vote on the banner (VoteService); a player can change their vote until it closes.",
+	},
+
 	-- server -> client
 	Delta = {
 		To = "Client",
@@ -73,6 +93,10 @@ local DEFINITIONS: { [string]: Definition } = {
 	Notice = {
 		To = "Client",
 		Doc = "A text message for one player (DevTools output for now).",
+	},
+	Alert = {
+		To = "Client",
+		Doc = "A message for the HUD's alert feed: kind (Danger, Warning, Info) and text (a refused proposal, a vote that failed...).",
 	},
 	CellPinged = {
 		To = "Client",

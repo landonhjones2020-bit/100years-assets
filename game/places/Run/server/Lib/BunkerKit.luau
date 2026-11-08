@@ -711,6 +711,87 @@ local function buildDug(floor: number, column: number, parent: Instance): Model
 	return model
 end
 
+-- Construction sites (Prompt 8) ----------------------------------------------------------------
+
+local TIMBER = Color3.fromRGB(118, 94, 72)
+local HAZARD = Color3.fromRGB(214, 168, 46)
+local SITE_GHOST = { From = 0.8, To = 0.3 } -- the coming room's transparency, from the start to the end
+
+--[[
+	A construction site in open cells (BuildService): the coming room's interior art, see-through
+	and firming up as the build goes on (SetSiteProgress), behind a timber scaffold with a
+	hazard-striped plank. Graybox scaffolding until the art kit has a scaffold piece. Nothing on
+	it collides; the camera passes through it.
+]]
+function BunkerKit.Site(parent: Instance, name: string, roomType: string, floor: number, column: number, span: number): Model
+	local t = Grid.Tuning()
+	local model = newModel(name, parent)
+	model:SetAttribute("RoomType", roomType)
+	model:SetAttribute("Floor", floor)
+	model:SetAttribute("Column", column)
+	model:SetAttribute("Span", span)
+	local ghost = Instance.new("Model")
+	ghost.Name = "Ghost"
+	ghost.Parent = model
+	local source = art("Rooms", `Room_{roomType}_L1`)
+	for offset = 0, span - 1 do
+		local cell = Grid.CellPosition(floor, column + offset)
+		if source then
+			place(source, `Interior {Grid.Key(floor, column + offset)}`, ghost, Grid.CellCFrame(floor, column + offset))
+		else
+			local color = ROOM_COLORS[roomType] or DEFAULT_ROOM_COLOR
+			block(ghost, "Block", cell + Vector3.new(-t.CellWidth / 4, 0, -t.CellDepth / 4), cell + Vector3.new(t.CellWidth / 4, t.CellHeight / 3, t.CellDepth / 4), color, Enum.Material.SmoothPlastic)
+		end
+		-- the scaffold: two posts, a top beam and a striped plank across the back of the cell
+		local x0, x1 = cell.X - t.CellWidth / 2 + 2, cell.X + t.CellWidth / 2 - 2
+		local z = cell.Z - t.CellDepth / 2 + 3
+		for _, x in { x0, x1 } do
+			block(model, "Post", Vector3.new(x - 0.5, cell.Y, z - 0.5), Vector3.new(x + 0.5, cell.Y + t.CellHeight - 0.5, z + 0.5), TIMBER, Enum.Material.Wood)
+		end
+		block(model, "Beam", Vector3.new(x0 - 0.5, cell.Y + t.CellHeight - 2, z - 0.5), Vector3.new(x1 + 0.5, cell.Y + t.CellHeight - 1, z + 0.5), TIMBER, Enum.Material.Wood)
+		block(model, "Plank", Vector3.new(x0 - 0.5, cell.Y + t.CellHeight * 0.45, z - 0.3), Vector3.new(x1 + 0.5, cell.Y + t.CellHeight * 0.45 + 1.2, z + 0.3), HAZARD, Enum.Material.SmoothPlastic)
+	end
+	for _, item in model:GetDescendants() do
+		if item:IsA("BasePart") then
+			item.Anchored = true
+			item.CanCollide = false
+			item.CanTouch = false
+			item.CanQuery = false
+			item.CastShadow = false
+			if item:IsDescendantOf(ghost) then
+				item:SetAttribute("SiteSolid", item.Transparency)
+			end
+		elseif item:IsA("Light") or item:IsA("ProximityPrompt") or item:IsA("Script") then
+			item:Destroy()
+		end
+	end
+	fadeable(model)
+	BunkerKit.SetSiteProgress(model, 0)
+	return model
+end
+
+-- Firms the coming room up as its site builds (0 to 1), in steps of 5% so it isn't sent every frame.
+function BunkerKit.SetSiteProgress(model: Model, progress: number)
+	local ghost = model:FindFirstChild("Ghost")
+	if not ghost then
+		return
+	end
+	local alpha = SITE_GHOST.From + (SITE_GHOST.To - SITE_GHOST.From) * math.clamp(progress, 0, 1)
+	alpha = math.floor(alpha * 20 + 0.5) / 20
+	if model:GetAttribute("SiteAlpha") == alpha then
+		return
+	end
+	model:SetAttribute("SiteAlpha", alpha)
+	for _, item in ghost:GetDescendants() do
+		if item:IsA("BasePart") then
+			local solid = item:GetAttribute("SiteSolid")
+			if type(solid) == "number" and solid < 1 then
+				item.Transparency = math.max(solid, alpha)
+			end
+		end
+	end
+end
+
 -- A rock cell's art, turned half a turn on alternate cells so the face doesn't repeat.
 local function rockArt(bandId: string, name: string, parent: Instance, floor: number, column: number): Model?
 	local source = art("Kit", `Kit_Rock_{bandId}`)

@@ -21,6 +21,8 @@
 	* `/dev hud` prints the HUD's state; `hud.alert <Danger|Warning|Info> <text>`,
 	  `hud.banner <text>`, `hud.slot <1-5>` and `hud.touch [true|false]` (shows the touch
 	  buttons on any device, for screenshots) drive it.
+	* `/dev vote` prints the vote telegram (what it shows, your vote) and the Command View's
+	  ghosts; the server's `votes`, `vote.yes|no [n]`, `vote.end` and `vote.bots` run votes.
 	* `/dev cv` prints the Command View's state (with the detail panel's options); `cv.open`,
 	  `cv.close`, `cv.select <floor> <column>` and `cv.ping` drive it; `cv.ghost <floor> <column>
 	  <span> [label]` / `cv.unghost` show a vote's ghost outline, `cv.blink <roomId> [false]` blinks
@@ -54,6 +56,7 @@ local DevController = {
 		"UIController",
 		"HUDController",
 		"CommandViewController",
+		"VoteController",
 	},
 }
 
@@ -63,6 +66,7 @@ local ui: any = nil
 local hud: any = nil
 local registryInput: any = nil
 local commandView: any = nil
+local voteView: any = nil
 local devCursorFree = false
 local lastNotice: string? = nil
 local commandMade = false
@@ -358,6 +362,11 @@ local function run(text: string): string?
 	elseif name == "hud.touch" then
 		hud:SetForceTouch(args[1] ~= false)
 		return describeHUD()
+	elseif name == "vote" then
+		local state = voteView:State()
+		return `vote telegram: {if state.Visible then "showing " .. tostring(state.Shown) else "hidden"}`
+			.. (if state.Visible then `\n  {state.Proposal}\n  {state.Tally}\n  your vote: {tostring(state.Mine)}` else "")
+			.. `\n  ghosts: {if state.Ghosts ~= "" then state.Ghosts else "none"}`
 	elseif name == "cv" then
 		return describeCommandView()
 	elseif name == "cv.open" or name == "cv.close" then
@@ -437,6 +446,7 @@ function DevController:Init(registry)
 	hud = registry.HUDController
 	registryInput = registry.InputController
 	commandView = registry.CommandViewController
+	voteView = registry.VoteController
 	Remotes.OnClient("Notice", function(text: any)
 		if type(text) == "string" then
 			lastNotice = text

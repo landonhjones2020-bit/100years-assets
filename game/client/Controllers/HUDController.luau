@@ -17,7 +17,8 @@
 	  toggle), Ping and Shoulder, bound through InputController. Roblox's own jump button is
 	  hidden while ours shows.
 
-	On PC the camera locks the mouse; holding Left Alt frees the cursor to click HUD buttons.
+	On PC the camera locks the mouse; a click of the mouse wheel frees the cursor to click HUD
+	buttons, and another click locks it again. Ready has its own key (Z, D-pad down).
 
 	For later systems: Alert(kind, text) for the alert feed, Banner(text, kind) for
 	announcements, SetVital, SetClass, SetResource, SetSlot and the HotbarSelected signal.
@@ -35,6 +36,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
+local Grid = require(Shared.Rules.Grid)
 local Hud = require(Shared.Rules.Hud)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
@@ -85,11 +87,12 @@ local TICK_SECONDS = 0.1
 
 local HUDController = {
 	Name = "HUDController",
-	Dependencies = { "InputController", "UIController", "CameraController" },
+	Dependencies = { "InputController", "UIController", "CameraController", "ReplicaController" },
 	HotbarSelected = Signal.new() :: Signal.Signal<number>,
 }
 
 local input: any = nil
+local replica: any = nil
 local ui: any = nil
 local camera: any = nil
 local gui: ScreenGui? = nil
@@ -354,6 +357,12 @@ local function keyText(): string
 	return if device == "Gamepad" then "LB" elseif device == "Keyboard" then "Q" else ""
 end
 
+-- Ready's own key (Landon, 2026-11-08): Z on PC, the D-pad's down on console (InputController).
+local function readyKeyText(): string
+	local device = input:Device()
+	return if device == "Gamepad" then "DOWN" elseif device == "Keyboard" then "Z" else ""
+end
+
 function HUDController:SetClass(id: string, level: number?)
 	local class = Config.Find("Classes", id)
 	if not class or not gui then
@@ -386,6 +395,25 @@ function HUDController:SetResource(id: string, text: string, lamp: string?)
 	chip.Lamp.Visible = lamp ~= nil
 	if lamp then
 		KitRuntime.SetSprite(chip.Lamp, lamp)
+	end
+end
+
+local cursorFree = false -- PC: the mouse wheel freed the cursor for the HUD
+
+-- Copper and Crystal chips stay hidden until the team digs into their bands (Config.DepthBands).
+local function refreshOreChips()
+	local deepest = 1 -- the run starts with floors 1 and 2 built
+	for key in replica:All("Cells") do
+		local floor = Grid.Parse(key)
+		if floor and floor > deepest then
+			deepest = floor
+		end
+	end
+	for _, band in Config.All("DepthBands") do
+		local chip = if band.Ore then resourceChips[band.Ore] else nil
+		if chip then
+			chip.Visible = deepest >= band.Floors.From
+		end
 	end
 end
 
@@ -482,6 +510,9 @@ local function refreshDevice()
 	local key = keyText()
 	part("Vitals.Ability.Key").Visible = key ~= ""
 	part("Vitals.Ability.Key.Text").Text = key
+	local readyKey = readyKeyText()
+	part("Ready.Key").Visible = readyKey ~= ""
+	part("Ready.Key.Text").Text = readyKey
 	local viewKey = part("CommandView.Content.Key")
 	viewKey.Text = if device == "Gamepad" then "VIEW" elseif device == "Keyboard" then "TAB" else ""
 	for i = 1, 5 do
@@ -553,6 +584,7 @@ end
 
 function HUDController:Init(registry)
 	input = registry.InputController
+	replica = registry.ReplicaController
 	ui = registry.UIController
 	camera = registry.CameraController
 	inRun = Constants.PlaceKind() == "Run"
@@ -584,6 +616,24 @@ function HUDController:Start()
 	refreshDevice()
 	input.DeviceChanged:Connect(refreshDevice)
 
+	-- the stockpile (EconomyService replicates the amounts as RunState values; Power is Prompt 9's)
+	for _, entry in STOCK do
+		if RunState.Fields[entry.Id] then
+			local function show()
+				local value = RunState.Get(entry.Id)
+				HUDController:SetResource(entry.Id, if type(value) == "number" then tostring(value) else "—")
+			end
+			RunState.Changed(entry.Id):Connect(show)
+			show()
+		end
+	end
+	-- messages from the server for the alert feed (a refused proposal, a room built...)
+	Remotes.OnClient("Alert", function(kind: any, text: any)
+		if type(text) == "string" then
+			HUDController:Alert(if kind == "Danger" or kind == "Warning" then kind else "Info", text)
+		end
+	end)
+
 	-- the clock
 	RunState.Changed("Year"):Connect(showYear)
 	RunState.Changed("Era"):Connect(showEra)
@@ -600,11 +650,13 @@ function HUDController:Start()
 			tickClock()
 		end
 	end)
-	part("Ready").Activated:Connect(function()
-		if Remotes.InPlace("SetReady") then
+	local function pressReady()
+		if Remotes.InPlace("SetReady") and part("Ready").Visible then
 			Remotes.FireServer("SetReady", Players.LocalPlayer:GetAttribute("Ready") ~= true)
 		end
-	end)
+	end
+	part("Ready").Activated:Connect(pressReady)
+	input:On("Ready", pressReady)
 
 	-- health, the ability, the hotbar, the Command View
 	Players.LocalPlayer.CharacterAdded:Connect(watchHealth)
@@ -630,22 +682,26 @@ function HUDController:Start()
 		HUDController:SelectSlot((selectedSlot - 2) % 5 + 1)
 	end)
 	input:BindButton("CommandView", part("CommandView"))
-	-- PC: the camera locks the mouse, so holding Left Alt frees the cursor to click the HUD
-	-- (Ready has no key in the controls table)
+	-- PC: the camera locks the mouse; a click of the mouse wheel frees the cursor to click the
+	-- HUD (and the vote telegram), and another click locks it again (Landon, 2026-11-08)
 	UserInputService.InputBegan:Connect(function(io: InputObject)
-		if io.KeyCode == Enum.KeyCode.LeftAlt then
-			camera:FreeCursor("HudAlt", true)
-		end
-	end)
-	UserInputService.InputEnded:Connect(function(io: InputObject)
-		if io.KeyCode == Enum.KeyCode.LeftAlt then
-			camera:FreeCursor("HudAlt", false)
+		if io.UserInputType == Enum.UserInputType.MouseButton3 then
+			cursorFree = not cursorFree
+			camera:FreeCursor("HudCursor", cursorFree)
 		end
 	end)
 
-	-- menus hide the HUD
+	-- the ore chips show once the team has dug into that ore's band (Landon, 2026-11-08)
+	replica:Changed("Cells"):Connect(refreshOreChips)
+	refreshOreChips()
+
+	-- menus hide the HUD (and take back a cursor the wheel freed: the menu frees its own)
 	ui.Opened:Connect(function()
 		HUDController:Hide("Frame", true)
+		if cursorFree then
+			cursorFree = false
+			camera:FreeCursor("HudCursor", false)
+		end
 	end)
 	ui.Closed:Connect(function()
 		HUDController:Hide("Frame", false)

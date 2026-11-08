@@ -85,6 +85,8 @@ local function hook(button: ImageButton)
 	local function settle()
 		if button:GetAttribute("Disabled") == true then
 			show(button, "Disabled")
+		elseif button:GetAttribute("Latched") == true then
+			show(button, "Down") -- held in: a vote cast, a toggle on
 		else
 			show(button, if over and rect(button, "Hover") then "Hover" else "Up")
 		end
@@ -104,6 +106,7 @@ local function hook(button: ImageButton)
 		settle()
 	end)
 	button:GetAttributeChangedSignal("Disabled"):Connect(settle)
+	button:GetAttributeChangedSignal("Latched"):Connect(settle)
 	settle()
 end
 
@@ -171,6 +174,11 @@ function KitRuntime.SetEnabled(button: ImageButton, on: boolean)
 	if not hooked[button] then
 		show(button, if on then "Up" else "Disabled")
 	end
+end
+
+-- Holds a push-button in (a vote cast, a toggle that is on) until released.
+function KitRuntime.SetLatched(button: ImageButton, on: boolean)
+	button:SetAttribute("Latched", if on then true else nil)
 end
 
 function KitRuntime.IsEnabled(button: Instance): boolean

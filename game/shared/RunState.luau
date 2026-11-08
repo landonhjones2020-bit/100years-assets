@@ -14,14 +14,19 @@
 
 	Players also carry two attributes the clock reads for skips (CycleClock writes them):
 	Ready (pressed Ready this day) and Resting (lying in a Quarters bed).
+
+	The stockpile (EconomyService): one value per stocked resource in Config.Resources (Food,
+	Water, Scrap, Iron, Copper, Crystal, Medkits, Ammo), plus Research.
 ]]
 
 local RunService = game:GetService("RunService")
 
+local Config = require(script.Parent.Config)
+
 export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
-export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService"
+export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -61,7 +66,20 @@ local FIELDS: { [string]: Field } = {
 	-- ObjectiveService: what makes more years pass per cycle
 	LostCrews = { Type = "number", By = "ObjectiveService", Doc = "Lost Crews rescued" },
 	BossesBeaten = { Type = "number", By = "ObjectiveService", Doc = "era bosses beaten" },
+
+	-- EconomyService: Lab research so far (the stock amounts are added below from Config.Resources)
+	Research = { Type = "number", By = "EconomyService", Doc = "Lab research so far (level 3 upgrades need it)" },
 }
+
+-- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount
+-- in the team's stockpile. Power is a live balance, not a stock.
+for _, id in Config.Ids("Resources") do
+	local resource = Config.Get("Resources", id)
+	if resource.Kind == "Stock" then
+		assert(FIELDS[id] == nil, `RunState: the resource {id} clashes with a RunState value`)
+		FIELDS[id] = { Type = "number", By = "EconomyService", Doc = `{resource.Name} in the stockpile` }
+	end
+end
 
 for name, field in FIELDS do
 	local values = field.Values

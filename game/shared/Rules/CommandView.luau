@@ -9,14 +9,14 @@
 	  and widens the field of view past it; CellBox is a cell's interior; Bounds and Clamp keep
 	  the view over the grid.
 	* RoomChoice says whether a room type can be proposed on an open cell, and why not: its
-	  unlock (Section 6: start, a blueprint draft, a draft or a depth, an era, the first cryo
-	  pod), then the placement rules (Rules.Bunker.CanPlace).
-	* CostText: "120 SCRAP · 20 IRON", in Config.Resources order.
+	  unlock (Rules.Construction.Unlock: start, a blueprint draft, a draft or a depth, an era,
+	  the first cryo pod), then the placement rules (Rules.Bunker.CanPlace).
+	* CostText: "120 SCRAP · 20 IRON", in Config.Resources order (Rules.Construction).
 ]]
 
 local Config = require(script.Parent.Parent.Config)
+local Construction = require(script.Parent.Construction)
 local Grid = require(script.Parent.Grid)
-local Hud = require(script.Parent.Hud)
 
 export type Bounds = { Left: number, Right: number, Top: number, Bottom: number }
 export type Context = {
@@ -80,31 +80,16 @@ function CommandView.Clamp(center: Vector2, bounds: Bounds): Vector2
 	return Vector2.new(math.clamp(center.X, bounds.Left, bounds.Right), math.clamp(center.Y, bounds.Bottom, bounds.Top))
 end
 
+-- Can `roomType` be proposed on an open cell? Its unlock (Rules.Construction.Unlock), then the
+-- placement rules (Rules.Bunker.CanPlace). The server checks the same with Construction.Plan.
 function CommandView.RoomChoice(bunker: any, roomType: string, floor: number, column: number, context: Context): (boolean, string?)
-	local info = Config.Get("Rooms", roomType)
-	local unlock = info.Unlock
-	local won = context.Unlocked ~= nil and context.Unlocked[roomType] == true
-	if unlock.Kind == "Draft" and not won then
-		return false, "Unlock: a blueprint draft"
-	elseif unlock.Kind == "DraftOrDepth" and not won and context.Deepest < (unlock.Depth or 10) then
-		return false, `Unlock: a blueprint draft, or reach depth {unlock.Depth}`
-	elseif unlock.Kind == "Era" and context.Era < (unlock.Era or 1) then
-		return false, `Unlock: Era {Hud.Numeral(unlock.Era or 1)}`
-	elseif unlock.Kind == "CryoPod" and not won then
-		return false, "Unlock: find the first cryo pod"
+	local ok, why = Construction.Unlock(roomType, context)
+	if not ok then
+		return false, why
 	end
 	return bunker:CanPlace(roomType, floor, column, 1)
 end
 
-function CommandView.CostText(costs: { [string]: number }?): string
-	local parts = {}
-	for _, id in Config.Ids("Resources") do
-		local amount = if costs then costs[id] else nil
-		if amount and amount > 0 then
-			table.insert(parts, `{amount} {string.upper(Config.Get("Resources", id).Name)}`)
-		end
-	end
-	return if #parts > 0 then table.concat(parts, " · ") else "FREE"
-end
+CommandView.CostText = Construction.CostText
 
 return CommandView

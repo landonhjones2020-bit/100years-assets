@@ -52,6 +52,7 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 	Hotbar5 = { Enum.KeyCode.Five },
 	Ping = { Enum.KeyCode.G, Enum.KeyCode.DPadUp },
 	CommandView = { Enum.KeyCode.Tab, Enum.KeyCode.ButtonSelect },
+	Ready = { Enum.KeyCode.Z, Enum.KeyCode.DPadDown }, -- Landon, 2026-11-08: Ready gets its own key
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
 local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true }

@@ -93,6 +93,6 @@ Design Notes and Delivery Reports: `game/reports/`.
 * Never claim a Studio check that didn't happen. Size, pivot and orientation are measured in Studio, not assumed; clips are played in a playtest.
 * Previews and contact sheets go in `previews/`; Landon looks at them whenever he likes.
 * The style test (A0) gates production: nothing after it until Landon approves the four models, two clips and the UI kit look.
-* Keep the Night Shift importer plugin out of this game: it creates `ServerStorage.NS_Pipeline` in every place it sees. Delete that folder if it shows up.
+* `ServerStorage.NS_Pipeline` (an empty `Jobs` folder and `MeshCache`) keeps coming back from an outside Night Shift importer plugin that Landon can't remove (2026-11-08: not in Manage Plugins, its file already deleted; a full Studio restart may clear it). Ignore it (his call): StructureCheck only warns, and errors if scripts ever appear inside it. The code installer still deletes it. Never touch the Night Shift studio itself.
 * Rigs: never rely on `Model.WorldPivot` after setting `PrimaryPart`; set the root part's `PivotOffset` (BUILD_LOG 2026-11-08).
 * `Lighting.Technology` can't be read or set through the connector; ask Landon.

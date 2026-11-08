@@ -26,6 +26,8 @@ local Bunker = require(Shared.Rules.Bunker)
 local CameraRig = require(Shared.Rules.CameraRig)
 local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
+local Construction = require(Shared.Rules.Construction)
+local Votes = require(Shared.Rules.Votes)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -1136,6 +1138,100 @@ test("CommandView: the build menu follows the unlocks and the placement rules (b
 	expectEqual(CommandView.CostText({ Scrap = 120 }), "120 SCRAP", "one cost")
 	expectEqual(CommandView.CostText({ Iron = 20, Scrap = 220 }), "220 SCRAP · 20 IRON", "costs in Resources order")
 	expectEqual(CommandView.CostText({}), "FREE", "nothing")
+end)
+
+test("Votes: Section 8's rules (abstaining, ties fail, whole-team majority, two thirds, everyone yes)", function()
+	expectEqual(Votes.Outcome("MoreYes", 2, 1, 4), "Pass", "more yes than no")
+	expectEqual(Votes.Outcome("MoreYes", 1, 0, 6), "Pass", "abstainers don't count")
+	expectEqual(Votes.Outcome("MoreYes", 1, 1, 3), "Tie", "a tie")
+	expectEqual(Votes.Outcome("MoreYes", 0, 0, 3), "Tie", "nobody voted: a tie, so it fails")
+	expectEqual(Votes.Outcome("MoreYes", 1, 2, 3), "Fail", "more no")
+	expectEqual(Votes.Outcome("WholeTeamMajority", 3, 0, 4), "Pass", "3 of 4")
+	expectEqual(Votes.Outcome("WholeTeamMajority", 2, 0, 4), "Fail", "2 of 4 is not a majority")
+	expectEqual(Votes.Outcome("WholeTeamMajority", 2, 2, 4), "Tie", "the team split evenly")
+	expectEqual(Votes.Outcome("WholeTeamMajority", 2, 1, 3), "Pass", "2 of 3")
+	expectEqual(Votes.Majority(5), 3, "a majority of 5")
+	expectEqual(Votes.TwoThirds(3), 2, "two thirds of 3 others")
+	expectEqual(Votes.Outcome("TwoThirdsOfOthers", 4, 1, 5), "Pass", "4 of 5 others")
+	expectEqual(Votes.Outcome("TwoThirdsOfOthers", 3, 2, 5), "Fail", "3 of 5 others is short")
+	expect(Votes.AllYes(4, 4) and not Votes.AllYes(3, 4), "everyone yes passes at once")
+	local stock = { Scrap = 300, Iron = 50 }
+	expect(not Votes.BigSpend({ Scrap = 120 }, stock), "120 of 300 Scrap is 40%: not more")
+	expect(Votes.BigSpend({ Scrap = 121 }, stock), "121 of 300 is more than 40%")
+	expect(Votes.BigSpend({ Scrap = 10, Iron = 30 }, stock), "any one stock counts")
+	expectEqual(Votes.RuleFor("Build", false), "MoreYes", "a build")
+	expectEqual(Votes.RuleFor("Build", true), "WholeTeamMajority", "a big spend")
+	expectEqual(Votes.RuleFor("PushDeeper", false), "WholeTeamMajority", "Push Deeper")
+	expectEqual(Votes.NeedText("WholeTeamMajority", 4), "3 OF 4 MUST SAY YES", "need text")
+	local seen = {}
+	for seed = 1, 40 do
+		seen[Votes.Winner({ A = 2, B = 2, C = 1 }, { "A", "B", "C" }, Random.new(seed)) :: string] = true
+	end
+	expect(seen.A and seen.B and not seen.C, "a draft tie is picked at random between the leaders")
+	expectEqual(Votes.Winner({}, {}, Random.new(1)), nil, "no options")
+end)
+
+test("Construction: plans follow the bunker's rules, the unlocks, the stockpile and research", function()
+	local bunker = Bunker.FromStart()
+	local context = { Era = 1, Deepest = bunker:DeepestFloor(), Stock = { Scrap = 300 }, Research = 0 }
+	local plan, why = Construction.Plan(bunker, { Action = "Build", Floor = 2, Column = 3, RoomType = "Workshop" }, context)
+	expect(plan ~= nil, `a Workshop on the open cell ({why})`)
+	expectEqual((plan :: any).Costs, Config.Get("Rooms", "Workshop").Costs[1], "level 1 costs")
+	expectEqual((plan :: any).Label, "WORKSHOP", "label")
+	plan, why = Construction.Plan(bunker, { Action = "Build", Floor = 2, Column = 3, RoomType = "Armory" }, context)
+	expect(plan == nil and string.find(why or "", "blueprint draft"), "the Armory needs a draft")
+	plan, why = Construction.Plan(bunker, { Action = "Build", Floor = 2, Column = 3, RoomType = "ReactorCore" }, context)
+	expect(plan == nil and string.find(why or "", "comes with the bunker"), "Fixed rooms are never built")
+	local reserved = { Era = 1, Deepest = 2, Reserved = { ["2,3"] = true } }
+	plan, why = Construction.Plan(bunker, { Action = "Build", Floor = 2, Column = 3, RoomType = "Kitchen" }, reserved)
+	expect(plan == nil and string.find(why or "", "already proposed"), "one proposal per cell")
+	plan, why = Construction.Plan(bunker, { Action = "Build", Floor = 2, Column = 3, RoomType = "Kitchen" },
+		{ Era = 1, Deepest = 2, Stock = { Scrap = 50 } })
+	expect(plan == nil and string.find(why or "", "70 Scrap short"), `the stockpile must pay ({why})`)
+	local medbay = bunker:RoomAt(2, 2) :: any
+	local noCosts = { Era = 1, Deepest = 2 } -- no stock: costs aren't checked
+	plan = Construction.Plan(bunker, { Action = "Upgrade", Floor = 2, Column = 2 }, noCosts)
+	expect(plan ~= nil and plan.Level == 2 and plan.RoomId == medbay.Id, "an upgrade to level 2")
+	expectEqual((plan :: any).Costs, Config.Get("Rooms", "Medbay").Costs[2], "level 2 costs")
+	plan, why = Construction.Plan(bunker, { Action = "Upgrade", Floor = 2, Column = 2 }, context)
+	expect(plan == nil and string.find(why or "", "Iron short"), `level 2 needs Iron the stock hasn't got ({why})`)
+	bunker:SetLevel(medbay.Id, 2)
+	plan, why = Construction.Plan(bunker, { Action = "Upgrade", Floor = 2, Column = 2 },
+		{ Era = 1, Deepest = 2, Research = 5 })
+	expect(plan == nil and string.find(why or "", "Lab research"), "level 3 needs Lab research")
+	local quarters = bunker:RoomAt(1, 1) :: any
+	plan = Construction.Plan(bunker, { Action = "Upgrade", Floor = 1, Column = 2 }, noCosts)
+	local perCell = Config.Get("Rooms", "Quarters").Costs[2]
+	expect(plan ~= nil and quarters.Span == 2, "the 2-cell Quarters")
+	for id, amount in perCell do
+		expectEqual((plan :: any).Costs[id], amount * 2, `a 2-cell upgrade pays {id} for both cells`)
+	end
+	plan, why = Construction.Plan(bunker, { Action = "TearDown", Floor = 2, Column = 1 }, context)
+	expect(plan == nil and why ~= nil, "the Reactor Core can't be torn down")
+	plan = Construction.Plan(bunker, { Action = "TearDown", Floor = 2, Column = -2 }, context)
+	expect(plan ~= nil and next(plan.Costs) == nil, "tearing down is free")
+	local kitchen = bunker:Place("Kitchen", 2, 3, 1) :: string
+	local first = bunker:RoomAt(2, -2) :: any
+	plan, why = Construction.Plan(bunker, { Action = "Merge", Floor = 2, Column = 3, Other = first.Id }, context)
+	expect(plan == nil and why ~= nil, `rooms apart don't merge ({why})`)
+	expect(kitchen ~= nil, "a second Kitchen")
+	expectEqual(Construction.Seconds(1), 20, "20 s a cell")
+	expectEqual(Construction.Rate(0), 1, "alone")
+	expectEqual(Construction.Rate(2), 1.5, "two helpers")
+	expectEqual(Construction.CostText({ Iron = 20, Scrap = 220 }), "220 SCRAP · 20 IRON", "cost text")
+	local ok, short, missing = Construction.CanAfford({ Scrap = 120, Iron = 10 }, { Scrap = 200, Iron = 4 })
+	expect(not ok and short == "Iron" and missing == 6, "the first short resource")
+end)
+
+test("RunState: a value for every stocked resource, written by EconomyService", function()
+	for _, id in Config.Ids("Resources") do
+		local resource = Config.Get("Resources", id)
+		if resource.Kind == "Stock" then
+			expect(RunState.Fields[id] ~= nil and RunState.Fields[id].By == "EconomyService", `{id} in RunState`)
+		else
+			expect(RunState.Fields[id] == nil, `{id} is live, not a RunState stock`)
+		end
+	end
 end)
 
 test("UIContract: the Frame is in both places, the HUD in the Run; paths are unique", function()

@@ -3,8 +3,9 @@
 	StructureCheck: is the place built the way Documentation.ARCHITECTURE says?
 
 	Checks the code skeleton, every installed file in BuildInfo, the service dependency
-	graph, stray scripts and remotes, Config data, place identity and leftovers that must
-	never be here (ServerStorage.NS_Pipeline from the Night Shift importer plugin).
+	graph, stray scripts and remotes, Config data, place identity and leftovers
+	(ServerStorage.NS_Pipeline, an outside plugin's working folder: a warning, an error only
+	if scripts appear in it).
 
 	Run({ Runtime = true }) inside a running server (DevService `structure`) also checks
 	the remotes and the boot result. Run({ Sources = true }) from a Studio plugin or the
@@ -34,6 +35,8 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Rules.Grid", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Hud", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.CommandView", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Construction", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Votes", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities.Delta", "ModuleScript" },
@@ -58,6 +61,7 @@ local SKELETON: { { string } } = {
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.HUDController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.MiniMapController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.VoteController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib", "Folder" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.Fade", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.KitRuntime", "ModuleScript" },
@@ -77,6 +81,9 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.ObjectiveService", "ModuleScript" },
 		{ "ServerScriptService.Services.BunkerGrid", "ModuleScript" },
 		{ "ServerScriptService.Services.PingService", "ModuleScript" },
+		{ "ServerScriptService.Services.EconomyService", "ModuleScript" },
+		{ "ServerScriptService.Services.VoteService", "ModuleScript" },
+		{ "ServerScriptService.Services.BuildService", "ModuleScript" },
 		{ "ServerScriptService.Lib.BunkerKit", "ModuleScript" },
 	},
 	Lobby = {},
@@ -399,9 +406,23 @@ function StructureCheck.Run(options: Options?): Result
 		end
 	end
 
-	-- 8. Leftovers that must never be here
-	if ServerStorage:FindFirstChild("NS_Pipeline") then
-		fail("ServerStorage.NS_Pipeline exists: the Night Shift importer plugin is still active; delete the folder and disable the plugin")
+	-- 8. Leftovers. ServerStorage.NS_Pipeline is the working folder of an outside Studio plugin
+	-- (the Night Shift importer) that Landon can't remove (2026-11-08: not in Manage Plugins, its
+	-- file deleted). It holds an empty Jobs folder and MeshCache, so it is only a warning; scripts
+	-- inside it would be an error.
+	local leftover = ServerStorage:FindFirstChild("NS_Pipeline")
+	if leftover then
+		local scripts = 0
+		for _, item in leftover:GetDescendants() do
+			if item:IsA("LuaSourceContainer") then
+				scripts += 1
+			end
+		end
+		if scripts > 0 then
+			fail(`ServerStorage.NS_Pipeline (an outside plugin's folder) holds {scripts} script(s): delete it`)
+		else
+			warnOf("ServerStorage.NS_Pipeline is back (an outside Studio plugin's empty working folder; harmless)")
+		end
 	else
 		pass()
 	end

@@ -53,6 +53,7 @@ local Schemas: { [string]: Check.Checker } = {
 	Votes = shape({
 		TiesFail = Check.boolean(), BigSpendFraction = Fr, OpenProposalsPerPlayer = I, FailedCooldownSeconds = S,
 		PassEarlyWhenAllYes = Check.boolean(), SoloSkipsVotes = Check.boolean(), RecheckCostsOnPass = Check.boolean(),
+		ResultSeconds = S,
 	}),
 	Player = shape({
 		Health = I, Stamina = I, SprintStaminaPerSecond = N, DodgeStamina = N, HeavySwingStamina = N,
@@ -166,6 +167,7 @@ return {
 		Votes = { -- Section 8
 			TiesFail = true, BigSpendFraction = 0.4, OpenProposalsPerPlayer = 1, FailedCooldownSeconds = 20,
 			PassEarlyWhenAllYes = true, SoloSkipsVotes = true, RecheckCostsOnPass = true,
+			ResultSeconds = 3, -- prov.: how long the banner shows PASSED or FAILED
 		},
 		Player = { -- Section 9; stamina costs, radiation drain, aim assist and Medkit heal prov.
 			Health = 100, Stamina = 100, SprintStaminaPerSecond = 12, DodgeStamina = 20, HeavySwingStamina = 20,
