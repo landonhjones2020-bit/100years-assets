@@ -155,4 +155,159 @@ function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchH
 	return table.concat(report, "\n")
 end
 
+--[[
+AssetSetup.rig: the rig step for segmented characters (residents, monsters, bosses). The FBX
+holds one MeshPart per bone in the rest pose; doc.rig (from the sidecar) holds the joints.
+It runs every check and material step of AssetSetup.run, then:
+  1. adds the HumanoidRootPart (doc.rig.hrpSize at doc.rig.hrpCenter, invisible)
+  2. joins every bone part to its parent (the root bone to the HumanoidRootPart) with a
+     Motor6D named doc.rig.bones[i].jointName, parented to the child part, C0 and C1 at the
+     joint position with no rotation, the same convention the clips were keyed in
+  3. welds parts that ride on a bone (glow, hair) to that bone's part
+  4. adds a Humanoid (R15 physics, HipHeight from the sidecar) with an Animator
+  5. puts the face decal on the Head's front face when opts.faceImage is given
+  6. writes clip and face ids as attributes (Anim_<Clip>, FaceImage)
+Body parts are query-only (hit by raycasts, no collision); the root part collides. The
+stored model has its HumanoidRootPart anchored, so it stands when dropped in; spawners
+unanchor it.
+]]
+function AssetSetup.rig(model: Model, doc: any, opts: { assetId: string, swatchHex: { [string]: string }?,
+	faceImage: string?, clips: { [string]: string }? }): string
+	local rig = doc.rig
+	assert(rig, "AssetSetup.rig needs doc.rig")
+	local stripped = table.clone(doc)
+	stripped.rig = nil
+	-- run the shared checks and materials, but keep the model in the pipeline folder
+	local category = doc.category
+	stripped.category = "__RigStep"
+	local report = AssetSetup.run(model, stripped, opts)
+	local assets = ServerStorage:WaitForChild("Assets")
+	local holder = assets:FindFirstChild("__RigStep")
+	if model.Parent ~= holder then
+		return report .. "\nrig step skipped: fix the problems above first"
+	end
+	local pivot = model.WorldPivot
+
+	-- 1. root part
+	local hrp = model:FindFirstChild(rig.root)
+	if hrp then
+		hrp:Destroy()
+	end
+	local root = Instance.new("Part")
+	root.Name = rig.root
+	root.Size = vec(rig.hrpSize)
+	root.CFrame = pivot * CFrame.new(vec(rig.hrpCenter))
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = true
+	root.CanQuery = false
+	root.CanTouch = true
+	root.CastShadow = false
+	root.Parent = model
+
+	-- 2. joints
+	local made = 0
+	for _, b in rig.bones do
+		local part1 = model:FindFirstChild(b.name)
+		local part0 = if b.parent then model:FindFirstChild(b.parent) else root
+		assert(part1 and part1:IsA("BasePart"), "missing bone part " .. b.name)
+		assert(part0 and part0:IsA("BasePart"), "missing parent part for " .. b.name)
+		for _, old in part1:GetChildren() do
+			if old:IsA("JointInstance") then
+				old:Destroy()
+			end
+		end
+		local j = pivot * CFrame.new(vec(b.joint))
+		local m = Instance.new("Motor6D")
+		m.Name = b.jointName
+		m.Part0 = part0
+		m.Part1 = part1
+		m.C0 = part0.CFrame:ToObjectSpace(j)
+		m.C1 = part1.CFrame:ToObjectSpace(j)
+		m.Parent = part1
+		made += 1
+	end
+
+	-- 3. parts riding on a bone, then physics flags for everything
+	local boneSet = {}
+	for _, b in rig.bones do
+		boneSet[b.name] = true
+	end
+	local welded = 0
+	for _, spec in doc.parts do
+		local part = model:FindFirstChild(spec.name)
+		if part and part:IsA("BasePart") then
+			part.Anchored = false
+			part.Massless = true
+			if not boneSet[spec.name] and spec.bone then
+				local host = model:FindFirstChild(spec.bone)
+				assert(host and host:IsA("BasePart"), "missing host part " .. spec.bone)
+				local w = Instance.new("WeldConstraint")
+				w.Name = "RideOn_" .. spec.bone
+				w.Part0 = host :: BasePart
+				w.Part1 = part
+				w.Parent = part
+				welded += 1
+			end
+		end
+	end
+
+	-- 4. humanoid
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum:Destroy()
+	end
+	hum = Instance.new("Humanoid")
+	hum.RigType = Enum.HumanoidRigType.R15
+	hum.HipHeight = rig.hipHeight
+	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+	hum.Parent = model
+	Instance.new("Animator").Parent = hum
+	model.PrimaryPart = root
+	-- With a PrimaryPart the model's pivot is the root's pivot, which starts at the root's
+	-- centre; setting model.WorldPivot here did not move it (2026-11-08, both rigs came out
+	-- 3 studs low). Put the feet pivot on the root explicitly.
+	root.PivotOffset = root.CFrame:ToObjectSpace(pivot)
+
+	-- 5. face
+	if opts.faceImage then
+		local head = model:FindFirstChild("Head")
+		if head then
+			local face = head:FindFirstChild("face") or Instance.new("Decal")
+			face.Name = "face"
+			face.Face = Enum.NormalId.Front
+			face.Texture = opts.faceImage
+			face.Parent = head
+			model:SetAttribute("FaceImage", opts.faceImage)
+		end
+	end
+
+	-- 6. ids
+	model:SetAttribute("RigType", rig.rigType)
+	model:SetAttribute("HipHeight", rig.hipHeight)
+	for clip, id in opts.clips or {} do
+		model:SetAttribute("Anim_" .. clip, id)
+	end
+
+	local folder = assets:FindFirstChild(category)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = category
+		folder.Parent = assets
+	end
+	local old = folder:FindFirstChild(doc.asset)
+	if old and old ~= model then
+		old:Destroy()
+	end
+	model:PivotTo(CFrame.new())
+	model.Parent = folder
+	if holder and #holder:GetChildren() == 0 then
+		holder:Destroy()
+	end
+	return (report:gsub("__RigStep", category))
+		.. string.format("\nrig: %s root, %d Motor6D(s), %d welded part(s), HipHeight %.2f", rig.root, made,
+			welded, rig.hipHeight)
+end
+
 return AssetSetup

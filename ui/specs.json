@@ -1,0 +1,659 @@
+{
+ "Ability_Button": {
+  "note": "class ability push-button (Bakelite); icon on top",
+  "size": [
+   160,
+   160
+  ],
+  "slice": null
+ },
+ "Alert_Danger": {
+  "note": "alert: danger (fire, breach): red triangle",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Alert_Info": {
+  "note": "alert: info: teal circle",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Alert_Warning": {
+  "note": "alert: warning: yellow diamond",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Button_Leaf_Down": {
+  "note": "vote yes",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Leaf_Up": {
+  "note": "vote yes",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Rust_Down": {
+  "note": "vote no, danger",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Rust_Up": {
+  "note": "vote no, danger",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Signal_Disabled": {
+  "note": "main action (Buy, Equip, Claim)",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Signal_Down": {
+  "note": "main action (Buy, Equip, Claim)",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Signal_Hover": {
+  "note": "main action (Buy, Equip, Claim)",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Signal_Up": {
+  "note": "main action (Buy, Equip, Claim)",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Teal_Down": {
+  "note": "secondary actions",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Button_Teal_Up": {
+  "note": "secondary actions",
+  "size": [
+   192,
+   112
+  ],
+  "slice": [
+   50,
+   50,
+   50,
+   50
+  ]
+ },
+ "Card_Common": {
+  "note": "class card frame, Common; window 340x290 at y 81",
+  "size": [
+   400,
+   500
+  ],
+  "slice": null
+ },
+ "Card_Epic": {
+  "note": "class card frame, Epic; window 340x290 at y 81",
+  "size": [
+   400,
+   500
+  ],
+  "slice": null
+ },
+ "Card_Legendary": {
+  "note": "class card frame, Legendary; window 340x290 at y 81",
+  "size": [
+   400,
+   500
+  ],
+  "slice": null
+ },
+ "Card_Rare": {
+  "note": "class card frame, Rare; window 340x290 at y 81",
+  "size": [
+   400,
+   500
+  ],
+  "slice": null
+ },
+ "Chip_Cream": {
+  "note": "light plate for prices on cards",
+  "size": [
+   160,
+   80
+  ],
+  "slice": [
+   40,
+   36,
+   40,
+   36
+  ]
+ },
+ "Chip_Navy": {
+  "note": "resource and currency plate",
+  "size": [
+   160,
+   80
+  ],
+  "slice": [
+   40,
+   36,
+   40,
+   36
+  ]
+ },
+ "Close_Down": {
+  "note": "close button: red enamel push-button with a cross",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Close_Up": {
+  "note": "close button: red enamel push-button with a cross",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Dial_Cycle": {
+  "note": "cycle dial: DAY 3:00 then SURGE 1:30; face spans x 18..750",
+  "size": [
+   768,
+   112
+  ],
+  "slice": null
+ },
+ "Dial_Pointer": {
+  "note": "cycle dial pointer: slides along the face, tip at the bottom",
+  "size": [
+   48,
+   128
+  ],
+  "slice": null
+ },
+ "Flip_Tile": {
+  "note": "flip-counter tile (year): digit drawn live on top",
+  "size": [
+   96,
+   128
+  ],
+  "slice": null
+ },
+ "Gauge_Glass": {
+  "note": "glass over every gauge face",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Gauge_Health": {
+  "note": "health gauge face: needle sweep 225 to -45 degrees",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Gauge_Needle": {
+  "note": "gauge needle, pivot at the centre, points up at Rotation 0",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Gauge_Rad": {
+  "note": "radiation gauge face",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Gauge_Stamina": {
+  "note": "stamina gauge face",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Grid_Blueprint": {
+  "note": "tile: ScaleType Tile, mini-map paper",
+  "size": [
+   64,
+   64
+  ],
+  "slice": null
+ },
+ "Hotbar_Selected": {
+  "note": "selected hotbar socket",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Hotbar_Slot": {
+  "note": "hotbar socket; number plate at the top left",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Ammo": {
+  "note": "Ammo",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Check": {
+  "note": "tab: owned (white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Command": {
+  "note": "Command View (the bunker in section)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Food": {
+  "note": "Food",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Glowshard": {
+  "note": "Glowshards (premium currency)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Grid": {
+  "note": "tab: all (white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Iron": {
+  "note": "Iron ore",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Power": {
+  "note": "Power",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Scrap": {
+  "note": "Scrap",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_ServiceRevolver": {
+  "note": "Service Revolver icon from the model",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_Shield": {
+  "note": "Security ability: Hold the Line",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Tag": {
+  "note": "tab: today's shop (white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Water": {
+  "note": "Water",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Lamp_Amber": {
+  "note": "pilot lamp",
+  "size": [
+   48,
+   48
+  ],
+  "slice": null
+ },
+ "Lamp_Green": {
+  "note": "pilot lamp",
+  "size": [
+   48,
+   48
+  ],
+  "slice": null
+ },
+ "Lamp_Off": {
+  "note": "pilot lamp",
+  "size": [
+   48,
+   48
+  ],
+  "slice": null
+ },
+ "Lamp_Orange": {
+  "note": "pilot lamp",
+  "size": [
+   48,
+   48
+  ],
+  "slice": null
+ },
+ "Lamp_Red": {
+  "note": "pilot lamp",
+  "size": [
+   48,
+   48
+  ],
+  "slice": null
+ },
+ "Panel_Cream": {
+  "note": "light enamel panels",
+  "size": [
+   192,
+   192
+  ],
+  "slice": [
+   60,
+   60,
+   60,
+   60
+  ]
+ },
+ "Panel_Navy": {
+  "note": "HUD instrument housings, dark cabinets",
+  "size": [
+   192,
+   192
+  ],
+  "slice": [
+   60,
+   60,
+   60,
+   60
+  ]
+ },
+ "Panel_Teal": {
+  "note": "Frame cabinet, headers",
+  "size": [
+   192,
+   192
+  ],
+  "slice": [
+   60,
+   60,
+   60,
+   60
+  ]
+ },
+ "Paper": {
+  "note": "cream catalog card: detail panel, lists",
+  "size": [
+   160,
+   160
+  ],
+  "slice": [
+   44,
+   44,
+   44,
+   44
+  ]
+ },
+ "Plate_Cream": {
+  "note": "nameplate for screen titles",
+  "size": [
+   256,
+   96
+  ],
+  "slice": [
+   56,
+   40,
+   56,
+   40
+  ]
+ },
+ "Portrait_MadScientist": {
+  "note": "MadScientist class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Quartermaster": {
+  "note": "Quartermaster class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Security": {
+  "note": "Security class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Security_Large": {
+  "note": "detail panel portrait",
+  "size": [
+   480,
+   408
+  ],
+  "slice": null
+ },
+ "Portrait_Warden": {
+  "note": "Warden class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Seismograph": {
+  "note": "Disturbance seismograph; paper spans x 14..346, pen at x 330",
+  "size": [
+   384,
+   128
+  ],
+  "slice": null
+ },
+ "Stamp_FreeTrial": {
+  "note": "ink stamp",
+  "size": [
+   256,
+   128
+  ],
+  "slice": null
+ },
+ "Stamp_Owned": {
+  "note": "ink stamp",
+  "size": [
+   256,
+   128
+  ],
+  "slice": null
+ },
+ "Stamp_Wishlist": {
+  "note": "ink stamp",
+  "size": [
+   256,
+   128
+  ],
+  "slice": null
+ },
+ "Tab_Off": {
+  "note": "tab rail plate (zone B)",
+  "size": [
+   224,
+   112
+  ],
+  "slice": [
+   60,
+   50,
+   50,
+   50
+  ]
+ },
+ "Tab_On": {
+  "note": "tab rail plate (zone B)",
+  "size": [
+   224,
+   112
+  ],
+  "slice": [
+   60,
+   50,
+   50,
+   50
+  ]
+ },
+ "Telegram": {
+  "note": "telegram strip: vote banner, alerts",
+  "size": [
+   256,
+   128
+  ],
+  "slice": [
+   72,
+   40,
+   72,
+   40
+  ]
+ },
+ "Well_Teal": {
+  "note": "recessed content well (zone C)",
+  "size": [
+   160,
+   160
+  ],
+  "slice": [
+   44,
+   44,
+   44,
+   44
+  ]
+ }
+}

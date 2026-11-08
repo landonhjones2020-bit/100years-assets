@@ -46,9 +46,26 @@ Start the install in the background and do other work while it downloads.
 6. `python3 tools/setup_code.py <Asset> <assetId>` prints Luau; send it with `execute_luau` (Edit). It checks size and pivot (0.01 studs), removes the PackageLink, sets collision and the palette SurfaceAppearance, writes attributes and sockets, and moves the model to `ServerStorage.Assets.<Category>`. Rigs (`doc.rig`) are refused there; the rig step builds Motor6Ds.
 7. Put the id and `status` (`uploaded`, `in_studio`, `verified`, `approved`) in `manifest.csv`, commit, push, add a line to `BUILD_LOG.md`.
 
+Batches: `python3 tools/setup_batch.py Asset=<id> Rig=<id>:rig:face=<imageId>:Walk=<animId> ...`
+prints one chunk that finishes several inserted models at once (static and rigs).
+
+## 4b. UI kit (bible Section 18, STYLE.md section 3)
+
+1. `python3 generators/UI/UI_Kit.py [Piece ...]` and `python3 generators/UI/UI_Portraits.py`
+   render sprites to `ui/sprites/`; `python3 tools/pack_ui.py` packs `ui/atlas_*.png`, writes
+   `ui/kit.json` (keeps ids of unchanged atlases) and `previews/UI/UI_Kit_sheet.jpg`.
+2. Upload each changed atlas as a Decal (section 4, step 3), get the image ids with
+   `InsertService:LoadAsset`, and put `decalId` and `imageId` in `ui/kit.json`.
+   `python3 tools/pack_ui.py --luau` then prints the `UIKit` ModuleScript (`studio/ui/UIKit.lua`).
+3. Screens: `python3 tools/ui_luau.py studio/ui/<Screen>.lua` prints the builder plus the
+   screen with its sprite table; send it with `execute_luau` (Edit). Wait a few seconds
+   before a screenshot: new atlases take 3 to 4 s to load.
+
 ## 5. Rules
 
 * Never claim a Studio check that didn't happen. Size, pivot and orientation are measured in Studio, not assumed; clips are played in a playtest.
 * Previews and contact sheets go in `previews/`; Landon looks at them whenever he likes.
 * The style test (A0) gates production: nothing after it until Landon approves the four models, two clips and the UI kit look.
 * Keep the Night Shift importer plugin out of this game: it creates `ServerStorage.NS_Pipeline` in every place it sees. Delete that folder if it shows up.
+* Rigs: never rely on `Model.WorldPivot` after setting `PrimaryPart`; set the root part's `PivotOffset` (BUILD_LOG 2026-11-08).
+* `Lighting.Technology` can't be read or set through the connector; ask Landon.

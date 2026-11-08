@@ -6,6 +6,10 @@ bunker grid, the camera and the gameplay code rely on them.
 
 ## 1. Look: Atomic Diorama
 
+**Quality bar (Landon, 2026-11-07):** our biggest competitor is 99 Nights in the Forest
+(lobby shots in `reference/99nights/`). Every asset and screen should clearly beat it on
+finish: real materials, lighting that sells the room, UI that is ours and not a template.
+
 * **Chunky low-poly, mostly hard-surface**, bevelled edges, slightly exaggerated proportions,
   strong silhouettes that read on a phone. If a 256 px preview is mush, simplify.
 * **1950s Americana**: rounded appliances, chrome trim, pastel enamel, riveted steel,
@@ -63,6 +67,30 @@ this game, by Steadfast Shelter Co., in 1958.
   are; the kit only skins them.
 * The kit's look is approved in the A0 style test, with the models and clips.
 
+**How the kit is made** (A0, 2026-11-08)
+
+* `generators/UI/UI_Kit.py` builds every piece as real geometry and renders it straight
+  down in Cycles: soft sun from the upper left, a dark studio ceiling so enamel keeps its
+  true colour, soft boxes so chrome shows bright lines and dark bands, shadows caught in
+  the PNG's alpha. Flat print (dial faces, seismograph paper, sunbursts, stamps, gauge
+  glass) is drawn with PIL in `uiprint.py`. Portraits and item icons come from the real
+  models (`UI_Portraits.py`).
+* Sprites are drawn at **2x their 1080p size** into `ui/sprites/`, then
+  `tools/pack_ui.py` packs them into 1024 px atlases (`ui/atlas_*.png`, 4 px gutters) and
+  writes `ui/kit.json`: atlas, rect, 9-slice margins, uploaded image ids. 9-slice works
+  straight from an atlas rect; `SliceScale` = 0.5 x screen height / 1080 (the
+  `SliceScaler` script keeps it right).
+* Icons that tabs tint (`Icon_Tag`, `Icon_Check`, `Icon_Grid`) are white enamel, coloured
+  with `ImageColor3`.
+* Gauge needles point up at Rotation 0; the sweep runs from -135 (empty) to +135 (full).
+* Type (proposed in A0): **Oswald** for titles, plates and labels; **Special Elite** for
+  anything typed (logs, telegrams, bylines); **Roboto Condensed** for numbers and body
+  text. The same font files are in `ui/fonts/` (OFL/Apache) for baked text.
+* Rarity enamels (proposed in A0): Common #8E8C88, Rare #3F79B5, Epic #7D4C9E,
+  Legendary #D9A93A.
+* In Luau: set `TextWrapped` before `TextScaled` (setting it after turns scaling off), and
+  give lines that sit together the same box height so they scale to the same size.
+
 ## 4. Technical rules
 
 * 1 Blender unit = 1 stud. Z up. **Front faces Blender −Y** (lands on Roblox −Z).
@@ -72,8 +100,12 @@ this game, by Steadfast Shelter Co., in 1958.
   `Surface`, `Cave`, `Lobby`, `Cutscene`, `Digby`, `Cosmetic`, `UI`.
 * Part names unique per asset. Parts that code must find get `role=` (they stay separate
   MeshParts); everything else that shares settings is merged into one MeshPart on export.
-* Collision (`collision=`): `none` for decoration (collision and queries off), `box` for
-  props, `hull` for large pieces, `precise` only where players walk.
+* Collision (`collision=`): `none` for decoration (collision and queries off), `query` for
+  rig body parts and held items (no collision, but raycasts hit them), `box` for props,
+  `hull` for large pieces, `precise` only where players walk.
+* Rigs: one MeshPart per bone, named for the bone; parts that ride on a bone (glow, hair)
+  are separate parts with `bone=` and get welded to it. `AssetSetup.rig` builds the
+  HumanoidRootPart, Motor6Ds named for the clips, the Humanoid and the face decal.
 * Gameplay points are sockets (`export_asset(..., sockets={...})`); Studio stores them as
   `Socket_<Name>` CFrame attributes on the Model, relative to its pivot.
 * Triangle budgets (bible Section 19; `budget=` makes the export fail when over):

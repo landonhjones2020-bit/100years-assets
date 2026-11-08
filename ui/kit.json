@@ -1,0 +1,1050 @@
+{
+ "atlases": {
+  "cards": {
+   "decalId": "110523717816719",
+   "file": "ui/atlas_cards.png",
+   "imageId": "75110860144472",
+   "sha1": "6e40990378b767a062b0f65cdc95ed5efc108393",
+   "size": [
+    1024,
+    1016
+   ]
+  },
+  "kit_a": {
+   "decalId": "86421992183940",
+   "file": "ui/atlas_kit_a.png",
+   "imageId": "74779239339407",
+   "sha1": "e9bad8a14fad6e9347b2010bab966c021c175c04",
+   "size": [
+    1024,
+    1000
+   ]
+  },
+  "kit_b": {
+   "decalId": "125432561809946",
+   "file": "ui/atlas_kit_b.png",
+   "imageId": "102495471404574",
+   "sha1": "4f636d6eb325d137ae2c933bc5b13b9991a46d88",
+   "size": [
+    1024,
+    960
+   ]
+  },
+  "portraits": {
+   "decalId": "112354578662230",
+   "file": "ui/atlas_portraits.png",
+   "imageId": "76558516830406",
+   "sha1": "b7a30fddc450d47b0e0da9553ab147a6e8fe49c5",
+   "size": [
+    1024,
+    1012
+   ]
+  }
+ },
+ "scale": 2,
+ "sprites": {
+  "Ability_Button": {
+   "atlas": "kit_a",
+   "note": "class ability push-button (Bakelite); icon on top",
+   "offset": [
+    404,
+    532
+   ],
+   "size": [
+    160,
+    160
+   ],
+   "slice": null
+  },
+  "Alert_Danger": {
+   "atlas": "kit_a",
+   "note": "alert: danger (fire, breach): red triangle",
+   "offset": [
+    532,
+    868
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Alert_Info": {
+   "atlas": "kit_a",
+   "note": "alert: info: teal circle",
+   "offset": [
+    668,
+    868
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Alert_Warning": {
+   "atlas": "kit_a",
+   "note": "alert: warning: yellow diamond",
+   "offset": [
+    804,
+    868
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Button_Leaf_Down": {
+   "atlas": "kit_b",
+   "note": "vote yes",
+   "offset": [
+    236,
+    532
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Leaf_Up": {
+   "atlas": "kit_b",
+   "note": "vote yes",
+   "offset": [
+    436,
+    532
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Rust_Down": {
+   "atlas": "kit_b",
+   "note": "vote no, danger",
+   "offset": [
+    636,
+    532
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Rust_Up": {
+   "atlas": "kit_b",
+   "note": "vote no, danger",
+   "offset": [
+    4,
+    652
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Signal_Disabled": {
+   "atlas": "kit_b",
+   "note": "main action (Buy, Equip, Claim)",
+   "offset": [
+    204,
+    652
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Signal_Down": {
+   "atlas": "kit_b",
+   "note": "main action (Buy, Equip, Claim)",
+   "offset": [
+    404,
+    652
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Signal_Hover": {
+   "atlas": "kit_b",
+   "note": "main action (Buy, Equip, Claim)",
+   "offset": [
+    604,
+    652
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Signal_Up": {
+   "atlas": "kit_b",
+   "note": "main action (Buy, Equip, Claim)",
+   "offset": [
+    804,
+    652
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Teal_Down": {
+   "atlas": "kit_b",
+   "note": "secondary actions",
+   "offset": [
+    4,
+    772
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Button_Teal_Up": {
+   "atlas": "kit_b",
+   "note": "secondary actions",
+   "offset": [
+    204,
+    772
+   ],
+   "size": [
+    192,
+    112
+   ],
+   "slice": [
+    50,
+    50,
+    50,
+    50
+   ]
+  },
+  "Card_Common": {
+   "atlas": "cards",
+   "note": "class card frame, Common; window 340x290 at y 81",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    400,
+    500
+   ],
+   "slice": null
+  },
+  "Card_Epic": {
+   "atlas": "cards",
+   "note": "class card frame, Epic; window 340x290 at y 81",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    400,
+    500
+   ],
+   "slice": null
+  },
+  "Card_Legendary": {
+   "atlas": "cards",
+   "note": "class card frame, Legendary; window 340x290 at y 81",
+   "offset": [
+    4,
+    512
+   ],
+   "size": [
+    400,
+    500
+   ],
+   "slice": null
+  },
+  "Card_Rare": {
+   "atlas": "cards",
+   "note": "class card frame, Rare; window 340x290 at y 81",
+   "offset": [
+    412,
+    512
+   ],
+   "size": [
+    400,
+    500
+   ],
+   "slice": null
+  },
+  "Chip_Cream": {
+   "atlas": "kit_b",
+   "note": "light plate for prices on cards",
+   "offset": [
+    668,
+    772
+   ],
+   "size": [
+    160,
+    80
+   ],
+   "slice": [
+    40,
+    36,
+    40,
+    36
+   ]
+  },
+  "Chip_Navy": {
+   "atlas": "kit_b",
+   "note": "resource and currency plate",
+   "offset": [
+    836,
+    772
+   ],
+   "size": [
+    160,
+    80
+   ],
+   "slice": [
+    40,
+    36,
+    40,
+    36
+   ]
+  },
+  "Close_Down": {
+   "atlas": "kit_b",
+   "note": "close button: red enamel push-button with a cross",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Close_Up": {
+   "atlas": "kit_b",
+   "note": "close button: red enamel push-button with a cross",
+   "offset": [
+    140,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Dial_Cycle": {
+   "atlas": "kit_b",
+   "note": "cycle dial: DAY 3:00 then SURGE 1:30; face spans x 18..750",
+   "offset": [
+    4,
+    412
+   ],
+   "size": [
+    768,
+    112
+   ],
+   "slice": null
+  },
+  "Dial_Pointer": {
+   "atlas": "kit_b",
+   "note": "cycle dial pointer: slides along the face, tip at the bottom",
+   "offset": [
+    380,
+    276
+   ],
+   "size": [
+    48,
+    128
+   ],
+   "slice": null
+  },
+  "Flip_Tile": {
+   "atlas": "kit_b",
+   "note": "flip-counter tile (year): digit drawn live on top",
+   "offset": [
+    276,
+    276
+   ],
+   "size": [
+    96,
+    128
+   ],
+   "slice": null
+  },
+  "Gauge_Glass": {
+   "atlas": "kit_a",
+   "note": "glass over every gauge face",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Gauge_Health": {
+   "atlas": "kit_a",
+   "note": "health gauge face: needle sweep 225 to -45 degrees",
+   "offset": [
+    268,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Gauge_Needle": {
+   "atlas": "kit_a",
+   "note": "gauge needle, pivot at the centre, points up at Rotation 0",
+   "offset": [
+    532,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Gauge_Rad": {
+   "atlas": "kit_a",
+   "note": "radiation gauge face",
+   "offset": [
+    4,
+    268
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Gauge_Stamina": {
+   "atlas": "kit_a",
+   "note": "stamina gauge face",
+   "offset": [
+    268,
+    268
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Grid_Blueprint": {
+   "atlas": "kit_b",
+   "note": "tile: ScaleType Tile, mini-map paper",
+   "offset": [
+    4,
+    892
+   ],
+   "size": [
+    64,
+    64
+   ],
+   "slice": null
+  },
+  "Hotbar_Selected": {
+   "atlas": "kit_b",
+   "note": "selected hotbar socket",
+   "offset": [
+    276,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Hotbar_Slot": {
+   "atlas": "kit_b",
+   "note": "hotbar socket; number plate at the top left",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Ammo": {
+   "atlas": "kit_b",
+   "note": "Ammo",
+   "offset": [
+    548,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Check": {
+   "atlas": "kit_b",
+   "note": "tab: owned (white, tint with ImageColor3)",
+   "offset": [
+    684,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Command": {
+   "atlas": "kit_b",
+   "note": "Command View (the bunker in section)",
+   "offset": [
+    820,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Food": {
+   "atlas": "kit_b",
+   "note": "Food",
+   "offset": [
+    4,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Glowshard": {
+   "atlas": "kit_b",
+   "note": "Glowshards (premium currency)",
+   "offset": [
+    140,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Grid": {
+   "atlas": "kit_b",
+   "note": "tab: all (white, tint with ImageColor3)",
+   "offset": [
+    276,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Iron": {
+   "atlas": "kit_b",
+   "note": "Iron ore",
+   "offset": [
+    412,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Power": {
+   "atlas": "kit_b",
+   "note": "Power",
+   "offset": [
+    548,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Scrap": {
+   "atlas": "kit_b",
+   "note": "Scrap",
+   "offset": [
+    684,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_ServiceRevolver": {
+   "atlas": "kit_a",
+   "note": "Service Revolver icon from the model",
+   "offset": [
+    532,
+    268
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Icon_Shield": {
+   "atlas": "kit_b",
+   "note": "Security ability: Hold the Line",
+   "offset": [
+    820,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Tag": {
+   "atlas": "kit_b",
+   "note": "tab: today's shop (white, tint with ImageColor3)",
+   "offset": [
+    4,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Water": {
+   "atlas": "kit_b",
+   "note": "Water",
+   "offset": [
+    140,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Lamp_Amber": {
+   "atlas": "kit_b",
+   "note": "pilot lamp",
+   "offset": [
+    76,
+    892
+   ],
+   "size": [
+    48,
+    48
+   ],
+   "slice": null
+  },
+  "Lamp_Green": {
+   "atlas": "kit_b",
+   "note": "pilot lamp",
+   "offset": [
+    132,
+    892
+   ],
+   "size": [
+    48,
+    48
+   ],
+   "slice": null
+  },
+  "Lamp_Off": {
+   "atlas": "kit_b",
+   "note": "pilot lamp",
+   "offset": [
+    188,
+    892
+   ],
+   "size": [
+    48,
+    48
+   ],
+   "slice": null
+  },
+  "Lamp_Orange": {
+   "atlas": "kit_b",
+   "note": "pilot lamp",
+   "offset": [
+    244,
+    892
+   ],
+   "size": [
+    48,
+    48
+   ],
+   "slice": null
+  },
+  "Lamp_Red": {
+   "atlas": "kit_b",
+   "note": "pilot lamp",
+   "offset": [
+    300,
+    892
+   ],
+   "size": [
+    48,
+    48
+   ],
+   "slice": null
+  },
+  "Panel_Cream": {
+   "atlas": "kit_a",
+   "note": "light enamel panels",
+   "offset": [
+    796,
+    268
+   ],
+   "size": [
+    192,
+    192
+   ],
+   "slice": [
+    60,
+    60,
+    60,
+    60
+   ]
+  },
+  "Panel_Navy": {
+   "atlas": "kit_a",
+   "note": "HUD instrument housings, dark cabinets",
+   "offset": [
+    4,
+    532
+   ],
+   "size": [
+    192,
+    192
+   ],
+   "slice": [
+    60,
+    60,
+    60,
+    60
+   ]
+  },
+  "Panel_Teal": {
+   "atlas": "kit_a",
+   "note": "Frame cabinet, headers",
+   "offset": [
+    204,
+    532
+   ],
+   "size": [
+    192,
+    192
+   ],
+   "slice": [
+    60,
+    60,
+    60,
+    60
+   ]
+  },
+  "Paper": {
+   "atlas": "kit_a",
+   "note": "cream catalog card: detail panel, lists",
+   "offset": [
+    572,
+    532
+   ],
+   "size": [
+    160,
+    160
+   ],
+   "slice": [
+    44,
+    44,
+    44,
+    44
+   ]
+  },
+  "Plate_Cream": {
+   "atlas": "kit_b",
+   "note": "nameplate for screen titles",
+   "offset": [
+    404,
+    772
+   ],
+   "size": [
+    256,
+    96
+   ],
+   "slice": [
+    56,
+    40,
+    56,
+    40
+   ]
+  },
+  "Portrait_MadScientist": {
+   "atlas": "portraits",
+   "note": "MadScientist class portrait (card window)",
+   "offset": [
+    492,
+    4
+   ],
+   "size": [
+    340,
+    290
+   ],
+   "slice": null
+  },
+  "Portrait_Quartermaster": {
+   "atlas": "portraits",
+   "note": "Quartermaster class portrait (card window)",
+   "offset": [
+    4,
+    420
+   ],
+   "size": [
+    340,
+    290
+   ],
+   "slice": null
+  },
+  "Portrait_Security": {
+   "atlas": "portraits",
+   "note": "Security class portrait (card window)",
+   "offset": [
+    352,
+    420
+   ],
+   "size": [
+    340,
+    290
+   ],
+   "slice": null
+  },
+  "Portrait_Security_Large": {
+   "atlas": "portraits",
+   "note": "detail panel portrait",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    480,
+    408
+   ],
+   "slice": null
+  },
+  "Portrait_Warden": {
+   "atlas": "portraits",
+   "note": "Warden class portrait (card window)",
+   "offset": [
+    4,
+    718
+   ],
+   "size": [
+    340,
+    290
+   ],
+   "slice": null
+  },
+  "Seismograph": {
+   "atlas": "kit_a",
+   "note": "Disturbance seismograph; paper spans x 14..346, pen at x 330",
+   "offset": [
+    4,
+    732
+   ],
+   "size": [
+    384,
+    128
+   ],
+   "slice": null
+  },
+  "Stamp_FreeTrial": {
+   "atlas": "kit_a",
+   "note": "ink stamp",
+   "offset": [
+    396,
+    732
+   ],
+   "size": [
+    256,
+    128
+   ],
+   "slice": null
+  },
+  "Stamp_Owned": {
+   "atlas": "kit_a",
+   "note": "ink stamp",
+   "offset": [
+    660,
+    732
+   ],
+   "size": [
+    256,
+    128
+   ],
+   "slice": null
+  },
+  "Stamp_Wishlist": {
+   "atlas": "kit_a",
+   "note": "ink stamp",
+   "offset": [
+    4,
+    868
+   ],
+   "size": [
+    256,
+    128
+   ],
+   "slice": null
+  },
+  "Tab_Off": {
+   "atlas": "kit_b",
+   "note": "tab rail plate (zone B)",
+   "offset": [
+    780,
+    412
+   ],
+   "size": [
+    224,
+    112
+   ],
+   "slice": [
+    60,
+    50,
+    50,
+    50
+   ]
+  },
+  "Tab_On": {
+   "atlas": "kit_b",
+   "note": "tab rail plate (zone B)",
+   "offset": [
+    4,
+    532
+   ],
+   "size": [
+    224,
+    112
+   ],
+   "slice": [
+    60,
+    50,
+    50,
+    50
+   ]
+  },
+  "Telegram": {
+   "atlas": "kit_a",
+   "note": "telegram strip: vote banner, alerts",
+   "offset": [
+    268,
+    868
+   ],
+   "size": [
+    256,
+    128
+   ],
+   "slice": [
+    72,
+    40,
+    72,
+    40
+   ]
+  },
+  "Well_Teal": {
+   "atlas": "kit_a",
+   "note": "recessed content well (zone C)",
+   "offset": [
+    740,
+    532
+   ],
+   "size": [
+    160,
+    160
+   ],
+   "slice": [
+    44,
+    44,
+    44,
+    44
+   ]
+  }
+ },
+ "version": 1
+}

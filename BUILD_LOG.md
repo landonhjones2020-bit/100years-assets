@@ -83,3 +83,76 @@ Newest first. Every "verified" line says how it was checked.
   revision, and `manifest.csv` holds the current one.
 * UI must be themed to the game, never generic Roblox UI (Landon). Rules in `STYLE.md`
   section 3; the kit's look joins the A0 style test.
+
+## 2026-11-08: A0 style test built and in Studio (waiting for Landon's approval)
+
+Everything below is in Run (studio "run", place 72892455946761). Nothing after A0 starts
+until Landon approves the four models, two clips and the UI kit look (bible Section 19).
+
+| Asset | Asset id | Status | Notes |
+|---|---|---|---|
+| Room_Kitchen_L1 | 96540501294464 | verified | 13 MeshParts, 2,992 tris (budget 3,000); `ServerStorage.Assets.Rooms` |
+| Kit_CellShell | 134174776264272 | verified | 7 MeshParts, 1,636 tris (2,000); `ServerStorage.Assets.Kit` |
+| Weapon_ServiceRevolver | 86157197359329 | verified | 796 tris (1,500); Grip and Muzzle sockets; `ServerStorage.Assets.Weapons` |
+| Resident_Common | 118658215913755 | verified | 16 MeshParts, 2,268 tris (2,500); 15 Motor6Ds, hair welded; face decal |
+| Monster_HollowMiner | 83503998043819 | verified | 15 MeshParts, 2,142 tris (4,000); 11 Motor6Ds, 4 glow parts welded |
+| R15_ResidentWalk (clip) | 125264708961546 | verified | 1.00 s loop, Movement priority |
+| HollowMiner_Attack (clip) | 99038102545112 | verified | 1.47 s, Action priority, `Hit` marker at 0.7 s |
+| Face_Resident_Smile | decal 87390877749448, image 103176016141485 | in_studio | on Resident_Common's Head (front) |
+| UI atlas: cards | decal 110523717816719, image 75110860144472 | verified | `ui/atlas_cards.png` |
+| UI atlas: kit_a | decal 86421992183940, image 74779239339407 | verified | `ui/atlas_kit_a.png` |
+| UI atlas: kit_b | decal 125432561809946, image 102495471404574 | verified | `ui/atlas_kit_b.png` |
+| UI atlas: portraits | decal 112354578662230, image 76558516830406 | verified | `ui/atlas_portraits.png` |
+
+In Studio:
+* `ServerStorage.Assets.<Category>`: the five models, finished by `AssetSetup` (static) and
+  `AssetSetup.rig` (rigs). Every MeshPart passed the size and offset check (0.01 studs).
+* `Workspace.A0_Showroom`: the kitchen in a cell (front wall removed for the camera), a
+  walking resident, a cook at the stove, the Hollow Miner at the side door, the revolver on
+  the table, PointLights at the Light sockets.
+* `ServerScriptService.A0_ShowroomAnimations`: plays Walk and Attack on the showroom NPCs
+  in a playtest (ids from the models' `Anim_<Clip>` attributes).
+* `StarterGui.A0_HUD` (enabled) and `StarterGui.A0_ClassShop` (disabled): toggle `Enabled`
+  to look at either. Both carry `SliceScaler` and `KitButtons` LocalScripts.
+* Screenshots: `previews/A0/` (Studio) and `previews/UI/UI_Kit_sheet.jpg` (every kit piece).
+
+**Findings (verified in Studio)**
+1. **Rig pivot.** Setting `Model.PrimaryPart` moved the model's pivot to the root part's
+   centre, and assigning `Model.WorldPivot` afterwards did not move it back, so both rigs
+   were stored 3 studs low and sank into the floor. Fix (in `AssetSetup.rig`): set
+   `root.PivotOffset = root.CFrame:ToObjectSpace(feetPivot)`. Both stored rigs repaired.
+2. **Custom-rig clips upload and play.** The Python-written KeyframeSequence for the Hollow
+   Miner (custom joint names) uploaded as an Animation and drove all 11 Motor6Ds in a
+   playtest; the `Hit` marker fired on every swing. The bible's fallback (Studio-built
+   clips) is not needed.
+3. **Server NPC animation** replicates to the client; the play-mode `screen_capture` shows
+   the client. A freeze (`TimePosition`, `AdjustSpeed(0)`) catches a pose for screenshots.
+4. **9-slice from an atlas works:** `ScaleType.Slice` with `ImageRectOffset/Size` slices the
+   sub-rect (`SliceCenter` is relative to the rect). `ScaleType.Tile` tiles a sub-rect too.
+5. **TextScaled is linked to TextWrapped:** setting `TextWrapped = false` after
+   `TextScaled = true` turned scaling off (every label rendered at size 8). Set TextWrapped
+   first, TextScaled last.
+6. **First image load** in Studio took 3 to 4 s per new atlas; a screenshot straight after
+   building shows the UI without images.
+7. **Lighting.Technology** can't be read or set through the connector (needs RobloxScript
+   capability). The showroom shots look right as the place is set; Landon can switch it
+   to Future in the Lighting properties if it isn't already.
+8. Night Shift's importer plugin recreated `ServerStorage.NS_Pipeline` twice today; deleted
+   both times.
+
+**Not verified yet**
+* The AutoScale Lite pass (Landon) and the Device Emulator check on a phone, a tablet, a
+  1080p monitor and a 4K TV (bible Section 18 rules 8 and 9). The sample was built
+  Scale-only with aspect constraints, but only seen at 1919 x 1079.
+* `KitButtons` pressed states and the `SliceScaler` at other screen sizes (written, not
+  exercised in play).
+* Touch buttons (bottom right on touch) aren't in the sample.
+* `Lighting.Technology` (see finding 7).
+
+**Proposed for approval (bible Section 18 leaves these to the style test)**
+* Type: Oswald (titles, plates, labels), Special Elite (typed text: logs, telegrams,
+  bylines), Roboto Condensed (numbers and body). All three are Roblox font families, and
+  the same files are in `ui/fonts/` so baked stamps match live text. No Fredoka One.
+* Rarity enamels: Common #8E8C88, Rare #3F79B5, Epic #7D4C9E, Legendary #D9A93A.
+* Class cards: catalog card with a chrome rim, a sunburst window in the rarity colour, a
+  rarity tag on the window edge, a pilot lamp for the selected card.
