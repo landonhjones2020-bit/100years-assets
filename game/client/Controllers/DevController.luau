@@ -5,9 +5,13 @@
 	For players the server marked DevAllowed (everyone in Studio, admins in a live game) it
 	adds a chat command: `/dev <command> [args]` (or `/d`). Commands run on the server
 	(DevService checks permission again); the answer comes back as a Notice, shown in the
-	chat and the output. Two commands run on the client:
+	chat and the output. Four commands run on the client:
 	* `/dev replica <collection>` prints this client's mirror of a collection;
-	* `/dev client` prints the client's replication counters.
+	* `/dev client` prints the client's replication counters;
+	* `/dev clock` prints the run state as this client sees it (Run place), with the time
+	  left counted on this client from the replicated server time;
+	* `/dev ready [true|false]` fires the SetReady remote, as the HUD's Ready button will,
+	  and reports what the server did.
 
 	In Studio it also makes PlayerScripts.DevInvoke (a BindableFunction) so tools can run the
 	same commands from the Client datamodel: DevInvoke:Invoke("replica _SelfTest").
@@ -21,6 +25,7 @@ local TextChatService = game:GetService("TextChatService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
+local RunState = require(Shared.RunState)
 local TableUtil = require(Shared.Utilities.TableUtil)
 
 local log = Log.new("DevController")
@@ -88,6 +93,34 @@ local function parse(text: string): (string, { any })
 	return if type(name) == "string" then name else "help", words
 end
 
+local function describeClock(): string
+	local runPhase = RunState.Get("RunPhase")
+	if runPhase == nil then
+		return "no run state in this place"
+	end
+	local left = RunState.TimeLeft()
+	local leftText = if left then string.format("%.1f s left", left) else "stopped"
+	local boss = RunState.Get("SurgeBoss")
+	local bossText = if boss then ` ({boss})` else ""
+	return `client sees: {runPhase}, cycle {RunState.Get("Cycle")}, Year {RunState.Get("Year")} ({RunState.Get("Era")}), `
+		.. `{RunState.Get("CyclePhase") or "-"} {leftText}, siren {tostring(RunState.Get("Siren") == true)}, `
+		.. `Surge {RunState.Get("SurgeKind") or "-"}{bossText}, {RunState.Get("YearsPerCycle")} years per cycle, `
+		.. `ready {RunState.Get("ReadyCount") or 0}/{RunState.Get("ReadyNeeded") or 0}`
+end
+
+local function pressReady(on: boolean): string
+	if not Remotes.InPlace("SetReady") then
+		return "there is no run clock in this place"
+	end
+	local player = Players.LocalPlayer
+	Remotes.FireServer("SetReady", on)
+	local waited = 0
+	while waited < 2 and player:GetAttribute("Ready") ~= on and not (on and RunState.Get("Siren") == true) do
+		waited += task.wait()
+	end
+	return `SetReady {on}: my Ready is {tostring(player:GetAttribute("Ready"))}\n{describeClock()}`
+end
+
 -- Runs a command line; client-side commands answer here, the rest go to the server.
 local function run(text: string): string?
 	local name, args = parse(text)
@@ -106,6 +139,10 @@ local function run(text: string): string?
 	elseif name == "client" then
 		local stats = replica:Stats()
 		return `client: ready={tostring(replica:IsReady())}, delta events {stats.Events}, ops {stats.Ops}, snapshots {stats.Snapshots}`
+	elseif name == "clock" then
+		return describeClock()
+	elseif name == "ready" then
+		return pressReady(args[1] ~= false)
 	end
 	if #args > 8 then
 		return "at most 8 arguments"

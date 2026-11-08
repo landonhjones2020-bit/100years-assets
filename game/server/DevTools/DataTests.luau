@@ -22,6 +22,8 @@ local Loader = require(Shared.Utilities.Loader)
 local Log = require(Shared.Utilities.Log)
 local RateLimit = require(Shared.Utilities.RateLimit)
 local Remotes = require(Shared.Remotes)
+local Clock = require(Shared.Rules.Clock)
+local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
 local TableUtil = require(Shared.Utilities.TableUtil)
 local Trove = require(Shared.Utilities.Trove)
@@ -702,6 +704,151 @@ test("Delta: Apply runs set, patch, remove and clear on a mirror", function()
 	expectEqual(#changes, 1, "one clear change")
 end)
 
+-- The clock (Rules.Clock, bible Section 5) ----------------------------------------------
+
+local function objectiveIds(kind: string): { string }
+	local ids = {}
+	for _, objective in all("Objectives") do
+		if objective.Kind == kind then
+			table.insert(ids, objective.Id)
+		end
+	end
+	return ids
+end
+
+local function bossObjective(bossId: string): string
+	for _, objective in all("Objectives") do
+		if objective.Kind == "Boss" and objective.Boss == bossId then
+			return objective.Id
+		end
+	end
+	error(`no objective for {bossId}`)
+end
+
+-- Plays a century with the clock rules: Lost Crews rescued in the given cycles, era bosses
+-- beaten when they come or not. Returns the cycle of the final Surge and the boss Surges.
+local function century(crewCycles: { number }, beatBosses: boolean): (number, { string })
+	local state = Clock.NewState()
+	local crews = objectiveIds("LostCrew")
+	local rescued = 0
+	local bosses = {}
+	for _ = 1, 200 do
+		for _, cycle in crewCycles do
+			if cycle == state.Cycle then
+				rescued += 1
+				state.Completed[crews[rescued]] = true
+			end
+		end
+		local kind, boss = Clock.StartSurge(state)
+		if kind == "Final" then
+			return state.Cycle, bosses
+		end
+		if kind == "Boss" and boss then
+			table.insert(bosses, `{boss}@{state.Cycle}`)
+			if beatBosses then
+				state.Completed[bossObjective(boss)] = true
+			end
+		end
+		Clock.EndCycle(state)
+	end
+	error("the century never ended")
+end
+
+test("Clock: Years per Cycle starts at 1, +2 a Lost Crew, +1 an era boss, 12 with everything", function()
+	local crews, bosses = objectiveIds("LostCrew"), objectiveIds("Boss")
+	expectEqual({ #crews, #bosses }, { 4, 3 }, "four Lost Crews and three era bosses")
+	expectEqual(Clock.YearsPerCycle({}), 1, "nothing done")
+	expectEqual(Clock.YearsPerCycle({ [crews[1]] = true }), 3, "one crew")
+	expectEqual(Clock.YearsPerCycle({ [bosses[1]] = true }), 2, "one boss")
+	local everything: { [string]: boolean } = {}
+	for _, id in crews do
+		everything[id] = true
+	end
+	for _, id in bosses do
+		everything[id] = true
+	end
+	expectEqual(Clock.YearsPerCycle(everything), Clock.Tuning().YearsPerCycleMax, "everything done reaches the cap")
+	expectEqual(Clock.Tuning().YearsPerCycleMax, 12, "the cap")
+	everything.NotAnObjective = true
+	expectEqual(Clock.YearsPerCycle(everything), 12, "unknown ids count for nothing")
+	local eras = all("Eras")
+	expectEqual(Clock.Tuning().FinalYear, eras[#eras].Years.To, "the final year ends the last era")
+end)
+
+test("Clock: reaching or passing an era's last year makes its boss the next Surge, once", function()
+	local state = Clock.NewState()
+	state.Year = 24
+	local before, due = Clock.EndCycle(state)
+	expectEqual({ before, state.Year, state.Cycle, due }, { 24, 25, 2, "BroodMother" }, "24 -> 25")
+	expectEqual({ Clock.SurgeKind(state) }, { "Boss", "BroodMother" }, "the next Surge")
+	expectEqual({ Clock.StartSurge(state) }, { "Boss", "BroodMother" }, "the boss Surge")
+	expectEqual(state.PendingBoss, nil, "the boss Surge comes once")
+	expectEqual(Clock.SurgeKind(state), "Normal", "the Surge after it")
+
+	local jump = Clock.NewState()
+	jump.Year = 23
+	jump.Completed = { [objectiveIds("LostCrew")[1]] = true } -- 3 years per cycle
+	local _, passed = Clock.EndCycle(jump)
+	expectEqual({ jump.Year, passed }, { 26, "BroodMother" }, "23 + 3 passes 25")
+
+	local beaten = Clock.NewState()
+	beaten.Year = 49
+	beaten.Completed = { [bossObjective("Deluge")] = true } -- 2 years per cycle
+	local _, none = Clock.EndCycle(beaten)
+	expectEqual({ beaten.Year, none, beaten.PendingBoss }, { 51, nil, nil }, "a beaten boss doesn't come again")
+end)
+
+test("Clock: the year stops at 100 and the next Surge is the final one; Endless goes on", function()
+	local state = Clock.NewState()
+	state.Year = 99
+	state.Completed = { [objectiveIds("LostCrew")[1]] = true } -- 3 years per cycle
+	local _, due = Clock.EndCycle(state)
+	expectEqual({ state.Year, due }, { 100, nil }, "capped at the final year, no era boss for it")
+	expectEqual({ Clock.SurgeKind(state) }, { "Final", "Source" }, "the final Surge")
+	state.Endless = true
+	expectEqual(Clock.SurgeKind(state), "Endless", "Endless Surges")
+	Clock.EndCycle(state)
+	expectEqual(state.Year, 103, "Endless goes past 100")
+end)
+
+test("Clock: eras by year; the first Surge is the tutorial wave", function()
+	expectEqual(
+		{ Clock.EraOf(1), Clock.EraOf(25), Clock.EraOf(26), Clock.EraOf(100), Clock.EraOf(140) },
+		{ "SettlingIn", "SettlingIn", "Expansion", "Reckoning", "Reckoning" },
+		"eras"
+	)
+	local state = Clock.NewState()
+	expectEqual(Clock.SurgeKind(state), "Tutorial", "cycle 1")
+	Clock.EndCycle(state)
+	expectEqual(Clock.SurgeKind(state), "Normal", "cycle 2")
+end)
+
+test("Clock: completing nothing takes 100 cycles; crews and bosses make it 13 to 20 (bible Section 5)", function()
+	local cycles, bosses = century({}, false)
+	expectEqual(cycles, 100, "cycles with nothing done")
+	expectEqual(bosses, { "BroodMother@25", "Deluge@50", "CrystalColossus@75" }, "boss Surges")
+	for _, schedule in { { 2, 4, 6, 8 }, { 3, 6, 9, 12 }, { 4, 8, 12, 16 } } do
+		local fast = century(schedule, true)
+		expect(fast >= 13 and fast <= 20, `13 to 20 cycles with crews rescued in cycles {table.concat(schedule, ", ")} (got {fast})`)
+	end
+end)
+
+test("RunState: every value has one owner, a type and its allowed values", function()
+	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true }
+	for name, field in RunState.Fields do
+		expect(owners[field.By], `{name} to have a known owner`)
+	end
+	expect(RunState.Check("Year", 12), "a number year")
+	expect(not RunState.Check("Year", "12"), "a string year rejected")
+	expect(not RunState.Check("Year", 0 / 0), "NaN rejected")
+	expect(not RunState.Check("RunPhase", "Paused"), "an unknown phase rejected")
+	expect(RunState.Check("SurgeBoss", nil), "nil clears a value")
+	expect(not RunState.Check("Nope", 1), "unknown names rejected")
+	expectError(function()
+		RunState.Writer("ObjectiveService")("Year", 5)
+	end, "belongs to CycleClock")
+end)
+
 -- Remotes and constants ------------------------------------------------------------------
 
 test("Remotes: every definition is complete", function()
@@ -709,10 +856,12 @@ test("Remotes: every definition is complete", function()
 		expect(string.find(name, "^%u%w*$"), `{name} to be PascalCase`)
 		expect(definition.To == "Server" or definition.To == "Client", `{name}.To`)
 		expect(type(definition.Doc) == "string" and #definition.Doc > 10, `{name}.Doc`)
+		expect(definition.Place == nil or definition.Place == "Lobby" or definition.Place == "Run", `{name}.Place`)
 		if definition.To == "Server" then
 			expect(definition.Args ~= nil and definition.Rate ~= nil, `{name} to have Args and Rate`)
 		end
 	end
+	expectEqual(Remotes.InPlace("SetReady"), Constants.PlaceKind() == "Run", "SetReady only in the Run place")
 end)
 
 test("Constants: this place knows what it is", function()

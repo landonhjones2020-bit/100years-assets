@@ -24,7 +24,9 @@ ReplicatedStorage
     Constants                    identity and engine limits (never gameplay numbers)
     Types                        types that cross module or network boundaries
     Remotes                      the one list of RemoteEvents + the only API to use them
+    RunState                     the run's small values, replicated as attributes on it (Run)
     Config                       content aggregator; one child ModuleScript per content type
+    Rules                        pure game rules both sides share (Clock)
     Utilities                    Check, Delta, Loader, Log, RateLimit, Signal, TableUtil, Trove
 ServerScriptService
   Bootstrap                      (Script) the only server script
@@ -103,8 +105,9 @@ return CycleClock
 
 ## Networking
 
-* Every RemoteEvent is an entry in `Shared.Remotes` (`To`, `Args`, `Rate`, `Doc`). Nothing else
-  creates remotes; StructureCheck flags any that appear elsewhere.
+* Every RemoteEvent is an entry in `Shared.Remotes` (`To`, `Args`, `Rate`, `Doc`, and `Place`
+  for remotes only one place has). Nothing else creates remotes; StructureCheck flags any that
+  appear elsewhere.
 * Clients send intentions (propose this room, fire at this point), never results. Each
   client → server remote checks every argument (`Utilities.Check`: finite numbers, valid
   UTF-8, lists without holes, shapes without unknown fields) and rate-limits each player
@@ -116,6 +119,49 @@ return CycleClock
   `Constants.DELTA_HZ` times a second; a player gets a snapshot when their session becomes
   ready. Values must be remote-safe (`Delta.IsRemoteSafe`): lists or string-keyed tables,
   finite numbers, no Instances, no functions. Per-player collections pass `Visible`.
+
+## The run (Run place)
+
+`RunDirector` owns the lifecycle and how a run ends; `CycleClock` owns cycles, phases, the year
+counter, Years per Cycle and skips; `ObjectiveService` keeps the Lost Crews rescued and era
+bosses beaten (bible Sections 4, 5 and 23). The century's arithmetic is `Shared.Rules.Clock`,
+pure functions the data tests hold to the bible.
+
+```
+Waiting --first player ready--> Intro (30 s) --> Playing --> Ended --Keep Going--> Playing (Endless)
+                                                    |  Day 3:00 (siren at 2:40) -> Surge 1:30 -> year jump -> next Day
+```
+
+* The run clock starts at the 30-second mark for everyone; skipping the cutscene is personal.
+* Years per Cycle = 1 + the `YearsPerCycle` of every objective done (`Config.Objectives`: +2 a
+  Lost Crew, +1 an era boss), at most 12. The year jumps at the end of each cycle.
+* A jump that reaches or passes 25, 50 or 75 makes that era's boss the next Surge (once, unless
+  already beaten). At 100 the year stops and the next Surge is the final one; when it ends the
+  clock halts and RunDirector declares a Century Victory.
+* Surges end when their time is up, or earlier through `CycleClock:EndSurge()` (ThreatDirector,
+  when the last monster is dead and the disaster fixed).
+* Skips: when every player in the run has pressed Ready (`SetReady` remote) or rests in a
+  Quarters bed (`CycleClock:SetResting`), the day jumps to the siren. Ready resets at the siren.
+* Defeat: `RunDirector:Lose("ReactorDestroyed" | "ResidentsLost")`; Deep Victory:
+  `RunDirector:Win("Deep")`; Keep Going: `RunDirector:KeepGoing()` (no more era bosses or year
+  cap, Endless Surges). The results screen reads `RunDirector:Summary()`.
+* Signals for other systems: `CycleClock.CycleStarted` (residents eat and drink), `YearChanged`
+  (aging), `EraChanged`, `SirenStarted`, `SurgeStarted`, `SurgeEnded` (the blueprint draft),
+  `Skipped`; `RunDirector.PhaseChanged`, `RunEnded`; `ObjectiveService.Changed`.
+
+**RunState** (`Shared.RunState`): the run's small values, replicated as attributes on that
+ModuleScript. Each has one writer, which gets a setter from `RunState.Writer(name)`; anyone
+reads `RunState.Get`, `RunState.Changed`, `RunState.TimeLeft()` (times are server time, so
+every client counts down to the same moment).
+
+| Writer | Values |
+|---|---|
+| RunDirector | RunPhase, IntroEndsAt, Difficulty, Outcome, DefeatReason, Victory, Endless |
+| CycleClock | Cycle, Year, Era, YearsPerCycle, CyclePhase, PhaseLength, PhaseEndsAt, PhaseLeft, Siren, SurgeKind, SurgeBoss, ReadyCount, ReadyNeeded, Paused, TimeScale |
+| ObjectiveService | LostCrews, BossesBeaten |
+
+Players carry `Ready` and `Resting` attributes (CycleClock). In Studio, set the attribute
+`SkipIntro` on `ServerScriptService.DevTools` to true to start runs without the 30 s intro.
 
 ## Saved data
 
@@ -176,7 +222,12 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * `structure`: StructureCheck. `test [filter]`: DataTests. Both run once whenever a Studio
   playtest starts (set the `RunChecksOnStart` attribute on DevTools to false to stop that).
 * Other built-ins: `version`, `ping`, `players`, `remotes`, `log [level]`, `logs [count]`,
-  `rep`, `rep.selftest`; on the client `replica <collection>` and `client`.
+  `rep`, `rep.selftest`; on the client `replica <collection>`, `client`, `clock` and
+  `ready [true|false]` (fires SetReady like the HUD button).
+* The run (Run place): `run`, `run.skipintro`, `run.win <century|deep>`,
+  `run.lose <reactor|residents>`, `run.keepgoing`; `clock`, `clock.speed <x>`, `clock.pause`,
+  `clock.resume`, `clock.next`, `clock.clear`, `year <n>`, `ready.all [bool]`,
+  `rest.all [bool]`; `objectives`, `objective <id>`.
 
 ## Conventions
 
@@ -194,6 +245,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | DevService | service | | DevTools commands and permission |
 | both | ReplicationService | service | SessionService, DevService | the delta channel (server) |
 | both | ProfileService | service | SessionService, ReplicationService, DevService | saved data: session-locked profiles, Glowshards, purchase receipts |
+| Run | ObjectiveService | service | DevService | Lost Crews rescued, era bosses beaten, their Years per Cycle bonuses |
+| Run | CycleClock | service | SessionService, ObjectiveService, DevService | 4:30 cycles, day and Surge phases, the year counter, Years per Cycle, skips |
+| Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | DevController | controller | ReplicaController | `/dev` chat command, Studio DevInvoke |
 
@@ -207,3 +261,6 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   every system, and data tests that hold the content to the bible.
 * **Prompt 2 (2026-11-08)**: saved data. ProfileService with session locks, migrations,
   autosave, release and shutdown saves, purchase receipts; SessionService gates.
+* **Prompt 3 (2026-11-08)**: the run lifecycle and the cycle clock (Run place). RunDirector,
+  CycleClock, ObjectiveService, Shared.Rules.Clock, Shared.RunState, the SetReady remote,
+  place-only remotes and code (`game/places/Run`); win and lose stubs for later prompts.

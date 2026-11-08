@@ -30,8 +30,8 @@ local Cell = Check.shape({
 local Schemas: { [string]: Check.Checker } = {
 	Clock = shape({
 		CycleSeconds = S, DaySeconds = S, SurgeSeconds = S,
-		YearsPerCycleStart = I, YearsPerCycleMax = I, LostCrewBonus = I, BossBonus = I,
-		FinalYear = I, EraEnds = list(I, 4), IntroSeconds = S, IntroSkipAfterSeconds = S,
+		YearsPerCycleStart = I, YearsPerCycleMax = I, -- the bonuses are Config.Objectives' YearsPerCycle
+		FinalYear = I, IntroSeconds = S, IntroSkipAfterSeconds = S,
 		SurgeSirenSeconds = S, TutorialFirstSurge = Check.boolean(),
 	}),
 	Grid = shape({
@@ -114,8 +114,8 @@ return {
 	Entries = {
 		Clock = { -- Section 5
 			CycleSeconds = 270, DaySeconds = 180, SurgeSeconds = 90,
-			YearsPerCycleStart = 1, YearsPerCycleMax = 12, LostCrewBonus = 2, BossBonus = 1,
-			FinalYear = 100, EraEnds = { 25, 50, 75, 100 }, IntroSeconds = 30, IntroSkipAfterSeconds = 2,
+			YearsPerCycleStart = 1, YearsPerCycleMax = 12, -- +2 per Lost Crew, +1 per era boss: Config.Objectives
+			FinalYear = 100, IntroSeconds = 30, IntroSkipAfterSeconds = 2, -- era ends: Config.Eras
 			SurgeSirenSeconds = 20, TutorialFirstSurge = true,
 		},
 		Grid = { -- Section 6

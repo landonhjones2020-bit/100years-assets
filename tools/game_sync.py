@@ -90,6 +90,8 @@ def walk(directory: str, parent: dict) -> None:
             init = os.path.join(path, "init.luau")
             if os.path.exists(init):
                 child = add(parent, node(entry, "ModuleScript", read(init), os.path.relpath(init, REPO)))
+            elif parent["children"].get(entry, {}).get("class") == "Folder":
+                child = parent["children"][entry]  # game/places/<Place> adds to a shared folder
             else:
                 child = add(parent, node(entry, "Folder"))
             walk(path, child)

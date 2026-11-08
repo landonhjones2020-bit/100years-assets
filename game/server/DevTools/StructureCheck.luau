@@ -25,7 +25,10 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Constants", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Types", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Remotes", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.RunState", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Config", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules", "Folder" },
+	{ "ReplicatedStorage.Shared.Rules.Clock", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities.Delta", "ModuleScript" },
@@ -46,6 +49,16 @@ local SKELETON: { { string } } = {
 	{ "StarterPlayer.StarterPlayerScripts.Controllers", "Folder" },
 	{ "ServerStorage.Documentation", "Folder" },
 	{ "ServerStorage.Documentation.ARCHITECTURE", "ModuleScript" },
+}
+
+-- What only one place has (from game/places/<Place>).
+local PLACE_SKELETON: { [string]: { { string } } } = {
+	Run = {
+		{ "ServerScriptService.Services.RunDirector", "ModuleScript" },
+		{ "ServerScriptService.Services.CycleClock", "ModuleScript" },
+		{ "ServerScriptService.Services.ObjectiveService", "ModuleScript" },
+	},
+	Lobby = {},
 }
 
 -- The only scripts: everything else is a ModuleScript (bible Section 23).
@@ -160,8 +173,20 @@ function StructureCheck.Run(options: Options?): Result
 		table.insert(result.Warnings, message)
 	end
 
-	-- 1. The skeleton
-	for _, item in SKELETON do
+	-- 1. The skeleton (shared, then this place's own)
+	local placeKind: string? = nil
+	do
+		local constantsModule = find("ReplicatedStorage.Shared.Constants")
+		if constantsModule and constantsModule:IsA("ModuleScript") then
+			local ok, kind = pcall((require(constantsModule) :: any).PlaceKind)
+			placeKind = if ok then kind else nil
+		end
+	end
+	local skeleton = table.clone(SKELETON)
+	for _, item in (if placeKind then PLACE_SKELETON[placeKind] else nil) or {} do
+		table.insert(skeleton, item)
+	end
+	for _, item in skeleton do
 		local path, className = item[1], item[2]
 		local found = find(path)
 		if not found then
@@ -170,6 +195,15 @@ function StructureCheck.Run(options: Options?): Result
 			fail(`{path} is a {found.ClassName}, should be a {className}`)
 		else
 			pass()
+		end
+	end
+	for kind, items in PLACE_SKELETON do
+		if kind ~= placeKind then
+			for _, item in items do
+				if find(item[1]) then
+					fail(`{item[1]} belongs to the {kind} place only`)
+				end
+			end
 		end
 	end
 
@@ -285,7 +319,13 @@ function StructureCheck.Run(options: Options?): Result
 		for name, definition in Remotes.Definitions do
 			local found = remotesModule:FindFirstChild(name)
 			local className = if definition.Unreliable then "UnreliableRemoteEvent" else "RemoteEvent"
-			if not found then
+			if not Remotes.InPlace(name) then
+				if found then
+					fail(`remote {name} exists, but it belongs to the {definition.Place} place only`)
+				else
+					pass()
+				end
+			elseif not found then
 				fail(`remote {name} wasn't created`)
 			elseif found.ClassName ~= className then
 				fail(`remote {name} is a {found.ClassName}, should be a {className}`)
@@ -370,6 +410,24 @@ function StructureCheck.Run(options: Options?): Result
 		local DevTools = ServerScriptService:FindFirstChild("DevTools")
 		if DevTools and not DevTools:FindFirstChild("Invoke") and game:GetService("RunService"):IsStudio() then
 			warnOf("DevTools.Invoke wasn't created (DevService didn't start?)")
+		end
+		-- The run's replicated values (Run place): set, and each one allowed
+		local runStateModule = find("ReplicatedStorage.Shared.RunState")
+		if placeKind == "Run" and runStateModule and runStateModule:IsA("ModuleScript") then
+			local RunState = require(runStateModule) :: any
+			if RunState.Get("RunPhase") == nil then
+				fail("RunState.RunPhase isn't set: RunDirector didn't start")
+			else
+				pass()
+			end
+			for name, value in runStateModule:GetAttributes() do
+				local ok, why = RunState.Check(name, value)
+				if ok then
+					pass()
+				else
+					fail(`RunState: {why}`)
+				end
+			end
 		end
 	end
 

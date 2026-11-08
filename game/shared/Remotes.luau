@@ -9,6 +9,7 @@
 	  are rejected), Rate limits each player. The handler only runs for calls that pass.
 	* To = "Client" (server -> client): the server is trusted; no checks.
 	* Unreliable = true makes an UnreliableRemoteEvent (cosmetic, high-frequency traffic).
+	* Place = "Run" or "Lobby" makes it exist in that place only (default: both).
 
 	Server: Remotes.Setup() once (Bootstrap), then Remotes.OnServer(name, handler) and
 	Remotes.FireClient / FireClients / FireAllClients. Client: Remotes.OnClient(name, handler)
@@ -19,6 +20,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local Check = require(script.Parent.Utilities.Check)
+local Constants = require(script.Parent.Constants)
 local Log = require(script.Parent.Utilities.Log)
 local RateLimit = require(script.Parent.Utilities.RateLimit)
 
@@ -27,6 +29,7 @@ export type Definition = {
 	Args: { Check.Checker }?,
 	Rate: { Burst: number, PerSecond: number }?,
 	Unreliable: boolean?,
+	Place: Constants.PlaceKind?,
 	Doc: string,
 }
 
@@ -46,6 +49,13 @@ local DEFINITIONS: { [string]: Definition } = {
 		},
 		Rate = { Burst = 6, PerSecond = 2 },
 		Doc = "A DevTools command (name, arguments) from a player; DevService checks permission.",
+	},
+	SetReady = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.boolean() },
+		Rate = { Burst = 4, PerSecond = 1 },
+		Doc = "Ready (true) or not (false) to skip the rest of the day phase to the Surge siren (CycleClock).",
 	},
 
 	-- server -> client
@@ -73,6 +83,7 @@ local lastRejectionLog: { [Player]: number } = {}
 
 for name, definition in DEFINITIONS do
 	assert(definition.To == "Server" or definition.To == "Client", `Remote {name}: To must be Server or Client`)
+	assert(definition.Place == nil or definition.Place == "Lobby" or definition.Place == "Run", `Remote {name}: Place must be Lobby or Run`)
 	if definition.To == "Server" then
 		assert(definition.Args, `Remote {name}: a client -> server remote needs Args`)
 		assert(definition.Rate, `Remote {name}: a client -> server remote needs a Rate`)
@@ -86,6 +97,12 @@ local Remotes = {}
 
 Remotes.Definitions = DEFINITIONS
 
+-- Does this remote exist in this place?
+function Remotes.InPlace(name: string): boolean
+	local definition = DEFINITIONS[name]
+	return definition ~= nil and (definition.Place == nil or definition.Place == Constants.PlaceKind())
+end
+
 local function definitionOf(name: string, direction: "Server" | "Client"): Definition
 	local definition = DEFINITIONS[name]
 	if not definition then
@@ -93,6 +110,9 @@ local function definitionOf(name: string, direction: "Server" | "Client"): Defin
 	end
 	if definition.To ~= direction then
 		error(`Remote {name} goes to the {definition.To:lower()}, not the {direction:lower()}`, 3)
+	end
+	if definition.Place ~= nil and definition.Place ~= Constants.PlaceKind() then
+		error(`Remote {name} only exists in the {definition.Place} place`, 3)
 	end
 	return definition
 end
@@ -114,9 +134,16 @@ end
 -- Server: create every RemoteEvent. Idempotent.
 function Remotes.Setup()
 	assert(IS_SERVER, "Remotes.Setup runs on the server")
+	local place = Constants.PlaceKind()
 	for name, definition in DEFINITIONS do
 		local className = if definition.Unreliable then "UnreliableRemoteEvent" else "RemoteEvent"
 		local existing = script:FindFirstChild(name)
+		if definition.Place ~= nil and definition.Place ~= place then
+			if existing then
+				existing:Destroy()
+			end
+			continue
+		end
 		if existing and existing.ClassName ~= className then
 			existing:Destroy()
 			existing = nil
