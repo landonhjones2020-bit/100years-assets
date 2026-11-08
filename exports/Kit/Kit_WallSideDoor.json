@@ -1,0 +1,96 @@
+{
+ "asset": "Kit_WallSideDoor",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  1.74,
+  16.0,
+  32.0
+ ],
+ "tris": 500,
+ "pivot": [
+  16.13,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "SideWall",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "precise",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -16.5,
+    8.0,
+    0.0
+   ],
+   "size": [
+    1.0,
+    16.0,
+    32.0
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "hazard",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    -15.83,
+    8.0,
+    0.0
+   ],
+   "size": [
+    1.14,
+    16.0,
+    32.0
+   ],
+   "tris": 464
+  }
+ ],
+ "meta": {
+  "kit": "shell",
+  "about": "Side wall with the 8 x 10 doorway and a bulkhead frame",
+  "interior": [
+   32.0,
+   16.0,
+   32.0
+  ],
+  "door": [
+   8.0,
+   10.0
+  ],
+  "hole": [
+   2.0,
+   16.0,
+   8.0,
+   16.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "93ff5eeda67df723"
+}

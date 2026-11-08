@@ -1,0 +1,94 @@
+{
+ "asset": "Kit_WallFront",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  16.0,
+  1.45
+ ],
+ "tris": 324,
+ "pivot": [
+  0.0,
+  0.0,
+  16.275
+ ],
+ "parts": [
+  {
+   "name": "FrontWall",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": "FrontWall",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    -16.5
+   ],
+   "size": [
+    34.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    -15.777
+   ],
+   "size": [
+    32.0,
+    16.0,
+    0.455
+   ],
+   "tris": 312
+  }
+ ],
+ "meta": {
+  "kit": "shell",
+  "about": "Front wall; hidden in the Command View",
+  "interior": [
+   32.0,
+   16.0,
+   32.0
+  ],
+  "door": [
+   8.0,
+   10.0
+  ],
+  "hole": [
+   2.0,
+   16.0,
+   8.0,
+   16.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "b3710f4a31b8bda7"
+}

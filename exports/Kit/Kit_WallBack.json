@@ -1,0 +1,96 @@
+{
+ "asset": "Kit_WallBack",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  16.0,
+  2.07
+ ],
+ "tris": 428,
+ "pivot": [
+  0.0,
+  0.0,
+  -15.965
+ ],
+ "parts": [
+  {
+   "name": "BackWall",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    16.5
+   ],
+   "size": [
+    34.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "copper",
+    "gunmetal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    15.467
+   ],
+   "size": [
+    34.0,
+    16.0,
+    1.075
+   ],
+   "tris": 416
+  }
+ ],
+ "meta": {
+  "kit": "shell",
+  "about": "Back wall, wainscot, ribs and the pipe run",
+  "interior": [
+   32.0,
+   16.0,
+   32.0
+  ],
+  "door": [
+   8.0,
+   10.0
+  ],
+  "hole": [
+   2.0,
+   16.0,
+   8.0,
+   16.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "6a9c851d7dc446fd"
+}

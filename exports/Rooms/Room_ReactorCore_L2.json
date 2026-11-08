@@ -1,0 +1,358 @@
+{
+ "asset": "Room_ReactorCore_L2",
+ "category": "Rooms",
+ "format": 1,
+ "size": [
+  30.13,
+  16.17,
+  27.46
+ ],
+ "tris": 2580,
+ "pivot": [
+  -0.985,
+  0.17,
+  -2.28
+ ],
+ "parts": [
+  {
+   "name": "Plinth",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "gunmetal"
+   ],
+   "offset": [
+    0.0,
+    0.5,
+    6.0
+   ],
+   "size": [
+    12.8,
+    1.0,
+    12.8
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "copper",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "mint",
+    "rubber",
+    "rust",
+    "signal",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.54,
+    7.915,
+    2.28
+   ],
+   "size": [
+    29.24,
+    16.17,
+    27.46
+   ],
+   "tris": 2048
+  },
+  {
+   "name": "Vessel",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    6.0,
+    6.0
+   ],
+   "size": [
+    10.0,
+    10.0,
+    10.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "hazard",
+    "leaf",
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    4.625,
+    1.185
+   ],
+   "size": [
+    19.5,
+    4.75,
+    19.79
+   ],
+   "tris": 212
+  },
+  {
+   "name": "Standpipe",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "copper"
+   ],
+   "offset": [
+    0.0,
+    2.25,
+    -1.4
+   ],
+   "size": [
+    0.8,
+    4.5,
+    0.8
+   ],
+   "tris": 28
+  },
+  {
+   "name": "FuseBox",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "gunmetal"
+   ],
+   "offset": [
+    15.6,
+    6.0,
+    -9.0
+   ],
+   "size": [
+    0.9,
+    4.2,
+    3.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Console1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    9.0,
+    1.4,
+    -7.6
+   ],
+   "size": [
+    5.0,
+    2.8,
+    2.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Tank1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    10.5,
+    3.9,
+    9.5
+   ],
+   "size": [
+    3.614,
+    7.0,
+    3.8
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tank2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -10.5,
+    3.9,
+    9.5
+   ],
+   "size": [
+    3.614,
+    7.0,
+    3.8
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Console2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -9.0,
+    1.4,
+    -7.6
+   ],
+   "size": [
+    4.4,
+    2.8,
+    2.2
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "room": "ReactorCore",
+  "shell": "Kit_Shell",
+  "level": 2
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Core": {
+   "p": [
+    0.0,
+    0.0,
+    6.0
+   ],
+   "yaw": 0.0
+  },
+  "FuseBox": {
+   "p": [
+    13.6,
+    0.0,
+    -9.0
+   ],
+   "yaw": 90.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    6.0,
+    1.5
+   ],
+   "yaw": 0.0
+  },
+  "Valve1": {
+   "p": [
+    13.0,
+    0.0,
+    13.0
+   ],
+   "yaw": 0.0
+  },
+  "Valve2": {
+   "p": [
+    -13.0,
+    0.0,
+    13.0
+   ],
+   "yaw": 0.0
+  },
+  "Valve3": {
+   "p": [
+    0.0,
+    0.0,
+    -3.4
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot1": {
+   "p": [
+    9.0,
+    0.0,
+    -9.5
+   ],
+   "yaw": 180.0
+  },
+  "WorkSpot2": {
+   "p": [
+    2.5,
+    0.0,
+    -4.0
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot3": {
+   "p": [
+    -9.0,
+    0.0,
+    -9.5
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "699bb5d63b79f45c"
+}

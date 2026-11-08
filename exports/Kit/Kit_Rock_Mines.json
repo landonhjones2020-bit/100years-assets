@@ -1,0 +1,80 @@
+{
+ "asset": "Kit_Rock_Mines",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  18.0,
+  40.875
+ ],
+ "tris": 376,
+ "pivot": [
+  0.0,
+  2.0,
+  0.061
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    7.0,
+    -0.073
+   ],
+   "size": [
+    34.0,
+    18.0,
+    38.636
+   ],
+   "tris": 216
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rust",
+    "stone"
+   ],
+   "offset": [
+    0.136,
+    5.576,
+    -0.155
+   ],
+   "size": [
+    27.73,
+    7.6,
+    38.91
+   ],
+   "tris": 160
+  }
+ ],
+ "meta": {
+  "kit": "rock",
+  "band": "Mines"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "68dbd205e463d67d"
+}

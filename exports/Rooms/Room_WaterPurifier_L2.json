@@ -1,0 +1,296 @@
+{
+ "asset": "Room_WaterPurifier_L2",
+ "category": "Rooms",
+ "format": 1,
+ "size": [
+  29.7,
+  12.8,
+  28.95
+ ],
+ "tris": 1612,
+ "pivot": [
+  -1.15,
+  0.0,
+  -1.275
+ ],
+ "parts": [
+  {
+   "name": "Tank1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    9.5,
+    5.1,
+    10.0
+   ],
+   "size": [
+    6.0,
+    9.0,
+    6.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "copper",
+    "cream",
+    "gunmetal",
+    "signal",
+    "skyblue",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    1.15,
+    6.4,
+    1.275
+   ],
+   "size": [
+    29.7,
+    12.8,
+    28.95
+   ],
+   "tris": 1328
+  },
+  {
+   "name": "DecorGlass",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "murk"
+   ],
+   "offset": [
+    -0.75,
+    4.7,
+    -3.0
+   ],
+   "size": [
+    21.0,
+    5.9,
+    20.2
+   ],
+   "tris": 24
+  },
+  {
+   "name": "Filter1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    3.5,
+    3.25,
+    13.0
+   ],
+   "size": [
+    1.712,
+    6.5,
+    1.8
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Filter2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    1.1,
+    3.25,
+    13.0
+   ],
+   "size": [
+    1.712,
+    6.5,
+    1.8
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Trough1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    -6.5,
+    1.1,
+    13.8
+   ],
+   "size": [
+    6.0,
+    2.2,
+    2.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorGlass_",
+   "material": "Glass",
+   "transparency": 0.2,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "murk"
+   ],
+   "offset": [
+    -6.5,
+    2.0,
+    13.8
+   ],
+   "size": [
+    5.4,
+    0.1,
+    1.6
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Tank2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -11.0,
+    4.1,
+    -10.5
+   ],
+   "size": [
+    4.8,
+    7.0,
+    4.8
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Pump1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    11.0,
+    1.3,
+    -11.0
+   ],
+   "size": [
+    3.4,
+    2.6,
+    2.4
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "room": "WaterPurifier",
+  "shell": "Kit_Shell",
+  "level": 2
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Light1": {
+   "p": [
+    0.0,
+    12.0,
+    2.0
+   ],
+   "yaw": 0.0
+  },
+  "Tap": {
+   "p": [
+    -6.5,
+    0.0,
+    11.4
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot1": {
+   "p": [
+    9.5,
+    0.0,
+    5.5
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot2": {
+   "p": [
+    -6.5,
+    0.0,
+    11.4
+   ],
+   "yaw": 0.0
+  },
+  "WorkSpot3": {
+   "p": [
+    11.0,
+    0.0,
+    -8.6
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "44f505e6265865c9"
+}

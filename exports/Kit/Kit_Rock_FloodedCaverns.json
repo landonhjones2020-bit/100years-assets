@@ -1,0 +1,80 @@
+{
+ "asset": "Kit_Rock_FloodedCaverns",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  18.0,
+  42.61
+ ],
+ "tris": 376,
+ "pivot": [
+  0.0,
+  2.0,
+  0.364
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "murk",
+    "navy"
+   ],
+   "offset": [
+    0.0,
+    7.0,
+    -0.104
+   ],
+   "size": [
+    34.0,
+    18.0,
+    38.503
+   ],
+   "tris": 216
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "copper",
+    "murk",
+    "navy"
+   ],
+   "offset": [
+    -0.906,
+    5.678,
+    -0.251
+   ],
+   "size": [
+    25.172,
+    9.311,
+    40.053
+   ],
+   "tris": 160
+  }
+ ],
+ "meta": {
+  "kit": "rock",
+  "band": "FloodedCaverns"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "532df2a2cad0e3f6"
+}

@@ -1,0 +1,103 @@
+{
+ "asset": "Kit_Rock_SourceChamber",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  18.0,
+  42.108
+ ],
+ "tris": 440,
+ "pivot": [
+  0.0,
+  2.0,
+  0.277
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    7.0,
+    0.054
+   ],
+   "size": [
+    34.0,
+    18.0,
+    38.313
+   ],
+   "tris": 216
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rust"
+   ],
+   "offset": [
+    -4.512,
+    3.632,
+    -0.22
+   ],
+   "size": [
+    16.247,
+    5.758,
+    40.23
+   ],
+   "tris": 80
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.002,
+    6.037,
+    0.0
+   ],
+   "size": [
+    32.055,
+    9.692,
+    35.2
+   ],
+   "tris": 144
+  }
+ ],
+ "meta": {
+  "kit": "rock",
+  "band": "SourceChamber"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "46341279c20462ba"
+}

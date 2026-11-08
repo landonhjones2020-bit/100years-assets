@@ -522,6 +522,11 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
     for o in objs:
         if merge == "part":       # rooms and kits: one MeshPart per named piece of furniture
             k = (o["sf_part"],) + _group_key(o)
+        elif merge == "room":     # as "part", but every non-colliding decoration shares a MeshPart
+            if o["sf_collision"] == "none" and not o.get("sf_role"):
+                k = ("__decor__",) + _group_key(o)
+            else:
+                k = (o["sf_part"],) + _group_key(o)
         elif merge:
             k = _group_key(o)
         else:
@@ -570,6 +575,8 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
                 and first["sf_material"] not in ("Neon", "Glass", "ForceField")
                 and first["sf_transparency"] == 0)
         name = first["sf_bone"] if main else first["sf_part"]
+        if k[0] == "__decor__":   # merged decoration: Decor, DecorNeon, DecorGlass...
+            name = "Decor" + ("" if first["sf_material"] == "SmoothPlastic" else first["sf_material"])
         while name in taken:
             name += "_"
         taken.add(name)
@@ -626,7 +633,9 @@ def export_asset(asset: str, category: str, *, pivot=None, sockets: dict | None 
     rig       armature for rigid-part rigs: parts export in the rest pose, and the sidecar
               gets the joints so Studio can build the Motor6Ds.
     merge     True: merge parts that share settings into one MeshPart (fewest parts; props,
-              weapons, rigs). "part": merge only pieces with the same part name, so each named
+              weapons, rigs). "room": like "part" for anything with collision, but all
+              non-colliding decoration with the same settings becomes one MeshPart ("Decor",
+              "DecorNeon"...): fewer draw calls for kits and rooms. "part": merge only pieces with the same part name, so each named
               piece of furniture keeps its own collision box (rooms, kits). False: no merging.
     budget    triangle budget from the bible (Section 19); exceeding it is an error.
     """

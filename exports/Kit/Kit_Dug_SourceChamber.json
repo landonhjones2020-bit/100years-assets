@@ -1,0 +1,163 @@
+{
+ "asset": "Kit_Dug_SourceChamber",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  18.0,
+  35.176
+ ],
+ "tris": 676,
+ "pivot": [
+  0.0,
+  2.0,
+  0.588
+ ],
+ "parts": [
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    34.0,
+    2.0,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "BackRock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    15.669
+   ],
+   "size": [
+    34.0,
+    16.0,
+    2.662
+   ],
+   "tris": 136
+  },
+  {
+   "name": "FrontWall",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": "FrontWall",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    8.0,
+    -16.611
+   ],
+   "size": [
+    34.0,
+    16.0,
+    3.131
+   ],
+   "tris": 136
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "glow",
+    "rust"
+   ],
+   "offset": [
+    -2.431,
+    0.774,
+    -0.267
+   ],
+   "size": [
+    24.169,
+    3.163,
+    21.195
+   ],
+   "tris": 200
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.001,
+    7.33,
+    14.8
+   ],
+   "size": [
+    32.062,
+    11.424,
+    0.6
+   ],
+   "tris": 192
+  }
+ ],
+ "meta": {
+  "kit": "dug",
+  "band": "SourceChamber"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Light": {
+   "p": [
+    0.0,
+    9.0,
+    4.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "bdab83c92b225993"
+}

@@ -1,0 +1,118 @@
+{
+ "asset": "Kit_FloorHole",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  5.32,
+  34.0
+ ],
+ "tris": 512,
+ "pivot": [
+  0.0,
+  2.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "precise",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "size": [
+    34.0,
+    2.0,
+    34.0
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "rubber",
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    0.075,
+    0.125
+   ],
+   "size": [
+    33.75,
+    0.15,
+    31.75
+   ],
+   "tris": 240
+  },
+  {
+   "name": "HoleRail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "precise",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome"
+   ],
+   "offset": [
+    -5.375,
+    1.66,
+    11.675
+   ],
+   "size": [
+    7.53,
+    3.32,
+    8.13
+   ],
+   "tris": 224
+  }
+ ],
+ "meta": {
+  "kit": "shell",
+  "about": "Floor with the Shaft opening at the back right, a hazard lip and a rail; Precise collision",
+  "interior": [
+   32.0,
+   16.0,
+   32.0
+  ],
+  "door": [
+   8.0,
+   10.0
+  ],
+  "hole": [
+   2.0,
+   16.0,
+   8.0,
+   16.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "e26f6f655c6565cf"
+}

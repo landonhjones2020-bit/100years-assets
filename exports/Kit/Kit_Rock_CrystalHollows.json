@@ -1,0 +1,103 @@
+{
+ "asset": "Kit_Rock_CrystalHollows",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  34.0,
+  18.0,
+  42.245
+ ],
+ "tris": 376,
+ "pivot": [
+  0.0,
+  2.0,
+  0.382
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum"
+   ],
+   "offset": [
+    0.0,
+    7.0,
+    -0.062
+   ],
+   "size": [
+    34.0,
+    18.0,
+    38.671
+   ],
+   "tris": 216
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum"
+   ],
+   "offset": [
+    0.768,
+    3.493,
+    -0.155
+   ],
+   "size": [
+    22.483,
+    7.465,
+    40.074
+   ],
+   "tris": 80
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.484,
+    8.024,
+    -0.092
+   ],
+   "size": [
+    15.755,
+    3.615,
+    38.713
+   ],
+   "tris": 80
+  }
+ ],
+ "meta": {
+  "kit": "rock",
+  "band": "CrystalHollows"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "b2be828cfaea1760"
+}
