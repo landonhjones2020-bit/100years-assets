@@ -15,6 +15,10 @@
 			Order = { "Kitchen", ... },      -- optional display order (default: ids sorted)
 		}
 
+	A type whose entries differ in shape (Tuning: one entry per system) gives `Schemas`
+	(id -> checker) instead of `Schema`. Child modules whose names start with `_` are helpers
+	shared by content modules (Config._Fields), not content types.
+
 	Every entry is checked against its Schema when Config loads; Check.ref("Weapons") fields
 	must name an entry that exists. Entries come back frozen, with an `Id` field added.
 	Problems don't stop the game from loading: they are listed by Config.Errors(), logged,
@@ -62,14 +66,22 @@ function Config.Build(definitions: { [string]: any }): Registry
 			continue
 		end
 		local schema = definition.Schema
+		local schemas = definition.Schemas
 		local entries = definition.Entries
-		if type(schema) ~= "function" then
-			table.insert(errors, `{typeName}: Schema must be a Check checker`)
+		if type(schema) ~= "function" and type(schemas) ~= "table" then
+			table.insert(errors, `{typeName}: give a Schema (a Check checker) or Schemas (id -> checker)`)
 			continue
 		end
 		if type(entries) ~= "table" then
 			table.insert(errors, `{typeName}: Entries must be a table of id = entry`)
 			continue
+		end
+		if type(schemas) == "table" then
+			for id in schemas do
+				if entries[id] == nil then
+					table.insert(errors, `{typeName}: Schemas has {tostring(id)}, which has no entry`)
+				end
+			end
 		end
 
 		local built: { [string]: Entry } = {}
@@ -87,12 +99,17 @@ function Config.Build(definitions: { [string]: any }): Registry
 				table.insert(errors, `{typeName}.{id}: Id field doesn't match its key`)
 				continue
 			end
+			local check = if type(schemas) == "table" then schemas[id] else schema
+			if type(check) ~= "function" then
+				table.insert(errors, `{typeName}.{id}: no schema for this entry`)
+				continue
+			end
 			local copy = TableUtil.DeepCopy(entry)
 			copy.Id = nil
 			Check._setRefSink(function(refType: string, refId: string)
 				table.insert(refs, { from = `{typeName}.{id}`, typeName = refType, id = refId })
 			end)
-			local called, ok, why = pcall(schema, copy)
+			local called, ok, why = pcall(check, copy)
 			Check._setRefSink(nil)
 			if not called then
 				table.insert(errors, `{typeName}.{id}: the schema check failed: {tostring(ok)}`)
@@ -155,7 +172,7 @@ end
 local function loadChildren(): { [string]: any }
 	local definitions: { [string]: any } = {}
 	for _, child in script:GetChildren() do
-		if child:IsA("ModuleScript") then
+		if child:IsA("ModuleScript") and string.sub(child.Name, 1, 1) ~= "_" then
 			local ok, result = pcall(require, child)
 			definitions[child.Name] = if ok then result else `failed to load: {result}`
 		end

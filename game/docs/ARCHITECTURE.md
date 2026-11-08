@@ -119,11 +119,29 @@ return CycleClock
 ## Content
 
 All content is data in `Shared.Config` (bible Section 23). Each content type is a child
-ModuleScript returning `{ Schema = Check.shape(...), Entries = { Id = entry }, Order = {...}? }`.
-Config validates every entry at load (fields, ids, `Check.ref` cross-references), freezes
-it and adds `Id`. Read with `Config.Get(type, id)` (errors if missing), `Config.Find` (for ids
-from players or saves), `Config.All(type)`, `Config.Ids(type)`. Problems are listed by
-`Config.Errors()`, logged, and fail StructureCheck and the data tests.
+ModuleScript returning `{ Schema = Check.shape(...), Entries = { Id = entry }, Order = {...}? }`
+(or `Schemas`, one checker per entry, for Tuning). Config validates every entry at load
+(fields, ids, `Check.ref` cross-references), freezes it and adds `Id`. Read with
+`Config.Get(type, id)` (errors if missing), `Config.Find` (for ids from players or saves),
+`Config.All(type)`, `Config.Ids(type)`. Problems are listed by `Config.Errors()`, logged, and
+fail StructureCheck and the data tests. `Config._Fields` holds checkers the content modules
+share (modules starting with `_` are helpers, not types).
+
+Content types (Prompt 1): Badges, Bosses, Classes, Conditions, DepthBands, DigResults,
+Difficulties, Disasters, DraftCards, Eras, GamePasses, GlowshardPacks, GlowshardRewards,
+ItemRarities, Items, Leaderboards, Legends, LootTables, Modifiers, MoraleStates, Monsters,
+Objectives, Quests, Recipes, ResidentNames, Resources, Rooms, Stats, SurfaceLocations,
+TalentSlots, TeamBoosts, Tiers, Traits, Tuning, Votes, WandererOutcomes.
+
+**Effects are data.** Classes, traits, Legends, draft cards and passes describe what they do
+as modifiers: `{ Key = "RoomOutput", Value = 1.25, Room = "Medbay", Scope = "Bunker" }`.
+`Config.Modifiers` is the vocabulary: each key's unit (Multiplier, Add, Set, Flag, Chance),
+default scope, and the prompt whose system applies it. A system reads the keys it owns; a new
+effect is a new key plus the code that honours it.
+
+**Rule numbers** live in `Config.Tuning`, one entry per system (Clock, Grid, StartingBunker,
+Rooms, Votes, Player, Digging, Disturbance, Threat, Residents, Aging, Morale, Trader,
+Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 
 ## DevTools
 
@@ -160,3 +178,6 @@ from players or saves), `Config.All(type)`, `Config.Ids(type)`. Problems are lis
 * **Prompt 0 (2026-11-08)**: architecture foundation in both places. Shared modules, Config
   aggregator, remotes with validation and rate limits, the delta channel, bootstraps with
   declared dependencies, DevTools, this document. No gameplay.
+* **Prompt 1 (2026-11-08)**: content definitions. 36 content types with schemas and the
+  bible's starter data (provisional numbers marked), the modifier vocabulary, Tuning for
+  every system, and data tests that hold the content to the bible.

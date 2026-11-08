@@ -406,6 +406,201 @@ test("Config: the place's own content loads without errors", function()
 	expectEqual(Config.Errors(), {}, "Config.Errors()")
 end)
 
+-- Content (Prompt 1): the data agrees with the bible and with itself ---------------------
+
+local function all(typeName: string): { any }
+	return Config.All(typeName)
+end
+
+test("Content: the starting bunker matches bible Section 6", function()
+	local start = Config.Get("Tuning", "StartingBunker")
+	local grid = Config.Get("Tuning", "Grid")
+	local taken: { [string]: boolean } = {}
+	local shaftColumns: { [number]: number } = {}
+	local roomsByFloor: { [number]: { string } } = { [1] = {}, [2] = {} }
+	for _, cell in start.Cells do
+		local span = cell.Span or 1
+		for offset = 0, span - 1 do
+			local column = cell.Column + offset
+			local key = `{cell.Floor},{column}`
+			expect(not taken[key], `cell {key} used once`)
+			expect(column >= grid.ColumnMin and column <= grid.ColumnMax, `column {column} on the grid`)
+			taken[key] = true
+		end
+		if cell.Room then
+			local room = Config.Get("Rooms", cell.Room)
+			expect(room.Unlock.Kind == "Start", `{cell.Room} to be a start room`)
+			table.insert(roomsByFloor[cell.Floor], cell.Room)
+			if cell.Room == "Shaft" then
+				shaftColumns[cell.Floor] = cell.Column
+			end
+		end
+	end
+	expectEqual(roomsByFloor[1], { "BlastDoor", "Shaft", "Quarters" }, "floor 1 rooms")
+	expectEqual(roomsByFloor[2], { "Kitchen", "WaterPurifier", "Shaft", "ReactorCore", "Medbay" }, "floor 2 rooms")
+	expectEqual(shaftColumns[1], shaftColumns[2], "the shaft lines up on floors 1 and 2")
+	expectEqual(start.Residents, 6, "starting residents")
+end)
+
+test("Content: starting stock is bible Section 6", function()
+	local stock = {}
+	for _, resource in all("Resources") do
+		stock[resource.Id] = resource.Start
+	end
+	expectEqual(stock, { Power = 0, Food = 30, Water = 30, Scrap = 300, Iron = 0, Copper = 0, Crystal = 0, Medkits = 4, Ammo = 200 })
+end)
+
+test("Content: rooms have three levels and consistent output", function()
+	for _, room in all("Rooms") do
+		expectEqual(#room.Costs, 3, `{room.Id} cost levels`)
+		expectEqual(#room.Power, 3, `{room.Id} power levels`)
+		if room.Output then
+			local isResource = room.Output.Kind == "Resource"
+			expect(isResource == (room.Output.Resource ~= nil), `{room.Id}: only Resource output names a resource`)
+		end
+		if room.Unlock.Kind == "Era" then
+			expect(room.Unlock.Era ~= nil, `{room.Id}: an Era unlock names the era`)
+		end
+	end
+	local rules = Config.Get("Tuning", "Rooms")
+	expectEqual(rules.HP, { 500, 800, 1200 }, "room HP")
+	expectEqual(rules.WorkerSlotsPerCell, { 2, 3, 4 }, "worker slots")
+end)
+
+test("Content: every draft room has exactly one room card", function()
+	local cards: { [string]: number } = {}
+	for _, card in all("DraftCards") do
+		if card.Kind == "Room" then
+			cards[card.Room] = (cards[card.Room] or 0) + 1
+		end
+	end
+	for _, room in all("Rooms") do
+		local drafted = room.Unlock.Kind == "Draft" or room.Unlock.Kind == "DraftOrDepth"
+		expectEqual(cards[room.Id] or 0, if drafted then 1 else 0, `{room.Id} room cards`)
+	end
+end)
+
+test("Content: odds add up (dig results, wanderers)", function()
+	local dig = 0
+	for _, result in all("DigResults") do
+		dig += result.Chance
+	end
+	expectEqual(dig, 100, "dig result weights")
+	local wanderers = 0
+	for _, outcome in all("WandererOutcomes") do
+		wanderers += outcome.Chance
+	end
+	expect(math.abs(wanderers - 1) < 1e-9, "wanderer odds sum to 1")
+end)
+
+test("Content: eras cover the century and end in their boss's year", function()
+	local nextYear = 1
+	for _, era in all("Eras") do
+		expectEqual(era.Years.From, nextYear, `{era.Id} starts where the last ended`)
+		expectEqual(Config.Get("Bosses", era.Boss).Year, era.Years.To, `{era.Id} boss year`)
+		nextYear = era.Years.To + 1
+	end
+	expectEqual(nextYear, 101, "the century ends at Year 100")
+	local clock = Config.Get("Tuning", "Clock")
+	expectEqual(clock.DaySeconds + clock.SurgeSeconds, clock.CycleSeconds, "a cycle is a day plus a Surge")
+end)
+
+test("Content: 18 buyable classes plus the Survivor, priced by tier", function()
+	local prices = { Free = 0, Common = 40, Rare = 120, Epic = 300, Legendary = 500 }
+	local buyable = 0
+	for _, class in all("Classes") do
+		expectEqual(class.Price, prices[class.Tier], `{class.Id} price`)
+		if class.Tier ~= "Free" then
+			buyable += 1
+		end
+	end
+	expectEqual(buyable, 18, "buyable classes")
+end)
+
+test("Content: 30 traits (18 good, 12 bad), 12 Legends with one starter", function()
+	local good, bad = 0, 0
+	for _, trait in all("Traits") do
+		if trait.Type == "Good" then
+			good += 1
+		else
+			bad += 1
+		end
+	end
+	expectEqual({ good, bad }, { 18, 12 }, "good and bad traits")
+	local starters = 0
+	for _, legend in all("Legends") do
+		if legend.Get.Kind == "Starter" then
+			starters += 1
+		end
+	end
+	expectEqual(#all("Legends"), 12, "Legends")
+	expectEqual(starters, 1, "starter Legends")
+end)
+
+test("Content: RoomOutput modifiers always name their room", function()
+	local function checkList(where: string, modifiers: { any }?)
+		for _, modifier in modifiers or {} do
+			if modifier.Key == "RoomOutput" then
+				expect(modifier.Room ~= nil, `{where}: RoomOutput names a room`)
+			end
+		end
+	end
+	for _, class in all("Classes") do
+		for _, part in { class.Passive, class.Level2, class.Level3, class.Ability } do
+			checkList(`Classes.{class.Id}`, part and part.Modifiers)
+		end
+	end
+	for _, trait in all("Traits") do
+		checkList(`Traits.{trait.Id}`, trait.Modifiers)
+	end
+	for _, legend in all("Legends") do
+		checkList(`Legends.{legend.Id}`, legend.Signature.Modifiers)
+	end
+	for _, card in all("DraftCards") do
+		checkList(`DraftCards.{card.Id}`, card.Modifiers)
+	end
+end)
+
+test("Content: loot lines give one thing each, and ranges are ordered", function()
+	for _, tableEntry in all("LootTables") do
+		for index, line in tableEntry.Lines do
+			local kinds = (if line.Resource then 1 else 0) + (if line.Item then 1 else 0) + (if line.Special then 1 else 0)
+			expectEqual(kinds, 1, `{tableEntry.Id}[{index}] gives one thing`)
+			expect(line.Min <= line.Max, `{tableEntry.Id}[{index}] Min <= Max`)
+		end
+	end
+	for _, monster in all("Monsters") do
+		expect(monster.Group.Min <= monster.Group.Max, `{monster.Id} group size`)
+	end
+end)
+
+test("Content: name pools are big and have no repeats; morale states cover 0 to 100", function()
+	for _, pool in all("ResidentNames") do
+		local seen = {}
+		for _, name in pool.Names do
+			expect(not seen[name], `{pool.Id}: {name} once`)
+			seen[name] = true
+		end
+	end
+	expect(#Config.Get("ResidentNames", "First").Names >= 100, "100+ first names")
+	expect(#Config.Get("ResidentNames", "Last").Names >= 100, "100+ last names")
+	local nextValue = 0
+	for _, state in all("MoraleStates") do
+		expectEqual(state.From, nextValue, `{state.Id} starts where the last ended`)
+		nextValue = state.To + 1
+	end
+	expectEqual(nextValue, 101, "morale states end at 100")
+end)
+
+test("Content: Glowshard packs get better per Robux (bible Section 17)", function()
+	local last = 0
+	for _, pack in all("GlowshardPacks") do
+		local per100 = math.floor(pack.Glowshards / pack.Robux * 100 + 0.5)
+		expect(per100 > last, `{pack.Id} gives more per Robux than the pack before`)
+		last = per100
+	end
+end)
+
 -- Delta ----------------------------------------------------------------------------------
 
 test("Delta: only remote-safe values", function()
