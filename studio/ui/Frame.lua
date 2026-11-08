@@ -78,7 +78,11 @@ new("ImageLabel", det, "Tag", { pos = { 0.135, 0.42 }, size = { 0.37, 0.0735 }, 
 	sprite = "Card_Common", crop = { 39, 289, 166, 50 }, z = 3 })
 text(det, "Name", "", { pos = { 0.07, 0.505 }, size = { 0.55, 0.062 }, font = F.title, color = COL.navy })
 text(det, "Sub", "", { pos = { 0.55, 0.518 }, size = { 0.38, 0.032 }, font = F.typed, color = COL.ink, alignX = RIGHT })
-local body = new("Frame", det, "Body", { pos = { 0.07, 0.58 }, size = { 0.86, 0.29 } })
+local body = scroller(det, "Body", { pos = { 0.07, 0.58 }, size = { 0.86, 0.29 } }) -- long details scroll
+body.ScrollBarThickness = math.max(2, math.round(4 * VH / 1080))
+body.ScrollBarImageColor3 = COL.teal
+body.ScrollBarImageTransparency = 0.2
+body:SetAttribute("BaseScrollBar", 4)
 list(body, "V", 0.03)
 
 local tab = new("ImageButton", T, "Tab", { size = { 1, 0.12 }, aspect = 3.1, sprite = "Tab_Off", visible = false })
@@ -114,7 +118,7 @@ new("ImageLabel", row, "Icon", { pos = { 0.025, 0.5 }, anchor = { 0, 0.5 }, size
 text(row, "Name", "", { pos = { 0.13, 0.22 }, size = { 0.55, 0.56 }, font = F.label, color = COL.navy, z = 2 })
 text(row, "Value", "", { pos = { 0.7, 0.22 }, size = { 0.26, 0.56 }, font = F.num, color = COL.navy, alignX = RIGHT, z = 2 })
 
-local section = new("Frame", T, "Section", { size = { 1, 0.3 }, visible = false })
+local section = new("Frame", T, "Section", { size = { 0.97, 0.32 }, visible = false })
 text(section, "Label", "LABEL", { pos = { 0, 0 }, size = { 1, 0.36 }, font = F.label, color = COL.teal })
 text(section, "Body", "", { pos = { 0, 0.4 }, size = { 1, 0.6 }, font = F.body, color = COL.navy, wrap = true,
 	alignY = Enum.TextYAlignment.Top })

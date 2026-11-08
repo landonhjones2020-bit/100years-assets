@@ -17,6 +17,8 @@
 	  toggle), Ping and Shoulder, bound through InputController. Roblox's own jump button is
 	  hidden while ours shows.
 
+	On PC the camera locks the mouse; holding Left Alt frees the cursor to click HUD buttons.
+
 	For later systems: Alert(kind, text) for the alert feed, Banner(text, kind) for
 	announcements, SetVital, SetClass, SetResource, SetSlot and the HotbarSelected signal.
 
@@ -27,6 +29,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
@@ -87,6 +90,7 @@ local HUDController = {
 
 local input: any = nil
 local ui: any = nil
+local camera: any = nil
 local gui: ScreenGui? = nil
 local inRun = false
 local hidden: { [string]: boolean } = {}
@@ -549,6 +553,7 @@ end
 function HUDController:Init(registry)
 	input = registry.InputController
 	ui = registry.UIController
+	camera = registry.CameraController
 	inRun = Constants.PlaceKind() == "Run"
 end
 
@@ -619,6 +624,18 @@ function HUDController:Start()
 		HUDController:SelectSlot((selectedSlot - 2) % 5 + 1)
 	end)
 	input:BindButton("CommandView", part("CommandView"))
+	-- PC: the camera locks the mouse, so holding Left Alt frees the cursor to click the HUD
+	-- (Ready has no key in the controls table)
+	UserInputService.InputBegan:Connect(function(io: InputObject)
+		if io.KeyCode == Enum.KeyCode.LeftAlt then
+			camera:FreeCursor("HudAlt", true)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(io: InputObject)
+		if io.KeyCode == Enum.KeyCode.LeftAlt then
+			camera:FreeCursor("HudAlt", false)
+		end
+	end)
 
 	-- menus hide the HUD
 	ui.Opened:Connect(function()

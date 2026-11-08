@@ -498,7 +498,17 @@ function UIController:Start()
 	main.Activated:Connect(function()
 		UIController:PressMainAction()
 	end)
-	input.DeviceChanged:Connect(refreshKeys)
+	input.DeviceChanged:Connect(function(device: string)
+		refreshKeys()
+		-- a gamepad selection would swallow Enter on a keyboard (it clicks the selected button)
+		local selected = GuiService.SelectedObject
+		if device ~= "Gamepad" and selected and selected:IsDescendantOf(found) then
+			GuiService.SelectedObject = nil
+		elseif device == "Gamepad" and current and not selected then
+			local first = next(tabButtons)
+			GuiService.SelectedObject = if first then tabButtons[first] else part("Cabinet.TopBar.Close")
+		end
+	end)
 	log:Debug("the Frame is ready")
 end
 

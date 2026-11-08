@@ -42,7 +42,8 @@ text(vit, "AbilityName", "", { pos = { 0.79, 0.74 }, anchor = { 0.5, 0 }, size =
 text(vit, "Class", "", { pos = { 0.79, 0.86 }, anchor = { 0.5, 0 }, size = { 0.36, 0.08 }, font = F.typed, color = COL.cream,
 	alignX = CENTER, transp = 0.25 })
 
--- Top centre: the year flip counter and era, the cycle dial with the phase and time left, Ready
+-- Top centre: the year flip counter and era (Ready beside it), the cycle dial with the phase and
+-- the time left
 local clock = new("ImageLabel", sg, "YearClock", { pos = { 0.5, 0.01 }, anchor = { 0.5, 0 }, size = { 0.2, 0.088 }, aspect = 4.04,
 	sprite = "Panel_Navy" })
 text(clock, "Label", "YEAR", { pos = { 0.06, 0.3 }, size = { 0.16, 0.4 }, font = F.label, color = COL.cream })
@@ -59,7 +60,7 @@ new("ImageLabel", dial, "Pointer", { pos = { 0.023, 0.44 }, anchor = { 0.5, 0.5 
 	sprite = "Dial_Pointer", z = 2 })
 chipText(sg, "Phase", { 0.347, 0.111 }, { 1, 0 })
 chipText(sg, "TimeLeft", { 0.653, 0.111 })
-local ready = button(sg, "Ready", { pos = { 0.718, 0.106 }, size = { 0.085, 0.064 }, aspect = 2.1, visible = false },
+local ready = button(sg, "Ready", { pos = { 0.606, 0.022 }, size = { 0.08, 0.064 }, aspect = 2.1, visible = false },
 	{ "Button_Teal_Up", "Button_Teal_Down" })
 new("ImageLabel", ready.Content, "Lamp", { pos = { 0.16, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.36 }, aspect = 1, dom = "H",
 	sprite = "Lamp_Off" })
@@ -123,7 +124,7 @@ new("ImageLabel", paper, "You", { pos = { 0.5, 0.5 }, anchor = { 0.5, 0.5 }, siz
 text(map, "Depth", "", { pos = { 0.06, 0.9 }, size = { 0.88, 0.06 }, font = F.typed, color = COL.cream, alignX = CENTER })
 
 -- Right middle: the alert feed (3 at most) and the screen-edge arrows (AlertController)
-local alerts = new("Frame", sg, "Alerts", { pos = { 0.992, 0.43 }, anchor = { 1, 0 }, size = { 0.2, 0.25 } })
+local alerts = new("Frame", sg, "Alerts", { pos = { 0.992, 0.335 }, anchor = { 1, 0 }, size = { 0.2, 0.22 } })
 list(alerts, "V", 0.03, "Right")
 new("Frame", sg, "Arrows", { pos = { 0, 0 }, size = { 1, 1 }, z = 6 })
 
@@ -152,7 +153,7 @@ local TOUCH = { -- name, centre x, centre y (in the cluster), diameter (of its h
 	{ "Dodge", 0.25, 0.53, 0.2, "Icon_Dodge" },
 	{ "Sprint", 0.08, 0.66, 0.18, "Icon_Sprint" },
 	{ "Ping", 0.38, 0.3, 0.17, "Icon_Ping" },
-	{ "Shoulder", 0.66, 0.1, 0.16, "Icon_Shoulder" },
+	{ "Shoulder", 0.12, 0.36, 0.16, "Icon_Shoulder" },
 }
 for _, b in TOUCH do
 	local fire = b[1] == "Fire"
