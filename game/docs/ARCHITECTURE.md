@@ -29,6 +29,7 @@ ReplicatedStorage
 ServerScriptService
   Bootstrap                      (Script) the only server script
   Services                       one ModuleScript per service
+  Lib                            server-only modules that aren't services (ProfileSchema)
   DevTools                       StructureCheck, DataTests (+ Invoke in Studio playtests)
 StarterPlayer.StarterPlayerScripts
   ClientBootstrap                (LocalScript) the only client script
@@ -116,6 +117,28 @@ return CycleClock
   ready. Values must be remote-safe (`Delta.IsRemoteSafe`): lists or string-keyed tables,
   finite numbers, no Instances, no functions. Per-player collections pass `Visible`.
 
+## Saved data
+
+One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
+`ProfileService`. The stored record is `{ Data, Lock, Meta }` in the `PlayerProfiles` DataStore
+(`PlayerProfiles_Studio` in Studio, so tests never touch live saves), key `Player_<userId>`.
+
+* Load claims the lock through UpdateAsync. A fresh lock from another server: wait and retry
+  (8 tries, 2 s apart), then kick with a message. A stale lock (3 autosaves old; 30 s in
+  Studio): taken over. A newer version: refused, nothing written. Then migrate, reconcile,
+  validate; a failure kicks the player and writes nothing.
+* Saves: every 120 s (staggered; refreshes the lock), on leaving (releases it) and on
+  shutdown (BindToClose waits for every release). A save writes only if this server still
+  holds the lock and the profile validates; losing the lock kicks the player.
+* Gameplay calls `ProfileService:Update(player, fn)` (undone if it errors or leaves the profile
+  invalid), `AddGlowshards`, `SpendGlowshards`, and `GrantPurchase(player, receiptId, grant)`
+  for ProcessReceipt: grant, record the receipt, save, then report granted; a repeated
+  receipt is never granted twice.
+* The player's client reads its own profile (minus receipts) from the `Profiles` collection.
+* A session isn't ready until its profile loads (SessionService gate `Profile`).
+* Changing the shape: raise `ProfileSchema.VERSION`, add a migration, update `Default` and the
+  shape. Old servers refuse newer saves, so a rolling update can't corrupt them.
+
 ## Content
 
 All content is data in `Shared.Config` (bible Section 23). Each content type is a child
@@ -167,9 +190,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 
 | Place | Name | Kind | Depends on | Owns |
 |---|---|---|---|---|
-| both | SessionService | service | | player sessions: client ready, leaving |
+| both | SessionService | service | | player sessions: gates (client ready, profile loaded), ready, leaving |
 | both | DevService | service | | DevTools commands and permission |
 | both | ReplicationService | service | SessionService, DevService | the delta channel (server) |
+| both | ProfileService | service | SessionService, ReplicationService, DevService | saved data: session-locked profiles, Glowshards, purchase receipts |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | DevController | controller | ReplicaController | `/dev` chat command, Studio DevInvoke |
 
@@ -178,6 +202,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * **Prompt 0 (2026-11-08)**: architecture foundation in both places. Shared modules, Config
   aggregator, remotes with validation and rate limits, the delta channel, bootstraps with
   declared dependencies, DevTools, this document. No gameplay.
+* **Prompt 2 (2026-11-08)**: saved data. ProfileService with session locks, migrations,
+  autosave, release and shutdown saves, purchase receipts; SessionService gates.
 * **Prompt 1 (2026-11-08)**: content definitions. 36 content types with schemas and the
   bible's starter data (provisional numbers marked), the modifier vocabulary, Tuning for
   every system, and data tests that hold the content to the bible.

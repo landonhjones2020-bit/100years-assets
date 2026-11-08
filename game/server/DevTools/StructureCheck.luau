@@ -37,6 +37,8 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Utilities.Trove", "ModuleScript" },
 	{ "ServerScriptService.Bootstrap", "Script" },
 	{ "ServerScriptService.Services", "Folder" },
+	{ "ServerScriptService.Lib", "Folder" },
+	{ "ServerScriptService.Lib.ProfileSchema", "ModuleScript" },
 	{ "ServerScriptService.DevTools", "Folder" },
 	{ "ServerScriptService.DevTools.StructureCheck", "ModuleScript" },
 	{ "ServerScriptService.DevTools.DataTests", "ModuleScript" },

@@ -25,6 +25,7 @@ local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Utilities.Signal)
 local TableUtil = require(Shared.Utilities.TableUtil)
 local Trove = require(Shared.Utilities.Trove)
+local ProfileSchema = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("ProfileSchema")) :: any
 
 export type Failure = { Name: string, Error: string }
 export type Report = { Passed: number, Failed: { Failure }, Skipped: number, Ms: number }
@@ -599,6 +600,72 @@ test("Content: Glowshard packs get better per Robux (bible Section 17)", functio
 		expect(per100 > last, `{pack.Id} gives more per Robux than the pack before`)
 		last = per100
 	end
+end)
+
+-- Profiles (Prompt 2) ----------------------------------------------------------------------
+
+test("Profiles: a new profile owns the free class and the starter Legend, and validates", function()
+	local data, status = ProfileSchema.Load(nil)
+	expectEqual(status, "New", "status")
+	expect(data.Classes.Survivor ~= nil, "the Survivor owned")
+	expect(data.Legends[Config.Get("Tuning", "Legends").StarterLegend] ~= nil, "the starter Legend owned")
+	expectEqual(data.Glowshards, 0, "Glowshards")
+	expect((ProfileSchema.Validate(data)), "the default to validate")
+end)
+
+test("Profiles: newer versions are refused, missing fields reconciled, bad values rejected", function()
+	local _, status = ProfileSchema.Load({ Version = ProfileSchema.VERSION + 1 })
+	expectEqual(status, "TooNew", "a newer save")
+	local old = ProfileSchema.Default()
+	old.Stats = { Runs = 3 }
+	old.ClassShop = nil
+	old.FirstRunDone = nil
+	local data, loaded = ProfileSchema.Load(old)
+	expectEqual(loaded, "Loaded", "a save with missing fields")
+	expectEqual(data.Stats.Runs, 3, "kept values")
+	expectEqual(data.Stats.Wins, 0, "a missing record field filled")
+	expect(data.ClassShop ~= nil and data.FirstRunDone == false, "missing fields filled")
+	local bad = ProfileSchema.Default()
+	bad.Glowshards = -5
+	local none, invalid, why = ProfileSchema.Load(bad)
+	expect(none == nil and invalid == "Invalid", "negative Glowshards refused")
+	expect(string.find(why or "", "Glowshards"), "the reason names the field")
+	local wrong = ProfileSchema.Default()
+	wrong.Classes.Survivor.Level = 9
+	expectEqual(select(2, ProfileSchema.Load(wrong)), "Invalid", "a class level out of range")
+end)
+
+test("Profiles: migrations run in order up to the current version", function()
+	local migrations = ProfileSchema._MIGRATIONS
+	local version = ProfileSchema.VERSION
+	ProfileSchema.VERSION = version + 1
+	migrations[version] = function(data)
+		data.Glowshards += 10
+		return data
+	end
+	local ok, result = pcall(function()
+		local stored = ProfileSchema.Default()
+		stored.Version = version
+		return table.pack(ProfileSchema.Load(stored))
+	end)
+	migrations[version] = nil
+	ProfileSchema.VERSION = version
+	expect(ok, "the load not to error")
+	local data, status = result[1], result[2]
+	expectEqual(status, "Loaded", "status")
+	expectEqual(data.Version, version + 1, "the migrated version")
+	expectEqual(data.Glowshards, 10, "the migration ran")
+end)
+
+test("Profiles: receipts keep the newest 200; the player's copy has none", function()
+	local data = ProfileSchema.Default()
+	for index = 1, 205 do
+		ProfileSchema.AddReceipt(data, `r{index}`)
+	end
+	expectEqual(#data.Receipts, 200, "kept receipts")
+	expectEqual(data.Receipts[1], "r6", "oldest kept")
+	expect((ProfileSchema.Validate(data)), "still valid")
+	expectEqual(ProfileSchema.Public(data).Receipts, nil, "receipts hidden from the client")
 end)
 
 -- Delta ----------------------------------------------------------------------------------
