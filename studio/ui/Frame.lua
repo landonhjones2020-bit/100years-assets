@@ -127,5 +127,7 @@ local fb = button(T, "FooterButton", { size = { 0.48, 1 }, visible = false }, { 
 text(fb.Content, "Label", "ACTION", { pos = { 0.08, 0.24 }, size = { 0.84, 0.52 }, font = F.label, color = COL.cream,
 	alignX = CENTER })
 
+--@include Frame_CommandView.lua
+
 sg.Parent = game:GetService("StarterGui")
 return "Frame built: " .. #sg:GetDescendants() .. " instances"

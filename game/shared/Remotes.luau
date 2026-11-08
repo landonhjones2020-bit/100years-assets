@@ -57,6 +57,13 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 4, PerSecond = 1 },
 		Doc = "Ready (true) or not (false) to skip the rest of the day phase to the Surge siren (CycleClock).",
 	},
+	PingCell = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.integer(1, 10), Check.integer(-6, 6) },
+		Rate = { Burst = 3, PerSecond = 0.5 },
+		Doc = "Ping a bunker cell (floor, column) from the Command View; PingService shows it to the team.",
+	},
 
 	-- server -> client
 	Delta = {
@@ -66,6 +73,11 @@ local DEFINITIONS: { [string]: Definition } = {
 	Notice = {
 		To = "Client",
 		Doc = "A text message for one player (DevTools output for now).",
+	},
+	CellPinged = {
+		To = "Client",
+		Place = "Run",
+		Doc = "A player pinged a cell: floor, column, the player's UserId and display name (PingService).",
 	},
 }
 

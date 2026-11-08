@@ -90,6 +90,31 @@ function Bunker.FromStart(): Bunker
 	return bunker
 end
 
+-- A copy of the bunker from the replicated collections, for client previews (the Command
+-- View's build menu): Cells maps "floor,column" to { Room = id } or {}, Rooms maps an id to
+-- { Type, Floor, Column, Span, Level, HP, MaxHP }.
+function Bunker.FromSnapshot(cells: { [string]: any }, rooms: { [string]: any }): Bunker
+	local bunker = Bunker.new()
+	for key, cell in cells do
+		local roomId = if type(cell) == "table" then cell.Room else nil
+		bunker.Cells[key] = if type(roomId) == "string" then roomId else ""
+	end
+	for id, room in rooms do
+		bunker.Rooms[id] = {
+			Id = id,
+			Type = room.Type,
+			Floor = room.Floor,
+			Column = room.Column,
+			Span = room.Span,
+			Level = room.Level,
+			HP = room.HP,
+			MaxHP = room.MaxHP,
+		}
+		bunker.NextId = math.max(bunker.NextId, idNumber(id) + 1)
+	end
+	return bunker
+end
+
 -- Cells ---------------------------------------------------------------------------------
 
 -- Rock, Dug or Room (and the room's id); nil off the grid.

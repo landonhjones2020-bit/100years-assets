@@ -21,6 +21,8 @@
 	* `/dev hud` prints the HUD's state; `hud.alert <Danger|Warning|Info> <text>`,
 	  `hud.banner <text>`, `hud.slot <1-5>` and `hud.touch [true|false]` (shows the touch
 	  buttons on any device, for screenshots) drive it.
+	* `/dev cv` prints the Command View's state (with the detail panel's options); `cv.open`,
+	  `cv.close`, `cv.select <floor> <column>` and `cv.ping` drive it.
 
 	In Studio it also makes PlayerScripts.DevInvoke (a BindableFunction) so tools can run the
 	same commands from the Client datamodel: DevInvoke:Invoke("replica _SelfTest").
@@ -43,7 +45,14 @@ local CHAT_LINES = 12
 
 local DevController = {
 	Name = "DevController",
-	Dependencies = { "ReplicaController", "InputController", "CameraController", "UIController", "HUDController" },
+	Dependencies = {
+		"ReplicaController",
+		"InputController",
+		"CameraController",
+		"UIController",
+		"HUDController",
+		"CommandViewController",
+	},
 }
 
 local replica: any = nil
@@ -51,6 +60,7 @@ local camera: any = nil
 local ui: any = nil
 local hud: any = nil
 local registryInput: any = nil
+local commandView: any = nil
 local devCursorFree = false
 local lastNotice: string? = nil
 local commandMade = false
@@ -189,6 +199,52 @@ local function describeHUD(): string
 	)
 end
 
+local function describeCommandView(): string
+	task.wait()
+	task.wait()
+	local state = commandView:State()
+	local main = ""
+	local gui = ui:Gui()
+	local button = gui and gui:FindFirstChild("Cabinet") and gui.Cabinet:FindFirstChild("MainAction")
+	if button and button.Visible then
+		main = `, main action "{button.Content.Label.Text}" ({if button:GetAttribute("Disabled") then "greyed out" else "live"})`
+	end
+	local detail = ""
+	local page = gui and gui:FindFirstChild("Cabinet") and gui.Cabinet.Pages:FindFirstChild("CommandView")
+	if page then
+		local options = {}
+		for _, row in page.Detail.Options:GetChildren() do
+			if row:IsA("GuiObject") then
+				table.insert(options, { row.LayoutOrder, `{row:FindFirstChild("Name").Text} ({row:FindFirstChild("Value").Text})` })
+			end
+		end
+		table.sort(options, function(a, b)
+			return a[1] < b[1]
+		end)
+		local names = {}
+		for i, option in options do
+			if i <= 8 then
+				table.insert(names, `{i}. {option[2]}`)
+			end
+		end
+		detail = `\n  detail: {page.Detail:FindFirstChild("Name").Text} / {page.Detail.Sub.Text}`
+			.. (if #names > 0 then "\n  options: " .. table.concat(names, "; ") else "")
+	end
+	return string.format(
+		"command view: %s, centre (%.0f, %.0f), %.1f floors high, FOV %.0f, selected %s, choice %s, tab %s, %d labels, %d pings",
+		if state.Open then "open" else "closed",
+		state.Center.X,
+		state.Center.Y,
+		state.Floors,
+		state.FieldOfView,
+		tostring(state.Selected),
+		tostring(state.Choice),
+		state.Tab,
+		state.Labels,
+		state.Pings
+	) .. main .. detail
+end
+
 local function describeCamera(): string
 	task.wait() -- let a frame apply what the command changed
 	task.wait()
@@ -298,6 +354,26 @@ local function run(text: string): string?
 	elseif name == "hud.touch" then
 		hud:SetForceTouch(args[1] ~= false)
 		return describeHUD()
+	elseif name == "cv" then
+		return describeCommandView()
+	elseif name == "cv.open" or name == "cv.close" then
+		if commandView:IsOpen() ~= (name == "cv.open") then
+			commandView:Toggle()
+		end
+		task.wait(0.5)
+		return describeCommandView()
+	elseif name == "cv.select" then
+		commandView:Select(tonumber(args[1]), tonumber(args[2]))
+		return describeCommandView()
+	elseif name == "cv.ping" then
+		local state = commandView:State()
+		if not state.Selected then
+			return "cv.ping: select a cell first (cv.select <floor> <column>)"
+		end
+		local floor, column = string.match(state.Selected, "^(%-?%d+),(%-?%d+)$")
+		Remotes.FireServer("PingCell", tonumber(floor), tonumber(column))
+		task.wait(0.5)
+		return describeCommandView()
 	end
 	if #args > 8 then
 		return "at most 8 arguments"
@@ -332,6 +408,7 @@ function DevController:Init(registry)
 	ui = registry.UIController
 	hud = registry.HUDController
 	registryInput = registry.InputController
+	commandView = registry.CommandViewController
 	Remotes.OnClient("Notice", function(text: any)
 		if type(text) == "string" then
 			lastNotice = text

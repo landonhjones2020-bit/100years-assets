@@ -72,6 +72,12 @@ local Schemas: { [string]: Check.Checker } = {
 		FadeTransparency = Fr, FrontWallTransparency = Fr, FadeSeconds = S, NearFadeRadius = N,
 		CharacterFadeDistance = N, ErrorsBeforeFallback = I,
 	}),
+	CommandView = shape({
+		FieldOfView = N, StartFloors = N, MinFloors = N, MaxFloors = N, MoveSeconds = S, ZoomStep = Fr,
+		PanFloorsPerSecond = N, DragPixels = N, StickDeadzone = Fr,
+		Ambient = F.Hex, OutdoorAmbient = F.Hex, ExposureCompensation = F.Number,
+	}),
+	Ping = shape({ Seconds = S }),
 	Digging = shape({
 		DisturbancePerCell = N, StackPlayers = Check.boolean(), PushDeeperFloors = list(I, 3),
 		ResidentDigMultiplier = N,
@@ -179,6 +185,12 @@ return {
 			FadeTransparency = 0.8, FrontWallTransparency = 1, FadeSeconds = 0.12, NearFadeRadius = 1.4,
 			CharacterFadeDistance = 2.2, ErrorsBeforeFallback = 5,
 		},
+		CommandView = { -- Section 7 (a far camera with a narrow field of view, a 0.3 s move in and out); the rest prov.
+			FieldOfView = 8, StartFloors = 3.5, MinFloors = 1.5, MaxFloors = 11, MoveSeconds = 0.3, ZoomStep = 0.12,
+			PanFloorsPerSecond = 2.5, DragPixels = 6, StickDeadzone = 0.2,
+			Ambient = "#6E7680", OutdoorAmbient = "#8C949E", ExposureCompensation = 0.4,
+		},
+		Ping = { Seconds = 6 }, -- Section 7: a pinged cell shows on every player's mini-map; prov.
 		Digging = { DisturbancePerCell = 5, StackPlayers = true, PushDeeperFloors = { 4, 7, 10 }, ResidentDigMultiplier = 0.25 },
 		Disturbance = { -- Section 10
 			Max = 100, DecayPerCycle = 10, NestDestroyed = 20, Explosive = 10, ExtraBreachAt = 50, TremorAt = 100, AfterTremor = 40,

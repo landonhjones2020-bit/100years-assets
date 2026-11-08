@@ -1,5 +1,6 @@
 """Print the Luau that builds a UI screen in Studio: the builder with the sprite table filled in
-(only the sprites the screen names, from ui/kit.json), followed by the screen file. Send it with
+(only the sprites the screen names, from ui/kit.json), followed by the screen file, with its
+`--@include <file>` lines inlined (a part shared by a full build and a patch). Send it with
 execute_luau (Edit).
 
     python3 tools/ui_luau.py studio/ui/HUD.lua          # studio/ui/Builder.lua
@@ -13,11 +14,23 @@ import sys
 REPO = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 
+def expand(path):
+    """The screen file with every `--@include <file>` line (relative to the file) inlined."""
+    out = []
+    for line in open(path).read().splitlines():
+        m = re.match(r"^\s*--@include\s+(\S+)\s*$", line)
+        if m:
+            out.append(expand(os.path.normpath(os.path.join(os.path.dirname(path), m.group(1)))))
+        else:
+            out.append(line)
+    return "\n".join(out)
+
+
 def main(screen_path):
     kit = json.load(open(os.path.join(REPO, "ui", "kit.json")))
     base = "A0_Builder.lua" if os.path.basename(screen_path).startswith("A0_") else "Builder.lua"
     builder = open(os.path.join(REPO, "studio", "ui", base)).read()
-    screen = open(screen_path).read()
+    screen = expand(screen_path)
     names = set(re.findall(r'"([A-Za-z0-9_]+)"', screen))
     # names built from pieces in the screen, e.g. "Card_" .. rarity
     for prefix in re.findall(r'"([A-Za-z]+_)"\s*\.\.', screen):

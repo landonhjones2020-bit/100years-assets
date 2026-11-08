@@ -25,6 +25,7 @@ local Remotes = require(Shared.Remotes)
 local Bunker = require(Shared.Rules.Bunker)
 local CameraRig = require(Shared.Rules.CameraRig)
 local Hud = require(Shared.Rules.Hud)
+local CommandView = require(Shared.Rules.CommandView)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -1062,6 +1063,57 @@ test("Hud: the mini-map window follows the player and stays on the grid", functi
 	expectEqual({ Hud.MapWindow(2, 0, grid, 5, 5) }, { -2, 1 }, "centred on the player, one floor above")
 	expectEqual({ Hud.MapWindow(1, -6, grid, 5, 5) }, { -6, 1 }, "the left edge")
 	expectEqual({ Hud.MapWindow(10, 6, grid, 5, 5) }, { 2, 6 }, "the bottom right corner")
+end)
+
+test("Bunker: a client copy from the replicated collections matches the bunker", function()
+	local bunker = Bunker.FromStart()
+	local cells, rooms = {}, {}
+	for key, value in bunker.Cells do
+		cells[key] = if value == "" then {} else { Room = value }
+	end
+	for id, room in bunker.Rooms do
+		rooms[id] = { Type = room.Type, Floor = room.Floor, Column = room.Column, Span = room.Span,
+			Level = room.Level, HP = room.HP, MaxHP = room.MaxHP }
+	end
+	local copy = Bunker.FromSnapshot(cells, rooms)
+	for key in bunker.Cells do
+		local floor, column = Grid.Parse(key)
+		expectEqual({ copy:State(floor :: number, column :: number) }, { bunker:State(floor :: number, column :: number) }, key)
+	end
+	expectEqual(copy:DeepestFloor(), 2, "deepest floor")
+	expect(copy:Dig(3, 3), "the copy follows the rules (dig under an open cell)")
+	expect(copy:Place("Storage", 2, 3, 1) ~= nil, "and builds with fresh ids")
+end)
+
+test("CommandView: distance and visible height invert; the view stays over the grid", function()
+	local d = CommandView.DistanceFor(63, 8)
+	expect(math.abs(CommandView.VisibleHeight(d, 8) - 63) < 1e-9, "round trip")
+	local bounds = CommandView.Bounds()
+	expect(bounds.Left < bounds.Right and bounds.Bottom < bounds.Top, "bounds are ordered")
+	local pitch = Grid.Pitch()
+	expect(math.abs((bounds.Right - bounds.Left) - 13 * pitch.X) < 1e-6, "13 columns wide")
+	expect(math.abs((bounds.Top - bounds.Bottom) - 10 * pitch.Y) < 1e-6, "10 floors tall")
+	local far = CommandView.Clamp(Vector2.new(1e6, -1e6), bounds)
+	expectEqual(far, Vector2.new(bounds.Right, bounds.Bottom), "clamped to the corner")
+end)
+
+test("CommandView: the build menu follows the unlocks and the placement rules (bible Section 6)", function()
+	local bunker = Bunker.FromStart()
+	local era1 = { Era = 1, Deepest = bunker:DeepestFloor() }
+	expect(CommandView.RoomChoice(bunker, "Kitchen", 2, 3, era1), "a Kitchen on an open cell")
+	local ok, why = CommandView.RoomChoice(bunker, "Armory", 2, 3, era1)
+	expect(not ok and string.find(why or "", "blueprint draft"), "the Armory needs a draft")
+	ok, why = CommandView.RoomChoice(bunker, "DeconRoom", 2, 3, era1)
+	expect(not ok and string.find(why or "", "Era II"), "the Decon Room needs Era II")
+	expect(CommandView.RoomChoice(bunker, "DeconRoom", 2, 3, { Era = 2, Deepest = 2 }), "and has it in Era II")
+	expect(CommandView.RoomChoice(bunker, "DrillBay", 2, 3, era1), "depth 2 unlocks the Drill Bay")
+	ok, why = CommandView.RoomChoice(bunker, "ReactorCore", 2, 3, era1)
+	expect(not ok and string.find(why or "", "already"), "one Reactor Core")
+	ok = CommandView.RoomChoice(bunker, "Armory", 2, 3, { Era = 1, Deepest = 2, Unlocked = { Armory = true } })
+	expect(ok, "a draft won unlocks the Armory")
+	expectEqual(CommandView.CostText({ Scrap = 120 }), "120 SCRAP", "one cost")
+	expectEqual(CommandView.CostText({ Iron = 20, Scrap = 220 }), "220 SCRAP · 20 IRON", "costs in Resources order")
+	expectEqual(CommandView.CostText({}), "FREE", "nothing")
 end)
 
 test("UIContract: the Frame is in both places, the HUD in the Run; paths are unique", function()

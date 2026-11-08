@@ -52,6 +52,7 @@ export type Screen = {
 	Page: string?,
 	Docked: boolean?,
 	Hint: string?,
+	GamepadSelect: boolean?, -- false: no gamepad selection (the screen uses A itself)
 	OnOpen: ((page: Frame, args: any) -> ())?,
 	OnTab: ((tabId: string, page: Frame) -> ())?,
 	OnClose: (() -> ())?,
@@ -308,7 +309,7 @@ function UIController:Open(name: string, args: any?): boolean
 		selectTab(screen.Tabs[1].Id)
 	end
 	refreshKeys()
-	if input:Device() == "Gamepad" then
+	if input:Device() == "Gamepad" and screen.GamepadSelect ~= false then
 		GuiService.SelectedObject = (if screen.Tabs and #screen.Tabs > 0 then tabButtons[screen.Tabs[1].Id] else nil)
 			or part("Cabinet.TopBar.Close")
 	end
@@ -504,7 +505,7 @@ function UIController:Start()
 		local selected = GuiService.SelectedObject
 		if device ~= "Gamepad" and selected and selected:IsDescendantOf(found) then
 			GuiService.SelectedObject = nil
-		elseif device == "Gamepad" and current and not selected then
+		elseif device == "Gamepad" and current and not selected and screens[current].GamepadSelect ~= false then
 			local first = next(tabButtons)
 			GuiService.SelectedObject = if first then tabButtons[first] else part("Cabinet.TopBar.Close")
 		end

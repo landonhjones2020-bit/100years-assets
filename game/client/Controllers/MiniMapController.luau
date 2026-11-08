@@ -7,6 +7,7 @@
 	from the replicated Cells and Rooms collections: each room as one block across its cells with
 	its short name, a dug cell as a faint block, rock as bare blueprint paper. The player's cell
 	lights an orange pilot lamp. The footer names the deepest band and floor reached.
+	Pinged cells (PingService, from the Command View) show a yellow pin for Tuning.Ping.Seconds.
 	Blink(roomId, on) is for the alerts (AlertController, Prompt 12).
 ]]
 
@@ -19,6 +20,7 @@ local Constants = require(Shared.Constants)
 local Grid = require(Shared.Rules.Grid)
 local Hud = require(Shared.Rules.Hud)
 local Log = require(Shared.Utilities.Log)
+local Remotes = require(Shared.Remotes)
 
 local log = Log.new("MiniMapController")
 
@@ -44,6 +46,25 @@ local playerCell: { number }? = nil
 local dirty = true
 local blinking: { [string]: boolean } = {}
 local blocks: { [string]: Frame } = {}
+local window = { 0, 1 } -- the first column and first floor shown
+local pingTemplate: Instance? = nil
+local pingMarks: { { Frame: any, Floor: number, Column: number, Until: number } } = {}
+
+local function placePings()
+	local now = os.clock()
+	for i = #pingMarks, 1, -1 do
+		local ping = pingMarks[i]
+		if now > ping.Until then
+			ping.Frame:Destroy()
+			table.remove(pingMarks, i)
+		else
+			local x = (ping.Column - window[1] + 0.5) / COLUMNS
+			local y = (ping.Floor - window[2] + 0.75) / ROWS
+			ping.Frame.Position = UDim2.fromScale(x, y)
+			ping.Frame.Visible = x > 0 and x < 1 and y > 0 and y <= 1
+		end
+	end
+end
 
 local function shortName(roomType: string): string
 	local room = Config.Find("Rooms", roomType)
@@ -87,6 +108,7 @@ local function redraw()
 	local here = playerCell or { 1, 0 }
 	local c0, f0 = Hud.MapWindow(here[1], here[2], grid, COLUMNS, ROWS)
 	local first = { c0, f0 }
+	window = first
 	local seenRooms: { [string]: boolean } = {}
 	local deepest = 0
 	for key, cell in replica:All("Cells") do
@@ -142,6 +164,19 @@ local function poll()
 	if dirty then
 		redraw()
 	end
+	placePings()
+end
+
+-- Shows a pin on a cell for Tuning.Ping.Seconds (PingService's CellPinged).
+function MiniMapController:Ping(floor: number, column: number)
+	if not cellsFrame or not pingTemplate then
+		return
+	end
+	local mark = pingTemplate:Clone() :: any
+	mark.Visible = true
+	mark.Parent = cellsFrame.Parent
+	table.insert(pingMarks, { Frame = mark, Floor = floor, Column = column, Until = os.clock() + Config.Get("Tuning", "Ping").Seconds })
+	placePings()
 end
 
 -- Lights a room's block (or a dug cell's, by "floor,column") rust red while on.
@@ -179,6 +214,14 @@ function MiniMapController:Start()
 	if not cellsFrame or not template then
 		log:Warn("the HUD has no mini-map")
 		return
+	end
+	pingTemplate = gui.Templates:FindFirstChild("MapPing")
+	if Remotes.InPlace("CellPinged") then
+		Remotes.OnClient("CellPinged", function(floor: any, column: any)
+			if type(floor) == "number" and type(column) == "number" then
+				MiniMapController:Ping(floor, column)
+			end
+		end)
 	end
 	local function mark()
 		dirty = true
