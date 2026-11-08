@@ -14,7 +14,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 2: saved data (profiles, locks, receipts) | ✅ done 2026-11-08 | Real DataStore playtests in both places; `game/reports/P02_SavedData.md` |
 | Prompt 3: run lifecycle and cycle clock (Run) | ✅ done 2026-11-08 | Two Run playtests (intro, skips, bosses, Year 100, Endless, defeat) and a Lobby playtest; `game/reports/P03_RunLifecycle.md` |
 | Prompt 4: bunker grid, graybox kit, starting bunker (Run) | ✅ done 2026-11-08 | Playtest: built at start, changes rebuilt, stairs and doorways walked; `game/reports/P04_BunkerGrid.md`, `previews/Game/P04_*.jpg` |
-| A1 bunker kit and starting rooms | ⏳ next | |
+| A1 bunker kit and starting rooms | ✅ in Studio 2026-11-08 | 46 models set up (size and pivot checked), the bunker builds from them; walked in a playtest; `previews/Game/A1_Studio_sheet.jpg`, addendum in `game/reports/P04_BunkerGrid.md` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -31,6 +31,38 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (night): A1 bunker kit and starting rooms in Studio
+
+46 A1 models uploaded (Model, creator 9768530298), inserted in Run, set up with
+`setup_batch.py` and moved to `ServerStorage.Assets.Kit` (23) and `.Rooms` (23). Ids and
+status (`in_studio`) are in `manifest.csv`. BunkerKit now builds the bunker from them (game
+code build p4-1f57849, asset 95026446991297 revision 9).
+
+**Verified in Studio**
+* Every model passed AssetSetup's size and pivot check (0.01 studs) on the first try,
+  including the `merge="room"` models with uid-named colliding parts.
+* Playtest: the starting bunker built from the art (8 rooms, 12 open cells, 613 parts in
+  15.5 ms, 25 lights); `grid.art` lists every unit as art; StructureCheck passed all but
+  the Night Shift folder.
+* Walking (`Humanoid:MoveTo`): through every doorway of floors 1 and 2, up and down the art
+  stair between them (invisible hull ramp), into both dug cells and up to the Blast Door.
+* Changes rebuild with art: a dug neighbour turned the Blast Door's left wall into the
+  doorway piece; a 2-cell Workshop L2, a Storage L3 and dug cells down to floor 8 (Flooded
+  Caverns, Crystal Hollows) built from art.
+* Screenshots: `previews/Game/A1_Studio_*.jpg`, sheet `previews/Game/A1_Studio_sheet.jpg`.
+
+**Findings**
+1. Under the place's current lighting (ClockTime 19.5, dark ambient) the rock reads nearly
+   black; the Command View lighting preset should lift it.
+2. The A0 Kitchen L1's dining table stands at the cell centre, so a walk to the centre stops
+   at the table (expected).
+3. Night Shift's `ServerStorage.NS_Pipeline` came back again at play start; deleted.
+
+**Not verified yet**
+* Phone frame rate with the art (Device Emulator); light count on a full bunker.
+* Socket facing (yaw): positions checked, facings not used yet.
+* `Lighting.Technology` (Landon).
 
 ## Session 2026-11-07: setup
 

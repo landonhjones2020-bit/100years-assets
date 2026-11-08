@@ -179,3 +179,106 @@ around the changed cells, then fire `Changed` and `RoomChanged`.
   Blast Door, room interiors by level.
 * Cave openings (Prompt 17) attach outside the grid's edge walls at matching depths;
   `Grid.CellPosition` gives their anchor points.
+
+---
+
+# Addendum (2026-11-08, night): the A1 art kit in the bunker
+
+BunkerKit now builds the bunker from the A1 models in `ServerStorage.Assets` (bible Section
+19) instead of the graybox, behind the same `BunkerKit.Sync` call. A piece the place lacks
+falls back to the graybox, so the code still builds anywhere.
+
+## Design Notes
+
+**Decisions**
+- Each cell gets its shell from the kit: `Kit_Floor`/`Kit_FloorHole`, `Kit_Ceiling`/`Kit_CeilingHole`,
+  `Kit_WallBack`, `Kit_WallFront` and, at a room's two ends, `Kit_WallSide`/`Kit_WallSideDoor`
+  (the left one is the right-hand piece turned half a turn). Furniture is
+  `Room_<Type>_L<level>` once per cell; the Blast Door is `Kit_BlastDoor_L<level>` at the
+  centre of its two cells; a Shaft with a Shaft above gets `Kit_Shaft_L<level>`.
+- Rock cells are `Kit_Rock_<Band>`, turned half a turn on alternate cells so the faces don't
+  repeat; dug cells are `Kit_Dug_<Band>`.
+- The frame (around the grid) is now a ring of rock cells: the Mines' rock above floor 1,
+  the Source Chamber's rock below floor 10, and each floor's band at the two sides. It was
+  6 studs of plain parts; it is now 18 studs of rock that matches the cells.
+- Gameplay points: each room has an invisible `Sockets` part with an Attachment per socket
+  in its art (WorkSpot, Bed, Seat, Core, Valve, FuseBox, Breaker, Tap, Bench, Respawn, Door,
+  SurfaceExit, Vent, Lift, Chute, Top, Bottom, Light). Numbered sockets count up across a
+  room's cells from left to right (a 2-cell Workshop L2 has WorkSpot1 to 6 and Bench, Bench2).
+  `BunkerKit.Socket(model, name)` and `BunkerKit.Sockets(model, pattern)` read them. The graybox
+  fallback writes the same sockets.
+- Lights: two PointLights per room cell on the ceiling strip (Range 18, Brightness 1), a
+  lantern per dug cell in its band's colour, the Reactor core's glow and the Kitchen's
+  pendants. Shadows are off (phone budget). Each light has the `RoomLight` tag and a `Unit`
+  attribute (room id or dug node) so the power system can darken rooms and floors (Section 10).
+- The Medbay spawn now sits on the art respawn pad, invisible; the pad is the visual.
+- Front walls: every part of `Kit_WallFront` and the `FrontWall` part of a dug cell carry
+  the `FrontWall` tag for the Command View.
+- One vent per room (in its first cell), none in the Shaft or the Blast Door (provisional:
+  see Bible Questions).
+
+**Design Risks**
+- The rock reads almost black under the Run place's current lighting (ClockTime 19.5, dark
+  ambient). The Command View's lighting preset (bible Section 23: a preset per zone) should
+  lift it a little so the cliff face reads.
+
+**Scope Risks**
+- None new. Room types without art yet (Armory, Lab and the rest) use the graybox until their
+  art step.
+
+**Bible Questions**
+1. How many vents does a room have? Section 10 lists room vents as breach points but not a
+   count. I placed one per room; the breach system can open any subset.
+
+**Recommended Improvements**
+- Mirror alternate cells of multi-cell rooms so a 3-cell Quarters doesn't repeat exactly.
+- A lit "surface" strip above the frame for the Command View once Prompt 16 defines the
+  surface.
+
+**Technical Risks**
+- Light count: 25 in the starting bunker, about 2.2 per open cell. A full bunker (around 60
+  open cells) would carry about 130 lights; the phone pass (Prompt 34) should measure this.
+- Socket facing (yaw) is copied as authored; only positions were checked. Residents (later
+  prompts) are the first to use the facing.
+
+## Delivery Report
+
+**Overview.** The starting bunker builds from the art kit at server start: 8 rooms, 12 open
+cells, 613 parts in 15.5 ms (the graybox was 245 parts in 3 ms), 25 lights.
+
+**Files modified**
+- `game/places/Run/server/Lib/BunkerKit.luau`: art placement, sockets, lights, frame ring,
+  graybox fallback, `HasArt`, `Socket`, `Sockets`.
+- `game/places/Run/server/Services/BunkerGrid.luau`: `grid.sockets <roomId>` and `grid.art`
+  dev commands; the start log says which kit built the bunker.
+- `game/server/DevTools/StructureCheck.luau`: every room has a Sockets part; with the art kit
+  present every room is built from art; the Medbay has its spawn and the Blast Door its
+  SurfaceExit.
+- `tools/setup_batch.py`: leaves out sidecar fields AssetSetup never reads (smaller chunks).
+
+**Integration notes**
+- Services that need a gameplay point ask the room model: `BunkerKit.Socket(model, "Core")`,
+  `BunkerKit.Sockets(model, "^WorkSpot%d+$")`. Positions are in the world.
+- The power system finds lights with `CollectionService:GetTagged("RoomLight")` and their
+  `Unit` attribute; the ceiling strips are MeshParts with the `Role` attribute `CeilingLight`.
+- The assets live only in the Run place's `ServerStorage.Assets`; the Lobby builds nothing.
+
+**Testing checklist (done in Studio, 2026-11-08)**
+- [x] 46 A1 models inserted and set up; every one passed AssetSetup's size and pivot check
+  (0.01 studs) and moved to `ServerStorage.Assets.Kit` / `.Rooms`.
+- [x] Installed (build p4-1f57849): StructureCheck 0 errors in Edit, data tests 55 passed.
+- [x] Playtest: "bunker built from the art kit", StructureCheck at start passed everything
+  but the Night Shift folder (plugin still on), `grid.art` lists every unit as art.
+- [x] Walked with `Humanoid:MoveTo` on the server: Medbay → Reactor Core → Shaft → up the stair
+  → floor 1 → Quarters → dug cell 1,3 → Shaft → Blast Door (both cells, the door) → down the
+  stair → Water Purifier → Kitchen → dug cell 2,3. Every move arrived except the Kitchen's
+  centre, where the A0 dining table stands (the player stopped inside the room).
+- [x] Changes: digging 1,-3 turned the Blast Door's left wall into the doorway piece; a
+  2-cell Workshop L2 and a Storage L3 built from art; digging floors 4 to 8 gave Flooded
+  Caverns and Crystal Hollows dug cells.
+- [x] Sockets: Blast Door (Door, SurfaceExit, WorkSpot1-4), Quarters (Bed1-8, lower bunks
+  first in each cell), Kitchen (Seat1-4, Table, WorkSpot1-2, Light1-2), Medbay (Respawn, Bed1),
+  Shaft (Bottom, Top), 2-cell Workshop (WorkSpot1-6, Bench, Bench2).
+- [x] Screenshots (front walls hidden on the client): `previews/Game/A1_Studio_*.jpg`, sheet
+  `previews/Game/A1_Studio_sheet.jpg`.
+- [ ] Phone frame rate with the art (Device Emulator), Landon's look at the screenshots.
