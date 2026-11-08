@@ -1,13 +1,198 @@
 {
- "built": "2026-11-08T19:12:30Z",
- "commit": "d230b450d7d7fa8463ed3b22725e445c96a45377",
- "label": "p0-d230b45",
+ "built": "2026-11-08T19:29:49Z",
+ "commit": "4d2a9d5f7478a97dea50826607050ec869df2fbb",
+ "label": "p1-4d2a9d5",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/init.luau",
-    "Hash": "5642a1ef"
+    "Hash": "2eadd1e1"
+   },
+   "ReplicatedStorage.Shared.Config.Badges": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Badges.luau",
+    "Hash": "6ee16877"
+   },
+   "ReplicatedStorage.Shared.Config.Bosses": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Bosses.luau",
+    "Hash": "36bae4c9"
+   },
+   "ReplicatedStorage.Shared.Config.Classes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Classes.luau",
+    "Hash": "3b5de4fd"
+   },
+   "ReplicatedStorage.Shared.Config.Conditions": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Conditions.luau",
+    "Hash": "75851e83"
+   },
+   "ReplicatedStorage.Shared.Config.DepthBands": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DepthBands.luau",
+    "Hash": "f922cbf9"
+   },
+   "ReplicatedStorage.Shared.Config.Difficulties": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Difficulties.luau",
+    "Hash": "a5127341"
+   },
+   "ReplicatedStorage.Shared.Config.DigResults": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DigResults.luau",
+    "Hash": "396259e7"
+   },
+   "ReplicatedStorage.Shared.Config.Disasters": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Disasters.luau",
+    "Hash": "d4c497db"
+   },
+   "ReplicatedStorage.Shared.Config.DraftCards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DraftCards.luau",
+    "Hash": "629ee797"
+   },
+   "ReplicatedStorage.Shared.Config.Eras": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Eras.luau",
+    "Hash": "a6aca6ba"
+   },
+   "ReplicatedStorage.Shared.Config.GamePasses": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GamePasses.luau",
+    "Hash": "14abb724"
+   },
+   "ReplicatedStorage.Shared.Config.GlowshardPacks": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GlowshardPacks.luau",
+    "Hash": "6dd12746"
+   },
+   "ReplicatedStorage.Shared.Config.GlowshardRewards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GlowshardRewards.luau",
+    "Hash": "6f6ba075"
+   },
+   "ReplicatedStorage.Shared.Config.ItemRarities": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/ItemRarities.luau",
+    "Hash": "70e244bf"
+   },
+   "ReplicatedStorage.Shared.Config.Items": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Items.luau",
+    "Hash": "e35fccbb"
+   },
+   "ReplicatedStorage.Shared.Config.Leaderboards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Leaderboards.luau",
+    "Hash": "9388a4d8"
+   },
+   "ReplicatedStorage.Shared.Config.Legends": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Legends.luau",
+    "Hash": "b917328d"
+   },
+   "ReplicatedStorage.Shared.Config.LootTables": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/LootTables.luau",
+    "Hash": "720f512c"
+   },
+   "ReplicatedStorage.Shared.Config.Modifiers": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Modifiers.luau",
+    "Hash": "b44a228f"
+   },
+   "ReplicatedStorage.Shared.Config.Monsters": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Monsters.luau",
+    "Hash": "3af3cfc5"
+   },
+   "ReplicatedStorage.Shared.Config.MoraleStates": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/MoraleStates.luau",
+    "Hash": "00af08f3"
+   },
+   "ReplicatedStorage.Shared.Config.Objectives": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Objectives.luau",
+    "Hash": "f97e03f1"
+   },
+   "ReplicatedStorage.Shared.Config.Quests": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Quests.luau",
+    "Hash": "45b28c05"
+   },
+   "ReplicatedStorage.Shared.Config.Recipes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Recipes.luau",
+    "Hash": "c217ac21"
+   },
+   "ReplicatedStorage.Shared.Config.ResidentNames": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/ResidentNames.luau",
+    "Hash": "ac55d112"
+   },
+   "ReplicatedStorage.Shared.Config.Resources": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Resources.luau",
+    "Hash": "84036648"
+   },
+   "ReplicatedStorage.Shared.Config.Rooms": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Rooms.luau",
+    "Hash": "a55cff04"
+   },
+   "ReplicatedStorage.Shared.Config.Stats": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Stats.luau",
+    "Hash": "f9f6bee1"
+   },
+   "ReplicatedStorage.Shared.Config.SurfaceLocations": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/SurfaceLocations.luau",
+    "Hash": "9b7948ae"
+   },
+   "ReplicatedStorage.Shared.Config.TalentSlots": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/TalentSlots.luau",
+    "Hash": "2d84cd91"
+   },
+   "ReplicatedStorage.Shared.Config.TeamBoosts": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/TeamBoosts.luau",
+    "Hash": "b61dfd08"
+   },
+   "ReplicatedStorage.Shared.Config.Tiers": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Tiers.luau",
+    "Hash": "c53e9572"
+   },
+   "ReplicatedStorage.Shared.Config.Traits": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Traits.luau",
+    "Hash": "9ae866ae"
+   },
+   "ReplicatedStorage.Shared.Config.Tuning": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Tuning.luau",
+    "Hash": "2c514721"
+   },
+   "ReplicatedStorage.Shared.Config.Votes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Votes.luau",
+    "Hash": "fd9751f3"
+   },
+   "ReplicatedStorage.Shared.Config.WandererOutcomes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/WandererOutcomes.luau",
+    "Hash": "d35fdfd0"
+   },
+   "ReplicatedStorage.Shared.Config._Fields": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/_Fields.luau",
+    "Hash": "d6d99104"
    },
    "ReplicatedStorage.Shared.Constants": {
     "Class": "ModuleScript",
@@ -72,12 +257,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "dc134205"
+    "Hash": "db679edd"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "ce85f582"
+    "Hash": "44c99769"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
@@ -97,7 +282,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "2a7a888f"
+    "Hash": "c2517676"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -119,7 +304,192 @@
    "ReplicatedStorage.Shared.Config": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/init.luau",
-    "Hash": "5642a1ef"
+    "Hash": "2eadd1e1"
+   },
+   "ReplicatedStorage.Shared.Config.Badges": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Badges.luau",
+    "Hash": "6ee16877"
+   },
+   "ReplicatedStorage.Shared.Config.Bosses": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Bosses.luau",
+    "Hash": "36bae4c9"
+   },
+   "ReplicatedStorage.Shared.Config.Classes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Classes.luau",
+    "Hash": "3b5de4fd"
+   },
+   "ReplicatedStorage.Shared.Config.Conditions": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Conditions.luau",
+    "Hash": "75851e83"
+   },
+   "ReplicatedStorage.Shared.Config.DepthBands": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DepthBands.luau",
+    "Hash": "f922cbf9"
+   },
+   "ReplicatedStorage.Shared.Config.Difficulties": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Difficulties.luau",
+    "Hash": "a5127341"
+   },
+   "ReplicatedStorage.Shared.Config.DigResults": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DigResults.luau",
+    "Hash": "396259e7"
+   },
+   "ReplicatedStorage.Shared.Config.Disasters": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Disasters.luau",
+    "Hash": "d4c497db"
+   },
+   "ReplicatedStorage.Shared.Config.DraftCards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/DraftCards.luau",
+    "Hash": "629ee797"
+   },
+   "ReplicatedStorage.Shared.Config.Eras": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Eras.luau",
+    "Hash": "a6aca6ba"
+   },
+   "ReplicatedStorage.Shared.Config.GamePasses": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GamePasses.luau",
+    "Hash": "14abb724"
+   },
+   "ReplicatedStorage.Shared.Config.GlowshardPacks": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GlowshardPacks.luau",
+    "Hash": "6dd12746"
+   },
+   "ReplicatedStorage.Shared.Config.GlowshardRewards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/GlowshardRewards.luau",
+    "Hash": "6f6ba075"
+   },
+   "ReplicatedStorage.Shared.Config.ItemRarities": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/ItemRarities.luau",
+    "Hash": "70e244bf"
+   },
+   "ReplicatedStorage.Shared.Config.Items": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Items.luau",
+    "Hash": "e35fccbb"
+   },
+   "ReplicatedStorage.Shared.Config.Leaderboards": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Leaderboards.luau",
+    "Hash": "9388a4d8"
+   },
+   "ReplicatedStorage.Shared.Config.Legends": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Legends.luau",
+    "Hash": "b917328d"
+   },
+   "ReplicatedStorage.Shared.Config.LootTables": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/LootTables.luau",
+    "Hash": "720f512c"
+   },
+   "ReplicatedStorage.Shared.Config.Modifiers": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Modifiers.luau",
+    "Hash": "b44a228f"
+   },
+   "ReplicatedStorage.Shared.Config.Monsters": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Monsters.luau",
+    "Hash": "3af3cfc5"
+   },
+   "ReplicatedStorage.Shared.Config.MoraleStates": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/MoraleStates.luau",
+    "Hash": "00af08f3"
+   },
+   "ReplicatedStorage.Shared.Config.Objectives": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Objectives.luau",
+    "Hash": "f97e03f1"
+   },
+   "ReplicatedStorage.Shared.Config.Quests": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Quests.luau",
+    "Hash": "45b28c05"
+   },
+   "ReplicatedStorage.Shared.Config.Recipes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Recipes.luau",
+    "Hash": "c217ac21"
+   },
+   "ReplicatedStorage.Shared.Config.ResidentNames": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/ResidentNames.luau",
+    "Hash": "ac55d112"
+   },
+   "ReplicatedStorage.Shared.Config.Resources": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Resources.luau",
+    "Hash": "84036648"
+   },
+   "ReplicatedStorage.Shared.Config.Rooms": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Rooms.luau",
+    "Hash": "a55cff04"
+   },
+   "ReplicatedStorage.Shared.Config.Stats": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Stats.luau",
+    "Hash": "f9f6bee1"
+   },
+   "ReplicatedStorage.Shared.Config.SurfaceLocations": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/SurfaceLocations.luau",
+    "Hash": "9b7948ae"
+   },
+   "ReplicatedStorage.Shared.Config.TalentSlots": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/TalentSlots.luau",
+    "Hash": "2d84cd91"
+   },
+   "ReplicatedStorage.Shared.Config.TeamBoosts": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/TeamBoosts.luau",
+    "Hash": "b61dfd08"
+   },
+   "ReplicatedStorage.Shared.Config.Tiers": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Tiers.luau",
+    "Hash": "c53e9572"
+   },
+   "ReplicatedStorage.Shared.Config.Traits": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Traits.luau",
+    "Hash": "9ae866ae"
+   },
+   "ReplicatedStorage.Shared.Config.Tuning": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Tuning.luau",
+    "Hash": "2c514721"
+   },
+   "ReplicatedStorage.Shared.Config.Votes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Votes.luau",
+    "Hash": "fd9751f3"
+   },
+   "ReplicatedStorage.Shared.Config.WandererOutcomes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/WandererOutcomes.luau",
+    "Hash": "d35fdfd0"
+   },
+   "ReplicatedStorage.Shared.Config._Fields": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/_Fields.luau",
+    "Hash": "d6d99104"
    },
    "ReplicatedStorage.Shared.Constants": {
     "Class": "ModuleScript",
@@ -184,12 +554,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "dc134205"
+    "Hash": "db679edd"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "ce85f582"
+    "Hash": "44c99769"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
@@ -209,7 +579,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "2a7a888f"
+    "Hash": "c2517676"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",

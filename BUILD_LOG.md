@@ -10,6 +10,7 @@ Newest first. Every "verified" line says how it was checked.
 | A0 style test (4 models, 2 clips, UI kit look) | ✅ approved by Landon 2026-11-08 | Revolver grip fixed after his note (v2, revision 2) |
 | Class looks by rarity (Landon's rule, bible Section 19) | ✅ first four done 2026-11-08 | Portraits rendered from the rig, Class Shop checked in Studio |
 | Prompt 0: architecture foundation (both places) | ✅ done 2026-11-08 | Playtests in Run and Lobby; `game/reports/P00_Architecture.md` |
+| Prompt 1: content definitions (36 Config types) | ✅ done 2026-11-08 | Installed in both places, 39 data tests; `game/reports/P01_Content.md` |
 | A1 bunker kit and starting rooms | ⏳ next | |
 | A2 to A11 | not started | |
 
