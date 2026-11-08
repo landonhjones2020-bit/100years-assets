@@ -1,9 +1,10 @@
 --!strict
 --[[
-	Lib.UISamples: two dev-only screens that exercise The Frame before the real screens arrive
-	with their prompts (DevController's ui.sample and ui.list). They read real content from
+	Lib.UISamples: dev-only screens that exercise The Frame before the real screens arrive with
+	their prompts (DevController's ui.sample, ui.list and ui.dock). They read real content from
 	Config, so every template gets used: tabs, cards in each rarity, the detail panel with its
-	sections, the main action, chips, footer buttons and list rows.
+	sections, the main action, chips, footer buttons and list rows. ui.dock opens the Frame in
+	docked mode, as the Command View will (Prompt 7): zone C shows the world.
 ]]
 
 local Players = game:GetService("Players")
@@ -150,6 +151,28 @@ function UISamples.Register(ui: any, replica: any)
 		end,
 		OnTab = function(tabId: string, page: Frame)
 			fillCards(ui, page, tabId)
+		end,
+	})
+	ui:Register("SampleDocked", {
+		Title = "Command View",
+		Subtitle = "STEADFAST SHELTER CO.  ·  DOCKED MODE  ·  DEV SAMPLE",
+		Tabs = {
+			{ Id = "Rooms", Label = "Room types", Icon = "Icon_Grid" },
+			{ Id = "Overlays", Label = "Overlays", Icon = "Icon_Power" },
+		},
+		Docked = true,
+		Hint = "Docked mode: zone C shows the live bunker. The Command View fills it in Prompt 7.",
+		OnOpen = function(page: Frame)
+			local content: any = page:FindFirstChild("Content")
+			content.Visible = false -- zone C is the world
+			local detail: any = page:FindFirstChild("Detail")
+			detail.Tag.Visible = false
+			detail.Hero.Visible = false
+			detail:FindFirstChild("Name").Text = "NO CELL SELECTED"
+			detail.Sub.Text = "TAP A ROOM"
+			local body = ui:Clear(detail.Body)
+			section(ui, body, 1, "Bible Section 7", "Tap a dug cell to build, a room to upgrade, merge or tear down.")
+			ui:SetMainAction({ Label = "Propose", Enabled = false })
 		end,
 	})
 	ui:Register("SampleList", {

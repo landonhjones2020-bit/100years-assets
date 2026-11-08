@@ -15,7 +15,7 @@
 	* `/dev camera` prints the over-the-shoulder camera's state; `camera.shoulder`,
 	  `camera.aim [true|false]`, `camera.look <yaw> <pitch>` (degrees), `camera.zoom <studs>`
 	  and `camera.cursor` (frees or locks the mouse) drive it for tests.
-	* `/dev ui` prints The Frame's state; `ui.sample` and `ui.list` open the dev sample screens
+	* `/dev ui` prints The Frame's state; `ui.sample`, `ui.list` and `ui.dock` open the dev sample screens
 	  (Lib.UISamples), `ui.open <screen>` any registered screen, `ui.close` closes, `ui.tab <id>`
 	  switches tabs, `ui.main` presses the main action.
 	* `/dev hud` prints the HUD's state; `hud.alert <Danger|Warning|Info> <text>`,
@@ -258,9 +258,9 @@ local function run(text: string): string?
 		return describeCamera()
 	elseif name == "ui" then
 		return describeUI()
-	elseif name == "ui.sample" or name == "ui.list" then
+	elseif name == "ui.sample" or name == "ui.list" or name == "ui.dock" then
 		UISamples.Register(ui, replica)
-		ui:Open(if name == "ui.sample" then "Sample" else "SampleList")
+		ui:Open(if name == "ui.sample" then "Sample" elseif name == "ui.list" then "SampleList" else "SampleDocked")
 		return describeUI()
 	elseif name == "ui.open" then
 		UISamples.Register(ui, replica)
