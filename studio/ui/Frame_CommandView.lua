@@ -55,8 +55,11 @@ new("ImageLabel", rl, "Lamp", { pos = { 0.9, 0.5 }, anchor = { 0.5, 0.5 }, size 
 	sprite = "Lamp_Off", z = 2, visible = false })
 local mark = new("Frame", templates, "CellMark", { bg = COL.signal, bgT = 0.82, visible = false })
 stroke(mark, 3, COL.signal, 0)
-text(mark, "Label", "", { pos = { 0.05, 0.06 }, size = { 0.9, 0.22 }, font = F.label, color = COL.cream, alignX = CENTER,
-	z = 2, visible = false })
+local markLabel = text(mark, "Label", "", { pos = { 0.05, 0.06 }, size = { 0.9, 0.22 }, font = F.label, color = COL.cream,
+	alignX = CENTER, z = 2, visible = false })
+-- a navy outline, so a ghost's label reads over cream rooms and dark rock alike (Prompt 8)
+markLabel.TextStrokeColor3 = COL.navy
+markLabel.TextStrokeTransparency = 0.15
 new("ImageLabel", templates, "PingMark", { anchor = { 0.5, 1 }, size = { 1, 0.08 }, aspect = 1, dom = "H",
 	sprite = "Icon_Ping", tint = COL.hazard, z = 4, visible = false })
 local row = new("ImageButton", templates, "OptionRow", { size = { 1, 0.17 }, sprite = "Paper", visible = false })

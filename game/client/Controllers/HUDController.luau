@@ -272,6 +272,9 @@ function HUDController:Banner(text: string, kind: AlertKind?, seconds: number?)
 end
 
 function HUDController:Alert(kind: AlertKind, text: string, seconds: number?)
+	if hidden.Frame and ui then
+		ui:Notice(text, kind) -- a screen hides the HUD: say it in the screen's footer instead
+	end
 	if not gui then
 		return
 	end

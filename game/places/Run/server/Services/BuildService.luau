@@ -374,7 +374,12 @@ function BuildService:Init(registry)
 	dev:Register("build", {
 		Description = "Propose construction as you would from the Command View.",
 		Usage = "build <Build|Upgrade|Merge|TearDown> <floor> <column> [roomType|otherRoomId]",
-		Run = function(player: Player, args): string?
+		Run = function(caller: Player?, args): string?
+			-- from Studio's server tools there's no caller: act as the first player in the run
+			local player = caller or session:ReadyPlayers()[1]
+			if not player then
+				return "nobody is in the run to propose as"
+			end
 			local action, floor, column = tostring(args[1] or ""), tonumber(args[2]), tonumber(args[3])
 			if not table.find({ "Build", "Upgrade", "Merge", "TearDown" }, action) or not floor or not column then
 				return "usage: build <Build|Upgrade|Merge|TearDown> <floor> <column> [roomType|otherRoomId]"

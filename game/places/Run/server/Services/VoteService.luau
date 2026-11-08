@@ -412,7 +412,7 @@ function VoteService:Init(registry)
 		dev:Register(`vote.{string.lower(ballot)}`, {
 			Description = `Vote {string.lower(ballot)} on the live vote, as you or as pretend voter n.`,
 			Usage = `vote.{string.lower(ballot)} [n]`,
-			Run = function(player: Player, args): string?
+			Run = function(player: Player?, args): string?
 				local id = queue[1]
 				local vote = if id then votes[id] else nil
 				if not vote or vote.Status ~= "Live" then
@@ -431,7 +431,12 @@ function VoteService:Init(registry)
 						publish(vote)
 					end
 				else
-					VoteService:Cast(player, id :: string, ballot :: Ballot)
+					-- from Studio's server tools there's no caller: vote as the first player in the run
+					local who = player or session:ReadyPlayers()[1]
+					if not who then
+						return "nobody is in the run to vote as"
+					end
+					VoteService:Cast(who, id :: string, ballot :: Ballot)
 				end
 				return describe()
 			end,

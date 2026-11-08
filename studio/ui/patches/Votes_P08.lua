@@ -36,4 +36,9 @@ if not vote:FindFirstChild("Timer") then
 	fill.BorderSizePixel = 0
 	fill.Parent = timer
 end
+-- the second line (who, the tally, the time) runs as wide as the first
+local tally = vote:FindFirstChild("Tally")
+if tally then
+	tally.Size = UDim2.fromScale(0.58, 0.2)
+end
 return "Votes ScreenGui ready: " .. #sg:GetDescendants() .. " instances; HUD has VoteBanner: " .. tostring(hud:FindFirstChild("VoteBanner") ~= nil)

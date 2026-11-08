@@ -414,8 +414,38 @@ function UIController:SetChips(chips: { Chip })
 	end
 end
 
+local noticeToken = 0
+local restingHint: { Text: string, Color: Color3 }? = nil -- the screen's own hint, under a notice
+local NOTICE_SECONDS = 4
+local NOTICE_COLORS: { [string]: Color3 } = { Warning = Color3.fromHex("#F2C14E"), Danger = Color3.fromHex("#F2C14E") }
+
 function UIController:SetHint(text: string)
-	part("Cabinet.Footer.Hint").Text = text
+	if restingHint then
+		restingHint.Text = text -- a notice is showing: the hint comes back after it
+	else
+		part("Cabinet.Footer.Hint").Text = text
+	end
+end
+
+-- A message in the footer (zone E) for a few seconds, then the screen's hint again: the HUD's
+-- alerts while a screen hides the HUD (a refused proposal in the Command View).
+function UIController:Notice(text: string, kind: string?)
+	local hint = part("Cabinet.Footer.Hint")
+	if not restingHint then
+		restingHint = { Text = hint.Text, Color = hint.TextColor3 }
+	end
+	noticeToken += 1
+	local token = noticeToken
+	hint.Text = string.upper(text)
+	hint.TextColor3 = NOTICE_COLORS[kind or ""] or (restingHint :: any).Color
+	task.delay(NOTICE_SECONDS, function()
+		local resting = restingHint
+		if token == noticeToken and resting then
+			hint.Text = resting.Text
+			hint.TextColor3 = resting.Color
+			restingHint = nil
+		end
+	end)
 end
 
 -- Zone E's secondary actions (filters, sort, back).

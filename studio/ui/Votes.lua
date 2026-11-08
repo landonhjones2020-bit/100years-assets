@@ -6,7 +6,7 @@ local sg = screen("Votes", 6)
 local vote = new("ImageLabel", sg, "VoteBanner", { pos = { 0.5, 0.19 }, anchor = { 0.5, 0 }, size = { 0.36, 0.088 }, aspect = 7.28,
 	sprite = "Telegram", visible = false })
 text(vote, "Proposal", "", { pos = { 0.045, 0.36 }, size = { 0.58, 0.26 }, font = F.typed, color = COL.navy })
-text(vote, "Tally", "", { pos = { 0.045, 0.63 }, size = { 0.4, 0.2 }, font = F.num, color = COL.ink })
+text(vote, "Tally", "", { pos = { 0.045, 0.63 }, size = { 0.58, 0.2 }, font = F.num, color = COL.ink })
 -- the vote's time left: a strip along the telegram's foot that runs down
 local voteTimer = new("Frame", vote, "Timer", { pos = { 0.045, 0.86 }, size = { 0.58, 0.05 }, bg = COL.navy, bgT = 0.8 })
 new("Frame", voteTimer, "Fill", { pos = { 0, 0 }, size = { 1, 1 }, bg = COL.signal, bgT = 0 })

@@ -8,8 +8,9 @@
 	* The telegram (StarterGui.Votes.VoteBanner, above The Frame, so a vote can be answered from
 	  the Command View or any other screen) shows the live vote from the Votes collection
 	  (VoteService):
-	  * "LANDON PROPOSES: KITCHEN  ·  120 SCRAP";
-	  * "YES 2  ·  NO 1  ·  12 S  ·  MORE YES THAN NO  ·  1 WAITING";
+	  * what, and its cost: "KITCHEN  ·  120 SCRAP";
+	  * who, the tally and the time: "LANDON  ·  YES 2  ·  NO 1  ·  12 S", plus what it needs when
+	    that isn't the usual more yes than no ("3 OF 4 MUST SAY YES"), and "1 WAITING";
 	  * the timer strip running down;
 	  * YES and NO. Your vote stays pressed in, and you can change it until the vote closes.
 	  When a vote closes the telegram shows PASSED or FAILED and why, then the next vote.
@@ -136,14 +137,16 @@ local function render()
 		end
 	end
 	banner.Visible = true
+	-- line 1: what and what it costs; line 2: who, the tally, the time and what it needs
 	local cost = if type(vote.Cost) == "string" and vote.Cost ~= "" and vote.Cost ~= "FREE" then `  ·  {vote.Cost}` else ""
-	banner.Proposal.Text = `{vote.ProposerName} PROPOSES: {vote.Title}{cost}`
+	banner.Proposal.Text = `{vote.Title}{cost}`
 	local yes, no = banner.Yes, banner.No
 	local fill = banner.Timer.Fill
 	if vote.Status == "Live" then
 		local left = math.max(0, (vote.EndsAt or 0) - workspace:GetServerTimeNow())
 		local waiting = waitingCount()
-		banner.Tally.Text = `YES {vote.Yes}  ·  NO {vote.No}  ·  {math.ceil(left)} S  ·  {vote.Need}`
+		local need = if vote.Rule ~= "MoreYes" then `  ·  {vote.Need}` else "" -- "more yes than no" is the usual rule
+		banner.Tally.Text = `{vote.ProposerName}  ·  YES {vote.Yes}  ·  NO {vote.No}  ·  {math.ceil(left)} S{need}`
 			.. (if waiting > 0 then `  ·  {waiting} WAITING` else "")
 		banner.Tally.TextColor3 = INK
 		fill.Size = UDim2.fromScale(math.clamp(left / math.max(vote.Seconds or 1, 1), 0, 1), 1)
