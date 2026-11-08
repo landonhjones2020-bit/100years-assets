@@ -13,6 +13,9 @@
 	  drag on open screen and a two-finger pinch are gathered between frames; the camera takes
 	  them with TakeLook(dt) (degrees) and TakeZoom() (studs, positive = farther).
 	* Touches that start on a GUI or Roblox's thumbstick are the GUI's, never the camera's.
+	* Block(reason, true) holds gameplay actions off while a menu is open: new presses are
+	  ignored and anything held is released. Command View still passes, so its key can close
+	  the docked Frame.
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -50,6 +53,7 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 	CommandView = { Enum.KeyCode.Tab, Enum.KeyCode.ButtonSelect },
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
+local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true }
 
 type Listener = { Began: (() -> ())?, Ended: (() -> ())? }
 
@@ -63,6 +67,7 @@ local device: Device = "Keyboard"
 local listeners: { [string]: { Listener } } = {}
 local held: { [string]: { [any]: boolean } } = {}
 local bound: { [string]: boolean } = {}
+local blocked: { [string]: boolean } = {}
 
 local mouseLook = Vector2.zero -- pixels since the last TakeLook
 local touchLook = Vector2.zero
@@ -110,6 +115,9 @@ local function press(action: string, source: any, down: boolean)
 		held[action] = sources
 	end
 	local wasDown = next(sources) ~= nil
+	if down and not wasDown and next(blocked) ~= nil and not NEVER_BLOCKED[action] then
+		return
+	end
 	sources[source] = if down then true else nil
 	local isDown = next(sources) ~= nil
 	if isDown == wasDown then
@@ -198,6 +206,24 @@ end
 
 function InputController:Device(): Device
 	return device
+end
+
+-- Holds gameplay actions off while a menu is open (reason: the menu's name).
+function InputController:Block(reason: string, on: boolean)
+	blocked[reason] = if on then true else nil
+	if on then
+		for action, sources in held do
+			if not NEVER_BLOCKED[action] then
+				for source in sources do
+					press(action, source, false)
+				end
+			end
+		end
+	end
+end
+
+function InputController:IsBlocked(): boolean
+	return next(blocked) ~= nil
 end
 
 -- Look input since the last call, in degrees (X turns, Y tilts; positive = right and down).

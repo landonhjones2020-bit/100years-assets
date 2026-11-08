@@ -24,6 +24,8 @@ local RateLimit = require(Shared.Utilities.RateLimit)
 local Remotes = require(Shared.Remotes)
 local Bunker = require(Shared.Rules.Bunker)
 local CameraRig = require(Shared.Rules.CameraRig)
+local Hud = require(Shared.Rules.Hud)
+local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
 local RunState = require(Shared.RunState)
@@ -1020,6 +1022,57 @@ test("Clock: boss Surges and the final Surge have no timer; the others do", func
 	expect(Clock.IsOpenEnded("Boss") and Clock.IsOpenEnded("Final"), "a boss Surge runs until the boss is beaten")
 	for _, kind in { "Tutorial", "Normal", "Endless" } do
 		expect(not Clock.IsOpenEnded(kind :: Clock.SurgeKind), `{kind} to be timed`)
+	end
+end)
+
+-- HUD and UI ------------------------------------------------------------------------------
+
+test("Hud: clock text, year tiles and gauge needles", function()
+	expectEqual(Hud.Clock(102.4), "1:43", "rounded up")
+	expectEqual(Hud.Clock(0.2), "0:01", "the last second still shows")
+	expectEqual(Hud.Clock(0), "0:00", "zero")
+	expectEqual(Hud.Clock(nil), "--:--", "no timer")
+	expectEqual(Hud.YearDigits(7), { "0", "0", "7" }, "Year 7")
+	expectEqual(Hud.YearDigits(100), { "1", "0", "0" }, "Year 100")
+	expectEqual(Hud.YearDigits(1234), { "9", "9", "9" }, "the counter has three tiles")
+	expectEqual(Hud.NeedleRotation(0), -135, "empty")
+	expectEqual(Hud.NeedleRotation(1), 135, "full")
+	expectEqual(Hud.NeedleRotation(2), 135, "clamped")
+	expectEqual(Hud.Numeral(4), "IV", "Era IV")
+end)
+
+test("Hud: the cycle dial gives the day two thirds and the Surge one third (3:00 and 1:30)", function()
+	local face = Hud.DialFace
+	local function at(value: number): number
+		return face.From + (face.To - face.From) * value
+	end
+	local function near(a: number, b: number): boolean
+		return math.abs(a - b) < 1e-9
+	end
+	expect(near(Hud.DialPosition("Day", 180, 180, false, 180, 90), at(0)), "a day starts at the left")
+	expect(near(Hud.DialPosition("Day", 180, 90, false, 180, 90), at(1 / 3)), "half a day")
+	expect(near(Hud.DialPosition("Day", 180, 0, false, 180, 90), at(2 / 3)), "the day ends at two thirds")
+	expect(near(Hud.DialPosition("Surge", 90, 45, false, 180, 90), at(5 / 6)), "half a Surge")
+	expect(near(Hud.DialPosition("Surge", 0, nil, true, 180, 90), at(2 / 3)), "a boss Surge parks at its start")
+	expect(near(Hud.DialPosition(nil, nil, nil, false, 180, 90), at(0)), "before the first day")
+end)
+
+test("Hud: the mini-map window follows the player and stays on the grid", function()
+	local grid = { ColumnMin = -6, ColumnMax = 6, FloorMin = 1, FloorMax = 10 }
+	expectEqual({ Hud.MapWindow(2, 0, grid, 5, 5) }, { -2, 1 }, "centred on the player, one floor above")
+	expectEqual({ Hud.MapWindow(1, -6, grid, 5, 5) }, { -6, 1 }, "the left edge")
+	expectEqual({ Hud.MapWindow(10, 6, grid, 5, 5) }, { 2, 6 }, "the bottom right corner")
+end)
+
+test("UIContract: the Frame is in both places, the HUD in the Run; paths are unique", function()
+	expectEqual(UIContract.Screens.Frame.Places, { "Lobby", "Run" }, "Frame places")
+	expectEqual(UIContract.Screens.HUD.Places, { "Run" }, "HUD places")
+	for name, screen in UIContract.Screens do
+		local seen = {}
+		for _, path in screen.Paths do
+			expect(not seen[path], `{name}: {path} listed once`)
+			seen[path] = true
+		end
 	end
 end)
 

@@ -323,8 +323,26 @@
   ],
   "slice": null
  },
+ "Icon_Aim": {
+  "group": "hud",
+  "note": "touch: aim (a scope ring; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
  "Icon_Ammo": {
   "note": "Ammo",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Arrow": {
+  "group": "hud",
+  "note": "screen-edge arrow to a breach (points up; white, tint with ImageColor3)",
   "size": [
    128,
    128
@@ -341,6 +359,42 @@
  },
  "Icon_Command": {
   "note": "Command View (the bunker in section)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Copper": {
+  "group": "hud",
+  "note": "Copper ore",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Crystal": {
+  "group": "hud",
+  "note": "Crystal ore",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Dodge": {
+  "group": "hud",
+  "note": "touch: dodge (a roll arrow; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Fire": {
+  "group": "hud",
+  "note": "touch: fire (a cartridge; white, tint with ImageColor3)",
   "size": [
    128,
    128
@@ -371,8 +425,44 @@
   ],
   "slice": null
  },
+ "Icon_Interact": {
+  "group": "hud",
+  "note": "touch: interact (an open hand; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
  "Icon_Iron": {
   "note": "Iron ore",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Jump": {
+  "group": "hud",
+  "note": "touch: jump (an arrow up off a line; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Melee": {
+  "group": "hud",
+  "note": "touch: melee (a wrench; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Ping": {
+  "group": "hud",
+  "note": "touch: ping (a map pin; white, tint with ImageColor3)",
   "size": [
    128,
    128
@@ -405,6 +495,24 @@
  },
  "Icon_Shield": {
   "note": "Security ability: Hold the Line",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Shoulder": {
+  "group": "hud",
+  "note": "touch: swap shoulder (arrows both ways; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Sprint": {
+  "group": "hud",
+  "note": "touch: sprint (two chevrons; white, tint with ImageColor3)",
   "size": [
    128,
    128
@@ -642,6 +750,42 @@
    72,
    40
   ]
+ },
+ "Touch_Down": {
+  "group": "hud",
+  "note": "touch button (down): navy cap, icon on top",
+  "size": [
+   192,
+   192
+  ],
+  "slice": null
+ },
+ "Touch_Fire_Down": {
+  "group": "hud",
+  "note": "touch Fire button (down): signal cap",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Touch_Fire_Up": {
+  "group": "hud",
+  "note": "touch Fire button (up): signal cap",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Touch_Up": {
+  "group": "hud",
+  "note": "touch button (up): navy cap, icon on top",
+  "size": [
+   192,
+   192
+  ],
+  "slice": null
  },
  "Well_Teal": {
   "note": "recessed content well (zone C)",

@@ -10,6 +10,16 @@
     1016
    ]
   },
+  "hud": {
+   "decalId": "113747766925760",
+   "file": "ui/atlas_hud.png",
+   "imageId": "129337851835347",
+   "sha1": "73ee0742c20d62870ebae4f84e7a7f52e035640b",
+   "size": [
+    1024,
+    536
+   ]
+  },
   "kit_a": {
    "decalId": "128192097302269",
    "file": "ui/atlas_kit_a.png",
@@ -532,12 +542,38 @@
    ],
    "slice": null
   },
+  "Icon_Aim": {
+   "atlas": "hud",
+   "note": "touch: aim (a scope ring; white, tint with ImageColor3)",
+   "offset": [
+    4,
+    268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Ammo": {
    "atlas": "kit_b",
    "note": "Ammo",
    "offset": [
     548,
     4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Arrow": {
+   "atlas": "hud",
+   "note": "screen-edge arrow to a breach (points up; white, tint with ImageColor3)",
+   "offset": [
+    140,
+    268
    ],
    "size": [
     128,
@@ -564,6 +600,58 @@
    "offset": [
     820,
     4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Copper": {
+   "atlas": "hud",
+   "note": "Copper ore",
+   "offset": [
+    276,
+    268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Crystal": {
+   "atlas": "hud",
+   "note": "Crystal ore",
+   "offset": [
+    412,
+    268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Dodge": {
+   "atlas": "hud",
+   "note": "touch: dodge (a roll arrow; white, tint with ImageColor3)",
+   "offset": [
+    548,
+    268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Fire": {
+   "atlas": "hud",
+   "note": "touch: fire (a cartridge; white, tint with ImageColor3)",
+   "offset": [
+    684,
+    268
    ],
    "size": [
     128,
@@ -610,12 +698,64 @@
    ],
    "slice": null
   },
+  "Icon_Interact": {
+   "atlas": "hud",
+   "note": "touch: interact (an open hand; white, tint with ImageColor3)",
+   "offset": [
+    820,
+    268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Iron": {
    "atlas": "kit_b",
    "note": "Iron ore",
    "offset": [
     412,
     140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Jump": {
+   "atlas": "hud",
+   "note": "touch: jump (an arrow up off a line; white, tint with ImageColor3)",
+   "offset": [
+    4,
+    404
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Melee": {
+   "atlas": "hud",
+   "note": "touch: melee (a wrench; white, tint with ImageColor3)",
+   "offset": [
+    140,
+    404
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Ping": {
+   "atlas": "hud",
+   "note": "touch: ping (a map pin; white, tint with ImageColor3)",
+   "offset": [
+    276,
+    404
    ],
    "size": [
     128,
@@ -668,6 +808,32 @@
    "offset": [
     820,
     140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Shoulder": {
+   "atlas": "hud",
+   "note": "touch: swap shoulder (arrows both ways; white, tint with ImageColor3)",
+   "offset": [
+    412,
+    404
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Sprint": {
+   "atlas": "hud",
+   "note": "touch: sprint (two chevrons; white, tint with ImageColor3)",
+   "offset": [
+    548,
+    404
    ],
    "size": [
     128,
@@ -1026,6 +1192,58 @@
     72,
     40
    ]
+  },
+  "Touch_Down": {
+   "atlas": "hud",
+   "note": "touch button (down): navy cap, icon on top",
+   "offset": [
+    532,
+    4
+   ],
+   "size": [
+    192,
+    192
+   ],
+   "slice": null
+  },
+  "Touch_Fire_Down": {
+   "atlas": "hud",
+   "note": "touch Fire button (down): signal cap",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Touch_Fire_Up": {
+   "atlas": "hud",
+   "note": "touch Fire button (up): signal cap",
+   "offset": [
+    268,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
+  "Touch_Up": {
+   "atlas": "hud",
+   "note": "touch button (up): navy cap, icon on top",
+   "offset": [
+    732,
+    4
+   ],
+   "size": [
+    192,
+    192
+   ],
+   "slice": null
   },
   "Well_Teal": {
    "atlas": "kit_a",

@@ -32,6 +32,7 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Rules.CameraRig", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Clock", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Grid", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Hud", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities.Delta", "ModuleScript" },
@@ -52,8 +53,15 @@ local SKELETON: { { string } } = {
 	{ "StarterPlayer.StarterPlayerScripts.Controllers", "Folder" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.CameraController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.InputController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.UIController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.HUDController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.MiniMapController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib", "Folder" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.Fade", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Lib.KitRuntime", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Lib.UIKit", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Lib.UISamples", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.UIContract", "ModuleScript" },
 	{ "StarterGui.Reticle", "ScreenGui" },
 	{ "ServerStorage.Documentation", "Folder" },
 	{ "ServerStorage.Documentation.ARCHITECTURE", "ModuleScript" },
@@ -407,6 +415,86 @@ function StructureCheck.Run(options: Options?): Result
 		fail("StarterPlayer.DevCameraOcclusionMode must be Invisicam (the camera's fallback, bible Section 9)")
 	else
 		pass()
+	end
+
+	-- 8c. The UI layout (bible Section 18, Prompt 6): the Frame (both places) and the HUD (Run)
+	-- exist with every part the code uses (Shared.UIContract), ScreenGui settings per rule 7,
+	-- Scale-only sizes, text that scales and never drops below 12, and no scripts inside
+	local contractModule = find("ReplicatedStorage.Shared.UIContract")
+	if contractModule and contractModule:IsA("ModuleScript") then
+		local UIContract = require(contractModule) :: any
+		local StarterGui = game:GetService("StarterGui")
+		for screenName, screen in UIContract.Screens do
+			local wanted = placeKind ~= nil and table.find(screen.Places, placeKind) ~= nil
+			local gui = StarterGui:FindFirstChild(screenName)
+			if not wanted then
+				if gui then
+					fail(`StarterGui.{screenName} belongs to the {table.concat(screen.Places, " and ")} place only`)
+				end
+				continue
+			end
+			if not gui or not gui:IsA("ScreenGui") then
+				fail(`missing StarterGui.{screenName} (ScreenGui): build it with tools/ui_luau.py studio/ui/{screenName}.lua`)
+				continue
+			end
+			pass()
+			if
+				gui.ResetOnSpawn
+				or gui.ZIndexBehavior ~= Enum.ZIndexBehavior.Sibling
+				or gui.ScreenInsets ~= Enum.ScreenInsets.CoreUISafeInsets
+			then
+				fail(`StarterGui.{screenName} needs ScreenInsets CoreUISafeInsets, ResetOnSpawn off and ZIndexBehavior Sibling (bible Section 18)`)
+			else
+				pass()
+			end
+			if gui.DisplayOrder ~= screen.DisplayOrder then
+				warnOf(`StarterGui.{screenName} DisplayOrder is {gui.DisplayOrder}, expected {screen.DisplayOrder}`)
+			end
+			local missing = {}
+			for _, path in screen.Paths do
+				if UIContract.Find(gui, path) then
+					pass()
+				else
+					table.insert(missing, path)
+				end
+			end
+			if #missing > 0 then
+				fail(`StarterGui.{screenName} lacks {#missing} part(s) the code uses: {table.concat(missing, ", ", 1, math.min(#missing, 6))}`)
+			end
+			local offsets, unreadable, scripts = 0, 0, 0
+			for _, item in gui:GetDescendants() do
+				if item:IsA("GuiObject") then
+					local size, position = item.Size, item.Position
+					if size.X.Offset ~= 0 or size.Y.Offset ~= 0 or position.X.Offset ~= 0 or position.Y.Offset ~= 0 then
+						offsets += 1
+					end
+				end
+				if item:IsA("TextLabel") or item:IsA("TextButton") or item:IsA("TextBox") then
+					local limit = item:FindFirstChildOfClass("UITextSizeConstraint")
+					if not (item :: any).TextScaled or not limit or limit.MinTextSize < 12 then
+						unreadable += 1
+					end
+				end
+				if item:IsA("BaseScript") then
+					scripts += 1
+				end
+			end
+			if offsets > 0 then
+				fail(`StarterGui.{screenName}: {offsets} element(s) use pixel offsets; all UI is Scale (bible Section 18)`)
+			else
+				pass()
+			end
+			if unreadable > 0 then
+				fail(`StarterGui.{screenName}: {unreadable} text element(s) without TextScaled and a UITextSizeConstraint of at least 12`)
+			else
+				pass()
+			end
+			if scripts > 0 then
+				fail(`StarterGui.{screenName} holds {scripts} script(s); the game code drives the UI`)
+			else
+				pass()
+			end
+		end
 	end
 
 	-- 9. The architecture document

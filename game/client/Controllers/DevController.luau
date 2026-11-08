@@ -15,6 +15,12 @@
 	* `/dev camera` prints the over-the-shoulder camera's state; `camera.shoulder`,
 	  `camera.aim [true|false]`, `camera.look <yaw> <pitch>` (degrees), `camera.zoom <studs>`
 	  and `camera.cursor` (frees or locks the mouse) drive it for tests.
+	* `/dev ui` prints The Frame's state; `ui.sample` and `ui.list` open the dev sample screens
+	  (Lib.UISamples), `ui.open <screen>` any registered screen, `ui.close` closes, `ui.tab <id>`
+	  switches tabs, `ui.main` presses the main action.
+	* `/dev hud` prints the HUD's state; `hud.alert <Danger|Warning|Info> <text>`,
+	  `hud.banner <text>`, `hud.slot <1-5>` and `hud.touch [true|false]` (shows the touch
+	  buttons on any device, for screenshots) drive it.
 
 	In Studio it also makes PlayerScripts.DevInvoke (a BindableFunction) so tools can run the
 	same commands from the Client datamodel: DevInvoke:Invoke("replica _SelfTest").
@@ -27,6 +33,7 @@ local TextChatService = game:GetService("TextChatService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared.Utilities.Log)
+local UISamples = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("UISamples"))
 local Remotes = require(Shared.Remotes)
 local RunState = require(Shared.RunState)
 local TableUtil = require(Shared.Utilities.TableUtil)
@@ -36,11 +43,14 @@ local CHAT_LINES = 12
 
 local DevController = {
 	Name = "DevController",
-	Dependencies = { "ReplicaController", "CameraController" },
+	Dependencies = { "ReplicaController", "InputController", "CameraController", "UIController", "HUDController" },
 }
 
 local replica: any = nil
 local camera: any = nil
+local ui: any = nil
+local hud: any = nil
+local registryInput: any = nil
 local devCursorFree = false
 local lastNotice: string? = nil
 local commandMade = false
@@ -128,6 +138,57 @@ local function pressReady(on: boolean): string
 	return `SetReady {on}: my Ready is {tostring(player:GetAttribute("Ready"))}\n{describeClock()}`
 end
 
+local function describeUI(): string
+	task.wait()
+	local gui = ui:Gui()
+	if not gui then
+		return "ui: no Frame in this place"
+	end
+	local page = ui:Page()
+	local items = 0
+	if page then
+		local content = page:FindFirstChild("Content")
+		for _, name in { "Grid", "List" } do
+			local holder = content and content:FindFirstChild(name)
+			if holder and holder:IsA("GuiObject") and holder.Visible then
+				for _, child in holder:GetChildren() do
+					if child:IsA("GuiObject") then
+						items += 1
+					end
+				end
+			end
+		end
+	end
+	return string.format(
+		"ui: %s, screen %s, tab %s, %d items, cursor free %s, input blocked %s",
+		if gui.Enabled then "open" else "closed",
+		tostring(ui:Current()),
+		tostring(ui:CurrentTab()),
+		items,
+		tostring(camera:State().CursorFree),
+		tostring(registryInput:IsBlocked())
+	)
+end
+
+local function describeHUD(): string
+	task.wait()
+	local state = hud:State()
+	if not state.Present then
+		return "hud: no HUD in this place"
+	end
+	return string.format(
+		"hud: %s, year %s, phase %s, time %s, ready button %s, slot %d, touch %s, class %s",
+		if state.Enabled then "shown" elseif state.Hidden then "hidden (a menu is open)" else "hidden",
+		tostring(state.Year),
+		tostring(state.Phase),
+		tostring(state.TimeLeft),
+		tostring(state.Ready),
+		state.Slot,
+		tostring(state.Touch),
+		tostring(state.Class)
+	)
+end
+
 local function describeCamera(): string
 	task.wait() -- let a frame apply what the command changed
 	task.wait()
@@ -195,6 +256,48 @@ local function run(text: string): string?
 		devCursorFree = not devCursorFree
 		camera:FreeCursor("DevTools", devCursorFree)
 		return describeCamera()
+	elseif name == "ui" then
+		return describeUI()
+	elseif name == "ui.sample" or name == "ui.list" then
+		UISamples.Register(ui, replica)
+		ui:Open(if name == "ui.sample" then "Sample" else "SampleList")
+		return describeUI()
+	elseif name == "ui.open" then
+		UISamples.Register(ui, replica)
+		ui:Open(tostring(args[1] or "Sample"))
+		return describeUI()
+	elseif name == "ui.close" then
+		ui:Close()
+		return describeUI()
+	elseif name == "ui.tab" then
+		ui:SelectTab(tostring(args[1] or ""))
+		return describeUI()
+	elseif name == "ui.main" then
+		ui:PressMainAction()
+		return describeUI()
+	elseif name == "hud" then
+		return describeHUD()
+	elseif name == "hud.alert" then
+		local kind = tostring(args[1] or "Warning")
+		local words = {}
+		for i = 2, #args do
+			table.insert(words, tostring(args[i]))
+		end
+		hud:Alert(if kind == "Danger" or kind == "Info" then kind else "Warning", table.concat(words, " "))
+		return describeHUD()
+	elseif name == "hud.banner" then
+		local words = {}
+		for _, word in args do
+			table.insert(words, tostring(word))
+		end
+		hud:Banner(table.concat(words, " "), "Warning", 6)
+		return describeHUD()
+	elseif name == "hud.slot" then
+		hud:SelectSlot(tonumber(args[1]) or 1)
+		return describeHUD()
+	elseif name == "hud.touch" then
+		hud:SetForceTouch(args[1] ~= false)
+		return describeHUD()
 	end
 	if #args > 8 then
 		return "at most 8 arguments"
@@ -226,6 +329,9 @@ end
 function DevController:Init(registry)
 	replica = registry.ReplicaController
 	camera = registry.CameraController
+	ui = registry.UIController
+	hud = registry.HUDController
+	registryInput = registry.InputController
 	Remotes.OnClient("Notice", function(text: any)
 		if type(text) == "string" then
 			lastNotice = text

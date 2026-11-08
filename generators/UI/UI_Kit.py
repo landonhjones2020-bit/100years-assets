@@ -584,6 +584,152 @@ for _n in ("Alert_Danger", "Alert_Warning", "Alert_Info"):
 
 
 # ------------------------------------------------------------------------------------------
+# HUD additions (Prompt 6): touch push-buttons, action icons and the other two ores. They pack
+# into their own atlas (group "hud") so the approved A0 atlases keep their ids.
+# ------------------------------------------------------------------------------------------
+
+HUD_GROUP: list = []
+
+
+def touch_button(colour, state, size):
+    """Round enamel push-button in a chrome bezel; the action's icon sits on the cap."""
+    def build():
+        r = size / 2 - 4
+        K.annulus(r, r - 15, 0, 11, mat("chrome"), bevel=4.5, seg=4, n=96)
+        K.disc(r - 14, 0, 4, mat("rubber", "#15181B"), n=96)
+        top = 19.0 if state == "Up" else 10.0
+        cap = colour if state == "Up" else shade_hex(colour, 0.8)
+        K.disc(r - 18, 0, top, mat("enamel", cap, rough=0.25), bevel=8, seg=5, n=96)
+    return build
+
+
+for _s in ("Up", "Down"):
+    register(f"Touch_{_s}", 192, 192, None, f"touch button ({_s.lower()}): navy cap, icon on top",
+             touch_button(C["navy"], _s, 192))
+    register(f"Touch_Fire_{_s}", 256, 256, None, f"touch Fire button ({_s.lower()}): signal cap",
+             touch_button(C["signal"], _s, 256))
+    HUD_GROUP += [f"Touch_{_s}", f"Touch_Fire_{_s}"]
+
+
+def rotated(pts, deg, dx=0.0, dy=0.0):
+    a = math.radians(deg)
+    return [(dx + x * math.cos(a) - y * math.sin(a), dy + x * math.sin(a) + y * math.cos(a)) for x, y in pts]
+
+
+def hud_icon(name, note, tilt=0.0):
+    HUD_GROUP.append(name)
+    return icon(name, note, tilt)
+
+
+def white():
+    return mat("enamel", WHITE)
+
+
+@hud_icon("Icon_Fire", "touch: fire (a cartridge; white, tint with ImageColor3)")
+def ic_fire():
+    side = [(14 * math.cos(t * math.pi / 2), 6 + 38 * math.sin(t * math.pi / 2) ** 0.75) for t in (i / 12 for i in range(13))]
+    pts = [(-14, -34), (14, -34)] + side + [(-x, y) for x, y in reversed(side)][1:]
+    K.poly(rotated(pts, -40), 0, 11, white(), bevel=2.4, seg=3)
+    K.poly(rotated([(-17, -46), (17, -46), (17, -37), (-17, -37)], -40), 0, 11, white(), bevel=1.6, seg=2)
+
+
+@hud_icon("Icon_Aim", "touch: aim (a scope ring; white, tint with ImageColor3)")
+def ic_aim():
+    K.annulus(40, 31, 0, 10, white(), bevel=1.8, seg=2, n=64)
+    for a in (0, 90, 180, 270):
+        K.box(30, 8, 0, 10, white(), cx=38 * math.cos(math.radians(a)), cy=38 * math.sin(math.radians(a)), rot=a,
+              bevel=1.4, seg=2)
+    K.disc(6, 0, 10, white(), n=32, bevel=1.0, seg=2)
+
+
+@hud_icon("Icon_Melee", "touch: melee (a wrench; white, tint with ImageColor3)")
+def ic_melee():
+    place(K.sector(27, 12, 125, 415, 0, 11, white(), cy=30, n=40, bevel=1.8, seg=2), rot=(0, 0, -45))
+    place(K.box(17, 62, 0, 11, white(), cy=-14, bevel=2.0, seg=2), rot=(0, 0, -45))
+    place(K.disc(11, 0, 11, white(), cy=-44, n=32, bevel=1.8, seg=2), rot=(0, 0, -45))
+
+
+@hud_icon("Icon_Interact", "touch: interact (an open hand; white, tint with ImageColor3)")
+def ic_interact():
+    K.rr_slab(48, 44, 12, 0, 11, white(), cy=-16, bevel=2.0, seg=2)
+    for x, h in ((-17.5, 32), (-6, 42), (6, 40), (17.5, 30)):
+        K.rr_slab(11, h, 5.4, 0, 11, white(), cx=x, cy=-2 + h / 2, bevel=1.6, seg=2)
+    place(K.rr_slab(13, 34, 6.4, 0, 11, white(), cx=0, cy=0, bevel=1.6, seg=2), loc=(-27, -14, 0), rot=(0, 0, 38))
+
+
+@hud_icon("Icon_Jump", "touch: jump (an arrow up off a line; white, tint with ImageColor3)")
+def ic_jump():
+    K.poly([(-32, 4), (32, 4), (0, 46)], 0, 11, white(), bevel=2.2, seg=2)
+    K.box(18, 34, 0, 11, white(), cy=-10, bevel=1.6, seg=2)
+    K.box(66, 10, 0, 11, white(), cy=-42, bevel=1.6, seg=2)
+
+
+@hud_icon("Icon_Dodge", "touch: dodge (a roll arrow; white, tint with ImageColor3)")
+def ic_dodge():
+    K.sector(40, 26, 25, 286, 0, 11, white(), n=40, bevel=1.8, seg=2)
+    th = math.radians(290)
+    rad = (math.cos(th), math.sin(th))
+    tan = (-math.sin(th), math.cos(th))
+    p = (33 * rad[0], 33 * rad[1])
+    head = [(p[0] + 19 * rad[0], p[1] + 19 * rad[1]), (p[0] - 19 * rad[0], p[1] - 19 * rad[1]),
+            (p[0] + 26 * tan[0], p[1] + 26 * tan[1])]
+    K.poly(head, 0, 11, white(), bevel=2.0, seg=2)
+
+
+@hud_icon("Icon_Sprint", "touch: sprint (two chevrons; white, tint with ImageColor3)")
+def ic_sprint():
+    chevron = [(-12, 40), (8, 40), (36, 0), (8, -40), (-12, -40), (16, 0)]
+    for dx in (-24, 12):
+        K.poly([(x + dx, y) for x, y in chevron], 0, 11, white(), bevel=2.0, seg=2)
+
+
+@hud_icon("Icon_Ping", "touch: ping (a map pin; white, tint with ImageColor3)")
+def ic_ping():
+    tip, cy, r = -50.0, 12.0, 30.0
+    th = math.degrees(math.acos(r / (cy - tip)))
+    a0, a1 = -90 + th, 270 - th
+    pts = [(0, tip)] + [(r * math.cos(math.radians(a0 + (a1 - a0) * i / 32)),
+                         cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / 32))) for i in range(33)]
+    K.poly(pts, 0, 11, white(), bevel=2.4, seg=3)
+    K.disc(11, 11, 12.5, mat("enamel", C["navy"]), cy=cy, n=40)
+
+
+@hud_icon("Icon_Shoulder", "touch: swap shoulder (arrows both ways; white, tint with ImageColor3)")
+def ic_shoulder():
+    K.box(50, 10, 0, 11, white(), cx=-8, cy=17, bevel=1.4, seg=2)
+    K.poly([(16, 34), (16, 0), (44, 17)], 0, 11, white(), bevel=1.8, seg=2)
+    K.box(50, 10, 0, 11, white(), cx=8, cy=-17, bevel=1.4, seg=2)
+    K.poly([(-16, 0), (-16, -34), (-44, -17)], 0, 11, white(), bevel=1.8, seg=2)
+
+
+@hud_icon("Icon_Arrow", "screen-edge arrow to a breach (points up; white, tint with ImageColor3)")
+def ic_arrow():
+    K.poly([(0, 50), (42, -38), (0, -16), (-42, -38)], 0, 12, white(), bevel=2.6, seg=3)
+
+
+@hud_icon("Icon_Copper", "Copper ore", tilt=30)
+def ic_copper():
+    rock(42, mat("rubber", C["basalt"], rough=0.85), seed=11, scale=(1.1, 0.95, 0.6))
+    for (x, y, z, r, sd) in ((-13, -14, 20, 12, 4), (15, -8, 18, 10, 6), (1, 13, 23, 8, 9), (-25, 9, 11, 6, 3)):
+        place(rock(r, mat("metal", C["copper"], rough=0.3), seed=sd, subdiv=0, scale=(1, 1, 0.8)), (x, y, z))
+    for (x, y, z, r, sd) in ((24, 10, 12, 5, 2), (-6, -26, 13, 4.5, 5)):
+        place(rock(r, mat("enamel", C["mint"], rough=0.7), seed=sd, subdiv=0, scale=(1, 1, 0.6)), (x, y, z))
+
+
+@hud_icon("Icon_Crystal", "Crystal ore", tilt=34)
+def ic_crystal():
+    cm = mat("glow", "#5FB9B6", emit=C["crystal"], strength=0.55)
+    rock(30, mat("rubber", C["basalt"], rough=0.8), seed=6, scale=(1.25, 1.0, 0.45))
+    for (x, y, rx, ry, r, h, t) in ((2, 0, 0, 0, 12, 46, 15), (-16, 5, 0, -26, 9, 30, 11), (17, -4, 5, 24, 9, 34, 12),
+                                     (3, 16, -24, 4, 7, 22, 8), (-4, -15, 22, -6, 6, 18, 7)):
+        place(prism(r, h, t, cm), (x, y, 2), (rx, ry, 30))
+
+
+for _n in HUD_GROUP:
+    SPECS[_n]["group"] = "hud"
+
+
+# ------------------------------------------------------------------------------------------
 # Printed pieces (no render): stamps, glass, blueprint grid
 # ------------------------------------------------------------------------------------------
 
