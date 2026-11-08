@@ -26,7 +26,7 @@ ReplicatedStorage
     Remotes                      the one list of RemoteEvents + the only API to use them
     RunState                     the run's small values, replicated as attributes on it (Run)
     Config                       content aggregator; one child ModuleScript per content type
-    Rules                        pure game rules both sides share (Clock, Grid, Bunker)
+    Rules                        pure game rules both sides share (Clock, Grid, Bunker, CameraRig)
     Utilities                    Check, Delta, Loader, Log, RateLimit, Signal, TableUtil, Trove
 ServerScriptService
   Bootstrap                      (Script) the only server script
@@ -36,6 +36,9 @@ ServerScriptService
 StarterPlayer.StarterPlayerScripts
   ClientBootstrap                (LocalScript) the only client script
   Controllers                    one ModuleScript per controller
+  Lib                            client-only modules that aren't controllers (Fade)
+StarterGui
+  Reticle                        the aim sight (built in Studio, studio/ui/Reticle.lua)
 ServerStorage
   Documentation.ARCHITECTURE     this document
   Assets                         models from the art pipeline (Run)
@@ -136,12 +139,16 @@ Waiting --first player ready--> Intro (30 s) --> Playing --> Ended --Keep Going-
 * Years per Cycle = 1 + the `YearsPerCycle` of every objective done (`Config.Objectives`: +2 a
   Lost Crew, +1 an era boss), at most 12. The year jumps at the end of each cycle.
 * A jump that reaches or passes 25, 50 or 75 makes that era's boss the next Surge (once, unless
-  already beaten). At 100 the year stops and the next Surge is the final one; when it ends the
-  clock halts and RunDirector declares a Century Victory.
+  already beaten). At 100 the year stops and the next Surge is the final one (the Source); when
+  it ends the clock halts and RunDirector declares a Century Victory.
 * Surges end when their time is up, or earlier through `CycleClock:EndSurge()` (ThreatDirector,
-  when the last monster is dead and the disaster fixed).
+  when the last monster is dead and the disaster fixed). A boss Surge (an era boss or the final
+  Surge) has no timer (`PhaseOpen`) and ignores EndSurge: it ends when its boss is beaten,
+  `ObjectiveService:BossBeaten(bossId)` -> `BossDefeated` (Landon, 2026-11-08).
 * Skips: when every player in the run has pressed Ready (`SetReady` remote) or rests in a
-  Quarters bed (`CycleClock:SetResting`), the day jumps to the siren. Ready resets at the siren.
+  Quarters bed (`CycleClock:SetResting`), the day jumps to the siren. Both count only during a
+  day before the siren and both reset at the siren (Landon, 2026-11-08).
+* Keep Going after any victory, even an early Deep Victory, starts Endless at once (Landon).
 * Defeat: `RunDirector:Lose("ReactorDestroyed" | "ResidentsLost")`; Deep Victory:
   `RunDirector:Win("Deep")`; Keep Going: `RunDirector:KeepGoing()` (no more era bosses or year
   cap, Endless Surges). The results screen reads `RunDirector:Summary()`.
@@ -157,7 +164,7 @@ every client counts down to the same moment).
 | Writer | Values |
 |---|---|
 | RunDirector | RunPhase, IntroEndsAt, Difficulty, Outcome, DefeatReason, Victory, Endless |
-| CycleClock | Cycle, Year, Era, YearsPerCycle, CyclePhase, PhaseLength, PhaseEndsAt, PhaseLeft, Siren, SurgeKind, SurgeBoss, ReadyCount, ReadyNeeded, Paused, TimeScale |
+| CycleClock | Cycle, Year, Era, YearsPerCycle, CyclePhase, PhaseLength, PhaseEndsAt, PhaseLeft, PhaseOpen, Siren, SurgeKind, SurgeBoss, ReadyCount, ReadyNeeded, Paused, TimeScale |
 | ObjectiveService | LostCrews, BossesBeaten |
 
 Players carry `Ready` and `Resting` attributes (CycleClock). In Studio, set the attribute
@@ -172,24 +179,61 @@ Players carry `Ready` and `Resting` attributes (CycleClock). In Studio, set the 
   is Rock, Dug or part of a room. Rooms are 1 to 3 cells side by side on one floor.
 * Rules (Rules.Bunker): dig a Rock cell left of, right of or below an open cell; place a room
   on Dug cells (MaxCells, Unique, a room's own Floor, never in the Source Chamber); merge two
-  matching rooms of one level side by side; Fixed rooms (Blast Door, Reactor Core) never merge
-  or go; levels 1 to 3 with HP from `Tuning.Rooms.HP`. Votes, costs, build and dig times come
-  from BuildService and DigService.
+  matching rooms of one level side by side (never different levels); Fixed rooms (Blast Door,
+  Reactor Core) never merge or go; levels 1 to 3. HP is per cell: `Tuning.Rooms.HP[level]`
+  times the cells (Landon, 2026-11-08); a merged room keeps both rooms' HP. Votes, costs,
+  build and dig times come from BuildService and DigService.
 * The room graph: a node per room (`R3`) and per Dug cell (`D:2,3`); edges through doorways
-  (side-by-side open cells of different units) and between stacked Shafts.
+  (side-by-side open cells of different units) and between stacked Shafts. A dug cell is a step
+  when power counts steps from a Reactor Core or a Generator (Landon, 2026-11-08).
 * The run starts with `Tuning.StartingBunker`: floor 1 Blast Door (2 cells), Shaft, Quarters
   (2 cells), a dug cell; floor 2 Kitchen, Water Purifier, Shaft, Reactor Core, Medbay, a dug
   cell; the Shafts in column 0, rock at column -3 (the bible's diagram).
 * World (Rules.Grid): `Tuning.Grid.Origin` is the interior floor centre of floor 1, column 0
   (0, -120, 0). Cells repeat every 34 studs along +X and 18 down; the front, where the Command
   View camera sits, faces +Z. Art models face -Z: place them with `Grid.CellCFrame`.
-* `workspace.Bunker` (built at server start, rebuilt around each change): `Frame`, `Rock`
-  (blocks named by cell key), `Dug` (models `D:<key>`), `Rooms` (models named by room id, with
-  RoomId, RoomType, Floor, Column, Span and Level attributes). Every model is Persistent. Front
-  walls carry the `FrontWall` tag. Players spawn in the Medbay; the place's other spawns are
-  disabled when the server starts.
+* `workspace.Bunker` (built at server start, rebuilt around each change) from the A1 art in
+  `ServerStorage.Assets.Kit` and `.Rooms`, each piece falling back to the Prompt 4 graybox when
+  missing: `Frame` (a ring of rock cells), `Rock` (models named by cell key), `Dug` (models
+  `D:<key>`), `Rooms` (models named by room id, with RoomId, RoomType, Floor, Column, Span,
+  Level and Art attributes). Every unit is Persistent. Players spawn in the Medbay; the place's
+  other spawns are disabled when the server starts.
+* Tags: `FrontWall` (front wall parts: hidden in the Command View), `CameraFade` (furniture,
+  the Blast Door set, the stair, vents, lamps, cave props: the camera passes through and fades
+  them), `RoomLight` (PointLights, with a `Unit` attribute, for the power system). Floors,
+  walls, ceilings and rock stop the camera.
+* Gameplay points: each room's `Sockets` part holds an Attachment per socket of its art
+  (WorkSpot1.., Bed1.., Seat1.., Core, Valve1.., FuseBox, Breaker, Tap, Bench, Respawn, Door,
+  SurfaceExit, Vent, Lift, Chute, Top, Bottom, Light1..), numbered across the room's cells.
+  Read them with `BunkerKit.Socket(model, name)` and `BunkerKit.Sockets(model, pattern)`.
 * Replication: the `Cells` collection (`"floor,column"` -> `{ Room = id }`, `{}` when Dug) and
   the `Rooms` collection (id -> Type, Floor, Column, Span, Level, HP, MaxHP).
+
+## The camera and input (both places)
+
+`InputController` turns PC, touch and gamepad input into actions; `CameraController` is the
+over-the-shoulder camera (bible Section 9); `Lib.Fade` makes world parts see-through on this
+client only. The camera's geometry is `Shared.Rules.CameraRig`, its numbers `Tuning.Camera`.
+
+* Actions follow the bible's controls table (`BINDINGS` in InputController). Listen with
+  `InputController:On(action, began, ended)`; HUD touch buttons join with
+  `BindButton(action, button)`. Moving and jumping stay Roblox's.
+* Right shoulder by default; `SwapShoulder` (V, right stick click) swaps. `Aim` (right mouse,
+  left trigger; Run place only) narrows the view 70 to 50, brings the camera in, slows walking
+  and turns the character with the camera.
+* Zoom caps: the wheel or a pinch zooms between `Distance.Min` and `Distance.Max`, at most
+  `IndoorMax` in a bunker cell. A spherecast from the shoulder stops the camera at floors, walls,
+  ceilings and rock (in at once, out gently); in a cell it also stays between the floor and the
+  ceiling panels (not in a Shaft, which is open overhead).
+* Wall fade: `FrontWall` and `CameraFade` parts never stop the camera and fade while they hide
+  the character or touch the camera; characters and `CameraIgnore` are passed through. The
+  local character fades when the camera reaches its head.
+* PC: the mouse is locked to the centre and `StarterGui.Reticle` shows the sight.
+  `CameraController:FreeCursor(reason, true)` frees it for menus; `Suspend(reason)` and
+  `Resume(reason)` hand the camera to another view (Command View, cutscenes).
+* Fallback: repeated errors stop the controller and give the camera to Roblox's, set to
+  Invisicam in both places (`StarterPlayer.DevCameraOcclusionMode`); `EnableMouseLockOption` is
+  off. StructureCheck checks both settings and the Reticle.
 
 ## Saved data
 
@@ -250,15 +294,16 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * `structure`: StructureCheck. `test [filter]`: DataTests. Both run once whenever a Studio
   playtest starts (set the `RunChecksOnStart` attribute on DevTools to false to stop that).
 * Other built-ins: `version`, `ping`, `players`, `remotes`, `log [level]`, `logs [count]`,
-  `rep`, `rep.selftest`; on the client `replica <collection>`, `client`, `clock` and
-  `ready [true|false]` (fires SetReady like the HUD button).
+  `rep`, `rep.selftest`; on the client `replica <collection>`, `client`, `clock`,
+  `ready [true|false]` (fires SetReady like the HUD button), `camera`, `camera.shoulder`,
+  `camera.aim [bool]`, `camera.look <yaw> <pitch>`, `camera.zoom <studs>`, `camera.cursor`.
 * The bunker (Run place): `grid` (map), `grid.rooms`, `grid.graph`, `grid.dig <floor> <column>`,
   `grid.build <Type> <floor> <column> [span] [level]`, `grid.remove <id>`, `grid.merge <id> <id>`,
-  `grid.level <id> <level>`, `grid.rebuild`.
+  `grid.level <id> <level>`, `grid.rebuild`, `grid.sockets <id>`, `grid.art`.
 * The run (Run place): `run`, `run.skipintro`, `run.win <century|deep>`,
   `run.lose <reactor|residents>`, `run.keepgoing`; `clock`, `clock.speed <x>`, `clock.pause`,
-  `clock.resume`, `clock.next`, `clock.clear`, `year <n>`, `ready.all [bool]`,
-  `rest.all [bool]`; `objectives`, `objective <id>`.
+  `clock.resume`, `clock.next`, `clock.clear`, `boss.beat [bossId]`, `year <n>`,
+  `ready.all [bool]`, `rest.all [bool]`; `objectives`, `objective <id>`.
 
 ## Conventions
 
@@ -281,7 +326,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
 | Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
-| both | DevController | controller | ReplicaController | `/dev` chat command, Studio DevInvoke |
+| both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
+| both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
+| both | DevController | controller | ReplicaController, CameraController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
 
@@ -299,3 +346,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * **Prompt 4 (2026-11-08)**: the bunker grid (Run place). BunkerGrid, Rules.Grid, Rules.Bunker,
   Lib.BunkerKit (graybox kit), the starting bunker centred on the Shaft column as the bible's
   diagram draws it, the Cells and Rooms collections, spawning in the Medbay.
+* **A1 in the bunker (2026-11-08)**: BunkerKit builds from the art kit (graybox fallback per
+  piece), a Sockets part per room, room lights, vents, the frame as rock cells.
+* **Prompt 5 (2026-11-08)**: the over-the-shoulder camera with wall fade and zoom caps
+  (CameraController, InputController, Lib.Fade, Rules.CameraRig, StarterGui.Reticle) in both
+  places. Landon's answers to the Prompt 3 and 4 questions: boss Surges and the final Surge run
+  until the boss is beaten, resting resets at the siren, HP per cell, dug cells count as power
+  steps.

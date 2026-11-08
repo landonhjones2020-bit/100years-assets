@@ -5,15 +5,20 @@
 	+2 a crew, +1 a boss) to Years per Cycle, which CycleClock reads. Run place only.
 
 	Prompt 3 keeps the record. The systems that rescue crews (Prompts 16 and 17) and beat the
-	bosses (Prompts 15, 23 and 24) call Complete or BossBeaten.
+	bosses (Prompts 15, 23 and 24) call Complete or BossBeaten. A boss's death is also what
+	ends its Surge: boss Surges have no timer (Landon, Nov 8, 2026), so CycleClock listens to
+	BossDefeated. The Source has no objective; beating it ends the final Surge (a Century
+	Victory) or, in its chamber, wins the Deep Victory.
 
 	API:
 		ObjectiveService:Complete(objectiveId): boolean       -- false if unknown or already done
-		ObjectiveService:BossBeaten(bossId): boolean          -- completes that boss's objective
+		ObjectiveService:BossBeaten(bossId): boolean          -- a boss died: its objective (if any), BossDefeated
 		ObjectiveService:IsComplete(objectiveId): boolean
 		ObjectiveService:Completed(): { [string]: boolean }   -- frozen copy
 		ObjectiveService:Counts(): (number, number)           -- Lost Crews rescued, era bosses beaten
 		ObjectiveService.Changed: Signal<string>              -- the objective just completed
+		ObjectiveService:IsBossBeaten(bossId): boolean
+		ObjectiveService.BossDefeated: Signal<string>         -- the boss just beaten (once per boss)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,9 +35,11 @@ local ObjectiveService = {
 	Name = "ObjectiveService",
 	Dependencies = { "DevService" },
 	Changed = Signal.new() :: Signal.Signal<string>,
+	BossDefeated = Signal.new() :: Signal.Signal<string>,
 }
 
 local completed: { [string]: boolean } = {}
+local defeated: { [string]: boolean } = {} -- bosses beaten this run
 local snapshot: { [string]: boolean } = table.freeze({})
 local set: ((string, any) -> ())? = nil
 
@@ -57,12 +64,7 @@ local function publish()
 	end
 end
 
-function ObjectiveService:Complete(objectiveId: string): boolean
-	local objective = Config.Find("Objectives", objectiveId)
-	if not objective then
-		log:Warn("no objective %s", tostring(objectiveId))
-		return false
-	end
+local function complete(objective: { [string]: any }): boolean
 	if completed[objective.Id] then
 		return false
 	end
@@ -74,14 +76,40 @@ function ObjectiveService:Complete(objectiveId: string): boolean
 	return true
 end
 
+-- A Lost Crew rescued, or an era boss beaten (which is BossBeaten for that boss).
+function ObjectiveService:Complete(objectiveId: string): boolean
+	local objective = Config.Find("Objectives", objectiveId)
+	if not objective then
+		log:Warn("no objective %s", tostring(objectiveId))
+		return false
+	end
+	if objective.Kind == "Boss" and objective.Boss and not completed[objective.Id] then
+		return ObjectiveService:BossBeaten(objective.Boss)
+	end
+	return complete(objective)
+end
+
 function ObjectiveService:BossBeaten(bossId: string): boolean
+	if not Config.Find("Bosses", bossId) then
+		log:Warn("no boss %s", tostring(bossId))
+		return false
+	end
+	if defeated[bossId] then
+		return false
+	end
+	defeated[bossId] = true
 	for _, objective in Config.All("Objectives") do
 		if objective.Kind == "Boss" and objective.Boss == bossId then
-			return ObjectiveService:Complete(objective.Id)
+			complete(objective)
 		end
 	end
-	log:Warn("%s has no objective (the final boss ends the run instead)", tostring(bossId))
-	return false
+	log:Info("%s beaten", bossId)
+	ObjectiveService.BossDefeated:Fire(bossId)
+	return true
+end
+
+function ObjectiveService:IsBossBeaten(bossId: string): boolean
+	return defeated[bossId] == true
 end
 
 function ObjectiveService:IsComplete(objectiveId: string): boolean

@@ -11,7 +11,10 @@
 	* `/dev clock` prints the run state as this client sees it (Run place), with the time
 	  left counted on this client from the replicated server time;
 	* `/dev ready [true|false]` fires the SetReady remote, as the HUD's Ready button will,
-	  and reports what the server did.
+	  and reports what the server did;
+	* `/dev camera` prints the over-the-shoulder camera's state; `camera.shoulder`,
+	  `camera.aim [true|false]`, `camera.look <yaw> <pitch>` (degrees), `camera.zoom <studs>`
+	  and `camera.cursor` (frees or locks the mouse) drive it for tests.
 
 	In Studio it also makes PlayerScripts.DevInvoke (a BindableFunction) so tools can run the
 	same commands from the Client datamodel: DevInvoke:Invoke("replica _SelfTest").
@@ -33,10 +36,12 @@ local CHAT_LINES = 12
 
 local DevController = {
 	Name = "DevController",
-	Dependencies = { "ReplicaController" },
+	Dependencies = { "ReplicaController", "CameraController" },
 }
 
 local replica: any = nil
+local camera: any = nil
+local devCursorFree = false
 local lastNotice: string? = nil
 local commandMade = false
 
@@ -99,7 +104,9 @@ local function describeClock(): string
 		return "no run state in this place"
 	end
 	local left = RunState.TimeLeft()
-	local leftText = if left then string.format("%.1f s left", left) else "stopped"
+	local leftText = if RunState.Get("PhaseOpen") then "no timer (until its boss is beaten)"
+		elseif left then string.format("%.1f s left", left)
+		else "stopped"
 	local boss = RunState.Get("SurgeBoss")
 	local bossText = if boss then ` ({boss})` else ""
 	return `client sees: {runPhase}, cycle {RunState.Get("Cycle")}, Year {RunState.Get("Year")} ({RunState.Get("Era")}), `
@@ -119,6 +126,33 @@ local function pressReady(on: boolean): string
 		waited += task.wait()
 	end
 	return `SetReady {on}: my Ready is {tostring(player:GetAttribute("Ready"))}\n{describeClock()}`
+end
+
+local function describeCamera(): string
+	task.wait() -- let a frame apply what the command changed
+	task.wait()
+	local state = camera:State()
+	local p = state.Position
+	return string.format(
+		"camera: %s, %s shoulder, yaw %.0f, pitch %.0f, zoom %.1f (wanted %.1f), %s%s, FOV %.0f, %s%s, %d faded, device %s%s at (%.1f, %.1f, %.1f)",
+		if state.Stopped then "STOPPED (Roblox camera)" elseif state.Active then "on" else "suspended",
+		state.Shoulder,
+		state.Yaw,
+		state.Pitch,
+		state.Distance,
+		state.Wanted,
+		if state.Indoors then "indoors" else "outdoors",
+		if state.Blocked then ", held in by a wall" else "",
+		state.FieldOfView,
+		if state.Aiming then "aiming" else "not aiming",
+		if state.CursorFree then ", cursor free" else "",
+		state.Fading,
+		state.Device,
+		if state.Suspended then ", suspended" else "",
+		p.X,
+		p.Y,
+		p.Z
+	)
 end
 
 -- Runs a command line; client-side commands answer here, the rest go to the server.
@@ -143,6 +177,24 @@ local function run(text: string): string?
 		return describeClock()
 	elseif name == "ready" then
 		return pressReady(args[1] ~= false)
+	elseif name == "camera" then
+		return describeCamera()
+	elseif name == "camera.shoulder" then
+		camera:SwapShoulder()
+		return describeCamera()
+	elseif name == "camera.aim" then
+		camera:SetAiming(args[1] ~= false)
+		return describeCamera()
+	elseif name == "camera.look" then
+		camera:SetLook(tonumber(args[1]) or 0, tonumber(args[2]) or 0)
+		return describeCamera()
+	elseif name == "camera.zoom" then
+		camera:SetZoom(tonumber(args[1]) or 9)
+		return describeCamera()
+	elseif name == "camera.cursor" then
+		devCursorFree = not devCursorFree
+		camera:FreeCursor("DevTools", devCursorFree)
+		return describeCamera()
 	end
 	if #args > 8 then
 		return "at most 8 arguments"
@@ -173,6 +225,7 @@ end
 
 function DevController:Init(registry)
 	replica = registry.ReplicaController
+	camera = registry.CameraController
 	Remotes.OnClient("Notice", function(text: any)
 		if type(text) == "string" then
 			lastNotice = text

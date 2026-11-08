@@ -29,6 +29,7 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Config", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules", "Folder" },
 	{ "ReplicatedStorage.Shared.Rules.Bunker", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.CameraRig", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Clock", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Grid", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
@@ -49,6 +50,11 @@ local SKELETON: { { string } } = {
 	{ "ServerScriptService.DevTools.DataTests", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.ClientBootstrap", "LocalScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers", "Folder" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.CameraController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.InputController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Lib", "Folder" },
+	{ "StarterPlayer.StarterPlayerScripts.Lib.Fade", "ModuleScript" },
+	{ "StarterGui.Reticle", "ScreenGui" },
 	{ "ServerStorage.Documentation", "Folder" },
 	{ "ServerStorage.Documentation.ARCHITECTURE", "ModuleScript" },
 }
@@ -385,6 +391,20 @@ function StructureCheck.Run(options: Options?): Result
 	-- 8. Leftovers that must never be here
 	if ServerStorage:FindFirstChild("NS_Pipeline") then
 		fail("ServerStorage.NS_Pipeline exists: the Night Shift importer plugin is still active; delete the folder and disable the plugin")
+	else
+		pass()
+	end
+
+	-- 8b. Place settings the camera relies on (Prompt 5): Roblox's shift lock off (the camera
+	-- locks the mouse itself) and Invisicam for Roblox's camera, the fallback
+	local StarterPlayer = game:GetService("StarterPlayer")
+	if StarterPlayer.EnableMouseLockOption then
+		fail("StarterPlayer.EnableMouseLockOption must be off: the over-the-shoulder camera locks the mouse itself")
+	else
+		pass()
+	end
+	if StarterPlayer.DevCameraOcclusionMode ~= Enum.DevCameraOcclusionMode.Invisicam then
+		fail("StarterPlayer.DevCameraOcclusionMode must be Invisicam (the camera's fallback, bible Section 9)")
 	else
 		pass()
 	end

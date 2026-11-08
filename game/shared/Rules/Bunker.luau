@@ -12,11 +12,16 @@
 	* Place: a room on Dug cells side by side on one floor, at most its MaxCells, in a band
 	  that can be built on (not the Source Chamber), on its own Floor if it has one, and only
 	  one of a Unique room.
-	* Merge: two rooms of one type and level side by side, at most MaxCells together. Fixed
-	  rooms (the Blast Door, the Reactor Core) never merge, move or go.
-	* SetLevel: 1 to 3; HP keeps its share of the new maximum (Tuning.Rooms.HP by level).
+	* Merge: two rooms of one type and level side by side, at most MaxCells together (rooms at
+	  different levels never merge; Landon, Nov 8, 2026). Fixed rooms (the Blast Door, the
+	  Reactor Core) never merge, move or go. The merged room keeps both rooms' HP.
+	* HP is per cell (Landon, Nov 8, 2026): a room's maximum is Tuning.Rooms.HP for its level
+	  times its cells, so a 3-cell room at level 1 has 1,500.
+	* SetLevel: 1 to 3; HP keeps its share of the new maximum.
 	* The room graph: a node per room ("R3") and per Dug cell ("D:2,3"), with an edge between
-	  side-by-side open cells of different units (a doorway) and between stacked Shafts.
+	  side-by-side open cells of different units (a doorway) and between stacked Shafts. A dug
+	  cell is a step like a room when power counts steps from a Reactor Core or a Generator
+	  (Section 6; Landon, Nov 8, 2026).
 
 	Votes, costs and build time (BuildService, Prompt 8), dig time and Push Deeper (DigService,
 	Prompt 14) are not here.
@@ -50,9 +55,12 @@ export type Bunker = typeof(setmetatable({} :: Data, Bunker))
 
 local DUG_PREFIX = "D:"
 
-local function maxHP(level: number): number
-	return Config.Get("Tuning", "Rooms").HP[level]
+-- A room's maximum HP: per cell, by level.
+local function maxHP(level: number, span: number): number
+	return Config.Get("Tuning", "Rooms").HP[level] * span
 end
+
+Bunker.MaxHP = maxHP
 
 local function idNumber(id: string): number
 	return tonumber(string.sub(id, 2)) or 0
@@ -218,7 +226,7 @@ function Bunker.Place(self: Bunker, roomType: string, floor: number, column: num
 	end
 	local id = `R{self.NextId}`
 	self.NextId += 1
-	local hp = maxHP(startLevel)
+	local hp = maxHP(startLevel, span)
 	self.Rooms[id] = {
 		Id = id,
 		Type = roomType,
@@ -297,7 +305,8 @@ function Bunker.Merge(self: Bunker, a: string, b: string): (string?, string?)
 		self.Cells[Grid.Key(right.Floor, right.Column + offset)] = left.Id
 	end
 	left.Span += right.Span
-	left.HP = math.min(left.HP, right.HP)
+	left.HP += right.HP -- HP is per cell: each part keeps what it had
+	left.MaxHP = maxHP(left.Level, left.Span)
 	self.Rooms[right.Id] = nil
 	return left.Id, nil
 end
@@ -309,7 +318,7 @@ function Bunker.SetLevel(self: Bunker, id: string, level: number): (boolean, str
 	elseif level ~= 1 and level ~= 2 and level ~= 3 then
 		return false, "levels go from 1 to 3"
 	end
-	local newMax = maxHP(level)
+	local newMax = maxHP(level, room.Span)
 	room.HP = math.floor(room.HP / room.MaxHP * newMax + 0.5)
 	room.MaxHP = newMax
 	room.Level = level

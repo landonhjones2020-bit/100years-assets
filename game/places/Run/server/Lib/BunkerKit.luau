@@ -21,6 +21,9 @@
 	  wall between them.
 	* Front walls carry the FrontWall tag (every part of a front wall piece, and the front
 	  face of a dug cell): solid while playing, hidden in the Command View (Prompt 7).
+	* Furniture, the Blast Door set, the stair, vents, lamps and cave props carry the
+	  CameraFade tag: the over-the-shoulder camera passes through them and fades them when
+	  they hide the character (Prompt 5). Floors, walls, ceilings and rock stop the camera.
 	* Stacked Shafts get a hole in the upper one's floor, a hole in the lower one's ceiling
 	  and the stair in the lower one.
 	* Each room has a Sockets part (invisible) with an Attachment per gameplay point its art
@@ -49,6 +52,7 @@ local BunkerKit = {}
 
 BunkerKit.FRONT_WALL_TAG = "FrontWall"
 BunkerKit.ROOM_LIGHT_TAG = "RoomLight"
+BunkerKit.CAMERA_FADE_TAG = "CameraFade"
 
 local ASSET_TAG = "Asset" -- marks the source models in ServerStorage.Assets; copies drop it
 local HALF_TURN = CFrame.Angles(0, math.pi, 0)
@@ -146,6 +150,11 @@ local function slab(
 	block(parent, name, Vector3.new(hole.MinX, low.Y, hole.MaxZ), Vector3.new(hole.MaxX, high.Y, high.Z), color, material)
 end
 
+-- The camera passes through this (and fades it when it hides the character).
+local function fadeable(item: Instance)
+	CollectionService:AddTag(item, BunkerKit.CAMERA_FADE_TAG)
+end
+
 local function newModel(name: string, parent: Instance): Model
 	local model = Instance.new("Model")
 	model.Name = name
@@ -179,6 +188,7 @@ local function lamp(parent: Instance, cell: Vector3, bright: boolean, unit: stri
 	if part then
 		part.CanCollide = false
 		part.CastShadow = false
+		fadeable(part)
 		addLight(part, {
 			Range = if bright then 30 else 18,
 			Brightness = if bright then 1.4 else 0.6,
@@ -365,7 +375,11 @@ local function shellArt(model: Model, room: Bunker.Room, shape: Shape)
 		local column = room.Column + offset
 		local key = Grid.Key(room.Floor, column)
 		local at = Grid.CellCFrame(room.Floor, column)
-		piece(if shape.ShaftBelow then "Kit_FloorHole" else "Kit_Floor", `Floor {key}`, model, at)
+		local floor = piece(if shape.ShaftBelow then "Kit_FloorHole" else "Kit_Floor", `Floor {key}`, model, at)
+		local rail = if floor then floor:FindFirstChild("HoleRail") else nil
+		if rail then
+			fadeable(rail)
+		end
 		local ceiling = piece(if shape.ShaftAbove then "Kit_CeilingHole" else "Kit_Ceiling", `Ceiling {key}`, model, at)
 		if ceiling then
 			ceilingLights(ceiling, room.Id)
@@ -437,6 +451,7 @@ local function grayboxStair(parent: Instance, cell: Vector3)
 	plank.CFrame = CFrame.new(mid) * CFrame.Angles(0, 0, angle)
 	plank.Color = ROOM_COLORS.Shaft
 	plank.Material = Enum.Material.DiamondPlate
+	fadeable(plank)
 	plank.Parent = parent
 end
 
@@ -446,7 +461,10 @@ local function grayboxInterior(model: Model, room: Bunker.Room, info: { [string]
 	local y0, z0 = centre.Y, centre.Z
 	local backZ = z0 - t.CellDepth / 2
 	if room.Type == "ReactorCore" then
-		block(model, "CoreBase", Vector3.new(centre.X - 4, y0, z0 - 8), Vector3.new(centre.X + 4, y0 + 1, z0), Color3.fromRGB(60, 64, 70), Enum.Material.DiamondPlate)
+		local base = block(model, "CoreBase", Vector3.new(centre.X - 4, y0, z0 - 8), Vector3.new(centre.X + 4, y0 + 1, z0), Color3.fromRGB(60, 64, 70), Enum.Material.DiamondPlate)
+		if base then
+			fadeable(base)
+		end
 		local core = Instance.new("Part")
 		core.Name = "Core"
 		core.Anchored = true
@@ -455,6 +473,7 @@ local function grayboxInterior(model: Model, room: Bunker.Room, info: { [string]
 		core.CFrame = CFrame.new(centre.X, y0 + 6, z0 - 4) * CFrame.Angles(0, 0, math.rad(90))
 		core.Material = Enum.Material.Neon
 		core.Color = Color3.fromRGB(90, 200, 230)
+		fadeable(core)
 		core.Parent = model
 		addSocket(holder, "Core", CFrame.new(centre.X, y0, z0 - 4), 1)
 	elseif room.Type == "BlastDoor" then
@@ -466,6 +485,7 @@ local function grayboxInterior(model: Model, room: Bunker.Room, info: { [string]
 		door.CFrame = CFrame.new(centre.X, y0 + 7, backZ + 0.5) * CFrame.Angles(0, math.rad(90), 0)
 		door.Material = Enum.Material.DiamondPlate
 		door.Color = Color3.fromRGB(70, 74, 80)
+		fadeable(door)
 		door.Parent = model
 		addSocket(holder, "Door", CFrame.new(centre.X, y0, backZ + 3), 1)
 		addSocket(holder, "SurfaceExit", CFrame.new(centre.X, y0 + t.CellHeight, backZ + 3), 1)
@@ -481,6 +501,7 @@ local function grayboxInterior(model: Model, room: Bunker.Room, info: { [string]
 				local bed = block(model, "Bed", Vector3.new(x - 1.4, y0, backZ + 0.5), Vector3.new(x + 1.4, y0 + 1.6, backZ + 7), Color3.fromRGB(120, 104, 160), Enum.Material.Fabric)
 				if bed then
 					bed:SetAttribute("Bed", offset * beds + index)
+					fadeable(bed)
 				end
 				addSocket(holder, `Bed{index}`, CFrame.new(x, y0 + 1.6, backZ + 3.75), offset + 1)
 			end
@@ -496,7 +517,9 @@ local function interior(model: Model, room: Bunker.Room, info: { [string]: any }
 	if room.Type == "BlastDoor" then
 		local source = art("Kit", `Kit_BlastDoor_L{room.Level}`)
 		if source then
-			collect(holder, place(source, "BlastDoor", model, CFrame.new(centre) * HALF_TURN), 1)
+			local set = place(source, "BlastDoor", model, CFrame.new(centre) * HALF_TURN)
+			fadeable(set)
+			collect(holder, set, 1)
 			isArt = true
 		else
 			grayboxInterior(model, room, info, centre, holder)
@@ -506,7 +529,9 @@ local function interior(model: Model, room: Bunker.Room, info: { [string]: any }
 		if shape.ShaftAbove then
 			local source = art("Kit", `Kit_Shaft_L{room.Level}`)
 			if source then
-				collect(holder, place(source, "Stair", model, Grid.CellCFrame(room.Floor, room.Column)), 1)
+				local stair = place(source, "Stair", model, Grid.CellCFrame(room.Floor, room.Column))
+				fadeable(stair)
+				collect(holder, stair, 1)
 			else
 				grayboxStair(model, first)
 				isArt = false
@@ -519,6 +544,7 @@ local function interior(model: Model, room: Bunker.Room, info: { [string]: any }
 			for offset = 0, room.Span - 1 do
 				local column = room.Column + offset
 				local copy = place(source, `Interior {Grid.Key(room.Floor, column)}`, model, Grid.CellCFrame(room.Floor, column))
+				fadeable(copy)
 				for _, attachment in collect(holder, copy, offset + 1) do
 					if accent and string.match(attachment.Name, "^Light%d*$") then
 						addLight(attachment, accent, room.Id)
@@ -533,6 +559,7 @@ local function interior(model: Model, room: Bunker.Room, info: { [string]: any }
 	if not NO_VENT[room.Type] then
 		local vent = piece("Kit_Vent", "Vent", model, Grid.CellCFrame(room.Floor, room.Column))
 		if vent then
+			fadeable(vent)
 			collect(holder, vent, 1)
 		end
 	end
@@ -616,6 +643,11 @@ local function buildDug(floor: number, column: number, parent: Instance): Model
 		model:SetAttribute("Band", band.Id)
 		model:SetAttribute("Art", true)
 		tagFront(model, false)
+		for _, item in model:GetChildren() do
+			if item:IsA("BasePart") and item.Name ~= "Floor" and item.Name ~= "BackRock" and item.Name ~= "FrontWall" then
+				fadeable(item) -- timber, carts, pipes and other cave props
+			end
+		end
 		local host = model:FindFirstChild("Floor")
 		if host and host:IsA("BasePart") then
 			for _, socket in socketsOf(model) do

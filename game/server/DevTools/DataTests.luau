@@ -23,6 +23,7 @@ local Log = require(Shared.Utilities.Log)
 local RateLimit = require(Shared.Utilities.RateLimit)
 local Remotes = require(Shared.Remotes)
 local Bunker = require(Shared.Rules.Bunker)
+local CameraRig = require(Shared.Rules.CameraRig)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
 local RunState = require(Shared.RunState)
@@ -946,6 +947,80 @@ test("Bunker: levels set HP from Tuning.Rooms.HP, keeping its share; SetHP clamp
 	expect(not bunker:SetLevel(medbay.Id, 4), "no level 4")
 	expectEqual(bunker:SetHP(medbay.Id, 5000), 800, "clamped to the maximum")
 	expectEqual(bunker:SetHP(medbay.Id, -3), 0, "0 is Wrecked")
+end)
+
+test("Bunker: HP is per cell; a merged room keeps both rooms' HP", function()
+	local bunker = Bunker.FromStart()
+	local perCell = Config.Get("Tuning", "Rooms").HP
+	expectEqual(bunker:RoomsOfType("Quarters")[1].MaxHP, perCell[1] * 2, "the 2-cell Quarters")
+	expect(bunker:Dig(1, 4) and bunker:Dig(1, 5), "dig two cells")
+	local a = bunker:Place("Storage", 1, 3, 1) :: string
+	local b = bunker:Place("Storage", 1, 4, 2) :: string
+	expectEqual((bunker:Room(b) :: Bunker.Room).MaxHP, perCell[1] * 2, "a 2-cell room at level 1")
+	bunker:SetHP(a, 300)
+	expectEqual(bunker:Merge(a, b), a, "merged")
+	local merged = bunker:Room(a) :: Bunker.Room
+	expectEqual({ merged.HP, merged.MaxHP }, { 300 + perCell[1] * 2, perCell[1] * 3 }, "both parts keep their HP")
+	expect(bunker:SetLevel(a, 2), "level 2")
+	expectEqual(merged.MaxHP, perCell[2] * 3, "level 2, three cells")
+	expectEqual(Bunker.MaxHP(1, 3), 1500, "a 3-cell room at level 1 (Landon's example)")
+end)
+
+-- Camera ---------------------------------------------------------------------------------
+
+test("CameraRig: the camera sits behind the focus, over the right shoulder by default", function()
+	local t = CameraRig.Tuning()
+	local pivot = Vector3.new(0, 10, 0)
+	local right = CameraRig.Focus(pivot, 0, 1, t.ShoulderOffset, t.ShoulderRaise)
+	expect(right.X > 0, "right of the pivot at yaw 0 (the camera looks toward -Z)")
+	local left = CameraRig.Focus(pivot, 0, -1, t.ShoulderOffset, t.ShoulderRaise)
+	expect(math.abs(left.X + right.X) < 1e-6, "the left shoulder mirrors it")
+	local turned = CameraRig.Focus(pivot, math.rad(90), 1, t.ShoulderOffset, 0)
+	expect(math.abs(turned.Z + t.ShoulderOffset) < 1e-6, "the shoulder turns with the yaw")
+	local at = CameraRig.Position(right, 0, 0, 10)
+	expect((at - (right + Vector3.new(0, 0, 10))).Magnitude < 1e-6, "10 studs behind (+Z) at pitch 0")
+	expect(CameraRig.Position(right, 0, math.rad(-30), 10).Y > right.Y, "looking down puts the camera above the focus")
+	expectEqual(CameraRig.ClampPitch(math.rad(-120)), math.rad(t.PitchMin), "pitch clamps")
+	expect(t.PitchMin < 0 and t.PitchMax > 0, "looks both up and down")
+end)
+
+test("CameraRig: zoom is capped indoors; the camera stays between a cell's floor and ceiling", function()
+	local t = CameraRig.Tuning()
+	local g = Grid.Tuning()
+	local nearest, indoors = CameraRig.ZoomRange(true)
+	local _, outdoors = CameraRig.ZoomRange(false)
+	expectEqual(nearest, t.Distance.Min, "nearest")
+	expect(indoors <= t.IndoorMax and indoors < outdoors, "indoors is shorter")
+	expect(t.Distance.Min <= t.Distance.Default and t.Distance.Default <= t.Distance.Max, "the default is in range")
+	expect(t.AimDistance >= t.Distance.Min and t.AimDistance <= t.IndoorMax, "aiming stays in range")
+	local cell = Grid.CellPosition(2, 1)
+	local low, high = CameraRig.CellHeights(cell + Vector3.new(0, 3, 0))
+	expectEqual({ low, high }, { cell.Y + t.FloorMargin, cell.Y + g.CellHeight - t.CeilingMargin }, "cell 2,1")
+	expect(CameraRig.CellHeights(Vector3.new(0, 500, 0)) == nil, "nothing outside the grid")
+	local floorY, ceilingY = low :: number, high :: number
+	local focus = Vector3.new(0, ceilingY - 2, 0)
+	local down = CameraRig.Rotation(0, math.rad(-30)).LookVector
+	local limit = CameraRig.HeightLimit(focus, down, floorY, ceilingY)
+	expect(math.abs(limit - 4) < 1e-3, `looking 30 degrees down 2 under the limit allows 4, got {limit}`)
+	expectEqual(CameraRig.HeightLimit(focus, Vector3.new(0, 0, -1), floorY, ceilingY), math.huge, "a level view has no limit")
+end)
+
+test("CameraRig: sticks have a dead zone and a squared response; easing is frame-rate free", function()
+	expectEqual(CameraRig.Stick(Vector2.new(0.1, 0), 0.15), Vector2.zero, "inside the dead zone")
+	expect(math.abs(CameraRig.Stick(Vector2.new(1, 0), 0.15).X - 1) < 1e-6, "full tilt is 1")
+	expect(math.abs(CameraRig.Stick(Vector2.new(0.575, 0), 0.15).X - 0.25) < 1e-3, "half way is a quarter")
+	local once = CameraRig.Approach(0, 10, 5, 0.2)
+	local twice = CameraRig.Approach(CameraRig.Approach(0, 10, 5, 0.1), 10, 5, 0.1)
+	expect(math.abs(once - twice) < 1e-9, "two half steps equal one step")
+	expectEqual(CameraRig.MoveToward(0, 1, 0.25), 0.25, "steps toward")
+	expectEqual(CameraRig.MoveToward(0.9, 1, 0.25), 1, "never past")
+end)
+
+test("Clock: boss Surges and the final Surge have no timer; the others do", function()
+	expect(Clock.IsOpenEnded("Boss") and Clock.IsOpenEnded("Final"), "a boss Surge runs until the boss is beaten")
+	for _, kind in { "Tutorial", "Normal", "Endless" } do
+		expect(not Clock.IsOpenEnded(kind :: Clock.SurgeKind), `{kind} to be timed`)
+	end
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

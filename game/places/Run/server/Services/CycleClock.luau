@@ -6,30 +6,33 @@
 	A cycle is a 3:00 day (building, digging, trips outside) then a 1:30 Surge (a breach wave
 	below, a storm above, one disaster). The siren sounds 20 seconds before the Surge. A Surge
 	ends when its time is up, or earlier when ThreatDirector calls EndSurge (its last monster
-	died and its disaster is fixed). Then the year counter jumps by Years per Cycle and the
+	died and its disaster is fixed). A boss Surge (an era boss, or the final Surge's Source)
+	has no timer and ignores EndSurge: it ends when its boss is beaten (ObjectiveService's
+	BossDefeated; Landon, Nov 8, 2026). Then the year counter jumps by Years per Cycle and the
 	next cycle starts. The arithmetic (Years per Cycle, era bosses, the final Surge, Endless)
 	is Shared.Rules.Clock; the published values are Shared.RunState.
 
 	Skips: when every player in the run has pressed Ready (the SetReady remote) or is resting
 	in a Quarters bed (SetResting, called by the bed interaction), the day jumps to the siren.
-	Ready resets at the siren and at the start of every day.
+	Ready and resting both count only during a day before the siren, and both reset at the
+	siren (Landon, Nov 8, 2026), so a player still in bed when a day starts lies down again.
 
 	RunDirector drives it: Begin when the intro ends, Halt on a victory or a defeat, Resume
-	(after SetEndless) for Keep Going. When the final Surge ends the clock halts by itself,
-	before the year jumps, and fires CenturySurvived.
+	(after SetEndless) for Keep Going. When the final Surge ends (the Source is beaten) the
+	clock halts by itself, before the year jumps, and fires CenturySurvived.
 
 	API:
 		CycleClock.CycleStarted: Signal<number>              -- the cycle number (residents eat and drink)
 		CycleClock.SirenStarted: Signal<SurgeKind, string?>  -- 20 s to the Surge: its kind and boss
 		CycleClock.SurgeStarted: Signal<SurgeKind, string?>
-		CycleClock.SurgeEnded: Signal<SurgeKind, string>     -- how: "Time" or "Cleared"
+		CycleClock.SurgeEnded: Signal<SurgeKind, string>     -- how: "Time", "Cleared" or "Boss"
 		CycleClock.YearChanged: Signal<number, number>       -- year, previous year (aging)
 		CycleClock.EraChanged: Signal<string, string>        -- era, previous era
 		CycleClock.CenturySurvived: Signal<()>
 		CycleClock.Skipped: Signal<()>                       -- everyone was ready
 		CycleClock:Begin(), :Halt(), :Resume(), :SetEndless(on)
-		CycleClock:EndSurge(): boolean                       -- ThreatDirector: this Surge is cleared
-		CycleClock:SetResting(player, on)                    -- a player lies down in or leaves a Quarters bed
+		CycleClock:EndSurge(): boolean                       -- ThreatDirector: this Surge is cleared (not a boss Surge)
+		CycleClock:SetResting(player, on): boolean           -- a player lies down in or leaves a Quarters bed
 		CycleClock:Phase(), :Year(), :Cycle(), :Era(), :YearsPerCycle(), :Surge(), :TimeLeft(), :IsRunning()
 ]]
 
@@ -74,6 +77,7 @@ local running = false -- the timers are live
 local halted = false -- RunDirector stopped the clock (a victory or a defeat)
 local devPaused = false -- DevTools paused it
 local cycleEndPending = false -- stopped after the final Surge, before the year jumps
+local openEnded = false -- this phase has no timer (a boss Surge)
 local phase: CyclePhase? = nil
 local surgeKind: SurgeKind = "Tutorial"
 local surgeBoss: string? = nil
@@ -95,7 +99,11 @@ end
 
 local function publishTimes()
 	set("PhaseLength", phaseLength)
-	if running then
+	set("PhaseOpen", if openEnded then true else nil)
+	if openEnded then
+		set("PhaseEndsAt", nil)
+		set("PhaseLeft", nil)
+	elseif running then
 		set("PhaseEndsAt", endsAt)
 		set("PhaseLeft", nil)
 	else
@@ -162,6 +170,15 @@ local function clearReady()
 	table.clear(ready)
 end
 
+local function clearResting()
+	for player in resting do
+		if player.Parent then
+			player:SetAttribute("Resting", false)
+		end
+	end
+	table.clear(resting)
+end
+
 -- The SetReady remote and DevTools: Ready only counts during a day, before the siren.
 local function requestReady(player: Player, on: boolean): boolean
 	if not session:IsReady(player) then
@@ -181,6 +198,7 @@ startSiren = function()
 	siren = true
 	set("Siren", true)
 	clearReady()
+	clearResting()
 	countReady()
 	log:Debug("cycle %d: siren (%s Surge)", state.Cycle, surgeKind)
 	CycleClock.SirenStarted:Fire(surgeKind, surgeBoss)
@@ -201,8 +219,10 @@ local function startDay()
 	endsAt = t + phaseLength / scale
 	sirenAt = t + math.max(0, phaseLength - tuning.SurgeSirenSeconds) / scale
 	siren = false
+	openEnded = false
 	surgeKind, surgeBoss = Clock.SurgeKind(state)
 	clearReady()
+	clearResting()
 	set("CyclePhase", "Day")
 	set("Siren", false)
 	publishSurge()
@@ -215,8 +235,9 @@ end
 local function startSurge()
 	surgeKind, surgeBoss = Clock.StartSurge(state)
 	phase = "Surge"
-	phaseLength = tuning.SurgeSeconds
-	endsAt = now() + phaseLength / scale
+	openEnded = Clock.IsOpenEnded(surgeKind)
+	phaseLength = if openEnded then 0 else tuning.SurgeSeconds
+	endsAt = if openEnded then math.huge else now() + phaseLength / scale
 	sirenAt = nil
 	siren = false
 	clearReady()
@@ -252,7 +273,7 @@ local function freeze()
 		return
 	end
 	local t = now()
-	leftWhenStopped = math.max(0, endsAt - t) * scale
+	leftWhenStopped = if openEnded then 0 else math.max(0, endsAt - t) * scale
 	sirenInWhenStopped = if sirenAt then math.max(0, sirenAt - t) * scale else nil
 	running = false
 	publishTimes()
@@ -268,7 +289,7 @@ local function thaw()
 		return
 	end
 	local t = now()
-	endsAt = t + leftWhenStopped / scale
+	endsAt = if openEnded then math.huge else t + leftWhenStopped / scale
 	sirenAt = if sirenInWhenStopped then t + sirenInWhenStopped / scale else nil
 	publishTimes()
 	countReady()
@@ -277,15 +298,17 @@ end
 local function endSurge(how: string)
 	local kind = surgeKind
 	log:Info("cycle %d: %s Surge over (%s)", state.Cycle, kind, how)
+	openEnded = false
 	endsAt = now() -- nothing is left of it, however it ended
 	cycleEndPending = true -- the year jumps next; if the clock stops first, Resume does it
 	CycleClock.SurgeEnded:Fire(kind, how)
 	if kind == "Final" then
 		-- The century is over. Hold before the year jumps until RunDirector decides: a
 		-- Century Victory, and Keep Going resumes the clock into Endless.
-		if running then
+		if not halted then
 			halted = true
 			freeze()
+			publishTimes()
 			CycleClock.CenturySurvived:Fire()
 		end
 		return
@@ -367,23 +390,34 @@ function CycleClock:SetEndless(on: boolean)
 	end
 end
 
--- ThreatDirector: the Surge's last monster died and its disaster is fixed.
+-- ThreatDirector: the Surge's last monster died and its disaster is fixed. A boss Surge
+-- carries on until its boss is beaten, so this returns false then.
 function CycleClock:EndSurge(): boolean
-	if not running or phase ~= "Surge" then
+	if not running or phase ~= "Surge" or openEnded then
 		return false
 	end
 	endSurge("Cleared")
 	return true
 end
 
--- The bed interaction: a player lies down in (or gets out of) a Quarters bed.
-function CycleClock:SetResting(player: Player, on: boolean)
+-- The bed interaction: a player lies down in (or gets out of) a Quarters bed. Lying down
+-- counts only during a day before the siren, like Ready; returns whether it counted.
+function CycleClock:SetResting(player: Player, on: boolean): boolean
+	if on and not canSkip() then
+		return false
+	end
 	if (resting[player] == true) == on then
-		return
+		return true
 	end
 	resting[player] = if on then true else nil
 	player:SetAttribute("Resting", on)
 	countReady()
+	return true
+end
+
+-- Is the current phase a boss Surge with no timer?
+function CycleClock:IsOpenEnded(): boolean
+	return openEnded
 end
 
 function CycleClock:Phase(): CyclePhase?
@@ -445,7 +479,11 @@ local function describe(): string
 			stopped = ` (stopped: {table.concat(why, ", ")})`
 		end
 		local sirenText = if siren then ", siren" else ""
-		table.insert(lines, `{phase} {string.format("%.1f", CycleClock:TimeLeft())} s left of {phaseLength} s{sirenText}{stopped}`)
+		if openEnded then
+			table.insert(lines, `{phase}: no timer, until {surgeBoss or "its boss"} is beaten{stopped}`)
+		else
+			table.insert(lines, `{phase} {string.format("%.1f", CycleClock:TimeLeft())} s left of {phaseLength} s{sirenText}{stopped}`)
+		end
 		local which = if phase == "Surge" then "this" else "next"
 		local bossText = if surgeBoss then ` ({surgeBoss})` else ""
 		local dueText = if state.PendingBoss then `, due: {state.PendingBoss}` else ""
@@ -516,10 +554,27 @@ local function registerCommands(dev: any)
 	dev:Register("clock.clear", {
 		Description = "End the Surge as cleared (what ThreatDirector does when it is over).",
 		Run = function(): string?
+			if openEnded then
+				return `a boss Surge lasts until its boss is beaten: boss.beat {surgeBoss or ""}`
+			end
 			if not CycleClock:EndSurge() then
 				return "no running Surge to clear"
 			end
 			return describe()
+		end,
+	})
+	dev:Register("boss.beat", {
+		Description = "Beat a boss (the current Surge's by default), as the boss fight will: its objective, its Surge ends.",
+		Usage = "boss.beat [bossId]",
+		Run = function(_player, args): string?
+			local id = if args[1] ~= nil then tostring(args[1]) else surgeBoss
+			if not id then
+				return "usage: boss.beat <bossId> (no boss Surge now)"
+			end
+			if not objectives:BossBeaten(id) then
+				return `{id}: unknown, or already beaten`
+			end
+			return `{id} beaten\n{describe()}`
 		end,
 	})
 	dev:Register("year", {
@@ -593,6 +648,13 @@ function CycleClock:Start()
 	objectives.Changed:Connect(function()
 		state.Completed = objectives:Completed()
 		set("YearsPerCycle", Clock.YearsPerCycle(state.Completed))
+	end)
+	objectives.BossDefeated:Connect(function(bossId: string)
+		-- A boss Surge ends when its boss falls (even if a DevTools pause holds the clock;
+		-- the year then jumps on resume).
+		if begun and not halted and phase == "Surge" and openEnded and surgeBoss == bossId then
+			endSurge("Boss")
+		end
 	end)
 	session.PlayerReady:Connect(function(player: Player)
 		player:SetAttribute("Ready", false)

@@ -12,6 +12,9 @@
 	  next Surge is that era's boss, unless it is already beaten. The boss Surge comes once.
 	* When the counter reaches Tuning.Clock.FinalYear (100) it stops there, and the next
 	  Surge is the final one (the Source rises into the bunker).
+	* A boss Surge (an era boss, or the final Surge's Source) has no timer: it lasts until
+	  its boss is beaten (Landon, Nov 8, 2026). Other Surges end on the timer, or earlier when
+	  cleared.
 	* The first cycle's Surge is a small tutorial wave.
 	* Endless (Keep Going after a victory): no cap, no era bosses, every Surge an Endless one.
 
@@ -102,6 +105,11 @@ function Clock.SurgeKind(state: State): (SurgeKind, string?)
 		return "Tutorial", nil
 	end
 	return "Normal", nil
+end
+
+-- Does a Surge of this kind run until its boss is beaten, with no timer?
+function Clock.IsOpenEnded(kind: SurgeKind): boolean
+	return kind == "Boss" or kind == "Final"
 end
 
 -- The Surge begins: its kind and boss. A due era boss is used up (its Surge comes once).
