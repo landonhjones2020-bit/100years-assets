@@ -15,6 +15,8 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 3: run lifecycle and cycle clock (Run) | ✅ done 2026-11-08 | Two Run playtests (intro, skips, bosses, Year 100, Endless, defeat) and a Lobby playtest; `game/reports/P03_RunLifecycle.md` |
 | Prompt 4: bunker grid, graybox kit, starting bunker (Run) | ✅ done 2026-11-08 | Playtest: built at start, changes rebuilt, stairs and doorways walked; `game/reports/P04_BunkerGrid.md`, `previews/Game/P04_*.jpg` |
 | A1 bunker kit and starting rooms | ✅ in Studio 2026-11-08 | 46 models set up (size and pivot checked), the bunker builds from them; walked in a playtest; `previews/Game/A1_Studio_sheet.jpg`, addendum in `game/reports/P04_BunkerGrid.md` |
+| Prompt 5: over-the-shoulder camera, wall fade, zoom caps (both places) | ✅ done 2026-11-08 | Run and Lobby playtests with real key and mouse-button presses; mouse, stick and touch look still need a person; `game/reports/P05_Camera.md`, `previews/Game/P05_*.jpg` |
+| Landon's answers to the Prompt 3 and 4 questions | ✅ built and in the bible 2026-11-08 | Run playtest (boss and final Surges, resting) and data tests (HP per cell); addenda in `P03_RunLifecycle.md` and `P04_BunkerGrid.md` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -31,6 +33,68 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 5 camera, Landon's answers
+
+Game code builds `p5-7f68919`, `p5-a1cd06b` and `p5-d690a7c`. The last one is code asset
+95026446991297 revision 12, installed in Run and Lobby: StructureCheck 0 errors, 60 data
+tests passed.
+
+**Done**
+* The camera (Prompt 5):
+  * InputController and CameraController, `Lib.Fade`, `Rules.CameraRig` and `Tuning.Camera`;
+  * `StarterGui.Reticle` built in both places by `studio/ui/Reticle.lua`;
+  * StarterPlayer settings in both places: shift-lock off, Invisicam as the fallback.
+* Seams: a steel ceiling beam and steel back and front posts between the cells of
+  multi-cell rooms. The camera tests found the 2-stud gaps.
+* Landon's answers:
+  * boss and final Surges have no timer and end when the boss (or the Source) is beaten;
+  * resting resets at the siren;
+  * Endless after an early Deep Victory as built;
+  * room HP per cell;
+  * no merging across levels;
+  * dug cells count as power steps.
+* The answers are in the live bible (rev 102) and both project copies. Part 1 was rewritten;
+  part 2 needed nothing.
+
+**Verified in Studio**
+* Shoulder: right by default; a real V press swapped it.
+* Aim: holding the right mouse button gave field of view 50, distance 6, walk speed 9.6 and
+  AutoRotate off; releasing it put everything back.
+* Zoom and blocking:
+  * scroll zoom is capped at 11 indoors;
+  * walls pull the camera in;
+  * the camera goes through doorways into the next room;
+  * the front wall fades when the camera is outside it.
+* Floor and ceiling limits held. 48 random looks put the camera in rock 0 times. The stair
+  climb followed. The Lobby has no aim and a dot sight.
+* Screenshots: `previews/Game/P05_Studio_shoulder.jpg`, `_aiming.jpg`, `_front_fade.jpg`,
+  `_lobby.jpg`, `_seams.jpg`.
+* Answers:
+  * the Brood Mother's Surge ran 180 clock seconds with no end until `boss.beat` (then Year
+    27, 2 Years per Cycle);
+  * `boss.beat Source` in the final Surge gave the Century Victory;
+  * resting was refused during a Surge;
+  * the 2-cell rooms start at 1,000 HP.
+
+**Findings**
+1. Studio's synthetic mouse moves give no movement while the mouse is locked, and a synthetic
+   stick press doesn't turn the camera. So mouse look and stick look can't be machine-tested.
+2. The first aim framing put the head over the sight. The aim shoulder went from 0.8 to 1.25
+   studs and the aim distance from 5.5 to 6.
+3. Night Shift's `ServerStorage.NS_Pipeline` came back at every play start; deleted each
+   time.
+
+**Not verified yet**
+* Mouse look, gamepad stick look, touch drag and pinch (Landon).
+* Phone frame rate and the Device Emulator; the AutoScale Lite pass on the Reticle.
+* Two players (Team Test).
+
+**Landon to do**
+* Save and publish both places. The Reticle, the StarterPlayer settings and the A1 assets
+  live in the place files, not in the code asset.
+* Turn off the Night Shift plugin for this game.
+* Set `Lighting.Technology` to Future in both places (bible Section 19; the connector can't).
 
 ## 2026-11-08 (night): A1 bunker kit and starting rooms in Studio
 

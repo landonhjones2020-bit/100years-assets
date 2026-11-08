@@ -282,3 +282,44 @@ cells, 613 parts in 15.5 ms (the graybox was 245 parts in 3 ms), 25 lights.
 - [x] Screenshots (front walls hidden on the client): `previews/Game/A1_Studio_*.jpg`, sheet
   `previews/Game/A1_Studio_sheet.jpg`.
 - [ ] Phone frame rate with the art (Device Emulator), Landon's look at the screenshots.
+
+# Addendum (2026-11-08, night): Landon's answers, built in Prompt 5's builds
+
+Landon answered the three Bible Questions. The live bible (Section 6) and the project copies
+now say the same. Built in `p5-7f68919`; the latest install is `p5-d690a7c`.
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Room HP per room or per cell | Per cell | `MaxHP = Tuning.Rooms.HP[level] × span` (`Bunker.MaxHP`). Placing, merging (the two rooms' HP add up) and level changes all use it |
+| 2 | Merging rooms of different levels | No | No change: only rooms at the same level merge |
+| 3 | Does a dug cell count as a power step? | Yes | No change now: the room graph already has dug cells as nodes. Power (Prompt 9) counts steps along it, dug cells included |
+
+## Design Notes
+
+**Decisions**
+- A merge keeps both rooms' current HP (a damaged room stays damaged) and raises the maximum to
+  the new span.
+- A level change keeps the room's share of its HP (half stays half), as before, now per cell.
+
+**Bible Questions**
+- Still open from the A1 addendum: how many vents a room has.
+
+## Delivery Report
+
+**Files modified**
+- `game/shared/Rules/Bunker.luau`: `maxHP(level, span)`, exported as `Bunker.MaxHP`; Place,
+  Merge and SetLevel use it. The header records the three answers.
+- `game/server/DevTools/DataTests.luau`: "Bunker: HP is per cell; a merged room keeps both
+  rooms' HP", ending with Landon's example `Bunker.MaxHP(1, 3) == 1500`.
+
+**Integration notes**
+- Power (Prompt 9): the dark order is steps from a Reactor Core or Generator along
+  `Bunker:Graph()`, dug cells included.
+- Damage and repairs (Prompts 12 and 13): `Bunker:SetHP` clamps to the per-cell maximum.
+
+**Testing checklist (done in Studio, 2026-11-08)**
+- [x] Data tests: the 2-cell Quarters has 1,000 at level 1. A 2-cell Storage merged with a
+  damaged 1-cell one has 300 + 1,000 of 1,500. At level 2 its maximum is 2,400. Different
+  levels don't merge.
+- [x] Run playtest: the Blast Door (2 cells) and the Quarters (2 cells) start at 1,000 of
+  1,000.

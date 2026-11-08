@@ -186,3 +186,66 @@ Going leads into Endless. Win and lose hooks are ready for the systems that will
   CycleClock's skip check.
 * Endless Surge strength is ThreatDirector's job (Prompt 12/25), keyed on `SurgeKind ==
   "Endless"` and the year.
+
+# Addendum (2026-11-08, night): Landon's answers, built in Prompt 5's builds
+
+Landon answered the four Bible Questions. The live bible (Section 5) and the project copies
+now say the same. Built in `p5-7f68919` and checked in a Run playtest; the latest install is
+`p5-d690a7c`.
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | An era boss that survives its Surge | The boss Surge lasts until the boss dies | A boss Surge has no timer: `PhaseOpen` is true and `PhaseEndsAt` is nil. `EndSurge()` refuses it; it ends only on `ObjectiveService.BossDefeated` for that boss |
+| 2 | The final Surge | It lasts until the Source is beaten | The final Surge has no timer either. `BossBeaten("Source")` gives the Century Victory |
+| 3 | Keep Going after an early Deep Victory | OK as built | No change: Endless starts at once |
+| 4 | A player still in bed when a day starts | Resting resets at the siren | Resting clears at the siren and at day start, like Ready. `SetResting(player, true)` is refused outside the day before the siren |
+
+## Design Notes
+
+**Decisions**
+- `Rules.Clock.IsOpenEnded(kind)`: Boss and Final Surges have no timer (tested).
+- `ObjectiveService:BossBeaten(bossId)` is the one way to beat a boss. `Complete` routes boss
+  objectives to it. It fires `BossDefeated(bossId)`, which also works for the Source (not an
+  era objective). `IsBossBeaten(bossId)` reads it.
+- CycleClock ends the open Surge when `BossDefeated` names its boss. Monsters still on the map
+  when the boss dies are the Threat Director's business (Prompt 12).
+- `RunState.PhaseOpen` tells clients there is no countdown. The client's `clock` dev command
+  says "no timer (until its boss is beaten)".
+
+**Bible Questions**
+- None new.
+
+## Delivery Report
+
+**Files modified**
+- `game/shared/Rules/Clock.luau` (`IsOpenEnded`), `game/shared/RunState.luau` (`PhaseOpen`).
+- `game/places/Run/server/Services/ObjectiveService.luau`: `BossDefeated`, `BossBeaten`,
+  `IsBossBeaten`.
+- `game/places/Run/server/Services/CycleClock.luau`:
+  - open-ended Surges;
+  - resting cleared at the siren and day start;
+  - `SetResting` returns false when refused;
+  - `IsOpenEnded`;
+  - `clock.clear` refuses a boss Surge;
+  - the dev command `boss.beat [bossId]`.
+- `game/server/DevTools/DataTests.luau`, `game/client/Controllers/DevController.luau`.
+
+**Integration notes**
+- Bosses (Prompts 15, 23, 24, 25): call `ObjectiveService:BossBeaten(bossId)` when the boss
+  dies. That ends its Surge and adds its +1 Year per Cycle.
+- Quarters beds (Prompts 8 and 10): call `CycleClock:SetResting(player, true)` when a player
+  lies down. Call it again at `CycleClock.CycleStarted` for players still in a bed, because
+  resting clears at day start.
+- HUD (Prompt 6): when `PhaseOpen` is true, show the boss's name instead of a timer.
+
+**Testing checklist (done in Studio, 2026-11-08)**
+- [x] Data tests: Boss and Final are open-ended; Tutorial, Normal and Endless Surges are not.
+- [x] Run playtest, Brood Mother:
+  - 180 clock seconds into its Surge it was still running;
+  - `clock.clear` refused it;
+  - `boss.beat` ended it, and the next year was 27 with 2 Years per Cycle.
+- [x] Run playtest, final Surge: open-ended; `boss.beat Source` gave the Century Victory.
+- [x] Resting:
+  - refused during a Surge;
+  - `rest.all` during a day skipped to the siren, and resting was cleared there.
+- [ ] A real bed: the Quarters beds come with Prompts 8 and 10.
