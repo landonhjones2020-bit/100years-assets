@@ -15,8 +15,9 @@ end
 local cv = new("Frame", cabinet.Pages, "CommandView", { pos = { 0, 0 }, size = { 1, 1 }, visible = false })
 local cvTabs = new("Frame", cv, "Tabs", { pos = { 0.014, 0.13 }, size = { 0.152, 0.785 } })
 list(cvTabs, "V", 0.02)
--- zone C: open, so the bunker shows through; marks and labels sit over it
-local view = new("Frame", cv, "View", { pos = { 0.172, 0.122 }, size = { 0.52, 0.79 } })
+-- zone C: open, so the bunker shows through; marks and labels sit over it (clipped to the zone,
+-- so a label at the edge doesn't spill over the tab rail)
+local view = new("Frame", cv, "View", { pos = { 0.172, 0.122 }, size = { 0.52, 0.79 }, clip = true })
 new("Frame", view, "Marks", { pos = { 0, 0 }, size = { 1, 1 }, z = 2 })
 new("Frame", view, "Labels", { pos = { 0, 0 }, size = { 1, 1 }, z = 3 })
 new("ImageLabel", view, "Cursor", { pos = { 0.5, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.08 }, aspect = 1, dom = "H",

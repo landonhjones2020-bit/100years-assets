@@ -153,7 +153,7 @@ function Bunker.CanDig(self: Bunker, floor: number, column: number): (boolean, s
 	elseif self:IsOpen(floor, column - 1) or self:IsOpen(floor, column + 1) or self:IsOpen(floor - 1, column) then
 		return true, nil
 	end
-	return false, "not next to an open cell (dig left, right or down from one)"
+	return false, "nothing dug beside or above it (dig left, right or down from a dug cell or room)"
 end
 
 function Bunker.Dig(self: Bunker, floor: number, column: number): (boolean, string?)

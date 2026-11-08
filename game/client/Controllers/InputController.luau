@@ -56,9 +56,11 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
 local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true }
 -- Keys the engine marks as processed before ContextActionService sees them begin (Tab: Roblox
--- keeps it for its player list and UI navigation). These are read from UserInputService too,
--- unless a text box has focus or Roblox's menu is open.
-local PROCESSED_KEYS: { [Enum.KeyCode]: string } = { [Enum.KeyCode.Tab] = "CommandView" }
+-- keeps it for its player list and UI navigation; the gamepad's View button: Roblox's own UI
+-- selection, which Init turns off). These are read from UserInputService too, unless a text box
+-- has focus or Roblox's menu is open.
+local PROCESSED_KEYS: { [Enum.KeyCode]: string } =
+	{ [Enum.KeyCode.Tab] = "CommandView", [Enum.KeyCode.ButtonSelect] = "CommandView" }
 
 type Listener = { Began: (() -> ())?, Ended: (() -> ())? }
 
@@ -257,6 +259,9 @@ function InputController:Init()
 	gameSettings = if ok then settings else nil
 	device = deviceOf(UserInputService:GetLastInputType())
 		or (if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then "Touch" else "Keyboard")
+	-- The View button opens the Command View (bible Section 7); with this on, Roblox takes that
+	-- button for its own UI selection. Our screens select for the gamepad themselves (UIController).
+	GuiService.AutoSelectGuiEnabled = false
 end
 
 function InputController:Start()

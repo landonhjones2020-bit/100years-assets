@@ -22,7 +22,9 @@
 	  `hud.banner <text>`, `hud.slot <1-5>` and `hud.touch [true|false]` (shows the touch
 	  buttons on any device, for screenshots) drive it.
 	* `/dev cv` prints the Command View's state (with the detail panel's options); `cv.open`,
-	  `cv.close`, `cv.select <floor> <column>` and `cv.ping` drive it.
+	  `cv.close`, `cv.select <floor> <column>` and `cv.ping` drive it; `cv.ghost <floor> <column>
+	  <span> [label]` / `cv.unghost` show a vote's ghost outline, `cv.blink <roomId> [false]` blinks
+	  a room's label, `cv.overlay <Power|Morale|Threat|Production> [false]` sets a sample reading.
 
 	In Studio it also makes PlayerScripts.DevInvoke (a BindableFunction) so tools can run the
 	same commands from the Client datamodel: DevInvoke:Invoke("replica _SelfTest").
@@ -243,7 +245,8 @@ local function describeCommandView(): string
 		state.Tab,
 		state.Labels,
 		state.Pings
-	) .. main .. detail
+	) .. (if state.Ghosts > 0 then `, {state.Ghosts} ghost(s)` else "")
+		.. (if state.Blinking ~= "" then `, blinking {state.Blinking}` else "") .. main .. detail
 end
 
 local function describeCamera(): string
@@ -374,6 +377,30 @@ local function run(text: string): string?
 		local floor, column = string.match(state.Selected, "^(%-?%d+),(%-?%d+)$")
 		Remotes.FireServer("PingCell", tonumber(floor), tonumber(column))
 		task.wait(0.5)
+		return describeCommandView()
+	elseif name == "cv.ghost" then
+		-- the outline a vote will show for a proposed room (Prompt 8 calls ShowGhost)
+		commandView:ShowGhost("dev", tonumber(args[1]) or 2, tonumber(args[2]) or 3, tonumber(args[3]) or 1,
+			if args[4] ~= nil then tostring(args[4]) else "Proposed")
+		return describeCommandView()
+	elseif name == "cv.unghost" then
+		commandView:HideGhost("dev")
+		return describeCommandView()
+	elseif name == "cv.blink" then
+		commandView:Blink(tostring(args[1] or "R1"), args[2] ~= false)
+		return describeCommandView()
+	elseif name == "cv.overlay" then
+		-- a sample reading for screenshots (green, amber, red by room number), until the systems
+		-- that own each overlay register real ones
+		local overlay = tostring(args[1] or "Power")
+		if args[2] == false then
+			commandView:SetOverlay(overlay, nil)
+		else
+			local lamps = { "Lamp_Green", "Lamp_Amber", "Lamp_Red" }
+			commandView:SetOverlay(overlay, function(roomId: string): string?
+				return lamps[(tonumber(string.match(roomId, "%d+")) or 0) % 3 + 1]
+			end)
+		end
 		return describeCommandView()
 	end
 	if #args > 8 then

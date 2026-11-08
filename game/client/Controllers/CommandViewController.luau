@@ -353,6 +353,11 @@ end
 
 -- The detail panel ------------------------------------------------------------------------------
 
+-- "there is already one" -> "There is already one" (Rules.Bunker's reasons are lower case)
+local function sentence(text: string): string
+	return (string.gsub(text, "^%l", string.upper))
+end
+
 local function section(order: number, label: string, body: string)
 	local s = ui:Clone("Section")
 	s.LayoutOrder = order
@@ -463,8 +468,11 @@ local function showOpenCell(floor: number, column: number)
 	local ctx = context()
 	local available, locked = {}, {}
 	for _, roomType in Config.Ids("Rooms") do
-		local ok, why = CV.RoomChoice(b, roomType, floor, column, ctx)
-		table.insert(if ok then available else locked, { Type = roomType, Why = why })
+		-- Fixed rooms (the Blast Door, the Reactor Core) come with the bunker and are never built
+		if not Config.Get("Rooms", roomType).Fixed then
+			local ok, why = CV.RoomChoice(b, roomType, floor, column, ctx)
+			table.insert(if ok then available else locked, { Type = roomType, Why = why })
+		end
 	end
 	local order = 1
 	for _, entry in available do
@@ -474,7 +482,7 @@ local function showOpenCell(floor: number, column: number)
 		order += 1
 	end
 	for _, entry in locked do
-		optionRow(order, Config.Get("Rooms", entry.Type).Name, entry.Why or "", false, nil)
+		optionRow(order, Config.Get("Rooms", entry.Type).Name, sentence(entry.Why or ""), false, nil)
 		order += 1
 	end
 end
@@ -486,7 +494,7 @@ local function showRock(floor: number, column: number)
 	detail:FindFirstChild("Sub").Text = `FLOOR {floor}  ·  COLUMN {column}  ·  {string.upper(band.Name)}`
 	local b = currentBunker()
 	local ok, why = b:CanDig(floor, column)
-	section(1, "Digging", if ok then "Can be dug: it touches an open cell." else `Can't be dug yet: {why}.`)
+	section(1, "Digging", if ok then "Can be dug: it is beside or under a dug cell or room." else `Can't be dug yet: {why}.`)
 	if band.Ore then
 		section(2, "Ore", `{Config.Get("Resources", band.Ore).Name} in the {band.Name}.`)
 	end
@@ -517,7 +525,8 @@ local function showOverlayLegend()
 	if not text then
 		return
 	end
-	optionRow(100, tab, if overlays[tab] then text else `{text} No readings yet.`, false, nil)
+	-- at the top of the detail panel, above whatever is selected
+	section(0, `{tab} overlay`, if overlays[tab] then text else `{text} No readings yet.`)
 end
 
 refreshDetail = function()
@@ -1001,6 +1010,21 @@ function CommandViewController:State(): { [string]: any }
 			return n
 		end)(),
 		Pings = #pings,
+		Ghosts = (function()
+			local n = 0
+			for _ in ghosts do
+				n += 1
+			end
+			return n
+		end)(),
+		Blinking = (function()
+			local keys = {}
+			for key in blinking do
+				table.insert(keys, key)
+			end
+			table.sort(keys)
+			return table.concat(keys, ",")
+		end)(),
 		FieldOfView = workspace.CurrentCamera.FieldOfView,
 	}
 end
@@ -1081,6 +1105,7 @@ function CommandViewController:Start()
 	local function watchHealth(character: Model)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid and humanoid:IsA("Humanoid") then
+			lastHealth = humanoid.Health -- so the first hit after spawning flashes too
 			humanoid.HealthChanged:Connect(function(health: number)
 				if open and lastHealth and health < lastHealth then
 					flashEdge()

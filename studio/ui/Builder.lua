@@ -82,6 +82,7 @@ local function new(class: string, parent: Instance, name: string, p: { [string]:
 	if p.rot then o.Rotation = p.rot end
 	if p.order then o.LayoutOrder = p.order end
 	if p.visible == false then o.Visible = false end
+	if p.clip then o.ClipsDescendants = true end
 	if p.sprite then skin(o, p.sprite, p.crop) end
 	if p.tint then o.ImageColor3 = p.tint end
 	if p.bg then
