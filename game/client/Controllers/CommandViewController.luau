@@ -194,14 +194,14 @@ end
 -- shifted so the centre shows in the middle of zone C rather than the middle of the screen.
 local function viewCFrame(): (CFrame, number)
 	local camera = workspace.CurrentCamera
-	local distance = CV.DistanceFor(height, t.FieldOfView)
+	local distance, fieldOfView = CV.Lens(height)
 	local viewport = camera.ViewportSize
 	local origin, size = viewRect()
 	local zoneCentre = origin + size / 2
 	local offset = zoneCentre - viewport / 2
 	local perPixel = height / math.max(viewport.Y, 1)
 	local position = Vector3.new(center.X - offset.X * perPixel, center.Y + offset.Y * perPixel, gridZ + distance)
-	return CFrame.lookAt(position, position - Vector3.zAxis), t.FieldOfView
+	return CFrame.lookAt(position, position - Vector3.zAxis), fieldOfView
 end
 
 -- The cell under a viewport point: the ray meets the plane of the cells' centres.
@@ -221,14 +221,13 @@ local function cellAt(point: Vector2): (number?, number?)
 	return nil, nil
 end
 
--- A world rectangle (cells from column to column + span - 1 on a floor) in zone C's scale.
+-- Cells from column to column + span - 1 on a floor (their interiors, floor to ceiling) in
+-- zone C's scale.
 local function cellRect(floor: number, column: number, span: number): (UDim2, UDim2, boolean)
 	local camera = workspace.CurrentCamera
-	local pitch = Grid.Pitch()
-	local left = Grid.CellPosition(floor, column) - Vector3.new(pitch.X / 2, -pitch.Y / 2, 0)
-	local right = Grid.CellPosition(floor, column + span - 1) + Vector3.new(pitch.X / 2, -pitch.Y / 2, 0)
-	local a = camera:WorldToViewportPoint(Vector3.new(left.X, left.Y, gridZ))
-	local b = camera:WorldToViewportPoint(Vector3.new(right.X, right.Y, gridZ))
+	local low, high = CV.CellBox(floor, column, span)
+	local a = camera:WorldToViewportPoint(Vector3.new(low.X, high.Y, gridZ))
+	local b = camera:WorldToViewportPoint(Vector3.new(high.X, low.Y, gridZ))
 	local origin, size = viewRect()
 	local x0, y0 = (math.min(a.X, b.X) - origin.X) / size.X, (math.min(a.Y, b.Y) - origin.Y) / size.Y
 	local x1, y1 = (math.max(a.X, b.X) - origin.X) / size.X, (math.max(a.Y, b.Y) - origin.Y) / size.Y
@@ -293,13 +292,12 @@ local function rebuildLabels()
 end
 
 local function placeLabels()
-	local pitch = Grid.Pitch()
 	for id, label in labels do
 		local room = replica:Get("Rooms", id)
 		if room then
-			local first = Grid.CellPosition(room.Floor, room.Column)
-			local last = Grid.CellPosition(room.Floor, room.Column + room.Span - 1)
-			local top = Vector3.new((first.X + last.X) / 2, first.Y + pitch.Y / 2 - 1.5, gridZ)
+			-- just under the room's ceiling (the label hangs from its top edge)
+			local low, high = CV.CellBox(room.Floor, room.Column, room.Span)
+			local top = Vector3.new((low.X + high.X) / 2, high.Y - 1, gridZ)
 			local position, visible = pointIn(top)
 			label.Position = position
 			label.Visible = visible
@@ -344,8 +342,9 @@ local function placeMarks()
 			ping.Frame:Destroy()
 			table.remove(pings, i)
 		else
-			local cell = Grid.CellPosition(ping.Floor, ping.Column)
-			local position, visible = pointIn(Vector3.new(cell.X, cell.Y, gridZ))
+			-- the pin's tip at the middle of the cell's interior
+			local low, high = CV.CellBox(ping.Floor, ping.Column, 1)
+			local position, visible = pointIn(Vector3.new((low.X + high.X) / 2, (low.Y + high.Y) / 2, gridZ))
 			ping.Frame.Position = position
 			ping.Frame.Visible = visible
 		end
@@ -374,7 +373,7 @@ local function optionRow(order: number, name: string, value: string, enabled: bo
 	local lamp = row:FindFirstChild("Lamp")
 	local isChosen = pick ~= nil and choice ~= nil and choice.Action == pick.Action and choice.RoomType == pick.RoomType
 		and choice.Other == pick.Other and choice.RoomId == pick.RoomId
-	KitRuntime.SetSprite(lamp, if isChosen then "Lamp_Orange" elseif enabled then "Lamp_Off" else "Lamp_Off")
+	KitRuntime.SetSprite(lamp, if isChosen then "Lamp_Orange" else "Lamp_Off")
 	lamp.Visible = pick ~= nil
 	if pick and enabled then
 		table.insert(rowConnections, row.Activated:Connect(function()
@@ -990,6 +989,7 @@ function CommandViewController:State(): { [string]: any }
 		Open = open,
 		Center = center,
 		Floors = height / pitch.Y,
+		Distance = (CV.Lens(height)),
 		Selected = if selected then Grid.Key(selected[1], selected[2]) else nil,
 		Choice = if choice then `{choice.Action} {choice.RoomType or choice.RoomId or ""}` else nil,
 		Tab = tab,

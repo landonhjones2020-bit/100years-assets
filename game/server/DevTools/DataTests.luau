@@ -1095,6 +1095,28 @@ test("CommandView: distance and visible height invert; the view stays over the g
 	expect(math.abs((bounds.Top - bounds.Bottom) - 10 * pitch.Y) < 1e-6, "10 floors tall")
 	local far = CommandView.Clamp(Vector2.new(1e6, -1e6), bounds)
 	expectEqual(far, Vector2.new(bounds.Right, bounds.Bottom), "clamped to the corner")
+	local grid = Grid.Tuning()
+	expectEqual(bounds.Top, Grid.CellPosition(1, 0).Y + grid.CellHeight, "the top is floor 1's ceiling")
+	local low, high = CommandView.CellBox(2, -2, 2)
+	expectEqual(low, Vector2.new(Grid.CellPosition(2, -2).X - pitch.X / 2, Grid.CellPosition(2, -2).Y), "a box starts at its floor")
+	expectEqual(high.Y - low.Y, grid.CellHeight, "and reaches the ceiling")
+	expect(math.abs((high.X - low.X) - 2 * pitch.X) < 1e-9, "two cells wide")
+end)
+
+test("CommandView: the camera never backs off past MaxDistance; the field of view widens instead", function()
+	local tuning = CommandView.Tuning()
+	local near = tuning.MaxDistance * 2 * math.tan(math.rad(tuning.FieldOfView) / 2) * 0.5
+	local d, fov = CommandView.Lens(near)
+	expectEqual(fov, tuning.FieldOfView, "close in: the narrow field of view")
+	expect(d < tuning.MaxDistance, "and nearer than the cap")
+	for _, floors in { tuning.StartFloors, tuning.MaxFloors } do
+		local height = floors * Grid.Pitch().Y
+		d, fov = CommandView.Lens(height)
+		expect(d <= tuning.MaxDistance + 1e-9, `{floors} floors: within the cap`)
+		expect(math.abs(CommandView.VisibleHeight(d, fov) - height) < 1e-6, `{floors} floors: still that many floors on screen`)
+		expect(fov >= tuning.FieldOfView and fov < 40, `{floors} floors: a field of view of {fov}`)
+	end
+	expect(tuning.MaxDistance + Grid.Pitch().Z < 500, "the back of the bunker is within the lowest graphics level's draw distance")
 end)
 
 test("CommandView: the build menu follows the unlocks and the placement rules (bible Section 6)", function()

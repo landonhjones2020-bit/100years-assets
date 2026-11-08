@@ -73,7 +73,7 @@ local Schemas: { [string]: Check.Checker } = {
 		CharacterFadeDistance = N, ErrorsBeforeFallback = I,
 	}),
 	CommandView = shape({
-		FieldOfView = N, StartFloors = N, MinFloors = N, MaxFloors = N, MoveSeconds = S, ZoomStep = Fr,
+		FieldOfView = N, MaxDistance = N, StartFloors = N, MinFloors = N, MaxFloors = N, MoveSeconds = S, ZoomStep = Fr,
 		PanFloorsPerSecond = N, DragPixels = N, StickDeadzone = Fr,
 		Ambient = F.Hex, OutdoorAmbient = F.Hex, ExposureCompensation = F.Number,
 	}),
@@ -186,7 +186,10 @@ return {
 			CharacterFadeDistance = 2.2, ErrorsBeforeFallback = 5,
 		},
 		CommandView = { -- Section 7 (a far camera with a narrow field of view, a 0.3 s move in and out); the rest prov.
-			FieldOfView = 8, StartFloors = 3.5, MinFloors = 1.5, MaxFloors = 11, MoveSeconds = 0.3, ZoomStep = 0.12,
+			-- MaxDistance: at the lowest graphics level Roblox stops drawing parts about 500 studs from
+			-- the camera (measured in Studio, 2026-11-08), so the camera never backs off further; past
+			-- it the field of view widens instead (Rules.CommandView.Lens).
+			FieldOfView = 8, MaxDistance = 440, StartFloors = 6, MinFloors = 1.5, MaxFloors = 11, MoveSeconds = 0.3, ZoomStep = 0.12,
 			PanFloorsPerSecond = 2.5, DragPixels = 6, StickDeadzone = 0.2,
 			Ambient = "#6E7680", OutdoorAmbient = "#8C949E", ExposureCompensation = 0.4,
 		},

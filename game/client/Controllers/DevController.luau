@@ -223,7 +223,7 @@ local function describeCommandView(): string
 		end)
 		local names = {}
 		for i, option in options do
-			if i <= 8 then
+			if i <= 24 then
 				table.insert(names, `{i}. {option[2]}`)
 			end
 		end
@@ -231,11 +231,12 @@ local function describeCommandView(): string
 			.. (if #names > 0 then "\n  options: " .. table.concat(names, "; ") else "")
 	end
 	return string.format(
-		"command view: %s, centre (%.0f, %.0f), %.1f floors high, FOV %.0f, selected %s, choice %s, tab %s, %d labels, %d pings",
+		"command view: %s, centre (%.0f, %.0f), %.1f floors high, camera %.0f studs away, FOV %.1f, selected %s, choice %s, tab %s, %d labels, %d pings",
 		if state.Open then "open" else "closed",
 		state.Center.X,
 		state.Center.Y,
 		state.Floors,
+		state.Distance,
 		state.FieldOfView,
 		tostring(state.Selected),
 		tostring(state.Choice),

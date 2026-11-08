@@ -5,7 +5,9 @@
 
 	* The view is a far camera with a narrow field of view, so the bunker looks nearly flat.
 	  VisibleHeight and DistanceFor convert between the camera's distance and how many studs
-	  fit on screen; Bounds and Clamp keep the view over the grid.
+	  fit on screen; Lens caps the distance (the lowest graphics level draws about 500 studs)
+	  and widens the field of view past it; CellBox is a cell's interior; Bounds and Clamp keep
+	  the view over the grid.
 	* RoomChoice says whether a room type can be proposed on an open cell, and why not: its
 	  unlock (Section 6: start, a blueprint draft, a draft or a depth, an era, the first cryo
 	  pod), then the placement rules (Rules.Bunker.CanPlace).
@@ -37,7 +39,29 @@ function CommandView.DistanceFor(height: number, fieldOfView: number): number
 	return height / (2 * math.tan(math.rad(fieldOfView) / 2))
 end
 
--- The grid's outer edges in world studs.
+-- The camera for a visible height (studs at the cells' plane): the narrow field of view while
+-- that fits within MaxDistance, then MaxDistance with a wider field of view. Roblox stops drawing
+-- parts about 500 studs away at the lowest graphics level, so a farther camera shows nothing on
+-- phones set to low graphics.
+function CommandView.Lens(height: number): (number, number)
+	local t = CommandView.Tuning()
+	local distance = CommandView.DistanceFor(height, t.FieldOfView)
+	if distance <= t.MaxDistance then
+		return distance, t.FieldOfView
+	end
+	return t.MaxDistance, 2 * math.deg(math.atan(height / 2 / t.MaxDistance))
+end
+
+-- A cell's box in world studs: Grid.CellPosition is the centre of its interior floor, so the
+-- interior runs from that floor up to the ceiling (CellHeight).
+function CommandView.CellBox(floor: number, column: number, span: number?): (Vector2, Vector2)
+	local pitch = Grid.Pitch()
+	local first = Grid.CellPosition(floor, column)
+	local last = Grid.CellPosition(floor, column + (span or 1) - 1)
+	return Vector2.new(first.X - pitch.X / 2, first.Y), Vector2.new(last.X + pitch.X / 2, first.Y + Grid.Tuning().CellHeight)
+end
+
+-- The grid's outer edges in world studs: the top floor's ceiling to the slab under the bottom floor.
 function CommandView.Bounds(): Bounds
 	local t = Grid.Tuning()
 	local pitch = Grid.Pitch()
@@ -46,8 +70,8 @@ function CommandView.Bounds(): Bounds
 	return {
 		Left = topLeft.X - pitch.X / 2,
 		Right = bottomRight.X + pitch.X / 2,
-		Top = topLeft.Y + pitch.Y / 2,
-		Bottom = bottomRight.Y - pitch.Y / 2,
+		Top = topLeft.Y + t.CellHeight,
+		Bottom = bottomRight.Y - t.SlabThickness,
 	}
 end
 
