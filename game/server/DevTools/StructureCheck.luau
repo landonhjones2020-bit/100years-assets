@@ -62,6 +62,19 @@ local ROBLOX_DEFAULTS: { [string]: boolean } = {
 	Health = true,
 }
 
+-- Scripts inside a player's character (Roblox copies Animate and Health into it).
+local function inCharacter(instance: Instance): boolean
+	local players = game:GetService("Players")
+	local model = instance:FindFirstAncestorOfClass("Model")
+	while model do
+		if players:GetPlayerFromCharacter(model) then
+			return true
+		end
+		model = model:FindFirstAncestorOfClass("Model")
+	end
+	return false
+end
+
 local function isRobloxDefault(instance: Instance): boolean
 	local node: Instance? = instance
 	while node and node.Parent ~= game do
@@ -241,7 +254,7 @@ function StructureCheck.Run(options: Options?): Result
 				pass()
 			elseif isSample(descendant) then
 				samples += 1
-			elseif isRobloxDefault(descendant) then
+			elseif isRobloxDefault(descendant) or inCharacter(descendant) then
 				continue
 			else
 				warnOf(`stray {descendant.ClassName} {path}: only Bootstrap and ClientBootstrap are scripts; make it a module`)
