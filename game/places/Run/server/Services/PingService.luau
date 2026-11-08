@@ -54,13 +54,13 @@ function PingService:Init(registry)
 	Remotes.OnServer("PingCell", function(player: Player, floor: number, column: number)
 		PingService:Ping(player, floor, column)
 	end)
-	registry.DevService:Register("ping", {
+	registry.DevService:Register("cell.ping", {
 		Description = "Ping a cell as if from the Command View (every player sees it on the mini-map).",
-		Usage = "ping <floor> <column>",
+		Usage = "cell.ping <floor> <column>",
 		Run = function(player: Player, args): string?
 			local floor, column = tonumber(args[1]), tonumber(args[2])
 			if not floor or not column then
-				return "usage: ping <floor> <column>"
+				return "usage: cell.ping <floor> <column>"
 			end
 			local ok, why = PingService:Ping(player, floor, column)
 			return if ok then `pinged {Grid.Key(floor, column)} ({sent} pings this run)` else `not pinged: {why}`

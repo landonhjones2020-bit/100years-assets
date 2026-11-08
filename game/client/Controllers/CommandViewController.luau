@@ -75,6 +75,7 @@ local RENDER_NAME = "100Y_CommandView"
 local RENDER_PRIORITY = Enum.RenderPriority.Camera.Value - 1 -- before CameraController drains zoom input
 local PING_ACTION = "100Y_CVPing"
 local PICK_ACTION = "100Y_CVPick"
+local HOLD_ACTION = "100Y_CVHold"
 local TABS = {
 	{ Id = "Build", Label = "Build", Icon = "Icon_Grid" },
 	{ Id = "Power", Label = "Power", Icon = "Icon_Power" },
@@ -735,12 +736,25 @@ end
 
 -- Open and close ---------------------------------------------------------------------------------
 
-local function controls(): any
-	local ok, module = pcall(function()
-		local scripts = Players.LocalPlayer:WaitForChild("PlayerScripts")
-		return require(scripts:WaitForChild("PlayerModule") :: ModuleScript)
-	end)
-	return if ok and module then (module :: any):GetControls() else nil
+-- The character stays where it was left: its movement keys and sticks are sunk while the view is
+-- open (Roblox's PlayerModule isn't an instance in every place, so this goes through
+-- ContextActionService rather than its controls object).
+local function holdCharacter(on: boolean)
+	if not on then
+		ContextActionService:UnbindAction(HOLD_ACTION)
+		return
+	end
+	ContextActionService:BindActionAtPriority(HOLD_ACTION, function()
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.ContextActionPriority.High.Value + 20,
+		Enum.PlayerActions.CharacterForward, Enum.PlayerActions.CharacterBackward,
+		Enum.PlayerActions.CharacterLeft, Enum.PlayerActions.CharacterRight, Enum.PlayerActions.CharacterJump,
+		Enum.KeyCode.Thumbstick1, Enum.KeyCode.Space)
+	local character = Players.LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid:Move(Vector3.zero)
+	end
 end
 
 local function fadeFrontWalls(on: boolean)
@@ -821,7 +835,7 @@ local function bindKeys(on: boolean)
 			CommandViewController:Select(cellAt(origin + size / 2))
 		end
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.ContextActionPriority.High.Value + 20, Enum.KeyCode.ButtonA)
+	end, false, Enum.ContextActionPriority.High.Value + 30, Enum.KeyCode.ButtonA)
 end
 
 local function onOpen(_page: Frame)
@@ -830,10 +844,7 @@ local function onOpen(_page: Frame)
 	before = { CFrame = camera.CFrame, FieldOfView = camera.FieldOfView }
 	cameraController:Suspend(SCREEN)
 	camera.CameraType = Enum.CameraType.Scriptable
-	local ctl = controls()
-	if ctl then
-		ctl:Disable()
-	end
+	holdCharacter(true)
 	bounds = CV.Bounds()
 	gridZ = Grid.CellPosition(1, 0).Z
 	height = t.StartFloors * Grid.Pitch().Y
@@ -881,10 +892,7 @@ local function onClose()
 	table.clear(rowConnections)
 	fadeFrontWalls(false)
 	liftLighting(false)
-	local ctl = controls()
-	if ctl then
-		ctl:Enable()
-	end
+	holdCharacter(false)
 	local camera = workspace.CurrentCamera
 	local back = before
 	before = nil
