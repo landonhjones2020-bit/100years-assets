@@ -1,4 +1,4 @@
-# Runbook for Claude sessions: 100 Years Of Fallout art
+# Runbook for Claude sessions: 100 Years Of Fallout (art and game code)
 
 The game bible (claude.ai Project "100 Years Of Fallout", docs
 `claude/100-years-of-fallout-game-bible-part-1.md` and `part-2.md`, master copy in the live
@@ -64,6 +64,24 @@ prints one chunk that finishes several inserted models at once (static and rigs)
 3. Screens: `python3 tools/ui_luau.py studio/ui/<Screen>.lua` prints the builder plus the
    screen with its sprite table; send it with `execute_luau` (Edit). Wait a few seconds
    before a screenshot: new atlases take 3 to 4 s to load.
+
+## 4c. Game code (bible Sections 23 and 24)
+
+The code lives in `game/` (Rojo naming) and goes into Studio as one Model asset, never by
+pasting code through `execute_luau`. Map and rules: `game/docs/ARCHITECTURE.md`; per-prompt
+Design Notes and Delivery Reports: `game/reports/`.
+
+1. Edit `game/`, commit (the build label is the commit), then
+   `python3 tools/game_sync.py build` → `exports/Code/GameCode.rbxmx` and a staged pair.
+2. `device_commit_files`, then `PATCH /assets/v1/assets/95026446991297` (the id is in
+   `game/BUILD.json`) with the `.rbxmx`, `contentType` `model/x-rbxm`; poll the operation.
+3. `python3 tools/game_sync.py install 95026446991297 <Lobby|Run>` prints the Luau; send it
+   with `execute_luau` (Edit) to each place. It refuses if a script was edited in Studio since
+   the last install (bring that edit into the repo first) and returns StructureCheck and the
+   data tests.
+4. Playtest for real (`start_stop_play`, `get_console_output`). In a playtest:
+   `ServerScriptService.DevTools.Invoke:Invoke("<command>")` (Server datamodel) and
+   `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands.
 
 ## 5. Rules
 

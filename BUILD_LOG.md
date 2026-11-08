@@ -9,6 +9,7 @@ Newest first. Every "verified" line says how it was checked.
 | Setup: workspace, repo, places, import folder, uploads | ✅ done 2026-11-07 | See the session below: every link of the pipeline was run once for real |
 | A0 style test (4 models, 2 clips, UI kit look) | ✅ approved by Landon 2026-11-08 | Revolver grip fixed after his note (v2, revision 2) |
 | Class looks by rarity (Landon's rule, bible Section 19) | ✅ first four done 2026-11-08 | Portraits rendered from the rig, Class Shop checked in Studio |
+| Prompt 0: architecture foundation (both places) | ✅ done 2026-11-08 | Playtests in Run and Lobby; `game/reports/P00_Architecture.md` |
 | A1 bunker kit and starting rooms | ⏳ next | |
 | A2 to A11 | not started | |
 
@@ -24,6 +25,7 @@ Newest first. Every "verified" line says how it was checked.
 | Palette roughness | decal 137250713243017, image 133306500207344 |
 | Prop_SupplyCrate | model 126356214563544 (version 2 is the right scale) |
 | R15_TestWave | animation 106072736219880 |
+| Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
 
 ## Session 2026-11-07: setup
