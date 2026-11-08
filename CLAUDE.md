@@ -82,11 +82,11 @@ Design Notes and Delivery Reports: `game/reports/`.
    and returns StructureCheck and the data tests. `ServerStorage.Tooling.CodeInstaller` is in
    both places; after changing `studio/CodeInstaller.lua`, reinstall it with the Luau from
    `python3 tools/game_sync.py tooling`.
-5. Profiles in Studio use the `PlayerProfiles_Studio` DataStore; `/dev profile`, `profile.raw`,
-   `profile.add`, `profile.receipt`, `profile.locktest` test them.
 4. Playtest for real (`start_stop_play`, `get_console_output`). In a playtest:
    `ServerScriptService.DevTools.Invoke:Invoke("<command>")` (Server datamodel) and
    `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands.
+5. Profiles in Studio use the `PlayerProfiles_Studio` DataStore; `/dev profile`, `profile.raw`,
+   `profile.add`, `profile.receipt`, `profile.locktest` test them.
 
 ## 5. Rules
 
