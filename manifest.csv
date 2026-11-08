@@ -1,0 +1,13 @@
+name,category,kind,step,size_studs,tri_budget,tris,swatches,status,asset_id,notes
+Prop_SupplyCrate,Props,model,Setup,4.233x2.65x2.745,800,668,brass;cream;hazard;leather;navy;pine;steel;teal,in_studio,126356214563544,pipeline test asset; v2 = 1 BU per stud; ServerStorage.Assets.Props
+R15_TestWave,Animations/R15,clip,Setup,,,,,verified,106072736219880,pipeline test clip; plays on an R15 avatar in a Run playtest
+Palette_Color,Palette,texture,Setup,,,,,in_studio,117311354483821,decal; image rbxassetid://131636360909441 (ServerStorage.Assets PaletteColor)
+Palette_Metalness,Palette,texture,Setup,,,,,in_studio,110154044758914,decal; image rbxassetid://92929300444943 (PaletteMetalness)
+Palette_Roughness,Palette,texture,Setup,,,,,in_studio,137250713243017,decal; image rbxassetid://133306500207344 (PaletteRoughness)
+Room_Kitchen_L1,Rooms,model,A0,,5000,,,planned,,"proposed A0 room: Kitchen level 1, one cell (shell 2,000 + furniture 3,000)"
+Weapon_ServiceRevolver,Weapons,model,A0,,1500,,,planned,,"proposed A0 weapon: chrome, gunmetal and walnut; grip and muzzle sockets"
+Monster_HollowMiner,Monsters,model,A0,,4000,,,planned,,"proposed A0 monster: Mines brute, segmented rig with Motor6Ds"
+Resident_Common,Residents,model,A0,,2500,,,planned,,"proposed A0 resident: R15 segmented kit, Work Overalls, tint skin"
+Resident_Walk,Animations/Resident,clip,A0,,,,,planned,,proposed A0 clip: resident walk
+HollowMiner_Attack,Animations/HollowMiner,clip,A0,,,,,planned,,proposed A0 clip: Hollow Miner attack
+UI_StyleTest,UI,ui,A0,,,,,planned,,"Landon 2026-11-07: themed UI, no generic Roblox look; Class Shop in The Frame + HUD skinned with the kit"

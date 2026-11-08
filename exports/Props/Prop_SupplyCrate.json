@@ -1,0 +1,78 @@
+{
+ "asset": "Prop_SupplyCrate",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  4.233,
+  2.65,
+  2.745
+ ],
+ "tris": 668,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Crate",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "hazard",
+    "leather",
+    "navy",
+    "pine",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.325,
+    0.0
+   ],
+   "size": [
+    4.233,
+    2.65,
+    2.745
+   ],
+   "tris": 668
+  }
+ ],
+ "meta": {
+  "use": "Supply Drop crate and surface caches",
+  "pipeline_test": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Prompt": {
+   "p": [
+    0.0,
+    1.4,
+    -2.477
+   ],
+   "yaw": 0.0
+  },
+  "Top": {
+   "p": [
+    0.0,
+    2.65,
+    0.022
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "ddbaddc1f52983fb"
+}

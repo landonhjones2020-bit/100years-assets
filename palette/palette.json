@@ -1,0 +1,396 @@
+{
+ "version": 1,
+ "cols": 8,
+ "rows": 4,
+ "cell_px": 64,
+ "size_px": [
+  512,
+  256
+ ],
+ "swatches": [
+  {
+   "index": 0,
+   "name": "teal",
+   "hex": "#2F6F73",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "Steadfast Teal: coveralls, signage, room trim",
+   "uv": [
+    0.0625,
+    0.875
+   ]
+  },
+  {
+   "index": 1,
+   "name": "mint",
+   "hex": "#8CC2B5",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "pastel enamel: appliances, Medbay",
+   "uv": [
+    0.1875,
+    0.875
+   ]
+  },
+  {
+   "index": 2,
+   "name": "cream",
+   "hex": "#F2E6C9",
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "use": "walls, panels, paper",
+   "uv": [
+    0.3125,
+    0.875
+   ]
+  },
+  {
+   "index": 3,
+   "name": "porcelain",
+   "hex": "#F7F5EE",
+   "metalness": 0.0,
+   "roughness": 0.3,
+   "use": "white enamel, tiles, the Lab",
+   "uv": [
+    0.4375,
+    0.875
+   ]
+  },
+  {
+   "index": 4,
+   "name": "signal",
+   "hex": "#E8743B",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "Signal Orange: buttons, the Blast Door, warning stripes",
+   "uv": [
+    0.5625,
+    0.875
+   ]
+  },
+  {
+   "index": 5,
+   "name": "hazard",
+   "hex": "#F2C14E",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "Hazard Yellow: warning paint, lamp shades",
+   "uv": [
+    0.6875,
+    0.875
+   ]
+  },
+  {
+   "index": 6,
+   "name": "blush",
+   "hex": "#E8A09A",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "pastel pink enamel: diner, kitchen",
+   "uv": [
+    0.8125,
+    0.875
+   ]
+  },
+  {
+   "index": 7,
+   "name": "skyblue",
+   "hex": "#9DC4DB",
+   "metalness": 0.0,
+   "roughness": 0.4,
+   "use": "baby blue enamel",
+   "uv": [
+    0.9375,
+    0.875
+   ]
+  },
+  {
+   "index": 8,
+   "name": "chrome",
+   "hex": "#DADFE3",
+   "metalness": 1.0,
+   "roughness": 0.18,
+   "use": "chrome trim, appliance handles",
+   "uv": [
+    0.0625,
+    0.625
+   ]
+  },
+  {
+   "index": 9,
+   "name": "steel",
+   "hex": "#8D969D",
+   "metalness": 1.0,
+   "roughness": 0.38,
+   "use": "steel, pipes, shelving",
+   "uv": [
+    0.1875,
+    0.625
+   ]
+  },
+  {
+   "index": 10,
+   "name": "gunmetal",
+   "hex": "#4A5259",
+   "metalness": 1.0,
+   "roughness": 0.45,
+   "use": "dark steel, machinery, guns",
+   "uv": [
+    0.3125,
+    0.625
+   ]
+  },
+  {
+   "index": 11,
+   "name": "rubber",
+   "hex": "#23262A",
+   "metalness": 0.0,
+   "roughness": 0.85,
+   "use": "rubber, tyres, black plastic",
+   "uv": [
+    0.4375,
+    0.625
+   ]
+  },
+  {
+   "index": 12,
+   "name": "navy",
+   "hex": "#1B2A3A",
+   "metalness": 0.0,
+   "roughness": 0.5,
+   "use": "Deep Navy: dark paint, lettering",
+   "uv": [
+    0.5625,
+    0.625
+   ]
+  },
+  {
+   "index": 13,
+   "name": "copper",
+   "hex": "#B8743A",
+   "metalness": 1.0,
+   "roughness": 0.35,
+   "use": "copper pipes, copper ore",
+   "uv": [
+    0.6875,
+    0.625
+   ]
+  },
+  {
+   "index": 14,
+   "name": "brass",
+   "hex": "#C8A23E",
+   "metalness": 1.0,
+   "roughness": 0.3,
+   "use": "brass fittings, gauges",
+   "uv": [
+    0.8125,
+    0.625
+   ]
+  },
+  {
+   "index": 15,
+   "name": "olive",
+   "hex": "#5E6A44",
+   "metalness": 0.0,
+   "roughness": 0.65,
+   "use": "army paint, military crates",
+   "uv": [
+    0.9375,
+    0.625
+   ]
+  },
+  {
+   "index": 16,
+   "name": "pine",
+   "hex": "#C49A63",
+   "metalness": 0.0,
+   "roughness": 0.75,
+   "use": "timber props, crates",
+   "uv": [
+    0.0625,
+    0.375
+   ]
+  },
+  {
+   "index": 17,
+   "name": "walnut",
+   "hex": "#6B4630",
+   "metalness": 0.0,
+   "roughness": 0.7,
+   "use": "mid-century furniture",
+   "uv": [
+    0.1875,
+    0.375
+   ]
+  },
+  {
+   "index": 18,
+   "name": "leather",
+   "hex": "#8C5B3B",
+   "metalness": 0.0,
+   "roughness": 0.6,
+   "use": "leather, belts, Digby's fur",
+   "uv": [
+    0.3125,
+    0.375
+   ]
+  },
+  {
+   "index": 19,
+   "name": "rust",
+   "hex": "#B5412B",
+   "metalness": 0.0,
+   "roughness": 0.6,
+   "use": "Rust Red: danger, rust, red vinyl",
+   "uv": [
+    0.4375,
+    0.375
+   ]
+  },
+  {
+   "index": 20,
+   "name": "plum",
+   "hex": "#6E4766",
+   "metalness": 0.0,
+   "roughness": 0.8,
+   "use": "curtains, upholstery accents, odd things from the Deep",
+   "uv": [
+    0.5625,
+    0.375
+   ]
+  },
+  {
+   "index": 21,
+   "name": "avocado",
+   "hex": "#8A9A46",
+   "metalness": 0.0,
+   "roughness": 0.75,
+   "use": "avocado fabric and appliances",
+   "uv": [
+    0.6875,
+    0.375
+   ]
+  },
+  {
+   "index": 22,
+   "name": "leaf",
+   "hex": "#6F9B4C",
+   "metalness": 0.0,
+   "roughness": 0.8,
+   "use": "plants",
+   "uv": [
+    0.8125,
+    0.375
+   ]
+  },
+  {
+   "index": 23,
+   "name": "forest",
+   "hex": "#3D5C35",
+   "metalness": 0.0,
+   "roughness": 0.85,
+   "use": "dark foliage, moss",
+   "uv": [
+    0.9375,
+    0.375
+   ]
+  },
+  {
+   "index": 24,
+   "name": "sandstone",
+   "hex": "#A39A8C",
+   "metalness": 0.0,
+   "roughness": 0.95,
+   "use": "light rock, concrete",
+   "uv": [
+    0.0625,
+    0.125
+   ]
+  },
+  {
+   "index": 25,
+   "name": "stone",
+   "hex": "#6F665C",
+   "metalness": 0.0,
+   "roughness": 0.95,
+   "use": "rock",
+   "uv": [
+    0.1875,
+    0.125
+   ]
+  },
+  {
+   "index": 26,
+   "name": "basalt",
+   "hex": "#403B37",
+   "metalness": 0.0,
+   "roughness": 0.95,
+   "use": "deep rock, soot",
+   "uv": [
+    0.3125,
+    0.125
+   ]
+  },
+  {
+   "index": 27,
+   "name": "ash",
+   "hex": "#8E8C88",
+   "metalness": 0.0,
+   "roughness": 0.9,
+   "use": "surface ash, rubble",
+   "uv": [
+    0.4375,
+    0.125
+   ]
+  },
+  {
+   "index": 28,
+   "name": "murk",
+   "hex": "#2D4A57",
+   "metalness": 0.0,
+   "roughness": 0.25,
+   "use": "Flooded Caverns water, wet stone",
+   "uv": [
+    0.5625,
+    0.125
+   ]
+  },
+  {
+   "index": 29,
+   "name": "crystal",
+   "hex": "#8FE3E0",
+   "metalness": 0.0,
+   "roughness": 0.15,
+   "use": "Crystal Hollows crystal",
+   "uv": [
+    0.6875,
+    0.125
+   ]
+  },
+  {
+   "index": 30,
+   "name": "glow",
+   "hex": "#7CFF9B",
+   "metalness": 0.0,
+   "roughness": 0.3,
+   "use": "Glow Green: anything the Source touched (Neon parts for real glow)",
+   "uv": [
+    0.8125,
+    0.125
+   ]
+  },
+  {
+   "index": 31,
+   "name": "tint",
+   "hex": null,
+   "metalness": 0.0,
+   "roughness": 0.6,
+   "use": "transparent: shows the MeshPart's Color (skin, hair, runtime recolours)",
+   "uv": [
+    0.9375,
+    0.125
+   ]
+  }
+ ]
+}
