@@ -19,6 +19,7 @@
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
@@ -54,6 +55,10 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
 local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true }
+-- Keys the engine marks as processed before ContextActionService sees them begin (Tab: Roblox
+-- keeps it for its player list and UI navigation). These are read from UserInputService too,
+-- unless a text box has focus or Roblox's menu is open.
+local PROCESSED_KEYS: { [Enum.KeyCode]: string } = { [Enum.KeyCode.Tab] = "CommandView" }
 
 type Listener = { Began: (() -> ())?, Ended: (() -> ())? }
 
@@ -256,6 +261,18 @@ end
 
 function InputController:Start()
 	UserInputService.LastInputTypeChanged:Connect(setDevice)
+	UserInputService.InputBegan:Connect(function(io: InputObject, processed: boolean)
+		local action = PROCESSED_KEYS[io.KeyCode]
+		if action and processed and bound[action] and not UserInputService:GetFocusedTextBox() and not GuiService.MenuIsOpen then
+			press(action, "Processed" .. io.KeyCode.Name, true)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(io: InputObject)
+		local action = PROCESSED_KEYS[io.KeyCode]
+		if action then
+			press(action, "Processed" .. io.KeyCode.Name, false)
+		end
+	end)
 
 	UserInputService.InputChanged:Connect(function(input: InputObject, processed: boolean)
 		if input.UserInputType == Enum.UserInputType.MouseMovement then

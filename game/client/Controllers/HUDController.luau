@@ -28,6 +28,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -569,6 +570,11 @@ function HUDController:Start()
 	end
 	gui = found
 	KitRuntime.Watch(found)
+	-- Tab opens the Command View (bible Section 7), so Roblox's player list (also on Tab) is off
+	-- in the run.
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+	end)
 	buildStockpile()
 	HUDController:SetClass("Survivor", 1)
 	HUDController:SetVital("Stamina", 1)
