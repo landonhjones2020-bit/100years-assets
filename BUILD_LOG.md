@@ -12,6 +12,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 0: architecture foundation (both places) | ✅ done 2026-11-08 | Playtests in Run and Lobby; `game/reports/P00_Architecture.md` |
 | Prompt 1: content definitions (36 Config types) | ✅ done 2026-11-08 | Installed in both places, 39 data tests; `game/reports/P01_Content.md` |
 | Prompt 2: saved data (profiles, locks, receipts) | ✅ done 2026-11-08 | Real DataStore playtests in both places; `game/reports/P02_SavedData.md` |
+| Prompt 3: run lifecycle and cycle clock (Run) | ✅ done 2026-11-08 | Two Run playtests (intro, skips, bosses, Year 100, Endless, defeat) and a Lobby playtest; `game/reports/P03_RunLifecycle.md` |
 | A1 bunker kit and starting rooms | ⏳ next | |
 | A2 to A11 | not started | |
 
