@@ -52,7 +52,8 @@ local ENTRY_SCRIPTS: { [string]: string } = {
 	["StarterPlayer.StarterPlayerScripts.ClientBootstrap"] = "LocalScript",
 }
 
--- Roblox's own player and character scripts.
+-- Roblox's own player and character scripts, which it inserts under StarterPlayer when a
+-- playtest starts (PlayerModule also carries InputSetup and ServerAuthority scripts).
 local ROBLOX_DEFAULTS: { [string]: boolean } = {
 	PlayerModule = true,
 	PlayerScriptsLoader = true,
@@ -60,6 +61,17 @@ local ROBLOX_DEFAULTS: { [string]: boolean } = {
 	Animate = true,
 	Health = true,
 }
+
+local function isRobloxDefault(instance: Instance): boolean
+	local node: Instance? = instance
+	while node and node.Parent ~= game do
+		if ROBLOX_DEFAULTS[node.Name] then
+			return node:FindFirstAncestorOfClass("StarterPlayer") ~= nil
+		end
+		node = node.Parent
+	end
+	return false
+end
 
 local SCRIPT_ROOTS = {
 	"Workspace",
@@ -229,7 +241,7 @@ function StructureCheck.Run(options: Options?): Result
 				pass()
 			elseif isSample(descendant) then
 				samples += 1
-			elseif ROBLOX_DEFAULTS[descendant.Name] and string.find(path, "^StarterPlayer%.") then
+			elseif isRobloxDefault(descendant) then
 				continue
 			else
 				warnOf(`stray {descendant.ClassName} {path}: only Bootstrap and ClientBootstrap are scripts; make it a module`)
