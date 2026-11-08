@@ -4,16 +4,16 @@ R15_TestWave,Animations/R15,clip,Setup,,,,,verified,106072736219880,pipeline tes
 Palette_Color,Palette,texture,Setup,,,,,in_studio,117311354483821,decal; image rbxassetid://131636360909441 (ServerStorage.Assets PaletteColor)
 Palette_Metalness,Palette,texture,Setup,,,,,in_studio,110154044758914,decal; image rbxassetid://92929300444943 (PaletteMetalness)
 Palette_Roughness,Palette,texture,Setup,,,,,in_studio,137250713243017,decal; image rbxassetid://133306500207344 (PaletteRoughness)
-Room_Kitchen_L1,Rooms,model,A0,30.52x15.77x29.7,3000,2992,brass;chrome;cream;gunmetal;hazard;mint;navy;pine;porcelain;rubber;rust;signal;steel;teal;walnut,verified,96540501294464,A0 room: Kitchen level 1 furniture for one cell; ServerStorage.Assets.Rooms
-Weapon_ServiceRevolver,Weapons,model,A0,0.52x1.434x2.198,1500,796,brass;chrome;gunmetal;rubber;steel;walnut,verified,86157197359329,"A0 weapon: chrome, gunmetal and walnut; Grip and Muzzle sockets"
-Monster_HollowMiner,Monsters,model,A0,5.762x6.799x5.886,4000,2142,basalt;glow;gunmetal;hazard;leather;olive;pine;rubber;steel;stone,verified,83503998043819,"A0 monster: Mines brute; 11 Motor6Ds, glow welded; Anim_Attack"
-Resident_Common,Residents,model,A0,3.894x5.837x1.522,2500,2268,brass;cream;leather;navy;rubber;teal;tint,verified,118658215913755,"A0 resident: R15 segmented, Work Overalls, tint skin and hair; face decal; Anim_Walk"
-HollowMiner_Attack,Animations/HollowMiner,clip,A0,,,,,verified,99038102545112,"A0 clip: overhead pickaxe strike, Action priority, Hit marker 0.7 s; played in a Run playtest"
-UI_StyleTest,UI,ui,A0,,,,,verified,,"A0: Class Shop (StarterGui.A0_ClassShop) and HUD (StarterGui.A0_HUD) in Run, skinned with the kit atlases; awaiting approval"
-R15_ResidentWalk,Animations/R15,clip,A0,,,,,verified,125264708961546,"A0 clip: resident walk, R15, Movement priority, 1 s loop; played in a Run playtest"
-Kit_CellShell,Kit,model,A0,34x18x34,2000,1636,basalt;chrome;copper;cream;gunmetal;hazard;sandstone;signal;steel;teal,verified,134174776264272,"A0 kit: one 32x16x32 cell shell, doors on both side walls; ServerStorage.Assets.Kit"
-Face_Resident_Smile,Decals,image,A0,,,,,in_studio,87390877749448,"decal; image rbxassetid://103176016141485; resident face, Head front"
-UI_Atlas_Cards,UI,image,A0,,,,,verified,110523717816719,decal; image rbxassetid://75110860144472; ui/atlas_cards.png
-UI_Atlas_KitA,UI,image,A0,,,,,verified,86421992183940,decal; image rbxassetid://74779239339407; ui/atlas_kit_a.png
-UI_Atlas_KitB,UI,image,A0,,,,,verified,125432561809946,decal; image rbxassetid://102495471404574; ui/atlas_kit_b.png
-UI_Atlas_Portraits,UI,image,A0,,,,,verified,112354578662230,decal; image rbxassetid://76558516830406; ui/atlas_portraits.png
+Room_Kitchen_L1,Rooms,model,A0,30.52x15.77x29.7,3000,2992,brass;chrome;cream;gunmetal;hazard;mint;navy;pine;porcelain;rubber;rust;signal;steel;teal;walnut,approved,96540501294464,A0 room: Kitchen level 1 furniture for one cell; ServerStorage.Assets.Rooms
+Weapon_ServiceRevolver,Weapons,model,A0,0.52x1.49x2.271,1500,1308,brass;chrome;gunmetal;rubber;steel;walnut,verified,86157197359329,"A0 weapon: chrome, gunmetal and walnut; Grip and Muzzle sockets; v2 (revision 2, Nov 8): raked walnut grip with a gunmetal frame and lanyard ring, after Landon's A0 note on the handle"
+Monster_HollowMiner,Monsters,model,A0,5.762x6.799x5.886,4000,2142,basalt;glow;gunmetal;hazard;leather;olive;pine;rubber;steel;stone,approved,83503998043819,"A0 monster: Mines brute; 11 Motor6Ds, glow welded; Anim_Attack"
+Resident_Common,Residents,model,A0,3.894x5.837x1.522,2500,2268,brass;cream;leather;navy;rubber;teal;tint,approved,118658215913755,"A0 resident: R15 segmented, Work Overalls, tint skin and hair; face decal; Anim_Walk"
+HollowMiner_Attack,Animations/HollowMiner,clip,A0,,,,,approved,99038102545112,"A0 clip: overhead pickaxe strike, Action priority, Hit marker 0.7 s; played in a Run playtest"
+UI_StyleTest,UI,ui,A0,,,,,approved,,"A0: Class Shop (StarterGui.A0_ClassShop) and HUD (StarterGui.A0_HUD) in Run, skinned with the kit atlases; approved by Landon Nov 8, 2026"
+R15_ResidentWalk,Animations/R15,clip,A0,,,,,approved,125264708961546,"A0 clip: resident walk, R15, Movement priority, 1 s loop; played in a Run playtest"
+Kit_CellShell,Kit,model,A0,34x18x34,2000,1636,basalt;chrome;copper;cream;gunmetal;hazard;sandstone;signal;steel;teal,approved,134174776264272,"A0 kit: one 32x16x32 cell shell, doors on both side walls; ServerStorage.Assets.Kit"
+Face_Resident_Smile,Decals,image,A0,,,,,approved,87390877749448,"decal; image rbxassetid://103176016141485; resident face, Head front"
+UI_Atlas_Cards,UI,image,A0,,,,,approved,110523717816719,decal; image rbxassetid://75110860144472; ui/atlas_cards.png
+UI_Atlas_KitA,UI,image,A0,,,,,verified,128192097302269,decal; image rbxassetid://85214114089895; ui/atlas_kit_a.png (Nov 8: Service Revolver v2 icon)
+UI_Atlas_KitB,UI,image,A0,,,,,approved,125432561809946,decal; image rbxassetid://102495471404574; ui/atlas_kit_b.png
+UI_Atlas_Portraits,UI,image,A0,,,,,verified,96645914120696,"decal; image rbxassetid://120657029267813; ui/atlas_portraits.png (Nov 8: class outfits by rarity, generators/Residents/outfits.py)"

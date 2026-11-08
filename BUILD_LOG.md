@@ -7,8 +7,10 @@ Newest first. Every "verified" line says how it was checked.
 | Step | State | Verified how |
 |---|---|---|
 | Setup: workspace, repo, places, import folder, uploads | ✅ done 2026-11-07 | See the session below: every link of the pipeline was run once for real |
-| A0 style test (4 models, 2 clips, UI kit look) | ⏳ next | Gates everything else (bible Section 19) |
-| A1 to A11 | not started | |
+| A0 style test (4 models, 2 clips, UI kit look) | ✅ approved by Landon 2026-11-08 | Revolver grip fixed after his note (v2, revision 2) |
+| Class looks by rarity (Landon's rule, bible Section 19) | ✅ first four done 2026-11-08 | Portraits rendered from the rig, Class Shop checked in Studio |
+| A1 bunker kit and starting rooms | ⏳ next | |
+| A2 to A11 | not started | |
 
 ## Ids
 
@@ -83,6 +85,57 @@ Newest first. Every "verified" line says how it was checked.
   revision, and `manifest.csv` holds the current one.
 * UI must be themed to the game, never generic Roblox UI (Landon). Rules in `STYLE.md`
   section 3; the kit's look joins the A0 style test.
+
+## 2026-11-08 (evening): A0 approved, revolver v2, class looks by rarity
+
+Landon approved the A0 style test ("I love the style") with one fix: the revolver's handle.
+He also set a rule for every character: the rarer it is, the more creative its look
+(bible Section 19, "Rarity shows in the look").
+
+| Asset | Id | Status | Notes |
+|---|---|---|---|
+| Weapon_ServiceRevolver v2 | 86157197359329 (revision 2) | verified | 1,308 tris (1,500); size 0.52 × 1.49 × 2.271 checked in Studio; back on the showroom table |
+| UI atlas: kit_a | decal 128192097302269, image 85214114089895 | verified | new revolver icon (`previews/A0/Studio_Revolver_v2.jpg`) |
+| UI atlas: portraits | decal 96645914120696, image 120657029267813 | verified | class outfits; the five Class Shop images repointed |
+
+**Done**
+* Revolver: the forward-raked box grip is now a raked walnut grip in a gunmetal frame with
+  brass medallions, steel screws and a lanyard ring, PATCHed as revision 2 of the same
+  model (id unchanged).
+* Bible (live doc rev 95, Project part 2): A0 approved, the three fonts, the rarity enamels,
+  the class card, the rarity rule, and the Section 24 note.
+* `generators/Residents/outfits.py`: class outfits built on the resident rig, bound to its
+  bones. Security (Common): padded vest, soft cap, brass star. Quartermaster (Rare): canvas
+  apron, flat cap, the supply pack (crate, bedroll, lantern), hazard-yellow accents, the
+  requisition clipboard. Warden (Epic): caped greatcoat with a high collar, peaked cap,
+  fringed epaulettes, the Rally Call megaphone, a glowing Steadfast Star. Mad Scientist
+  (Legendary): wild hand-made hair and moustache, glowing goggles, a brass mechanical arm
+  with a claw, the Gadget Belt, a Glowshard reactor pack with a sparking Tesla coil, a
+  boiling flask. Held props are card-only (in a run the hands hold the player's tools);
+  `Body.reach` bends an arm so a hand lands on a target.
+* `generators/UI/UI_Portraits.py` dresses, poses and renders each class with bloom on Neon;
+  `--check` writes review sheets (`previews/Residents/Outfit_<Class>.png`: card view,
+  front, back). Class Shop in Studio: `previews/UI/Studio_ClassShop_Outfits.jpg`.
+* `Resident_Common.py` marks its chest details (`sf_detail = "chest"`) so a vest or coat
+  can remove them; the exported model is unchanged.
+* `AssetSetup` now lives in `ServerStorage.ArtPipeline.AssetSetup` in Run;
+  `tools/setup_batch.py --install` reinstalls it.
+* `manifest.csv`: A0 rows `approved`, except the revolver and kit_a (`verified`: Landon
+  hasn't seen v2 yet). The file is LF now, as `steadfast.manifest_upsert` writes it.
+
+**Findings**
+1. Blender 5.2 compositing: a `CompositorNodeTree` node group on
+   `scene.compositing_node_group`, ending in a Group Output (the Composite node is gone).
+   The Glare node's `Glare` output is the halo alone, so it can be added to the render and
+   written into alpha; the halo then shows on the card behind the transparent sprite.
+2. Bloom also caught specular highlights on brass under the rim light. Threshold 2.0 with
+   Neon emission 8 keeps it on the Neon parts.
+3. `ServerStorage.NS_Pipeline` showed up in Run again; deleted (third time).
+
+**Open**
+* Landon hasn't seen the class looks yet; any of them can change.
+* The outfits exist as portraits only. In game they become cosmetic accessories on the
+  player's own avatar (A11), and the other 15 classes need theirs.
 
 ## 2026-11-08: A0 style test built and in Studio (waiting for Landon's approval)
 

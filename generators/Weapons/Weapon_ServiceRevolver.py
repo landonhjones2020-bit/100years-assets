@@ -1,6 +1,6 @@
 """Weapon_ServiceRevolver: heavy single shots (bible Section 27); the Security and Warden
 starting gun. A chunky 1950s service revolver: gunmetal frame and barrel, a chrome cylinder
-with its six chambers showing, walnut grip with brass medallions.
+with its six chambers showing, walnut grip panels on a raked gunmetal grip frame, brass medallions and a lanyard ring.
 
 Pivot = the grip, where the hand closes, so the Tool's grip offset is zero. Sockets: Grip
 (the pivot) and Muzzle (barrel tip, facing forward, for tracers and flashes).
@@ -42,11 +42,34 @@ def build():
     sf.tag(sf.box((0.12, 0.2, 0.22), loc=(0, 0.42, 0.86), rot=(-30, 0, 0), bevel=0.03, segments=1), "Revolver", "steel", collision=q)
     sf.tag(sf.torus(0.2, 0.04, loc=(0, -0.02, 0.32), rot=(0, 90, 0), major_segs=12, minor_segs=4), "Revolver", "gunmetal", collision=q)
     sf.tag(sf.box((0.05, 0.07, 0.2), loc=(0, 0.02, 0.33), rot=(16, 0, 0), bevel=0.0), "Revolver", "steel", collision=q)
-    # walnut grip, angled back, with brass medallions and a gunmetal butt cap
-    sf.tag(sf.box((0.3, 0.44, 0.9), loc=GRIP, rot=(-18, 0, 0), bevel=0.1, segments=1), "Revolver", "walnut", collision=q)
+    # grip: a side profile (Y back, Z up) that rakes backward to a rounded plow-handle butt.
+    # A gunmetal grip frame shows as a strap round the front, back and butt; walnut panels
+    # sit on both sides with brass medallions and a centre screw; a lanyard ring at the heel.
+    def side(points, thickness, swatch, x0=None):
+        # profile_slab extrudes along local Z; rot (90, 0, 90) maps local X->Y, Y->Z, Z->X
+        x0 = -thickness / 2 if x0 is None else x0
+        return sf.profile_slab(points, thickness, loc=(x0, 0, 0), rot=(90, 0, 90), bevel=0.045, segments=2)
+
+    grip = [(0.20, 0.44), (0.21, 0.24), (0.25, 0.04), (0.31, -0.16), (0.37, -0.29), (0.45, -0.355),
+            (0.55, -0.37), (0.645, -0.33), (0.685, -0.25), (0.66, -0.11), (0.60, 0.08), (0.55, 0.28),
+            (0.52, 0.46), (0.47, 0.62), (0.36, 0.64)]
+
+    def grown(points, d):
+        cy = sum(p[0] for p in points) / len(points)
+        cz = sum(p[1] for p in points) / len(points)
+        out = []
+        for y, z in points:
+            vy, vz = y - cy, z - cz
+            n = math.hypot(vy, vz) or 1.0
+            out.append((y + vy / n * d, z + vz / n * d))
+        return out
+
+    sf.tag(side(grown(grip, 0.03), 0.17, "gunmetal"), "Revolver", "gunmetal", collision=q)
+    sf.tag(side(grip, 0.29, "walnut"), "Revolver", "walnut", collision=q)
     for sx in (-1, 1):
-        sf.tag(sf.cyl(0.07, 0.04, loc=(sx * 0.16, 0.3, 0.22), rot=(0, 90, 0), verts=8, bevel=0.0), "Revolver", "brass", collision=q)
-    sf.tag(sf.box((0.32, 0.46, 0.1), loc=(0, 0.155, -0.31), rot=(-18, 0, 0), bevel=0.03, segments=1), "Revolver", "gunmetal", collision=q)
+        sf.tag(sf.cyl(0.062, 0.04, loc=(sx * 0.15, 0.40, 0.20), rot=(0, 90, 0), verts=10, bevel=0.0), "Revolver", "brass", collision=q)
+        sf.tag(sf.cyl(0.03, 0.03, loc=(sx * 0.15, 0.47, -0.08), rot=(0, 90, 0), verts=6, bevel=0.0), "Revolver", "steel", collision=q)
+    sf.tag(sf.torus(0.065, 0.02, loc=(0, 0.64, -0.40), rot=(0, 90, 0), major_segs=10, minor_segs=4), "Revolver", "steel", collision=q)
     return {"export": {
         "budget": BUDGET, "step": "A0", "pivot": GRIP,
         "sockets": {"Grip": (GRIP, 0.0), "Muzzle": ((0, MUZZLE_Y - 0.06, BORE_Z), 0.0)},

@@ -22,6 +22,15 @@ finish: real materials, lighting that sells the room, UI that is ours and not a 
   that make it recognisable (a rim, a rivet row, a handle, a label plate).
 * Nothing from Fallout: no vault-door gears with numbers, no blue-and-yellow jumpsuits, no
   thumbs-up mascot (bible Section 3 has the full list).
+* **Rarity shows in the look (Landon, 2026-11-08; bible Section 19).** The rarer the
+  character, the more creative it gets, and nothing rare is ever a recolour. Common: a
+  clean work outfit. Rare: its own outfit, one signature piece (a hat, tool or pack) and an
+  accent colour. Epic: a new silhouette (a coat, armour or harness), two or more signature
+  pieces, brass or chrome detailing and a small effect. Legendary: one of a kind, with a
+  silhouette nothing else has, a hand-made head or hair, glowing or moving parts and its
+  own idle. Applies to residents, every Legend, class outfits and cards, and cosmetics.
+  The four A0 classes in `generators/Residents/outfits.py` set the bar for each tier;
+  check a new look with `python3 generators/UI/UI_Portraits.py --check <Class>`.
 
 ## 2. Palette
 

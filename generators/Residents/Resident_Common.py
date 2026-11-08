@@ -89,6 +89,8 @@ def build():
     part(patch_in, "UpperTorso", "navy", collision="query")
     tagp = sf.box((0.48, 0.05, 0.15), loc=(-0.47, -0.55, 3.5), bevel=0.0)
     part(tagp, "UpperTorso", "cream", collision="query")
+    for o in (vneck, zipline, patch, patch_in, tagp):
+        o["sf_detail"] = "chest"           # class outfits that cover the chest remove these
 
     # ---- Head: neck, rounded head, ears, nose (skin); hair is its own part
     skin(sf.cyl(0.3, 0.34, loc=(0, 0, 4.06), verts=10, bevel=0.0), "Head", collision="query")

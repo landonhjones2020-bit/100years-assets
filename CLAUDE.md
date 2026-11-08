@@ -47,12 +47,16 @@ Start the install in the background and do other work while it downloads.
 7. Put the id and `status` (`uploaded`, `in_studio`, `verified`, `approved`) in `manifest.csv`, commit, push, add a line to `BUILD_LOG.md`.
 
 Batches: `python3 tools/setup_batch.py Asset=<id> Rig=<id>:rig:face=<imageId>:Walk=<animId> ...`
-prints one chunk that finishes several inserted models at once (static and rigs).
+prints one chunk that finishes several inserted models at once (static and rigs). It uses
+`ServerStorage.ArtPipeline.AssetSetup`; add `--install` in a new place or after editing
+`studio/AssetSetup.lua`.
 
 ## 4b. UI kit (bible Section 18, STYLE.md section 3)
 
 1. `python3 generators/UI/UI_Kit.py [Piece ...]` and `python3 generators/UI/UI_Portraits.py`
-   render sprites to `ui/sprites/`; `python3 tools/pack_ui.py` packs `ui/atlas_*.png`, writes
+   render sprites to `ui/sprites/` (class portraits are the resident dressed in its class
+   outfit from `generators/Residents/outfits.py`; `UI_Portraits.py --check <Class>` writes a
+   review sheet); `python3 tools/pack_ui.py` packs `ui/atlas_*.png`, writes
    `ui/kit.json` (keeps ids of unchanged atlases) and `previews/UI/UI_Kit_sheet.jpg`.
 2. Upload each changed atlas as a Decal (section 4, step 3), get the image ids with
    `InsertService:LoadAsset`, and put `decalId` and `imageId` in `ui/kit.json`.

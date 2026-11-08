@@ -2,13 +2,15 @@
 rendered from the 3D models, so they always match).
 
 A0 sample: the four classes in the sample Class Shop, one per rarity, each the Resident
-model in a class outfit colour; a larger portrait for the detail panel; the Service
-Revolver icon for the hotbar and the kit list.
+model dressed in its class outfit (generators/Residents/outfits.py: the rarer the class,
+the more creative the look) and posed with its props; a larger portrait for the detail
+panel; the Service Revolver icon for the hotbar and the kit list.
 
 Outputs ui/sprites/Portrait_<Class>.png (340x290, the card window at 2x),
 Portrait_<Class>_Large.png (480x408) and Icon_ServiceRevolver.png (256x256).
 
-Run:  python3 generators/UI/UI_Portraits.py
+Run:  python3 generators/UI/UI_Portraits.py [Portrait_<Class> ...]
+      python3 generators/UI/UI_Portraits.py --check [Class ...]   (previews/Residents/Outfit_<Class>.png)
 """
 import bpy  # noqa: F401
 import json
@@ -26,23 +28,9 @@ import uikit as K  # noqa: E402
 
 sf = K.sf
 
-# class -> outfit swatch, skin and hair preview colours (the game tints these per resident)
-CLASSES = {
-    "Security": ("navy", "#8D5A3B", "#1E1A17"),
-    "Quartermaster": ("olive", "#E0AC86", "#A0522D"),
-    "Warden": ("rust", "#C58F6A", "#9A9890"),
-    "MadScientist": ("porcelain", "#F1C7A5", "#E8E4DA"),
-}
-POSES = {   # bone -> (x, y, z) degrees, upright-bone convention (see steadfast.make_rig)
-    "Security": {"LeftUpperArm": (-8, 0, 14), "RightUpperArm": (-6, 0, -14), "LeftLowerArm": (-28, 0, 0),
-                 "RightLowerArm": (-22, 0, 0), "Head": (0, -10, 0), "UpperTorso": (0, -6, 0)},
-    "Quartermaster": {"LeftUpperArm": (-4, 0, 10), "RightUpperArm": (-30, 0, -8), "RightLowerArm": (-60, 0, 0),
-                      "LeftLowerArm": (-14, 0, 0), "Head": (4, -14, 0), "UpperTorso": (0, -4, 0)},
-    "Warden": {"LeftUpperArm": (-2, 0, 20), "RightUpperArm": (-2, 0, -20), "LeftLowerArm": (-70, 0, 0),
-               "RightLowerArm": (-70, 0, 0), "Head": (-4, -8, 0), "UpperTorso": (0, -8, 0)},
-    "MadScientist": {"LeftUpperArm": (-40, 0, 16), "RightUpperArm": (-10, 0, -12), "LeftLowerArm": (-55, 0, 0),
-                     "RightLowerArm": (-16, 0, 0), "Head": (8, -18, 6), "UpperTorso": (0, -10, 0)},
-}
+import outfits as O  # noqa: E402
+
+CLASSES = list(O.OUTFITS)          # the A0 class shop sample: one class per rarity
 
 
 def _render_setup(w, h, samples=96):
@@ -91,6 +79,69 @@ def _camera(loc, target, lens=85.0):
     return co
 
 
+def _neon_material():
+    """Neon parts glow in Roblox: in the render they emit their palette colour."""
+    m = bpy.data.materials.get("PaletteNeon")
+    if m:
+        return m
+    m = bpy.data.materials.new("PaletteNeon")
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    t = nt.nodes.new("ShaderNodeTexImage")
+    t.image = bpy.data.images.load(os.path.join(sf.REPO, "palette", "palette.png"), check_existing=True)
+    t.interpolation = "Closest"
+    nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
+    nt.links.new(t.outputs["Color"], b.inputs["Emission Color"])
+    b.inputs["Emission Strength"].default_value = 8.0
+    return m
+
+
+def _bloom(strength=0.9, size=7):
+    """Studio's bloom on Neon: a glare pass whose halo also writes alpha, so it shows on the
+    card behind the transparent sprite."""
+    sc = bpy.context.scene
+    ng = bpy.data.node_groups.new("CardComp", "CompositorNodeTree")
+    ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    sc.compositing_node_group = ng
+    sc.render.use_compositing = True
+    N, L = ng.nodes.new, ng.links.new
+    rl = N("CompositorNodeRLayers")
+    gl = N("CompositorNodeGlare")
+    gl.inputs["Type"].default_value = "Bloom"
+    gl.inputs["Threshold"].default_value = 2.0
+    gl.inputs["Strength"].default_value = strength
+    gl.inputs["Size"].default_value = size
+    L(rl.outputs["Image"], gl.inputs["Image"])
+    sep_i, sep_g = N("CompositorNodeSeparateColor"), N("CompositorNodeSeparateColor")
+    L(rl.outputs["Image"], sep_i.inputs["Image"])
+    L(gl.outputs["Glare"], sep_g.inputs["Image"])
+    comb = N("CompositorNodeCombineColor")
+    halo = None
+    for ch in ("Red", "Green", "Blue"):
+        add = N("ShaderNodeMath")
+        add.operation = "ADD"
+        L(sep_i.outputs[ch], add.inputs[0])
+        L(sep_g.outputs[ch], add.inputs[1])
+        L(add.outputs[0], comb.inputs[ch])
+        if halo is None:
+            halo = sep_g.outputs[ch]
+        else:
+            mx = N("ShaderNodeMath")
+            mx.operation = "MAXIMUM"
+            L(halo, mx.inputs[0])
+            L(sep_g.outputs[ch], mx.inputs[1])
+            halo = mx.outputs[0]
+    a = N("ShaderNodeMath")
+    a.operation = "MAXIMUM"
+    a.use_clamp = True
+    L(sep_i.outputs["Alpha"], a.inputs[0])
+    L(halo, a.inputs[1])
+    L(a.outputs[0], comb.inputs["Alpha"])
+    out = N("NodeGroupOutput")
+    L(comb.outputs["Image"], out.inputs[0])
+
+
 def _export_view():
     """Swap the tagged parts for the export meshes (palette UVs, tint preview colours)."""
     objs = sf._tagged_objects()
@@ -98,6 +149,8 @@ def _export_view():
     for o in objs:
         o.hide_render = True
     for b in built:
+        if b["src"][0].get("sf_material") == "Neon":
+            b["obj"].data.materials[0] = _neon_material()
         tint = b["src"][0].get("sf_tint")
         if tint:
             me = b["obj"].data
@@ -111,35 +164,76 @@ def _export_view():
     return built
 
 
-def portrait(cls, w, h, out_name, framing):
+def dress(cls):
+    """Build the resident in a class outfit, posed for its card, with its held props."""
     import Resident_Common as R
-    outfit, skin, hair = CLASSES[cls]
+    o = O.OUTFITS[cls]
     sf.reset()
-    R.OUTFIT, R.SKIN, R.HAIR = outfit, skin, hair
+    R.OUTFIT, R.SKIN, R.HAIR = o["base"], o["skin"], o["hair"]
     R.build()
-    arm = R.arm
-    for bone, (x, y, z) in POSES[cls].items():
-        pb = arm.pose.bones[bone]
-        pb.rotation_mode = "QUATERNION"
-        pb.rotation_quaternion = Euler((math.radians(x), math.radians(y), math.radians(z))).to_quaternion()
+    o["build"]()
+    O.pose(R.arm, o["pose"])
+    if o["props"]:
+        o["props"](O.Body(R.arm, o["pose"]))
     bpy.context.view_layer.update()
     _export_view()
-    _render_setup(w, h)
-    tz, half_h, yaw = framing          # look-at height, half the visible height, camera yaw
+    return o
+
+
+def _shoot(path, w, h, tz, half_h, yaw, pitch=0.06, samples=96):
+    """Place the card camera and lights for one view and render it."""
+    sc = _render_setup(w, h, samples)
+    for ob in [ob for ob in sc.objects if ob.type in ("CAMERA", "LIGHT")]:
+        bpy.data.objects.remove(ob, do_unlink=True)
     lens = 85.0
     dist = half_h / math.tan(math.atan(12.0 / lens))
     a = math.radians(yaw)
     target = Vector((0, 0, tz))
-    cam = target + Vector((math.sin(a), -math.cos(a), 0.06)) * dist
-    _camera(cam, target, lens)
-    _area("Key", target + Vector((-6, -7, 6)), target, 900, 5)
-    _area("Fill", target + Vector((7, -5, 1)), target, 260, 6)
-    _area("Rim", target + Vector((5, 6, 5)), target + Vector((0, 0, 0.6)), 1100, 3)
-    p = os.path.join(K.SPRITES, f"{out_name}.png")
-    bpy.context.scene.render.filepath = p
+    fwd = Vector((math.sin(a), -math.cos(a), pitch))
+    _camera(target + fwd * dist, target, lens)
+    side = Vector((math.cos(a), math.sin(a), 0))          # the camera's right
+    _area("Key", target - side * 6 + fwd * 7 + Vector((0, 0, 6)), target, 900, 5)
+    _area("Fill", target + side * 7 + fwd * 5 + Vector((0, 0, 1)), target, 260, 6)
+    _area("Rim", target + side * 5 - fwd * 6 + Vector((0, 0, 5)), target + Vector((0, 0, 0.6)), 1100, 3)
+    sc.render.filepath = path
     bpy.ops.render.render(write_still=True)
+    return path
+
+
+def portrait(cls, w, h, out_name, framing=None, samples=96):
+    o = dress(cls)
+    _bloom()
+    tz, half_h = framing or o["framing"]
+    p = _shoot(os.path.join(K.SPRITES, f"{out_name}.png"), w, h, tz, half_h, O.CAM_YAW, samples=samples)
     print(f"[UI_Portraits] {out_name}")
     return p
+
+
+def check_sheet(cls, samples=48):
+    """previews/Residents/Outfit_<Class>.png: the card view, then the whole outfit from the
+    front and from behind, on grey, for reviewing the look."""
+    from PIL import Image
+    o = dress(cls)
+    _bloom()
+    tmp = os.path.join(sf.REPO, "previews", "Residents", "_tmp")
+    os.makedirs(tmp, exist_ok=True)
+    tz, half_h = o["framing"]
+    shots = [_shoot(os.path.join(tmp, "a.png"), 340 * 2, 290 * 2, tz, half_h, O.CAM_YAW, samples=samples),
+             _shoot(os.path.join(tmp, "b.png"), 440, 580, 3.25, 3.55, -30, 0.1, samples),
+             _shoot(os.path.join(tmp, "c.png"), 440, 580, 3.25, 3.55, 150, 0.1, samples)]
+    ims = [Image.open(p).convert("RGBA") for p in shots]
+    sheet = Image.new("RGBA", (680 + 440 * 2 + 40, 600), (74, 76, 80, 255))
+    x = 10
+    for im in ims:
+        sheet.alpha_composite(im, (x, (600 - im.height) // 2))
+        x += im.width + 10
+    out = os.path.join(sf.REPO, "previews", "Residents", f"Outfit_{cls}.png")
+    sheet.convert("RGB").save(out)
+    for p in shots:
+        os.remove(p)
+    os.rmdir(tmp)
+    print(f"[UI_Portraits] {out}")
+    return out
 
 
 def revolver_icon(size=256):
@@ -183,12 +277,18 @@ SPECS["Portrait_Security_Large"] = {"size": [480, 408], "slice": None, "note": "
 SPECS["Icon_ServiceRevolver"] = {"size": [256, 256], "slice": None, "note": "Service Revolver icon from the model"}
 
 if __name__ == "__main__":
-    want = set(sys.argv[1:])
+    args = sys.argv[1:]
+    if args and args[0] == "--check":           # outfit review sheets only
+        for c in args[1:] or CLASSES:
+            check_sheet(c)
+        sys.exit(0)
+    want = set(args)
     for c in CLASSES:
         if not want or f"Portrait_{c}" in want:
-            portrait(c, 340, 290, f"Portrait_{c}", (4.42, 1.74, -24))
+            portrait(c, 340, 290, f"Portrait_{c}")
     if not want or "Portrait_Security_Large" in want:
-        portrait("Security", 480, 408, "Portrait_Security_Large", (4.2, 1.95, -24))
+        tz, half_h = O.OUTFITS["Security"]["framing"]
+        portrait("Security", 480, 408, "Portrait_Security_Large", (tz - 0.22, half_h + 0.21))
     if not want or "Icon_ServiceRevolver" in want:
         revolver_icon()
     spec_path = os.path.join(K.UI, "specs.json")

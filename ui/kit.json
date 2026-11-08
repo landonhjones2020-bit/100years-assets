@@ -11,10 +11,10 @@
    ]
   },
   "kit_a": {
-   "decalId": "86421992183940",
+   "decalId": "128192097302269",
    "file": "ui/atlas_kit_a.png",
-   "imageId": "74779239339407",
-   "sha1": "e9bad8a14fad6e9347b2010bab966c021c175c04",
+   "imageId": "85214114089895",
+   "sha1": "4493c7491cf5f18b9d4d961ccf3c669582fd7396",
    "size": [
     1024,
     1000
@@ -31,10 +31,10 @@
    ]
   },
   "portraits": {
-   "decalId": "112354578662230",
+   "decalId": "96645914120696",
    "file": "ui/atlas_portraits.png",
-   "imageId": "76558516830406",
-   "sha1": "b7a30fddc450d47b0e0da9553ab147a6e8fe49c5",
+   "imageId": "120657029267813",
+   "sha1": "38040bab35240be3ab9ac368512accf72870cdc0",
    "size": [
     1024,
     1012
