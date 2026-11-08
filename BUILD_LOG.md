@@ -17,6 +17,7 @@ Newest first. Every "verified" line says how it was checked.
 | A1 bunker kit and starting rooms | ✅ in Studio 2026-11-08 | 46 models set up (size and pivot checked), the bunker builds from them; walked in a playtest; `previews/Game/A1_Studio_sheet.jpg`, addendum in `game/reports/P04_BunkerGrid.md` |
 | Prompt 5: over-the-shoulder camera, wall fade, zoom caps (both places) | ✅ done 2026-11-08 | Run and Lobby playtests with real key and mouse-button presses; mouse, stick and touch look still need a person; `game/reports/P05_Camera.md`, `previews/Game/P05_*.jpg` |
 | Landon's answers to the Prompt 3 and 4 questions | ✅ built and in the bible 2026-11-08 | Run playtest (boss and final Surges, resting) and data tests (HP per cell); addenda in `P03_RunLifecycle.md` and `P04_BunkerGrid.md` |
+| Prompt 6: The Frame and HUD skeleton (Frame both places, HUD in Run) | ✅ built 2026-11-08, waiting for Landon's AutoScale Lite pass | Run and Lobby playtests with real clicks and keys; `game/reports/P06_FrameHUD.md`, `previews/Game/P06_Studio_sheet.jpg` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -33,6 +34,47 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 6, The Frame and the HUD
+
+Game code builds `p6-265bbea` to `p6-c29648b`. The last one is code asset 95026446991297
+revision 15, installed in Run and Lobby: StructureCheck 0 errors (Run 257 checks, Lobby 184),
+64 data tests passed.
+
+**Done**
+* UI kit: 16 new sprites in their own atlas, `ui/atlas_hud.png` (decal 113747766925760, image
+  129337851835347): touch buttons, action icons, Copper and Crystal. The A0 atlases kept their
+  ids.
+* Studio: StarterGui.Frame built in both places and StarterGui.HUD in Run, from
+  `studio/ui/Frame.lua` and `studio/ui/HUD.lua`. The A0 sample screens moved to
+  `ServerStorage.UIArchive` (Run).
+* Code: UIController, HUDController, MiniMapController, Lib.KitRuntime, Lib.UIKit (generated
+  by `pack_ui.py`), Lib.UISamples, Shared.UIContract, Rules.Hud, and StructureCheck's UI rules.
+
+**Verified in Studio**
+* The HUD shows the year, era, phase, time left and the dial. It covered the siren, a Surge
+  and the Brood Mother's open-ended Surge, and the year tiles flipped at 24 to 25.
+* A real Left Alt plus a click on Ready skipped the day. A real 3 key press picked hotbar
+  slot 3.
+* The mini-map followed the character. The touch buttons, alerts and banner render.
+* The Frame: the class catalog sample (a real click selected Security, then BUY 40), a real
+  Backspace closed it, and the list and docked samples work. The Lobby opens the same Frame.
+* Screenshots: `previews/Game/P06_Studio_*.jpg`, sheet `P06_Studio_sheet.jpg`.
+
+**Findings**
+1. A gamepad selection inside the Frame swallowed the keyboard's Enter (Roblox clicks the
+   selected button). The Frame now clears the selection when the device changes away from
+   the gamepad.
+2. The first Ready spot was under the stockpile panel and the alert feed overlapped the touch
+   cluster. Ready moved beside the year counter, the alerts moved up, and the shoulder button
+   moved to the cluster's left.
+3. A new atlas shows 3 to 4 s after joining (the ore icons popped in). Preloading during the
+   intro is recommended.
+
+**Landon to do**
+* Run the AutoScale Lite pass on StarterGui.Frame (both places) and StarterGui.HUD (Run), then
+  save and publish both places.
+* Check the HUD and the Frame in the Device Emulator (small phone, tablet, 1080p, 4K TV).
 
 ## 2026-11-08 (late night): Prompt 5 camera, Landon's answers
 

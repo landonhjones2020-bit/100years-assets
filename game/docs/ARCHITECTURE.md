@@ -25,8 +25,9 @@ ReplicatedStorage
     Types                        types that cross module or network boundaries
     Remotes                      the one list of RemoteEvents + the only API to use them
     RunState                     the run's small values, replicated as attributes on it (Run)
+    UIContract                   the parts of the UI layout the code uses (StructureCheck checks them)
     Config                       content aggregator; one child ModuleScript per content type
-    Rules                        pure game rules both sides share (Clock, Grid, Bunker, CameraRig)
+    Rules                        pure game rules both sides share (Clock, Grid, Bunker, CameraRig, Hud)
     Utilities                    Check, Delta, Loader, Log, RateLimit, Signal, TableUtil, Trove
 ServerScriptService
   Bootstrap                      (Script) the only server script
@@ -36,9 +37,11 @@ ServerScriptService
 StarterPlayer.StarterPlayerScripts
   ClientBootstrap                (LocalScript) the only client script
   Controllers                    one ModuleScript per controller
-  Lib                            client-only modules that aren't controllers (Fade)
+  Lib                            client-only modules that aren't controllers (Fade, KitRuntime, UIKit, UISamples)
 StarterGui
   Reticle                        the aim sight (built in Studio, studio/ui/Reticle.lua)
+  Frame                          The Frame, the one menu layout (both places; studio/ui/Frame.lua)
+  HUD                            the run HUD (Run; studio/ui/HUD.lua)
 ServerStorage
   Documentation.ARCHITECTURE     this document
   Assets                         models from the art pipeline (Run)
@@ -48,7 +51,7 @@ ServerStorage
 Rules: only the two bootstraps are scripts; everything else is a ModuleScript. No `_G`, no
 `shared`: modules `require` each other. Server-only code never goes in ReplicatedStorage.
 Objects named `A0_...` (showroom, sample screens) are art-pipeline samples, allowed until
-gameplay replaces them.
+gameplay replaces them; the A0 sample screens now sit in `ServerStorage.UIArchive` (Run).
 
 ## Where code comes from
 
@@ -235,6 +238,38 @@ client only. The camera's geometry is `Shared.Rules.CameraRig`, its numbers `Tun
   Invisicam in both places (`StarterPlayer.DevCameraOcclusionMode`); `EnableMouseLockOption` is
   off. StructureCheck checks both settings and the Reticle.
 
+## The UI (both places)
+
+Bible Section 18. The layout is real instances in StarterGui, built through the Studio
+connector by `studio/ui/*.lua` (`python3 tools/ui_luau.py studio/ui/<Screen>.lua` prints the
+Luau; send it with `execute_luau`, Edit) and then given Landon's AutoScale Lite pass. Code
+never builds layout: it clones templates and sets text and images.
+
+* `Shared.UIContract` lists every part of `StarterGui.Frame` and `StarterGui.HUD` the code
+  uses. StructureCheck fails if one is missing, and also checks ScreenInsets
+  CoreUISafeInsets, ResetOnSpawn off, ZIndexBehavior Sibling, Scale-only sizes, TextScaled
+  text with a UITextSizeConstraint of at least 12, and no scripts inside a GUI.
+* `Lib.UIKit` is generated from `ui/kit.json` by `tools/pack_ui.py` (the sprite table).
+  `Lib.KitRuntime.Watch(gui)` keeps 9-slice corners, strokes and scroll bars in step with the
+  screen height and runs the push-buttons (RectUp/RectDown/RectHover/RectDisabled attributes).
+* `UIController` is The Frame: `Register(name, screen)`, `Open(name, args)`, `Close()`,
+  `SetChips`, `SetMainAction`, `SetHint`, `SetFooterActions`, `Clone(template)`,
+  `SetSprite`, `SetRarity`, `Clear`. A screen is a page (a clone of `Templates.Page`, or a page
+  built for it under `Cabinet.Pages`) filling zones B, C and D; `Docked = true` is the Command
+  View's mode (zone C shows the world). While a screen is open the cursor is free, gameplay
+  input is blocked (`InputController:Block`) and the HUD hides. Backspace or B closes; Enter
+  or Y presses the main action; L1 and R1 switch tabs.
+* `HUDController` fills the run HUD: the year flip counter, era, cycle dial, phase and time
+  left, Ready (the SetReady remote), siren and Surge banners, health, the class and ability,
+  stockpile chips, the hotbar's selection, the Command View button and the touch buttons
+  (through `InputController:BindButton`; Roblox's jump button hides while ours shows). On PC,
+  holding Left Alt frees the cursor to click HUD buttons. For later systems: `Alert`,
+  `Banner`, `SetVital`, `SetClass`, `SetResource`, `SetSlot`, `HotbarSelected`.
+* `MiniMapController` draws the side-view mini-map around the player from the Cells and Rooms
+  collections; `Blink(key, on)` for alerts.
+* Changing a screen after Landon's AutoScale Lite pass: edit the instances in place (and the
+  builder file to match), or rebuild and ask for the pass again.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -296,7 +331,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * Other built-ins: `version`, `ping`, `players`, `remotes`, `log [level]`, `logs [count]`,
   `rep`, `rep.selftest`; on the client `replica <collection>`, `client`, `clock`,
   `ready [true|false]` (fires SetReady like the HUD button), `camera`, `camera.shoulder`,
-  `camera.aim [bool]`, `camera.look <yaw> <pitch>`, `camera.zoom <studs>`, `camera.cursor`.
+  `camera.aim [bool]`, `camera.look <yaw> <pitch>`, `camera.zoom <studs>`, `camera.cursor`,
+  `ui`, `ui.sample`, `ui.list`, `ui.dock`, `ui.open <screen>`, `ui.close`, `ui.tab <id>`,
+  `ui.main`, `hud`, `hud.alert <Danger|Warning|Info> <text>`, `hud.banner <text>`,
+  `hud.slot <n>`, `hud.touch [bool]`.
 * The bunker (Run place): `grid` (map), `grid.rooms`, `grid.graph`, `grid.dig <floor> <column>`,
   `grid.build <Type> <floor> <column> [span] [level]`, `grid.remove <id>`, `grid.merge <id> <id>`,
   `grid.level <id> <level>`, `grid.rebuild`, `grid.sockets <id>`, `grid.art`.
@@ -328,7 +366,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
-| both | DevController | controller | ReplicaController, CameraController | `/dev` chat command, Studio DevInvoke |
+| both | UIController | controller | InputController, CameraController | The Frame: screens, pages, tabs, chips, the main action, footer |
+| both | HUDController | controller | InputController, UIController, CameraController | the run HUD (Run; nothing in the Lobby yet) |
+| both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map (Run) |
+| both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
 
@@ -353,3 +394,7 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   places. Landon's answers to the Prompt 3 and 4 questions: boss Surges and the final Surge run
   until the boss is beaten, resting resets at the siren, HP per cell, dug cells count as power
   steps.
+* **Prompt 6 (2026-11-08)**: The Frame and the HUD skeleton, ready for the AutoScale Lite pass.
+  StarterGui.Frame (both places) and StarterGui.HUD (Run) built from the UI kit; UIController,
+  HUDController, MiniMapController, Lib.KitRuntime, Lib.UIKit, Lib.UISamples (dev samples),
+  Shared.UIContract, Rules.Hud; a HUD atlas (touch buttons, action icons, copper and crystal).
