@@ -368,26 +368,36 @@ local function sideWall(parent: Instance, name: string, x0: number, x1: number, 
 	block(parent, name, Vector3.new(x0, floorY + DOOR_HEIGHT, z - half), Vector3.new(x1, top, z + half), WALL_COLOR, Enum.Material.SmoothPlastic)
 end
 
--- Inside a room of several cells the ceiling pieces (32 wide) leave the 2-stud strip over
--- the wall line between cells open; a steel beam closes it.
+-- Inside a room of several cells the ceiling, back wall and front wall pieces leave the
+-- 2-stud strip over the wall line between two cells bare: a steel beam closes the ceiling
+-- and steel posts close the walls (the front post belongs to that front wall piece, so it
+-- fades and hides with it).
 local SEAM_COLOR = Color3.fromHex("8D969D") -- palette: steel
-local function ceilingSeam(model: Model, floor: number, column: number)
+local SEAM_WIDTH = 2.4 -- over the 2-stud strip, a little each side
+local SEAM_DEPTH = 0.6
+
+local function seamPart(parent: Instance, name: string, low: Vector3, high: Vector3): Part?
+	local part = block(parent, name, low, high, SEAM_COLOR, Enum.Material.SmoothPlastic)
+	if part then
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+	end
+	return part
+end
+
+local function seams(model: Model, floor: number, column: number, front: Model?)
 	local t = Grid.Tuning()
 	local cell = Grid.CellPosition(floor, column)
-	local x = cell.X - t.CellWidth / 2 - t.WallThickness
-	local top = cell.Y + t.CellHeight
-	local beam = block(
-		model,
-		"CeilingSeam",
-		Vector3.new(x - t.WallThickness, top - 1.5, cell.Z - t.CellDepth / 2),
-		Vector3.new(x + t.WallThickness, top, cell.Z + t.CellDepth / 2),
-		SEAM_COLOR,
-		Enum.Material.SmoothPlastic
-	)
-	if beam then
-		beam.CanCollide = false
-		beam.CanQuery = false
-		beam.CanTouch = false
+	local x = cell.X - t.CellWidth / 2 - t.WallThickness -- the line between this cell and the one on its left
+	local y0, top = cell.Y, cell.Y + t.CellHeight
+	local back, frontZ = cell.Z - t.CellDepth / 2, cell.Z + t.CellDepth / 2
+	local half = SEAM_WIDTH / 2
+	seamPart(model, "CeilingSeam", Vector3.new(x - t.WallThickness, top - 1.5, back), Vector3.new(x + t.WallThickness, top, frontZ))
+	seamPart(model, "BackSeam", Vector3.new(x - half, y0, back), Vector3.new(x + half, top, back + SEAM_DEPTH))
+	local post = seamPart(front or model, "FrontSeam", Vector3.new(x - half, y0, frontZ - SEAM_DEPTH), Vector3.new(x + half, top, frontZ))
+	if post then
+		CollectionService:AddTag(post, BunkerKit.FRONT_WALL_TAG)
 	end
 end
 
@@ -409,13 +419,13 @@ local function shellArt(model: Model, room: Bunker.Room, shape: Shape)
 		end
 		piece("Kit_WallBack", `WallBack {key}`, model, at)
 		local front = piece("Kit_WallFront", `WallFront {key}`, model, at)
-		if front then
-			tagFront(front, true)
-		end
 		if offset == 0 then
 			piece(if shape.LeftOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallLeft {key}`, model, at * HALF_TURN)
 		else
-			ceilingSeam(model, room.Floor, column)
+			seams(model, room.Floor, column, front)
+		end
+		if front then
+			tagFront(front, true)
 		end
 		if offset == room.Span - 1 then
 			piece(if shape.RightOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallRight {key}`, model, at)
