@@ -202,8 +202,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * **Prompt 0 (2026-11-08)**: architecture foundation in both places. Shared modules, Config
   aggregator, remotes with validation and rate limits, the delta channel, bootstraps with
   declared dependencies, DevTools, this document. No gameplay.
-* **Prompt 2 (2026-11-08)**: saved data. ProfileService with session locks, migrations,
-  autosave, release and shutdown saves, purchase receipts; SessionService gates.
 * **Prompt 1 (2026-11-08)**: content definitions. 36 content types with schemas and the
   bible's starter data (provisional numbers marked), the modifier vocabulary, Tuning for
   every system, and data tests that hold the content to the bible.
+* **Prompt 2 (2026-11-08)**: saved data. ProfileService with session locks, migrations,
+  autosave, release and shutdown saves, purchase receipts; SessionService gates.
