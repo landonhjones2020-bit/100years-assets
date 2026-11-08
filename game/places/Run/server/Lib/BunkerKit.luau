@@ -368,6 +368,29 @@ local function sideWall(parent: Instance, name: string, x0: number, x1: number, 
 	block(parent, name, Vector3.new(x0, floorY + DOOR_HEIGHT, z - half), Vector3.new(x1, top, z + half), WALL_COLOR, Enum.Material.SmoothPlastic)
 end
 
+-- Inside a room of several cells the ceiling pieces (32 wide) leave the 2-stud strip over
+-- the wall line between cells open; a steel beam closes it.
+local SEAM_COLOR = Color3.fromHex("8D969D") -- palette: steel
+local function ceilingSeam(model: Model, floor: number, column: number)
+	local t = Grid.Tuning()
+	local cell = Grid.CellPosition(floor, column)
+	local x = cell.X - t.CellWidth / 2 - t.WallThickness
+	local top = cell.Y + t.CellHeight
+	local beam = block(
+		model,
+		"CeilingSeam",
+		Vector3.new(x - t.WallThickness, top - 1.5, cell.Z - t.CellDepth / 2),
+		Vector3.new(x + t.WallThickness, top, cell.Z + t.CellDepth / 2),
+		SEAM_COLOR,
+		Enum.Material.SmoothPlastic
+	)
+	if beam then
+		beam.CanCollide = false
+		beam.CanQuery = false
+		beam.CanTouch = false
+	end
+end
+
 -- The art shell: per cell a floor, a ceiling with its lamps, a back and a front wall, and
 -- side walls at the room's two ends (the left one is the right-hand piece turned around).
 local function shellArt(model: Model, room: Bunker.Room, shape: Shape)
@@ -391,6 +414,8 @@ local function shellArt(model: Model, room: Bunker.Room, shape: Shape)
 		end
 		if offset == 0 then
 			piece(if shape.LeftOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallLeft {key}`, model, at * HALF_TURN)
+		else
+			ceilingSeam(model, room.Floor, column)
 		end
 		if offset == room.Span - 1 then
 			piece(if shape.RightOpen then "Kit_WallSideDoor" else "Kit_WallSide", `WallRight {key}`, model, at)

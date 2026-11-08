@@ -63,7 +63,7 @@ local Schemas: { [string]: Check.Checker } = {
 	}),
 	Camera = shape({
 		FieldOfView = N, PivotHeight = N, ShoulderOffset = N, ShoulderRaise = F.Number,
-		Distance = shape({ Min = N, Max = N, Default = N }), IndoorMax = N, AimDistance = N, AimShoulder = Fr,
+		Distance = shape({ Min = N, Max = N, Default = N }), IndoorMax = N, AimDistance = N, AimShoulder = N,
 		PitchMin = F.Number, PitchMax = F.Number, StartPitch = F.Number,
 		MouseDegreesPerPixel = N, TouchDegreesPerPixel = N, GamepadDegreesPerSecond = N, StickDeadzone = Fr,
 		AimSensitivity = Fr, AimWalkSpeed = Fr, ZoomStep = N, PinchStudsPerPixel = N,
@@ -170,7 +170,7 @@ return {
 		},
 		Camera = { -- Section 9 (right shoulder, aim narrows Player.AimFieldOfView, wall fade, zoom capped indoors); numbers prov.
 			FieldOfView = 70, PivotHeight = 1.6, ShoulderOffset = 2.2, ShoulderRaise = 0.3,
-			Distance = { Min = 4, Max = 16, Default = 9 }, IndoorMax = 11, AimDistance = 5.5, AimShoulder = 0.8,
+			Distance = { Min = 4, Max = 16, Default = 9 }, IndoorMax = 11, AimDistance = 6, AimShoulder = 1.25,
 			PitchMin = -70, PitchMax = 60, StartPitch = -12,
 			MouseDegreesPerPixel = 0.22, TouchDegreesPerPixel = 0.3, GamepadDegreesPerSecond = 220, StickDeadzone = 0.15,
 			AimSensitivity = 0.6, AimWalkSpeed = 0.6, ZoomStep = 1.5, PinchStudsPerPixel = 0.04,
