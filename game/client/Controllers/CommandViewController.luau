@@ -448,7 +448,7 @@ local function showRoom(roomId: string)
 		if other and other.Id ~= roomId then
 			local ok, why = b:CanMerge(roomId, other.Id)
 			if ok or other.Type == room.Type then
-				optionRow(order, `Merge with the {roomName(other.Type)}`, if ok then `{room.Span + other.Span} cells together` else (why or ""), ok,
+				optionRow(order, `Merge with the {roomName(other.Type)}`, if ok then `{room.Span + other.Span} cells together` else sentence(why or ""), ok,
 					{ Action = "Merge", Floor = room.Floor, Column = room.Column, RoomId = roomId, Other = other.Id })
 				order += 1
 			end
@@ -747,11 +747,23 @@ end
 -- The character stays where it was left: its movement keys and sticks are sunk while the view is
 -- open (Roblox's PlayerModule isn't an instance in every place, so this goes through
 -- ContextActionService rather than its controls object).
+-- Roblox's touch thumbstick and jump button: hidden while the view is open, or a drag in zone C
+-- could walk the character away (it stays where it was left, Section 7).
+local touchControlsBefore: boolean? = nil
+
 local function holdCharacter(on: boolean)
 	if not on then
 		ContextActionService:UnbindAction(HOLD_ACTION)
+		if touchControlsBefore ~= nil then
+			GuiService.TouchControlsEnabled = touchControlsBefore
+			touchControlsBefore = nil
+		end
 		return
 	end
+	if touchControlsBefore == nil then
+		touchControlsBefore = GuiService.TouchControlsEnabled
+	end
+	GuiService.TouchControlsEnabled = false
 	ContextActionService:BindActionAtPriority(HOLD_ACTION, function()
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.ContextActionPriority.High.Value + 20,

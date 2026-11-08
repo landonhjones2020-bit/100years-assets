@@ -180,7 +180,7 @@ Players carry `Ready` and `Resting` attributes (CycleClock). In Studio, set the 
 
 * Cells: columns -6 to 6, floors 1 to 10 (the depth; floor 10 is the Source Chamber). Every cell
   is Rock, Dug or part of a room. Rooms are 1 to 3 cells side by side on one floor.
-* Rules (Rules.Bunker): dig a Rock cell left of, right of or below an open cell; place a room
+* Rules (Rules.Bunker): dig a Rock cell left of, right of or below a dug cell or room; place a room
   on Dug cells (MaxCells, Unique, a room's own Floor, never in the Source Chamber); merge two
   matching rooms of one level side by side (never different levels); Fixed rooms (Blast Door,
   Reactor Core) never merge or go; levels 1 to 3. HP is per cell: `Tuning.Rooms.HP[level]`
@@ -220,7 +220,12 @@ client only. The camera's geometry is `Shared.Rules.CameraRig`, its numbers `Tun
 
 * Actions follow the bible's controls table (`BINDINGS` in InputController). Listen with
   `InputController:On(action, began, ended)`; HUD touch buttons join with
-  `BindButton(action, button)`. Moving and jumping stay Roblox's.
+  `BindButton(action, button)`. Moving and jumping stay Roblox's. `Block(reason)` stops gameplay
+  actions while a screen is open (CommandView is never blocked).
+* Roblox marks Tab as processed before ContextActionService sees it begin, so Tab (and the
+  gamepad's View button) are also read from UserInputService when processed (no text box
+  focused, Roblox's menu closed). `GuiService.AutoSelectGuiEnabled` is off: Roblox would take
+  the View button for its own UI selection, and our screens select for the gamepad themselves.
 * Right shoulder by default; `SwapShoulder` (V, right stick click) swaps. `Aim` (right mouse,
   left trigger; Run place only) narrows the view 70 to 50, brings the camera in, slows walking
   and turns the character with the camera.
@@ -268,7 +273,45 @@ never builds layout: it clones templates and sets text and images.
 * `MiniMapController` draws the side-view mini-map around the player from the Cells and Rooms
   collections; `Blink(key, on)` for alerts.
 * Changing a screen after Landon's AutoScale Lite pass: edit the instances in place (and the
-  builder file to match), or rebuild and ask for the pass again.
+  builder file to match), or rebuild and ask for the pass again. `studio/ui/patches/` holds
+  such in-place patches.
+
+## The Command View (Run place)
+
+Bible Section 7. `CommandViewController` registers the screen `CommandView`: the Frame in
+docked mode (`Cabinet.Pages.CommandView`, zone C open on the live bunker), opened and closed
+by Tab, the View button, the HUD's Command View button, Backspace or B. The character stays
+where it was, held by a ContextActionService sink (its movement keys and jump) with Roblox's
+touch thumbstick and jump button hidden (`GuiService.TouchControlsEnabled`), and can be hit:
+`DamageEdge` flashes when its health drops. Its arithmetic and build-menu rules are
+`Shared.Rules.CommandView` (pure, data-tested); numbers in `Tuning.CommandView`.
+
+* Camera: straight at the bunker from +Z, at most `MaxDistance` (440 studs) away. At the
+  lowest graphics level Roblox stops drawing parts about 500 studs from the camera (measured in
+  Studio, 2026-11-08: 500 drew, 525 didn't; level 2 draws about 800), so the camera never backs
+  off past the cap: `Rules.CommandView.Lens(height)` keeps the narrow 8 degree field of view
+  while it fits, then widens it (14 degrees at the opening 6 floors, 25 at the 11-floor limit).
+  The view's centre sits in zone C's centre; it opens centred on the character with a 0.3 s
+  move, and the close moves back and resumes CameraController. `FrontWall` parts hide while it
+  is open; the lighting lifts (`Ambient`, `OutdoorAmbient`, `ExposureCompensation`).
+* Input: drag or WASD/arrows to pan, the wheel or a pinch to zoom (1.5 to 11 floors), click or
+  tap a cell; gamepad: left stick pans, right stick zooms, A picks the centre (`Cursor`).
+  Picking casts from the camera through the point onto the cells' plane (`Grid.CellAt`).
+* Detail panel (zone D): a room (condition, power, what it does; Upgrade, Merge with a
+  matching neighbour, Tear Down), an open cell (the build menu: available rooms with costs,
+  then locked ones and why, from `RoomChoice`; Fixed rooms are never listed), rock (whether it
+  can be dug, the band's ore, the next band's Push Deeper). Choosing an option arms the main
+  action ("Propose ..."), greyed until a system calls `SetHandler(action, fn)` for Build,
+  Upgrade, Merge or TearDown (Prompt 8: votes).
+* For later systems: `SetOverlay(name, provider)` (Power, Morale, Threat, Production: the
+  provider returns a lamp sprite per room; the legend sits at the top of the panel),
+  `ShowGhost(id, floor, column, span, label)` / `HideGhost(id)` (votes), `Blink(roomId, on)`
+  (breaches, disasters), `Select(floor, column)`, `IsOpen`, `Toggle`, `State`, and the
+  `Selected` signal. Labels, marks and pings cover cell interiors (`Rules.CommandView.CellBox`).
+* Pings: the footer's Ping button or G / D-pad up sends `PingCell(floor, column)`;
+  `PingService` checks the session and the cell and fires `CellPinged(floor, column, userId,
+  name)` to every ready player. The pin shows in the Command View and on the HUD mini-map for
+  `Tuning.Ping.Seconds` (6).
 
 ## Saved data
 
@@ -334,14 +377,18 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   `camera.aim [bool]`, `camera.look <yaw> <pitch>`, `camera.zoom <studs>`, `camera.cursor`,
   `ui`, `ui.sample`, `ui.list`, `ui.dock`, `ui.open <screen>`, `ui.close`, `ui.tab <id>`,
   `ui.main`, `hud`, `hud.alert <Danger|Warning|Info> <text>`, `hud.banner <text>`,
-  `hud.slot <n>`, `hud.touch [bool]`.
+  `hud.slot <n>`, `hud.touch [bool]`, `cv` (the Command View's state and options), `cv.open`,
+  `cv.close`, `cv.select <floor> <column>`, `cv.ping`, `cv.ghost <floor> <column> <span>
+  [label]`, `cv.unghost`, `cv.blink <roomId> [false]`, `cv.overlay <name> [false]` (a sample
+  reading for screenshots).
 * The bunker (Run place): `grid` (map), `grid.rooms`, `grid.graph`, `grid.dig <floor> <column>`,
   `grid.build <Type> <floor> <column> [span] [level]`, `grid.remove <id>`, `grid.merge <id> <id>`,
   `grid.level <id> <level>`, `grid.rebuild`, `grid.sockets <id>`, `grid.art`.
 * The run (Run place): `run`, `run.skipintro`, `run.win <century|deep>`,
   `run.lose <reactor|residents>`, `run.keepgoing`; `clock`, `clock.speed <x>`, `clock.pause`,
   `clock.resume`, `clock.next`, `clock.clear`, `boss.beat [bossId]`, `year <n>`,
-  `ready.all [bool]`, `rest.all [bool]`; `objectives`, `objective <id>`.
+  `ready.all [bool]`, `rest.all [bool]`; `objectives`, `objective <id>`; `cell.ping <floor>
+  <column>` (pings as the first player).
 
 ## Conventions
 
@@ -363,13 +410,15 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | CycleClock | service | SessionService, ObjectiveService, DevService | 4:30 cycles, day and Surge phases, the year counter, Years per Cycle, skips |
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
 | Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
+| Run | PingService | service | SessionService, DevService | cell pings (PingCell in, CellPinged out to every ready player) |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
 | both | UIController | controller | InputController, CameraController | The Frame: screens, pages, tabs, chips, the main action, footer |
 | both | HUDController | controller | InputController, UIController, CameraController | the run HUD (Run; nothing in the Lobby yet) |
-| both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map (Run) |
-| both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController | `/dev` chat command, Studio DevInvoke |
+| both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
+| both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
+| both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
 
@@ -398,3 +447,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   StarterGui.Frame (both places) and StarterGui.HUD (Run) built from the UI kit; UIController,
   HUDController, MiniMapController, Lib.KitRuntime, Lib.UIKit, Lib.UISamples (dev samples),
   Shared.UIContract, Rules.Hud; a HUD atlas (touch buttons, action icons, copper and crystal).
+* **Prompt 7 (2026-11-08)**: the Command View (Run). CommandViewController (docked Frame, a
+  capped far camera that widens its field of view past 440 studs so the lowest graphics level
+  still draws the bunker, pan, zoom, picking, room, open cell and rock details, the build menu
+  with unlocks, overlays, vote ghosts, blinking labels, the damage edge), PingService and pings on
+  the mini-map, Rules.CommandView, Bunker.FromSnapshot; Tab and the View button reach it
+  although Roblox marks them processed; Roblox's player list is off in the run.
