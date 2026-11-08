@@ -26,12 +26,12 @@ ReplicatedStorage
     Remotes                      the one list of RemoteEvents + the only API to use them
     RunState                     the run's small values, replicated as attributes on it (Run)
     Config                       content aggregator; one child ModuleScript per content type
-    Rules                        pure game rules both sides share (Clock)
+    Rules                        pure game rules both sides share (Clock, Grid, Bunker)
     Utilities                    Check, Delta, Loader, Log, RateLimit, Signal, TableUtil, Trove
 ServerScriptService
   Bootstrap                      (Script) the only server script
   Services                       one ModuleScript per service
-  Lib                            server-only modules that aren't services (ProfileSchema)
+  Lib                            server-only modules that aren't services (ProfileSchema; Run: BunkerKit)
   DevTools                       StructureCheck, DataTests (+ Invoke in Studio playtests)
 StarterPlayer.StarterPlayerScripts
   ClientBootstrap                (LocalScript) the only client script
@@ -163,6 +163,34 @@ every client counts down to the same moment).
 Players carry `Ready` and `Resting` attributes (CycleClock). In Studio, set the attribute
 `SkipIntro` on `ServerScriptService.DevTools` to true to start runs without the 30 s intro.
 
+## The bunker (Run place)
+
+`BunkerGrid` holds the run's bunker (bible Section 6): the data and rules are
+`Shared.Rules.Bunker`, the geometry `Shared.Rules.Grid`, and `Lib.BunkerKit` builds the world.
+
+* Cells: columns -6 to 6, floors 1 to 10 (the depth; floor 10 is the Source Chamber). Every cell
+  is Rock, Dug or part of a room. Rooms are 1 to 3 cells side by side on one floor.
+* Rules (Rules.Bunker): dig a Rock cell left of, right of or below an open cell; place a room
+  on Dug cells (MaxCells, Unique, a room's own Floor, never in the Source Chamber); merge two
+  matching rooms of one level side by side; Fixed rooms (Blast Door, Reactor Core) never merge
+  or go; levels 1 to 3 with HP from `Tuning.Rooms.HP`. Votes, costs, build and dig times come
+  from BuildService and DigService.
+* The room graph: a node per room (`R3`) and per Dug cell (`D:2,3`); edges through doorways
+  (side-by-side open cells of different units) and between stacked Shafts.
+* The run starts with `Tuning.StartingBunker`: floor 1 Blast Door (2 cells), Shaft, Quarters
+  (2 cells), a dug cell; floor 2 Kitchen, Water Purifier, Shaft, Reactor Core, Medbay, a dug
+  cell; the Shafts in column 0, rock at column -3 (the bible's diagram).
+* World (Rules.Grid): `Tuning.Grid.Origin` is the interior floor centre of floor 1, column 0
+  (0, -120, 0). Cells repeat every 34 studs along +X and 18 down; the front, where the Command
+  View camera sits, faces +Z. Art models face -Z: place them with `Grid.CellCFrame`.
+* `workspace.Bunker` (built at server start, rebuilt around each change): `Frame`, `Rock`
+  (blocks named by cell key), `Dug` (models `D:<key>`), `Rooms` (models named by room id, with
+  RoomId, RoomType, Floor, Column, Span and Level attributes). Every model is Persistent. Front
+  walls carry the `FrontWall` tag. Players spawn in the Medbay; the place's other spawns are
+  disabled when the server starts.
+* Replication: the `Cells` collection (`"floor,column"` -> `{ Room = id }`, `{}` when Dug) and
+  the `Rooms` collection (id -> Type, Floor, Column, Span, Level, HP, MaxHP).
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -224,6 +252,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * Other built-ins: `version`, `ping`, `players`, `remotes`, `log [level]`, `logs [count]`,
   `rep`, `rep.selftest`; on the client `replica <collection>`, `client`, `clock` and
   `ready [true|false]` (fires SetReady like the HUD button).
+* The bunker (Run place): `grid` (map), `grid.rooms`, `grid.graph`, `grid.dig <floor> <column>`,
+  `grid.build <Type> <floor> <column> [span] [level]`, `grid.remove <id>`, `grid.merge <id> <id>`,
+  `grid.level <id> <level>`, `grid.rebuild`.
 * The run (Run place): `run`, `run.skipintro`, `run.win <century|deep>`,
   `run.lose <reactor|residents>`, `run.keepgoing`; `clock`, `clock.speed <x>`, `clock.pause`,
   `clock.resume`, `clock.next`, `clock.clear`, `year <n>`, `ready.all [bool]`,
@@ -248,6 +279,7 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | ObjectiveService | service | DevService | Lost Crews rescued, era bosses beaten, their Years per Cycle bonuses |
 | Run | CycleClock | service | SessionService, ObjectiveService, DevService | 4:30 cycles, day and Surge phases, the year counter, Years per Cycle, skips |
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
+| Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | DevController | controller | ReplicaController | `/dev` chat command, Studio DevInvoke |
 
@@ -264,3 +296,6 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 * **Prompt 3 (2026-11-08)**: the run lifecycle and the cycle clock (Run place). RunDirector,
   CycleClock, ObjectiveService, Shared.Rules.Clock, Shared.RunState, the SetReady remote,
   place-only remotes and code (`game/places/Run`); win and lose stubs for later prompts.
+* **Prompt 4 (2026-11-08)**: the bunker grid (Run place). BunkerGrid, Rules.Grid, Rules.Bunker,
+  Lib.BunkerKit (graybox kit), the starting bunker centred on the Shaft column as the bible's
+  diagram draws it, the Cells and Rooms collections, spawning in the Medbay.

@@ -22,7 +22,9 @@ local Loader = require(Shared.Utilities.Loader)
 local Log = require(Shared.Utilities.Log)
 local RateLimit = require(Shared.Utilities.RateLimit)
 local Remotes = require(Shared.Remotes)
+local Bunker = require(Shared.Rules.Bunker)
 local Clock = require(Shared.Rules.Clock)
+local Grid = require(Shared.Rules.Grid)
 local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
 local TableUtil = require(Shared.Utilities.TableUtil)
@@ -415,34 +417,23 @@ local function all(typeName: string): { any }
 	return Config.All(typeName)
 end
 
-test("Content: the starting bunker matches bible Section 6", function()
-	local start = Config.Get("Tuning", "StartingBunker")
-	local grid = Config.Get("Tuning", "Grid")
-	local taken: { [string]: boolean } = {}
-	local shaftColumns: { [number]: number } = {}
-	local roomsByFloor: { [number]: { string } } = { [1] = {}, [2] = {} }
-	for _, cell in start.Cells do
-		local span = cell.Span or 1
-		for offset = 0, span - 1 do
-			local column = cell.Column + offset
-			local key = `{cell.Floor},{column}`
-			expect(not taken[key], `cell {key} used once`)
-			expect(column >= grid.ColumnMin and column <= grid.ColumnMax, `column {column} on the grid`)
-			taken[key] = true
+test("Content: the starting bunker matches bible Section 6 and its diagram", function()
+	local bunker = Bunker.FromStart() -- every room placed by the grid's rules, or this errors
+	local function row(floor: number): { string }
+		local tokens = {}
+		for column = -3, 3 do
+			local state = bunker:State(floor, column)
+			local room = bunker:RoomAt(floor, column)
+			table.insert(tokens, if room then room.Type else tostring(state))
 		end
-		if cell.Room then
-			local room = Config.Get("Rooms", cell.Room)
-			expect(room.Unlock.Kind == "Start", `{cell.Room} to be a start room`)
-			table.insert(roomsByFloor[cell.Floor], cell.Room)
-			if cell.Room == "Shaft" then
-				shaftColumns[cell.Floor] = cell.Column
-			end
-		end
+		return tokens
 	end
-	expectEqual(roomsByFloor[1], { "BlastDoor", "Shaft", "Quarters" }, "floor 1 rooms")
-	expectEqual(roomsByFloor[2], { "Kitchen", "WaterPurifier", "Shaft", "ReactorCore", "Medbay" }, "floor 2 rooms")
-	expectEqual(shaftColumns[1], shaftColumns[2], "the shaft lines up on floors 1 and 2")
-	expectEqual(start.Residents, 6, "starting residents")
+	expectEqual(row(1), { "Rock", "BlastDoor", "BlastDoor", "Shaft", "Quarters", "Quarters", "Dug" }, "floor 1, columns -3 to 3")
+	expectEqual(row(2), { "Rock", "Kitchen", "WaterPurifier", "Shaft", "ReactorCore", "Medbay", "Dug" }, "floor 2, columns -3 to 3")
+	expectEqual(row(3), { "Rock", "Rock", "Rock", "Rock", "Rock", "Rock", "Rock" }, "floor 3")
+	expectEqual(#bunker:AllRooms(), 8, "eight rooms (the Blast Door and the Quarters are 2 cells each)")
+	expectEqual(bunker:RoomsOfType("BlastDoor")[1].Span, 2, "the Blast Door's cells")
+	expectEqual(Config.Get("Tuning", "StartingBunker").Residents, 6, "starting residents")
 end)
 
 test("Content: starting stock is bible Section 6", function()
@@ -847,6 +838,114 @@ test("RunState: every value has one owner, a type and its allowed values", funct
 	expectError(function()
 		RunState.Writer("ObjectiveService")("Year", 5)
 	end, "belongs to CycleClock")
+end)
+
+-- The bunker grid (Rules.Grid, Rules.Bunker; bible Section 6) ---------------------------
+
+test("Grid: cells sit 34 studs apart and 18 down; world positions map back to their cell", function()
+	local pitch = Grid.Pitch()
+	expectEqual({ pitch.X, pitch.Y, pitch.Z }, { 34, 18, 34 }, "pitch")
+	local origin = Grid.Tuning().Origin
+	expectEqual(Grid.CellPosition(1, 0), Vector3.new(origin.X, origin.Y, origin.Z), "floor 1, column 0 is the origin")
+	for _, cell in { { 1, 0 }, { 2, -6 }, { 10, 6 }, { 5, 3 } } do
+		local position = Grid.CellPosition(cell[1], cell[2])
+		for _, offset in { Vector3.new(0, 1, 0), Vector3.new(15, 15.5, 15), Vector3.new(-15, -1.5, -15) } do
+			expectEqual({ Grid.CellAt(position + offset) }, cell, `cell {cell[1]},{cell[2]} plus {offset}`)
+		end
+	end
+	expectEqual({ Grid.CellAt(Grid.CellPosition(1, 6) + Vector3.new(40, 0, 0)) }, {}, "past the right edge")
+	expectEqual({ Grid.Parse(Grid.Key(7, -4)) }, { 7, -4 }, "keys")
+	expect(Grid.Buildable(9) and not Grid.Buildable(10), "nothing built on floor 10")
+	expect(Grid.IsBandStart(4) and Grid.IsBandStart(7) and Grid.IsBandStart(10), "Push Deeper at floors 4, 7 and 10")
+	expect(not Grid.IsBandStart(1) and not Grid.IsBandStart(3), "not at floors 1 and 3")
+end)
+
+test("Bunker: the starting bunker is one connected place; the shafts join floors 1 and 2", function()
+	local bunker = Bunker.FromStart()
+	local blast = bunker:RoomsOfType("BlastDoor")[1]
+	local reach = bunker:Reachable(blast.Id)
+	for _, unit in bunker:Units() do
+		expect(reach[unit], `{unit} reachable from the Blast Door`)
+	end
+	local upper, lower = bunker:RoomAt(1, 0), bunker:RoomAt(2, 0)
+	expect(upper and lower and upper.Type == "Shaft" and lower.Type == "Shaft", "shafts in column 0")
+	expect(table.find(bunker:Neighbors((upper :: Bunker.Room).Id), (lower :: Bunker.Room).Id), "the shafts connect")
+	local core = bunker:RoomsOfType("ReactorCore")[1]
+	local medbay = bunker:RoomsOfType("Medbay")[1]
+	local expected = { (lower :: Bunker.Room).Id, medbay.Id }
+	table.sort(expected)
+	expectEqual(bunker:Neighbors(core.Id), expected, "the Reactor Core's doorways")
+	expectEqual(bunker:DeepestFloor(), 2, "deepest floor")
+end)
+
+test("Bunker: digging goes left, right or down from an open cell, never up or off the grid", function()
+	local bunker = Bunker.FromStart()
+	expect(bunker:CanDig(1, 4), "right of the dug cell on floor 1")
+	expect(bunker:CanDig(1, -3), "left of the Blast Door")
+	expect(bunker:CanDig(3, 0), "below the shaft")
+	expect(not bunker:CanDig(3, 5), "floor 3 away from any open cell")
+	expect(not bunker:CanDig(1, 0), "an open cell")
+	expect(not bunker:CanDig(0, 0), "above floor 1")
+	expect(not bunker:CanDig(1, 7), "past column 6")
+	expect(bunker:Dig(3, 0), "dig below the shaft")
+	expect(bunker:CanDig(4, 0), "and on down")
+	expect(bunker:CanDig(3, 1) and bunker:CanDig(3, -1), "and sideways from the new cell")
+	expectEqual(bunker:DeepestFloor(), 3, "deepest floor after digging")
+end)
+
+test("Bunker: rooms go on dug cells, within MaxCells, one of a unique room, never in the Source Chamber", function()
+	local bunker = Bunker.FromStart()
+	expect(not bunker:CanPlace("Kitchen", 3, 0, 1), "on rock")
+	expect(not bunker:CanPlace("Kitchen", 1, 0, 1), "on a room")
+	expect(not bunker:CanPlace("ReactorCore", 1, 3, 1), "a second Reactor Core")
+	expect(not bunker:CanPlace("BlastDoor", 2, 3, 1), "a Blast Door off floor 1")
+	expect(not bunker:CanPlace("Shaft", 1, 3, 2), "a 2-cell Shaft")
+	expect(not bunker:CanPlace("Nope", 1, 3, 1), "an unknown room")
+	local id = bunker:Place("Storage", 1, 3, 1)
+	expect(id, "Storage on the dug cell")
+	local room = bunker:Room(id :: string) :: Bunker.Room
+	expectEqual({ room.Level, room.HP, room.MaxHP, room.Span }, { 1, 500, 500, 1 }, "a new level 1 room")
+	for floor = 3, 10 do
+		bunker:Open(floor, 0)
+	end
+	expect(not bunker:CanPlace("Storage", 10, 0, 1), "nothing is built in the Source Chamber")
+	expect(bunker:CanPlace("Storage", 9, 0, 1), "the Crystal Hollows can be built on")
+end)
+
+test("Bunker: matching rooms side by side merge up to MaxCells; fixed rooms never merge or go", function()
+	local bunker = Bunker.FromStart()
+	expect(bunker:Dig(1, 4) and bunker:Dig(1, 5) and bunker:Dig(1, 6), "dig three cells")
+	local a = bunker:Place("Storage", 1, 3, 1) :: string
+	local b = bunker:Place("Storage", 1, 4, 2) :: string
+	local c = bunker:Place("Storage", 1, 6, 1) :: string
+	expectEqual(bunker:Merge(b, a), a, "the left room's id survives")
+	expectEqual((bunker:Room(a) :: Bunker.Room).Span, 3, "three cells")
+	expect(bunker:Room(b) == nil, "the right room is gone")
+	expect(not bunker:CanMerge(a, c), "a fourth cell is past MaxCells")
+	expect(not bunker:CanMerge(bunker:RoomsOfType("Quarters")[1].Id, a), "different types don't merge")
+	expect(not bunker:CanRemove(bunker:RoomsOfType("BlastDoor")[1].Id), "the Blast Door stays")
+	expect(not bunker:CanRemove(bunker:RoomsOfType("ReactorCore")[1].Id), "the Reactor Core stays")
+	expect(bunker:Remove(a), "a Storage comes down")
+	expectEqual({ bunker:State(1, 4) }, { "Dug" }, "its cells are dug again")
+
+	expect(bunker:Dig(2, 4), "dig on floor 2")
+	local g1 = bunker:Place("Generator", 2, 3, 1) :: string
+	local g2 = bunker:Place("Generator", 2, 4, 1) :: string
+	bunker:SetLevel(g2, 2)
+	expect(not bunker:CanMerge(g1, g2), "different levels don't merge")
+	bunker:SetLevel(g2, 1)
+	expect(bunker:CanMerge(g1, g2), "the same level does")
+end)
+
+test("Bunker: levels set HP from Tuning.Rooms.HP, keeping its share; SetHP clamps", function()
+	local bunker = Bunker.FromStart()
+	local medbay = bunker:RoomsOfType("Medbay")[1]
+	bunker:SetHP(medbay.Id, 250)
+	expect(bunker:SetLevel(medbay.Id, 2), "level 2")
+	expectEqual({ medbay.HP, medbay.MaxHP, medbay.Level }, { 400, 800, 2 }, "half HP stays half")
+	expect(not bunker:SetLevel(medbay.Id, 4), "no level 4")
+	expectEqual(bunker:SetHP(medbay.Id, 5000), 800, "clamped to the maximum")
+	expectEqual(bunker:SetHP(medbay.Id, -3), 0, "0 is Wrecked")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

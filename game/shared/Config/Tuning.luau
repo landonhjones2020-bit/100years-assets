@@ -36,7 +36,8 @@ local Schemas: { [string]: Check.Checker } = {
 	}),
 	Grid = shape({
 		ColumnMin = Check.integer(-20, 0), ColumnMax = Check.integer(0, 20), FloorMin = I, FloorMax = I,
-		CellWidth = N, CellHeight = N, CellDepth = N, SlabThickness = N, SourceFloor = I,
+		CellWidth = N, CellHeight = N, CellDepth = N, SlabThickness = N, WallThickness = N, SourceFloor = I,
+		Origin = shape({ X = F.Number, Y = F.Number, Z = F.Number }),
 	}),
 	StartingBunker = shape({
 		Cells = list(Cell, 20),
@@ -118,22 +119,23 @@ return {
 			FinalYear = 100, IntroSeconds = 30, IntroSkipAfterSeconds = 2, -- era ends: Config.Eras
 			SurgeSirenSeconds = 20, TutorialFirstSurge = true,
 		},
-		Grid = { -- Section 6
+		Grid = { -- Section 6; walls (the A0 kit's) and where the grid sits in the Run place are ours
 			ColumnMin = -6, ColumnMax = 6, FloorMin = 1, FloorMax = 10,
-			CellWidth = 32, CellHeight = 16, CellDepth = 32, SlabThickness = 2, SourceFloor = 10,
+			CellWidth = 32, CellHeight = 16, CellDepth = 32, SlabThickness = 2, WallThickness = 1, SourceFloor = 10,
+			Origin = { X = 0, Y = -120, Z = 0 }, -- the interior floor centre of floor 1, column 0
 		},
-		StartingBunker = { -- Section 6: the shaft is the third cell on both floors
+		StartingBunker = { -- Section 6 and its diagram: the shafts in the middle column (0), rock at -3
 			Cells = {
-				{ Floor = 1, Column = -3, Room = "BlastDoor", Span = 2 },
-				{ Floor = 1, Column = -1, Room = "Shaft" },
-				{ Floor = 1, Column = 0, Room = "Quarters", Span = 2 },
-				{ Floor = 1, Column = 2, Dug = true },
-				{ Floor = 2, Column = -3, Room = "Kitchen" },
-				{ Floor = 2, Column = -2, Room = "WaterPurifier" },
-				{ Floor = 2, Column = -1, Room = "Shaft" },
-				{ Floor = 2, Column = 0, Room = "ReactorCore" },
-				{ Floor = 2, Column = 1, Room = "Medbay" },
-				{ Floor = 2, Column = 2, Dug = true },
+				{ Floor = 1, Column = -2, Room = "BlastDoor", Span = 2 },
+				{ Floor = 1, Column = 0, Room = "Shaft" },
+				{ Floor = 1, Column = 1, Room = "Quarters", Span = 2 },
+				{ Floor = 1, Column = 3, Dug = true },
+				{ Floor = 2, Column = -2, Room = "Kitchen" },
+				{ Floor = 2, Column = -1, Room = "WaterPurifier" },
+				{ Floor = 2, Column = 0, Room = "Shaft" },
+				{ Floor = 2, Column = 1, Room = "ReactorCore" },
+				{ Floor = 2, Column = 2, Room = "Medbay" },
+				{ Floor = 2, Column = 3, Dug = true },
 			},
 			Residents = 6,
 			ResidentLevels = { Min = 1, Max = 3 },

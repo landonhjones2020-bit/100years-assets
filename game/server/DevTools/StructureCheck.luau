@@ -28,7 +28,9 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.RunState", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Config", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules", "Folder" },
+	{ "ReplicatedStorage.Shared.Rules.Bunker", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Clock", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Grid", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities.Delta", "ModuleScript" },
@@ -57,6 +59,8 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.RunDirector", "ModuleScript" },
 		{ "ServerScriptService.Services.CycleClock", "ModuleScript" },
 		{ "ServerScriptService.Services.ObjectiveService", "ModuleScript" },
+		{ "ServerScriptService.Services.BunkerGrid", "ModuleScript" },
+		{ "ServerScriptService.Lib.BunkerKit", "ModuleScript" },
 	},
 	Lobby = {},
 }
@@ -426,6 +430,25 @@ function StructureCheck.Run(options: Options?): Result
 					pass()
 				else
 					fail(`RunState: {why}`)
+				end
+			end
+		end
+		-- The bunker's world (Run place): BunkerGrid built it
+		if placeKind == "Run" then
+			local bunker = workspace:FindFirstChild("Bunker")
+			if not bunker then
+				fail("workspace.Bunker is missing: BunkerGrid didn't build the bunker")
+			else
+				for _, name in { "Frame", "Rock", "Dug", "Rooms" } do
+					if bunker:FindFirstChild(name) then
+						pass()
+					else
+						fail(`workspace.Bunker.{name} is missing`)
+					end
+				end
+				local rooms = bunker:FindFirstChild("Rooms")
+				if rooms and #rooms:GetChildren() == 0 then
+					fail("workspace.Bunker.Rooms is empty")
 				end
 			end
 		end
