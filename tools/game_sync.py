@@ -6,10 +6,14 @@
         Prints the stagedPath/devicePath pair for device_commit_files.
 
     python3 tools/game_sync.py install <assetId> <Lobby|Run> [--force]
-        Prints the Luau (execute_luau, Edit) that loads the latest version of the uploaded
-        build and installs that place's tree. It refuses when a script was edited in Studio
-        since the last install, unless --force. It ends by running StructureCheck and the
-        data tests and returns their report.
+        Prints the one line (execute_luau, Edit) that runs ServerStorage.Tooling.CodeInstaller:
+        it loads the latest version of the uploaded build and installs that place's tree,
+        refusing when a script was edited in Studio since the last install (unless --force),
+        and returns StructureCheck and the data tests.
+
+    python3 tools/game_sync.py tooling
+        Prints the Luau that (re)creates ServerStorage.Tooling.CodeInstaller from
+        studio/CodeInstaller.lua (once per place, and after changing the installer).
 
 Mapping (Rojo conventions, so the tree could move to Rojo unchanged):
     game/shared/**   -> ReplicatedStorage.Shared                 (both places)
@@ -266,11 +270,28 @@ return "installed " .. info.Label .. " in " .. PLACE .. "\n" .. check.Format(che
 
 
 def install(asset_id: str, place: str, force: bool) -> None:
+    """The one line that runs ServerStorage.Tooling.CodeInstaller (see `tooling`)."""
     if place not in PLACES:
         raise SystemExit(f"place must be one of {PLACES}")
-    label = json.load(open(OUT.replace(".rbxmx", ".json")))["label"] if os.path.exists(OUT) else "?"
-    print(INSTALL.replace("__ASSET__", str(int(asset_id))).replace("__PLACE__", place)
-          .replace("__FORCE__", "true" if force else "false").replace("__LABEL__", label))
+    print(f'return require(game:GetService("ServerStorage").Tooling.CodeInstaller)'
+          f'({int(asset_id)}, "{place}", {"true" if force else "false"})')
+
+
+def tooling() -> None:
+    """Luau that (re)creates ServerStorage.Tooling.CodeInstaller from studio/CodeInstaller.lua."""
+    source = read(os.path.join(REPO, "studio", "CodeInstaller.lua"))
+    level = "=" * next(i for i in range(1, 10) if f"]{'=' * i}]" not in source)
+    print(f'''local ServerStorage = game:GetService("ServerStorage")
+local folder = ServerStorage:FindFirstChild("Tooling") or Instance.new("Folder")
+folder.Name = "Tooling"
+folder.Parent = ServerStorage
+local old = folder:FindFirstChild("CodeInstaller")
+if old then old:Destroy() end
+local module = Instance.new("ModuleScript")
+module.Name = "CodeInstaller"
+module.Source = [{level}[{source}]{level}]
+module.Parent = folder
+return "CodeInstaller installed"''')
 
 
 if __name__ == "__main__":
@@ -279,6 +300,8 @@ if __name__ == "__main__":
         build()
     elif args[:1] == ["install"] and len(args) >= 3:
         install(args[1], args[2], "--force" in args)
+    elif args[:1] == ["tooling"]:
+        tooling()
     else:
         print(__doc__)
         sys.exit(1)

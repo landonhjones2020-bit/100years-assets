@@ -1,7 +1,7 @@
 {
- "built": "2026-11-08T19:29:49Z",
- "commit": "4d2a9d5f7478a97dea50826607050ec869df2fbb",
- "label": "p1-4d2a9d5",
+ "built": "2026-11-08T19:38:42Z",
+ "commit": "3315fd767dec95743a9d1fdc0ee6d20f06b625c5",
+ "label": "p2-3315fd7",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -257,17 +257,27 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "db679edd"
+    "Hash": "7641cff5"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "44c99769"
+    "Hash": "d1a7c79a"
+   },
+   "ServerScriptService.Lib.ProfileSchema": {
+    "Class": "ModuleScript",
+    "From": "game/server/Lib/ProfileSchema.luau",
+    "Hash": "0ef4ab0a"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/DevService.luau",
     "Hash": "6bfb255e"
+   },
+   "ServerScriptService.Services.ProfileService": {
+    "Class": "ModuleScript",
+    "From": "game/server/Services/ProfileService.luau",
+    "Hash": "bddf82de"
    },
    "ServerScriptService.Services.ReplicationService": {
     "Class": "ModuleScript",
@@ -277,12 +287,12 @@
    "ServerScriptService.Services.SessionService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/SessionService.luau",
-    "Hash": "7e798139"
+    "Hash": "f60abe6f"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "c2517676"
+    "Hash": "622d96c0"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -554,17 +564,27 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "db679edd"
+    "Hash": "7641cff5"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "44c99769"
+    "Hash": "d1a7c79a"
+   },
+   "ServerScriptService.Lib.ProfileSchema": {
+    "Class": "ModuleScript",
+    "From": "game/server/Lib/ProfileSchema.luau",
+    "Hash": "0ef4ab0a"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/DevService.luau",
     "Hash": "6bfb255e"
+   },
+   "ServerScriptService.Services.ProfileService": {
+    "Class": "ModuleScript",
+    "From": "game/server/Services/ProfileService.luau",
+    "Hash": "bddf82de"
    },
    "ServerScriptService.Services.ReplicationService": {
     "Class": "ModuleScript",
@@ -574,12 +594,12 @@
    "ServerScriptService.Services.SessionService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/SessionService.luau",
-    "Hash": "7e798139"
+    "Hash": "f60abe6f"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "c2517676"
+    "Hash": "622d96c0"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",

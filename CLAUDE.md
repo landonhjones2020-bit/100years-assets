@@ -75,10 +75,15 @@ Design Notes and Delivery Reports: `game/reports/`.
    `python3 tools/game_sync.py build` → `exports/Code/GameCode.rbxmx` and a staged pair.
 2. `device_commit_files`, then `PATCH /assets/v1/assets/95026446991297` (the id is in
    `game/BUILD.json`) with the `.rbxmx`, `contentType` `model/x-rbxm`; poll the operation.
-3. `python3 tools/game_sync.py install 95026446991297 <Lobby|Run>` prints the Luau; send it
-   with `execute_luau` (Edit) to each place. It refuses if a script was edited in Studio since
-   the last install (bring that edit into the repo first) and returns StructureCheck and the
-   data tests.
+3. Install in each place with one line (`execute_luau`, Edit):
+   `return require(game:GetService("ServerStorage").Tooling.CodeInstaller)(95026446991297, "<Lobby|Run>", false)`
+   (`python3 tools/game_sync.py install 95026446991297 <Place>` prints it). It refuses if a
+   script was edited in Studio since the last install (bring that edit into the repo first)
+   and returns StructureCheck and the data tests. `ServerStorage.Tooling.CodeInstaller` is in
+   both places; after changing `studio/CodeInstaller.lua`, reinstall it with the Luau from
+   `python3 tools/game_sync.py tooling`.
+5. Profiles in Studio use the `PlayerProfiles_Studio` DataStore; `/dev profile`, `profile.raw`,
+   `profile.add`, `profile.receipt`, `profile.locktest` test them.
 4. Playtest for real (`start_stop_play`, `get_console_output`). In a playtest:
    `ServerScriptService.DevTools.Invoke:Invoke("<command>")` (Server datamodel) and
    `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands.
