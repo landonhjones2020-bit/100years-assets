@@ -437,6 +437,21 @@ function VoteService:Init(registry)
 			end,
 		})
 	end
+	dev:Register("vote.test", {
+		Description = "Open a vote the game proposes (no proposer, no effect), to try the queue and the telegram.",
+		Usage = "vote.test [title]",
+		Run = function(_player: Player, args): string?
+			local title = string.upper(tostring(args[1] or "TEST VOTE"))
+			local id, why = VoteService:Open({
+				Kind = "Build",
+				Title = title,
+				OnPass = function()
+					log:Info("test vote %s passed", title)
+				end,
+			})
+			return if id then `opened {id}\n{describe()}` else `not opened: {why}`
+		end,
+	})
 	dev:Register("vote.end", {
 		Description = "Time is up on the live vote now.",
 		Usage = "vote.end",
