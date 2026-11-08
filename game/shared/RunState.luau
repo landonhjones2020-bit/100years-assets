@@ -101,7 +101,6 @@ end
 
 -- Server: a setter for the values `writer` owns. Setting anything else is an error.
 function RunState.Writer(writer: Writer): (name: string, value: any) -> ()
-	assert(IS_SERVER, "RunState values are set on the server")
 	return function(name: string, value: any)
 		local field = FIELDS[name]
 		if not field then
@@ -113,6 +112,9 @@ function RunState.Writer(writer: Writer): (name: string, value: any) -> ()
 		local ok, why = RunState.Check(name, value)
 		if not ok then
 			error(`RunState: {why}`, 2)
+		end
+		if not IS_SERVER then
+			error("RunState: values are set on the server", 2)
 		end
 		script:SetAttribute(name, value)
 	end

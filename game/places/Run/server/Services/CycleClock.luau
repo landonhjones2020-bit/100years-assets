@@ -277,6 +277,7 @@ end
 local function endSurge(how: string)
 	local kind = surgeKind
 	log:Info("cycle %d: %s Surge over (%s)", state.Cycle, kind, how)
+	endsAt = now() -- nothing is left of it, however it ended
 	cycleEndPending = true -- the year jumps next; if the clock stops first, Resume does it
 	CycleClock.SurgeEnded:Fire(kind, how)
 	if kind == "Final" then
