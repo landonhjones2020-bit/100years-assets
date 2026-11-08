@@ -574,6 +574,24 @@ local function registerCommands(dev: any)
 			return `lock: {lockText} | saves {tostring(meta.Saves)} | {dataText}`
 		end,
 	})
+	dev:Register("profile.receipt", {
+		Description = "Grant a test purchase through the receipt path (Studio only).",
+		Usage = "profile.receipt <receiptId> <glowshards>",
+		Run = function(player: Player?, args: { any }): string?
+			if not IS_STUDIO then
+				return "Studio only"
+			end
+			local target = targetOf(player, nil)
+			local receiptId, amount = tostring(args[1] or ""), tonumber(args[2])
+			if not target or receiptId == "" or not amount or amount < 0 or amount % 1 ~= 0 then
+				return "usage: profile.receipt <receiptId> <whole amount>"
+			end
+			local decision = ProfileService:GrantPurchase(target, receiptId, function(data)
+				data.Glowshards += amount
+			end)
+			return `{decision.Name}; {target.Name} has {(ProfileService:Get(target) :: Profile).Glowshards} Glowshards`
+		end,
+	})
 	dev:Register("profile.locktest", {
 		Description = "Run the lock rules against a scratch key (Studio only).",
 		Run = function(): string?
