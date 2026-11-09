@@ -258,3 +258,19 @@ screen.
   from the entry, and the telegram needs nothing new for yes/no votes.
 * A new kind of construction is an action in `Rules.Construction.Plan`, a case in
   BuildService's `apply`, and a row in the Command View.
+
+## Addendum: Landon's answers (2026-11-08), built with Prompt 9
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Tear-down refunds | "Yes refund part" | Tearing a room down gives back `Tuning.Rooms.TearDownRefund` (half, provisional) of every level's cost so far, per cell, up to the caps (`Rules.Construction.Refund`). The option reads "60 SCRAP BACK", and so does the telegram. Lab research doesn't come back. |
+| 2 | Upgrade time | "Immediate is fine maybe construction time on the hardest mode" | Upgrades stay instant. On a difficulty with `UpgradesTakeTime` (Nightmare) an upgrade becomes a construction site over the room (scaffold only, as long as building takes, helpers count); the room works at its old level until it is done. |
+| 3 | Vote keys | "make it for controllers" | Y on a controller: a tap votes yes, a hold (0.5 s) votes no. The Frame's screens use Y for their main action, so while your ballot is open Y votes on any screen; afterwards it changes your vote only outside the screens. Key chips on YES ("Y") and NO ("HOLD Y") show on a gamepad. PC still frees the cursor with the wheel, and touch taps. |
+| 4 | The proposer's yes | "keep" | No change. |
+
+Tested in Studio (build `p9-4a34bb5`; details in `P09_EconomyPower.md`):
+* both refunds, solo and through a team vote;
+* a Nightmare upgrade site and its room panel;
+* Y tap and hold, sent as the Y input by the test tool with the Command View open.
+
+A real controller still needs a person.

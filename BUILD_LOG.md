@@ -20,6 +20,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 6: The Frame and HUD skeleton (Frame both places, HUD in Run) | ✅ built 2026-11-08, waiting for Landon's AutoScale Lite pass | Run and Lobby playtests with real clicks and keys; `game/reports/P06_FrameHUD.md`, `previews/Game/P06_Studio_sheet.jpg` |
 | Prompt 7: Command View (Run) | ✅ done 2026-11-08 | Run playtests with real keys, clicks, drags and the wheel, plus graphics level 1; Lobby start check; gamepad and touch still need a person; `game/reports/P07_CommandView.md`, `previews/Game/P07_Studio_sheet.jpg` |
 | Prompt 8: votes and construction (Run), with Landon's answers to the Prompt 6 and 7 questions | ✅ done 2026-11-08 | Run playtests with real clicks and keys, a team of three with pretend voters; two real players, gamepad, touch and the wheel click still need a person; `game/reports/P08_VotesConstruction.md`, `previews/Game/P08_Studio_sheet.jpg` |
+| Prompt 9: economy and power (Run), with Landon's answers to the Prompt 8 questions | ✅ done 2026-11-08 | Run playtests with pretend crews and eaters, the dark order, refunds, a Nightmare upgrade site, Y voting sent by the test tool; a real controller, two real players and touch still need a person; `game/reports/P09_EconomyPower.md`, `previews/Game/P09_Studio_sheet.jpg` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -36,6 +37,68 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 9, economy and power; Landon's Prompt 8 answers
+
+Game code builds `p8-941af25` (the first Prompt 9 install, before the build label moved to 9)
+and `p9-4a34bb5` (final). The final is code asset 95026446991297 revision 27, installed in Run
+and Lobby: StructureCheck 0 errors (Run 317 checks, Lobby 217), 73 data tests passed.
+
+**Done**
+* Code:
+  * Rules.Economy: Section 13's formula, the power balance and dark order, eating;
+  * EconomyService: production, meals, a resident source for Prompt 10, modifiers;
+  * PowerService: dark rooms in emergency red, their Neon fittings dulled, alerts;
+  * the HUD's Power chip;
+  * the Command View's Power and Production overlays, with a reading chip under each room
+    label;
+  * a room panel's live power and output lines.
+* Landon's answers:
+  * Prompt 8, built:
+    * tear-down refunds half (provisional);
+    * upgrades take construction time on Nightmare only (scaffold-only sites);
+    * controllers vote with Y: tap for yes, hold for no, bound above The Frame's Y while your
+      ballot is open;
+    * the proposer stays a yes.
+  * Prompt 9's question, built: power needs crew (A).
+* Studio (in-place patches): `RoomLabel.Reading` (Frame, both places) and the vote key chips
+  (`VoteBanner.Yes/No.Key`, Run).
+
+**Verified in Studio**
+* Power:
+  * no crew: 0 made, 5 rooms dark;
+  * a stat-10 reactor crew: 24 made, all lit;
+  * a stat-4 crew: 9.6 made against 10 drawn, and the Kitchen went dark (the newest room 3 steps
+    away).
+* The economy:
+  * pretend crews make 8 Food and 8 Water a cycle;
+  * the meal took 6 of each, by command and again by itself at cycle 2;
+  * a shortfall was alerted.
+* Refunds: 75 back from a 150 Workshop; 60 back through a team vote, with the telegram showing
+  it.
+* Nightmare: an upgrade became a site, with its room panel, greyed options and level-up on
+  finishing.
+* The HUD chip in green, amber and red; the blackout in the world.
+* Y tap (yes) and hold (no), sent as the Y input by the test tool with the Command View open.
+* Screenshots: `previews/Game/P09_Studio_*.jpg`, sheet `P09_Studio_sheet.jpg`.
+
+**Findings**
+1. **The ceiling light strips are Neon parts.** They kept glowing white in a dark room, so dark
+   rooms now dull every Neon part and restore it from attributes.
+2. **The Frame's main action uses Y on a controller**, so Y can't simply be "vote". While your
+   ballot is open, VoteController binds Y above The Frame; once you've voted, Y is the main
+   action again on screens.
+3. **The test tool's Y arrives as a keyboard input**, so the controller key chips (gamepad only)
+   could not be seen.
+
+**Landon to do**
+* Answer the three Bible Questions in `game/reports/P09_EconomyPower.md`:
+  1. ties in the dark order;
+  2. whether a wrecked room draws power;
+  3. who goes hungry when food runs short.
+* Try Y on a real controller (tap and hold), and a vote with a friend.
+* The AutoScale Lite pass covers the new parts too: the reading chip under the Command View's
+  room labels, and the vote key chips.
 
 ## 2026-11-08 (late night): Prompt 8, votes and construction; Landon's answers
 

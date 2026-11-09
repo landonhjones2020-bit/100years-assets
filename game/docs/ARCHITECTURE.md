@@ -310,7 +310,9 @@ touch thumbstick and jump button hidden (`GuiService.TouchControlsEnabled`), and
   action ("Propose ..."), greyed until a system calls `SetHandler(action, fn)` for Build,
   Upgrade, Merge or TearDown (Prompt 8: votes).
 * For later systems: `SetOverlay(name, provider)` (Power, Morale, Threat, Production: the
-  provider returns a lamp sprite per room; the legend sits at the top of the panel),
+  provider returns a lamp sprite and a short reading per room, shown on the room label and the
+  reading chip under it; the legend sits at the top of the panel; Power and Production are
+  registered from the `Power` and `Production` collections, Prompt 9),
   `ShowGhost(id, floor, column, span, label)` / `HideGhost(id)` (votes), `Blink(roomId, on)`
   (breaches, disasters), `Select(floor, column)`, `IsOpen`, `Toggle`, `State`, and the
   `Selected` signal. Labels, marks and pings cover cell interiors (`Rules.CommandView.CellBox`).
@@ -325,18 +327,42 @@ touch thumbstick and jump button hidden (`GuiService.TouchControlsEnabled`), and
   the stockpile can't pay show what's short, the main action says Build (not Propose) in a solo
   run, and ghosts mark open proposals ("KITCHEN?") and sites ("KITCHEN 45%").
 
-## Votes, construction and the stockpile (Run place)
+## Votes, construction, the economy and power (Run place)
 
-Bible Sections 6, 8 and 23. Rules are pure modules the data tests hold to the bible:
-`Shared.Rules.Votes` (outcomes, the 40% rule, what a vote needs) and
-`Shared.Rules.Construction` (costs, unlocks, reserved cells, construction time, a plan for
-each proposal).
+Bible Sections 5, 6, 8, 13 and 23. Rules are pure modules the data tests hold to the bible:
+`Shared.Rules.Votes` (outcomes, the 40% rule, what a vote needs),
+`Shared.Rules.Construction` (costs, refunds, unlocks, reserved cells, construction time, a plan
+for each proposal) and `Shared.Rules.Economy` (Section 13's output formula, power made and
+drawn, steps along the room graph, the dark order, eating with carry).
 
-* `EconomyService` keeps the team's stockpile: every stocked resource in `Config.Resources`
-  from its Start amount; caps are Cap plus CapPerStorageCell for each Storage cell; Lab
-  research (from 0). Amounts replicate as RunState values (one per resource, plus Research).
-  `Spend(costs, reason)`, `Add(id, amount, reason)` (capped), `CanAfford`, `Get`, `Stock`, `Cap`,
-  `AddResearch`. Production, consumption and power are Prompt 9's.
+* `EconomyService` keeps the team's stockpile:
+  * every stocked resource in `Config.Resources` from its Start amount;
+  * caps: Cap plus CapPerStorageCell for each Storage cell, times StockpileCaps modifiers;
+  * Lab research, from 0.
+  * Amounts replicate as RunState values (one per resource, plus Research).
+  * API: `Spend(costs, reason)`, `Add(id, amount, reason)` (capped), `CanAfford`, `Get`, `Stock`,
+    `Cap`, `AddResearch`.
+* Production (Prompt 9): rooms make things all the time while the clock runs. A room's output
+  per cycle comes from its crew, level, span, light and modifiers, spread over a 270 s cycle;
+  whole units go into the stockpile and the fractions carry. Production is published per room
+  in the `Production` collection: { Rate, Makes, Idle, Workers }.
+* Consumption (Prompt 9): at each `CycleStarted` every eater takes 1 Food (times FoodUse) and 1
+  Water; a shortfall alerts the team and fires `Shortfall`.
+* Crews and eaters come from `SetResidents({ Crew, Eaters })` (ResidentService, Prompt 10);
+  call `RefreshCrew()` on changes.
+* Other API: `SetModifier(source, key, value?, room?)` for RoomOutput, AllOutput,
+  StockpileCaps and FoodUse; `Rate(roomId)`.
+* `PowerService` keeps the live power balance:
+  * the Reactor Core and Generators make power from their crews (Landon: they need residents);
+  * every room draws Power[level] per cell;
+  * when the draw passes what is made, rooms go dark farthest first by steps from the nearest
+    power room (dug cells count; unreachable rooms first; ties newest first);
+  * rooms that draw nothing never go dark.
+  * It pushes the dark rooms to EconomyService (`SetPowered`), dims their lights to emergency
+    red and dulls their Neon fittings (the room model's `Dark` attribute), alerts the team, and
+    publishes RunState PowerMade, PowerUsed, PowerNeeded, DarkRooms and the `Power` collection:
+    { Draw, Made, Dark, Steps }.
+  * API: `IsDark(roomId)`, `Balance()`, `Refresh()`, `DarkChanged`.
 * `VoteService` runs votes (`Open(spec)`: kind, proposer, title, costs, the ghost's subject, the
   cells it holds, a re-check, OnPass, OnFail). One vote is live at a time; later ones queue and
   each gets its full time. The proposer counts as a yes; abstaining is not voting; a vote can be
@@ -351,13 +377,18 @@ each proposal).
   again, pays, and: Build starts a construction site (20 s a cell, 25% faster per player standing
   in it, `Sites` collection, `workspace.Bunker.Sites` drawn by `BunkerKit.Site`), then places the
   room; Upgrade (costs per cell, so a merged room pays for each cell), Merge and TearDown apply at
-  once (tearing down gives nothing back). `Unlock(roomType)` for drafts and cryo pods
-  (`Unlocked` collection). Signals: `Proposed`, `Built`, `TornDown`.
+  once. Tearing down gives back half of what the room cost (`Construction.Refund`, Landon). On a
+  difficulty with `UpgradesTakeTime` (Nightmare) an upgrade is a site over the room instead
+  (Kind "Upgrade"; the room works at its old level until it's done). `Unlock(roomType)` for drafts
+  and cryo pods (`Unlocked` collection). Signals: `Proposed`, `Built`, `TornDown`.
 * `VoteController` (client) fills the vote telegram, `StarterGui.Votes` (its own ScreenGui at
   DisplayOrder 6, above The Frame, so a vote can be answered from any screen): what and its cost,
   then who, the tally and the time, the timer strip, YES and NO (your vote stays pressed in:
-  `KitRuntime.SetLatched`). It draws the Command View's ghosts, sends `Propose` from the Command
-  View's main action, and plays `SoundService.VoteOpen` / `VotePassed` when they exist (Prompt 32).
+  `KitRuntime.SetLatched`). On a controller Y votes: a tap for yes, a hold for no (Landon). While
+  your ballot is open, Y is bound above The Frame's main action (Y), so it votes from any screen;
+  key chips on YES and NO show on a gamepad. It draws the Command View's ghosts, sends `Propose`
+  from the Command View's main action, and plays `SoundService.VoteOpen` / `VotePassed` when they
+  exist (Prompt 32).
 * Remotes: `Propose`, `CastVote` (client to server, Run), `Alert` (server to client: a message
   for the HUD's alert feed).
 
@@ -444,6 +475,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   <Build|Upgrade|Merge|TearDown> <floor> <column> [roomType|otherRoomId]`, `sites`,
   `site.finish [id]`, `unlock <roomType>`. From Studio's server tools, `build` and `vote.yes|no`
   act as the first player in the run. On the client, `vote` prints the telegram and the ghosts.
+* The economy and power (Run place): `production` (every room's rate and why idle rooms are
+  idle), `staff <roomId|roomType> <statSum> [workers] [morale]` and `staff.clear` (Studio: pretend
+  crews until residents arrive), `eaters <n>` (pretend eaters), `eat` (the start-of-cycle meal
+  now), `power` (the balance, steps and dark rooms), `run.difficulty <Normal|Hard|Nightmare>`.
 * `ServerStorage.NS_Pipeline` (an outside Night Shift importer plugin's empty working folder,
   which Landon can't remove) is only a StructureCheck warning; scripts inside it would be an
   error.
@@ -469,9 +504,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
 | Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
 | Run | PingService | service | SessionService, DevService | cell pings (PingCell in, CellPinged out to every ready player) |
-| Run | EconomyService | service | BunkerGrid, DevService | the stockpile: amounts, caps (Storage), spending, research (production comes with Prompt 9) |
+| Run | EconomyService | service | BunkerGrid, CycleClock, SessionService, ReplicationService, DevService | the stockpile (amounts, caps, spending, research), production, food and water, bunker-wide output modifiers |
+| Run | PowerService | service | BunkerGrid, EconomyService, SessionService, ReplicationService, DevService | the power balance, dark rooms (lights, fittings, alerts) |
 | Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
-| Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, ReplicationService, DevService | proposals, construction sites, upgrades, merges, teardown, unlocks |
+| Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -479,7 +515,7 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | HUDController | controller | InputController, UIController, CameraController, ReplicaController | the run HUD (Run; nothing in the Lobby yet) |
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
-| both | VoteController | controller | ReplicaController, CommandViewController | the vote telegram (Run), the Command View's vote and site ghosts, its Propose handlers |
+| both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -522,3 +558,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   ScreenGui, the stockpile on the HUD. Landon's answers to the Prompt 6 and 7 questions: Ready on
   Z and D-pad down, the mouse wheel frees the cursor, ore chips by depth, no team list, the
   Command View pans.
+* **Prompt 9 (2026-11-08)**: the economy and power (Run). Rules.Economy (Section 13's formula,
+  the power balance and dark order, eating), EconomyService production and meals with a
+  resident source for Prompt 10, PowerService (dark rooms in emergency red), the HUD's Power
+  chip, the Command View's Power and Production overlays with readings. Landon's answers to the
+  Prompt 8 questions: tear-down refunds half, upgrades take time on Nightmare, controllers vote
+  with Y (tap yes, hold no), the proposer stays a yes; and to Prompt 9's: power needs crew.
