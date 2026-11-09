@@ -381,7 +381,10 @@ local function makeModel(f: Fight): (Model, BasePart)
 			part.Anchored = part == root
 		end
 	end
-	root.CanQuery = false -- her invisible root box mustn't catch shots meant for her belly
+	-- Her invisible root box mustn't catch shots meant for her belly (a part that collides is
+	-- always queryable, so it stops colliding too: players can step under her).
+	root.CanCollide = false
+	root.CanQuery = false
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.BreakJointsOnDeath = false
@@ -858,10 +861,12 @@ local function onDied(id: string)
 			killer = player
 		end
 	end
-	announce("Info", `THE {string.upper(f.Name)} IS DEAD{if killer then ` · {string.upper(killer.DisplayName)} STRUCK THE LAST BLOW` else ""}`)
+	announce("Info", `THE {string.upper(f.Name)} IS DEAD{if killer then ` · FINISHED BY {string.upper(killer.DisplayName)}` else ""}`)
 	log:Info("%s is dead (last blow: %s)", f.Name, if killer then killer.Name else "-")
-	objectives:BossBeaten(f.BossId)
+	-- Defeated first: BossBeaten ends the Surge and the year moves on, and the run's story
+	-- should say the year she fell.
 	BossService.Defeated:Fire(f.BossId, killer)
+	objectives:BossBeaten(f.BossId)
 	task.delay(Boss.Tuning().DeathSeconds, function()
 		if fight == f then
 			cleanup(f)
