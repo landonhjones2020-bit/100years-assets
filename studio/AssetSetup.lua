@@ -28,6 +28,7 @@ local TOLERANCE = 0.01
 local FIDELITY: { [string]: Enum.CollisionFidelity } = {
 	none = Enum.CollisionFidelity.Box,
 	query = Enum.CollisionFidelity.Box,
+	queryhull = Enum.CollisionFidelity.Hull, -- a boss's body: raycasts follow its shape (Prompt 15)
 	box = Enum.CollisionFidelity.Box,
 	hull = Enum.CollisionFidelity.Hull,
 	precise = Enum.CollisionFidelity.PreciseConvexDecomposition,
@@ -85,10 +86,11 @@ function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchH
 				tostring(size), tostring(rel), tostring(offset)))
 			problems += 1
 		end
-		local collide = spec.collision ~= "none" and spec.collision ~= "query"
+		local queryOnly = spec.collision == "query" or spec.collision == "queryhull"
+		local collide = spec.collision ~= "none" and not queryOnly
 		part.Anchored = true
 		part.CanCollide = collide
-		part.CanQuery = collide or spec.collision == "query"
+		part.CanQuery = collide or queryOnly
 		part.CanTouch = collide
 		part.CollisionFidelity = FIDELITY[spec.collision] or Enum.CollisionFidelity.Box
 		part.CastShadow = spec.castShadow

@@ -20,14 +20,17 @@ from mathutils import Vector  # noqa: E402
 
 
 class Beast:
-    def __init__(self, name: str, joints: list):
+    def __init__(self, name: str, joints: list, collision: str = "query"):
+        """collision: the body parts' kind; a boss uses "queryhull" (its weak point must not
+        hide inside its neighbours' Box shapes; Prompt 15)."""
         self.name = name
         self.joints = joints
+        self.collision = collision
         self.arm = sf.make_rig(name, joints)
 
-    def part(self, obj, bone: str, swatch: str, collision="query", **kw):
+    def part(self, obj, bone: str, swatch: str, collision=None, **kw):
         """A piece of the bone's MeshPart (pieces of one bone merge)."""
-        sf.tag(obj, bone, swatch, collision=collision, **kw)
+        sf.tag(obj, bone, swatch, collision=collision or self.collision, **kw)
         sf.bind(obj, self.arm, bone)
         return obj
 

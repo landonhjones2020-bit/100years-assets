@@ -381,6 +381,7 @@ local function makeModel(f: Fight): (Model, BasePart)
 			part.Anchored = part == root
 		end
 	end
+	root.CanQuery = false -- her invisible root box mustn't catch shots meant for her belly
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.BreakJointsOnDeath = false

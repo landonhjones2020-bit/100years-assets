@@ -32,7 +32,7 @@
 	  client also turns the Dead state off for its own character, and Died is still handled as a
 	  fallback.
 
-	Dev: combat, hurt, heal, down, revive, kill, dummy, dummy.attack, dummy.clear.
+	Dev: combat, hurt, heal, down, revive, kill, god, dummy, dummy.attack, dummy.clear.
 ]]
 
 local Players = game:GetService("Players")
@@ -829,6 +829,20 @@ function CombatService:Init(registry)
 			end
 			local ok, why = CombatService:Revive(who, nil)
 			return if ok then `{who.Name} is up` else `can't: {why}`
+		end,
+	})
+	dev:Register("god", {
+		Description = "A player takes no damage for a while (you by default; Studio testing, e.g. a boss fight).",
+		Usage = "god [seconds] [player]",
+		Run = function(player, args): string?
+			local who = target(player, args[2])
+			local c = who and CombatService:PlayerCombatant(who)
+			if not c then
+				return "no such player in the fight"
+			end
+			local seconds = tonumber(args[1]) or 600
+			CombatService:SetInvulnerable(c.Id, now() + seconds)
+			return `{who and who.Name} takes no damage for {seconds} s (until they respawn)`
 		end,
 	})
 	dev:Register("kill", {

@@ -139,7 +139,7 @@ def build(b):
         b.glow(crystal((x, y, z), d, ln, rr), "Abdomen", "AbdomenGlow")
     # the glowing belly (the weak point) with plum ribs across it and eggs pressing out of the sides
     belly = blob(1.0, (c.x, c.y + 0.2, 3.55), scale=(3.2, 4.3, 1.75), segs=18, rings=9, noise=0.02, seed=106, name="Belly")
-    sf.tag(belly, "Belly", "glow", "Neon", collision="query", cast_shadow=False, role="WeakPoint")
+    sf.tag(belly, "Belly", "glow", "Neon", collision="queryhull", cast_shadow=False, role="WeakPoint")
     belly["sf_bone"] = "Abdomen"
     sf.bind(belly, b.arm, "Abdomen")
     for f in (-0.55, -0.15, 0.25, 0.62):
@@ -356,7 +356,7 @@ def hero_view():
 
 
 if __name__ == "__main__":
-    B.run(ASSET, CATEGORY, lambda: B.Beast("BroodMother", JOINTS), build, clips,
+    B.run(ASSET, CATEGORY, lambda: B.Beast("BroodMother", JOINTS, collision="queryhull"), build, clips,
           budget=15000, hrp_center=(0, -0.4, 5.0), hrp_size=(5.0, 4.0, 7.0), step="A4",
           meta={"role": "Boss", "band": "Mines", "era": 1, "hitTime": HIT_TIME, "layTime": LAY_TIME},
           sockets={"Ovipositor": ((0, 13.4, 2.6), 0.0), "Maw": ((0, -5.6, 4.4), 0.0), "Slam": ((0, -8.5, 0.0), 0.0)},

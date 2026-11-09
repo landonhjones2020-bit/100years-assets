@@ -129,7 +129,9 @@ this game, by Steadfast Shelter Co., in 1958.
 * Part names unique per asset. Parts that code must find get `role=` (they stay separate
   MeshParts); everything else that shares settings is merged into one MeshPart on export.
 * Collision (`collision=`): `none` for decoration (collision and queries off), `query` for
-  rig body parts and held items (no collision, but raycasts hit them), `box` for props,
+  rig body parts and held items (no collision, but raycasts hit them; their Box shape is
+  cheap), `queryhull` for a boss's body parts (the same with a Hull shape, so shots reach a
+  weak point instead of a neighbour's box; Prompt 15), `box` for props,
   `hull` for large pieces, `precise` only where players walk.
 * Rigs: one MeshPart per bone, named for the bone; parts that ride on a bone (glow, hair)
   are separate parts with `bone=` and get welded to it. `AssetSetup.rig` builds the

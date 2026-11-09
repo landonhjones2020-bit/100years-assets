@@ -58,7 +58,7 @@ ASSET_NAME = re.compile(r"^[A-Z][A-Za-z0-9]*_[A-Z][A-Za-z0-9]*(_[A-Za-z0-9]+)?$"
 MATERIALS = {"SmoothPlastic", "Plastic", "Metal", "DiamondPlate", "Wood", "WoodPlanks", "Fabric",
              "Glass", "Neon", "Concrete", "Brick", "Slate", "Granite", "Pebble", "Cobblestone",
              "Rock", "Sand", "Ice", "Foil", "Marble", "CorrodedMetal", "ForceField"}
-COLLISION = {"none", "query", "box", "hull", "precise"}
+COLLISION = {"none", "query", "queryhull", "box", "hull", "precise"}
 
 # ------------------------------------------------------------------------------------------
 # Palette
@@ -382,6 +382,8 @@ def tag(obj, part: str, swatch_name: str, mat: str = "SmoothPlastic", *, collisi
                   or be see-through (Glass): roughness and metalness come from the palette.
     collision     "none" (decoration: no collision, no queries) | "query" (no collision,
                   but raycasts hit it: rig body parts, so guns and taps can find them) |
+                  "queryhull" (the same with a Hull shape for raycasts: a boss, whose
+                  weak point must not hide inside its neighbours' boxes) |
                   "box" | "hull" | "precise" (CanCollide with that CollisionFidelity).
     smooth_angle  edges sharper than this stay hard; None = fully faceted.
     role          runtime role so code can find the part (keeps it a separate MeshPart).
