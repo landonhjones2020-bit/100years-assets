@@ -188,6 +188,10 @@ local UIContract: { [string]: Screen } = {
 			"Templates.Valve.Plate.Label",
 			"Templates.Valve.Plate.State",
 			"Templates.Valve.Plate.Gauge.Fill",
+			"BossBar", -- Prompt 15: the boss bar (BossController)
+			"BossBar.Name",
+			"BossBar.Phase",
+			"BossBar.Back.Fill",
 		},
 	},
 }

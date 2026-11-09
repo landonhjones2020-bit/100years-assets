@@ -27,6 +27,7 @@
 		ThreatDirector:ExtraBreach(): boolean        -- Disturbance 50 (Section 10)
 		ThreatDirector:Tremor(): number              -- Disturbance 100: a full wave at once
 		ThreatDirector:Burst(fraction, at, tag): number -- Prompt 14: a nest's monsters, at once
+		ThreatDirector:IsFirstRun(): boolean         -- Prompt 15: someone's first run (a weaker Brood Mother)
 		ThreatDirector:SetDisasterCheck(fn)          -- replaces DisasterService:HoldsSurge (tests)
 	Dev: threat, surge.wave.
 ]]
@@ -81,6 +82,18 @@ local function firstRunEraI(): boolean
 	if Threat.EraNumber(clock:Era()) ~= 1 then
 		return false
 	end
+	for _, player in session:ReadyPlayers() do
+		local data = profiles:Get(player)
+		if data and data.FirstRunDone == false then
+			return true
+		end
+	end
+	return false
+end
+
+-- Is this an account's first run for anyone in it (Section 22: Era I is 30% easier and the Brood
+-- Mother weaker)? Unlike the Era I easing, true in any era (the Brood Mother can come in Year 27).
+function ThreatDirector:IsFirstRun(): boolean
 	for _, player in session:ReadyPlayers() do
 		local data = profiles:Get(player)
 		if data and data.FirstRunDone == false then

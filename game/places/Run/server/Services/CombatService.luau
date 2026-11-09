@@ -14,7 +14,8 @@
 	* Damage(targetId, amount, sourceId?, how?): no friendly fire (Section 9), and a dodge's
 	  invulnerable moment takes nothing. Heal(id, amount).
 	* Signals: Damaged(id, amount, sourceId?, how?), Downed(id), Revived(id, byUserId?),
-	  Died(id). Dead monsters dissolve into glowing dust (Section 3).
+	  Died(id). Dead monsters dissolve into glowing dust (Section 3); a combatant registered with
+	  KeepModel (a boss, Prompt 15) is left for its own service, which calls Dissolve(model).
 
 	Players (Section 9)
 	* Health: Tuning.Player.Health (classes add theirs with Prompt 20). Roblox's own
@@ -67,6 +68,7 @@ export type Combatant = {
 	Player: Player?,
 	ResidentId: string?,
 	MonsterType: string?,
+	KeepModel: boolean?, -- a boss: its own service plays its death before it dissolves (Prompt 15)
 }
 export type Spec = {
 	Kind: Kind,
@@ -77,6 +79,7 @@ export type Spec = {
 	ResidentId: string?,
 	MonsterType: string?,
 	Id: string?,
+	KeepModel: boolean?, -- don't dissolve the model at death (a boss plays its death clip first)
 }
 
 local CombatService = {
@@ -153,6 +156,7 @@ function CombatService:Register(model: Model, spec: Spec): string?
 		Player = spec.Player,
 		ResidentId = spec.ResidentId,
 		MonsterType = spec.MonsterType,
+		KeepModel = spec.KeepModel,
 	}
 	combatants[record.Id] = record
 	byModel[model] = record.Id
@@ -274,6 +278,11 @@ local function dissolve(model: Model)
 	task.delay(1.4, function()
 		model:Destroy()
 	end)
+end
+
+-- Fades a model out with a puff of Source dust and destroys it (what a dead monster does).
+function CombatService:Dissolve(model: Model)
+	dissolve(model)
 end
 
 -- Players: down, revive, die, respawn ---------------------------------------------------------
@@ -537,7 +546,9 @@ function CombatService:Damage(targetId: string, amount: number, sourceId: string
 			CombatService:Unregister(target.Id)
 			CombatService.Damaged:Fire(targetId, done, sourceId, how)
 			CombatService.Died:Fire(targetId)
-			dissolve(target.Model)
+			if not target.KeepModel then
+				dissolve(target.Model)
+			end
 			return done
 		end
 	end

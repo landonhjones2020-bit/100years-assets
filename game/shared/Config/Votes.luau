@@ -15,7 +15,7 @@ return {
 		Rule = Check.enum({ "MoreYes", "WholeTeamMajority", "MostVotes", "TwoThirdsOfOthers" }),
 		Text = F.Short,
 	}),
-	Order = { "Build", "PushDeeper", "Draft", "LetThemIn", "KeepGoing", "Kick" },
+	Order = { "Build", "PushDeeper", "Draft", "LetThemIn", "KeepGoing", "PlayAgain", "Kick" },
 	Entries = {
 		Build = {
 			Name = "Build, upgrade, merge or tear down",
@@ -48,6 +48,13 @@ return {
 		KeepGoing = {
 			Name = "Keep Going",
 			StartsWhen = "After a victory",
+			Seconds = 20,
+			Rule = "WholeTeamMajority",
+			Text = "A majority of the whole team",
+		},
+		PlayAgain = { -- Section 21: after a run, a vote sends the same party to a fresh Run server (Prompt 15)
+			Name = "Play Again",
+			StartsWhen = "Someone presses Play Again on the results screen",
 			Seconds = 20,
 			Rule = "WholeTeamMajority",
 			Text = "A majority of the whole team",

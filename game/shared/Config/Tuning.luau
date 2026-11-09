@@ -103,6 +103,21 @@ local Schemas: { [string]: Check.Checker } = {
 	Disturbance = shape({
 		Max = N, DecayPerCycle = N, NestDestroyed = N, Explosive = N, ExtraBreachAt = N, TremorAt = N, AfterTremor = N,
 	}),
+	-- Prompt 15: boss fights in general, the Brood Mother's, and the results screen
+	Bosses = shape({
+		ArrivalWarningSeconds = S, RiseSeconds = S, FirstRunHealth = Fr, ArmourMultiplier = Fr, WeakPointMultiplier = N,
+		WeakPointTolerance = N, PublishSeconds = S, DeathSeconds = S, TickSeconds = S,
+	}),
+	BroodMother = shape({
+		MoveSpeed = list(N, 4), AttackSeconds = list(S, 4), SlamDamage = N, SlamRadius = N, SlamReach = N,
+		LaySeconds = list(S, 4), SacsPerLay = list(I, 4), MaxSacs = I, SacHealth = N, HatchSeconds = S, HatchCount = I,
+		BurnMultiplier = N, StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S,
+		ArenaMargin = N, TurnDegreesPerSecond = N,
+	}),
+	Results = shape({
+		OpenDelaySeconds = S, StoriesMax = I,
+		MVP = shape({ Damage = N, Kills = N, Revives = N, CellsDug = N, Repairs = N, BossDamage = N }),
+	}),
 	Threat = shape({
 		Base = N, PerYear = N, PerDeepestFloor = N, PerDisturbance = N, PerRoom = N,
 		PlayerScale = list(N, 6), BetweenSurgesFraction = N, BreachWarningSeconds = S,
@@ -273,6 +288,35 @@ return {
 		},
 		Disturbance = { -- Section 10
 			Max = 100, DecayPerCycle = 10, NestDestroyed = 20, Explosive = 10, ExtraBreachAt = 50, TremorAt = 100, AfterTremor = 40,
+		},
+		Bosses = { -- Prompt 15, prov. (Section 10's boss table; Section 22: the first run's Brood Mother is weaker)
+			-- A boss Surge's boss breaks in ArrivalWarningSeconds after the Surge starts (cracks, dust, an
+			-- alert) and rises out of the floor over RiseSeconds. Its health is Config.Bosses' Health times
+			-- Threat.PlayerScale for the team, times FirstRunHealth on an account's first run. Hits on its
+			-- armour do ArmourMultiplier; hits within WeakPointTolerance of a WeakPoint part do
+			-- WeakPointMultiplier (the Sharpshooter's WeakPointMultiplier replaces it). Its bar updates
+			-- every PublishSeconds; dead, it collapses for DeathSeconds before it dissolves.
+			ArrivalWarningSeconds = 8, RiseSeconds = 2, FirstRunHealth = 0.7, ArmourMultiplier = 0.25, WeakPointMultiplier = 2,
+			WeakPointTolerance = 1, PublishSeconds = 0.25, DeathSeconds = 4, TickSeconds = 0.1,
+		},
+		BroodMother = { -- Section 10: lays egg sacs that hatch Burrow Ticks; break or burn the sacs and hit her
+			-- glowing belly. Prompt 15, prov. Lists are by phase (Config.Bosses' Phases: 2, the second
+			-- from half health). She slams whoever is within SlamReach of her front (SlamDamage within
+			-- SlamRadius of the blow), every AttackSeconds; every LaySeconds she lays SacsPerLay egg sacs
+			-- behind her (MaxSacs at once). A sac has SacHealth (fire does BurnMultiplier) and hatches
+			-- HatchCount Burrow Ticks after HatchSeconds. StaggerFraction of her health dealt to her belly
+			-- within StaggerWindowSeconds staggers her for StaggerSeconds. She roars RoarSeconds as she
+			-- arrives and as her second phase starts. She stays ArenaMargin from her arena's ends.
+			MoveSpeed = { 5, 7 }, AttackSeconds = { 3.2, 2.4 }, SlamDamage = 30, SlamRadius = 9, SlamReach = 14,
+			LaySeconds = { 16, 10 }, SacsPerLay = { 1, 2 }, MaxSacs = 6, SacHealth = 90, HatchSeconds = 14, HatchCount = 3,
+			BurnMultiplier = 2, StaggerFraction = 0.05, StaggerWindowSeconds = 3, StaggerSeconds = 2.5, RoarSeconds = 2.5,
+			ArenaMargin = 10, TurnDegreesPerSecond = 120,
+		},
+		Results = { -- Prompt 15, prov. (Section 18: Results; Section 16's payouts are Config.GlowshardRewards)
+			-- The screen opens OpenDelaySeconds after the run ends; StoriesMax lines of the run's story.
+			-- MVP: a player's score adds each stat times its weight.
+			OpenDelaySeconds = 4, StoriesMax = 8,
+			MVP = { Damage = 0.1, Kills = 10, Revives = 25, CellsDug = 15, Repairs = 0.05, BossDamage = 0.1 },
 		},
 		Threat = { -- Section 10 lists the inputs; weights prov. First-run Era I is 30% easier (Section 22)
 			Base = 12, PerYear = 1.2, PerDeepestFloor = 4, PerDisturbance = 0.25, PerRoom = 1,

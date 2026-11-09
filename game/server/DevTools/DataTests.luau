@@ -36,6 +36,8 @@ local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
 local Residents = require(Shared.Rules.Residents)
 local Votes = require(Shared.Rules.Votes)
+local Boss = require(Shared.Rules.Boss)
+local Results = require(Shared.Rules.Results)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -1934,6 +1936,119 @@ test("Loot: tables roll by weight, band ore and skipped specials (Prompt 14)", f
 			expect(Config.Find("LootTables", entry.Loot) ~= nil, `{id}'s loot table exists`)
 		end
 	end
+end)
+
+test("Boss: the Brood Mother's health, phases and hits (Sections 5 and 22, Prompt 15)", function()
+	expectEqual(Boss.Health("BroodMother", 1, false), 6000, "solo, not a first run")
+	expectEqual(Boss.Health("BroodMother", 1, true), 4200, "an account's first run: 70%")
+	expectEqual(Boss.Health("BroodMother", 4, false), 15000, "four players: x2.5 (Threat.PlayerScale)")
+	expectEqual(Boss.Health("BroodMother", 9, false), 18000, "more than six counts as six")
+	expectEqual(Boss.Health("Deluge", 1, true), 12000, "only an Era I boss is weaker on a first run")
+	expectEqual(Boss.Phase("BroodMother", 1), 1, "full health: phase 1")
+	expectEqual(Boss.Phase("BroodMother", 0.51), 1, "just over half: phase 1")
+	expectEqual(Boss.Phase("BroodMother", 0.5), 2, "half lost: phase 2")
+	expectEqual(Boss.Phase("BroodMother", 0), 2, "dead: still the last phase")
+	expectEqual(Boss.Phase("Source", 0.74), 2, "a four-phase boss at 74%")
+	expectEqual(Boss.Phase("Source", 0.25), 4, "and at a quarter")
+	expectEqual(Boss.ByPhase({ 5, 7 }, 1), 5, "phase 1's value")
+	expectEqual(Boss.ByPhase({ 5, 7 }, 3), 7, "the last value carries on")
+	expectEqual(Boss.HitMultiplier(false), 0.25, "armour")
+	expectEqual(Boss.HitMultiplier(true), 2, "the belly")
+	expectEqual(Boss.HitMultiplier(true, 2.5), 2.5, "the Sharpshooter's weak-point hits")
+	expectEqual(Boss.HitMultiplier(false, 2.5), 0.25, "but not on armour")
+	local cf = CFrame.new(10, 5, -3) * CFrame.Angles(0, math.pi / 2, 0)
+	local size = Vector3.new(4, 2, 6)
+	expect(Boss.OnPart(cf.Position, cf, size, 0), "the part's middle to be on it")
+	expect(not Boss.OnPart(cf:PointToWorldSpace(Vector3.new(2.5, 0, 0)), cf, size, 0), "half a stud past its side to miss")
+	expect(Boss.OnPart(cf:PointToWorldSpace(Vector3.new(2.5, 0, 0)), cf, size, 1), "the tolerance to catch it")
+	expect(Boss.OnPart(cf:PointToWorldSpace(Vector3.new(0, 0, 2.9)), cf, size, 0), "the box to turn with the part")
+	local hits = { { At = 10, Amount = 100 }, { At = 12, Amount = 200 } }
+	expect(Boss.Staggers(hits, 12.5, 3, 300), "300 inside 3 s to stagger")
+	expect(not Boss.Staggers(hits, 13.5, 3, 300), "the first hit to be too old by then")
+	local fight = Boss.Fight("BroodMother") :: any
+	expect(fight ~= nil and fight.SlamDamage > 0, "her fight's numbers")
+	local phases = Config.Get("Bosses", "BroodMother").Phases
+	for _, key in { "MoveSpeed", "AttackSeconds", "LaySeconds", "SacsPerLay" } do
+		expectEqual(#fight[key], phases, `{key}: one value per phase`)
+	end
+	expectEqual(Boss.Fight("Deluge"), nil, "no fight yet for the Era II boss")
+end)
+
+test("Boss: the arena is the deepest tunnel, else a room, else a cell (Section 10)", function()
+	local bunker = Bunker.FromStart()
+	local arena = Boss.Arena(bunker) :: Boss.Arena
+	expect(arena ~= nil, "the starting bunker to have one")
+	expectEqual({ arena.Floor, arena.From, arena.To, arena.Kind }, { 2, 3, 3, "Tunnel" }, "floor 2's dug cell")
+	expect(bunker:Dig(2, 4) and bunker:Dig(2, 5), "two more cells dug beside it")
+	arena = Boss.Arena(bunker) :: Boss.Arena
+	expectEqual({ arena.From, arena.To }, { 3, 5 }, "the run of three")
+	expectEqual(Boss.ArenaMiddle(arena), 4, "she breaks in at its middle")
+	local left, right = Boss.ArenaSpan(arena, 10)
+	expectEqual(right - left, 2 * Grid.Pitch().X + Grid.Tuning().CellWidth - 20, "end wall to end wall, less the margins")
+	expect(bunker:Dig(3, 3), "a cell dug a floor down")
+	arena = Boss.Arena(bunker) :: Boss.Arena
+	expectEqual({ arena.Floor, arena.From, arena.To }, { 3, 3, 3 }, "the deepest floor wins")
+	left, right = Boss.ArenaSpan(arena, 20)
+	expectEqual(left, right, "a margin wider than the cell pins her to its middle")
+	local rooms = Bunker.new()
+	for column = 0, 2 do
+		rooms:Open(1, column)
+	end
+	expect(rooms:Place("Shaft", 1, 0, 1) and rooms:Place("Quarters", 1, 1, 2), "a Shaft and Quarters placed")
+	arena = Boss.Arena(rooms) :: Boss.Arena
+	expectEqual({ arena.Kind, arena.From, arena.To }, { "Room", 1, 2 }, "no tunnel: the widest room that isn't a Shaft")
+	local shaftOnly = Bunker.new()
+	shaftOnly:Open(1, 0)
+	shaftOnly:Place("Shaft", 1, 0, 1)
+	arena = Boss.Arena(shaftOnly) :: Boss.Arena
+	expectEqual({ arena.Kind, arena.From }, { "Cell", 0 }, "only a Shaft: its cell")
+	expectEqual(Boss.Arena(Bunker.new()), nil, "an empty grid: nowhere")
+end)
+
+test("Results: a run's Glowshards, line by line, paid once (Section 16, Prompt 15)", function()
+	expectEqual(Results.BandsReached(2), 1, "the Mines from the start")
+	expectEqual(Results.BandsReached(4), 2, "floor 4 opens the Flooded Caverns")
+	expectEqual(Results.BandsReached(10), 4, "the Source Chamber")
+	local century: Results.Run = {
+		Year = 100, DeepestFloor = 6, Victory = "Century", Bosses = { "BroodMother", "Deluge", "CrystalColossus" }, Difficulty = "Normal",
+	}
+	local payout = Results.Payout(century, Results.EmptyLedger(), { FirstWinToday = false })
+	expectEqual(payout.Total, 52, "25 for the years, 6 for two bands, 15 for the win and 6 for three bosses")
+	expectEqual(#payout.Lines, 6, "a line each: years, bands, the win and each boss")
+	expect(payout.Ledger.Bosses.Deluge == true and payout.Ledger.Years == 100, "the ledger to keep what was paid")
+	expectEqual(Results.Payout(century, payout.Ledger, { FirstWinToday = false }).Total, 0, "the same run ending again pays nothing")
+	local endless: Results.Run = { Year = 112, DeepestFloor = 7, Victory = "Century", Bosses = century.Bosses, Difficulty = "Normal" }
+	expectEqual(Results.Payout(endless, payout.Ledger, { FirstWinToday = false }).Total, 6,
+		"after Keep Going: 3 for twelve more years and 3 for a new band, no second win")
+	expectEqual(Results.Payout(century, Results.EmptyLedger(), { FirstWinToday = true }).Total, 104, "the first win of the day doubles it")
+	local quick: Results.Run = { Year = 3, DeepestFloor = 2, Bosses = {}, Difficulty = "Normal" }
+	expectEqual(Results.Payout(quick, Results.EmptyLedger(), { FirstWinToday = true }).Total, 3,
+		"a quick loss: the Mines' 3, no years yet, and no win to double")
+	local hard: Results.Run = { Year = 40, DeepestFloor = 3, Bosses = { "BroodMother" }, Difficulty = "Hard" }
+	local hardPayout = Results.Payout(hard, Results.EmptyLedger(), { FirstWinToday = false })
+	expectEqual(hardPayout.Total, 23, "Hard: 15 times 1.5, rounded")
+	expectEqual(hardPayout.Lines[#hardPayout.Lines].Amount, 8, "the difficulty's own line")
+end)
+
+test("Results: account experience, levels and the MVP (Sections 16 and 18)", function()
+	expectEqual(Results.AccountXP(30, 0), 300, "10 a year")
+	expectEqual(Results.AccountXP(30, 25), 50, "only the new years after Keep Going")
+	expectEqual(Results.AccountXP(10, 20), 0, "never negative")
+	expectEqual(Results.XPToNext(1), 200, "level 1 to 2")
+	expectEqual(Results.XPToNext(2), 250, "each level 50 more")
+	expectEqual({ Results.LevelUp(1, 0, 200) }, { 2, 0 }, "exactly one level")
+	expectEqual({ Results.LevelUp(1, 150, 300) }, { 3, 0 }, "two levels at once")
+	expectEqual({ Results.LevelUp(1, 0, 100) }, { 1, 100 }, "not yet")
+	local top, xp = Results.LevelUp(99, 0, 10 ^ 9)
+	expectEqual(top, 100, "it stops at the top level")
+	expect(xp <= Results.XPToNext(100), "its experience capped")
+	expectEqual(Results.Score({ Damage = 1000, Kills = 5 }), 150, "damage and kills")
+	expectEqual(Results.Score({}), 0, "nothing done")
+	expectEqual(Results.MVP({ [1] = { Kills = 3 }, [2] = { Kills = 5 } }), 2, "the higher score")
+	expectEqual(Results.MVP({ [7] = { Kills = 2 }, [3] = { Kills = 2 } }), 3, "a tie: the lower user id")
+	expectEqual(Results.MVP({ [1] = {} }), nil, "nobody scored")
+	expectEqual(Results.Day(86400 * 3 + 5), 3, "the UTC day")
+	expectEqual(Config.Get("Votes", "PlayAgain").Rule, "WholeTeamMajority", "Play Again: a whole-team vote")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

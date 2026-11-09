@@ -191,6 +191,27 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 6, PerSecond = 2 },
 		Doc = "Put a rock cell (floor, column) on the Drill Bay's dig queue (true) or take it off (false) from the Command View; no vote (Section 7; DigService, Prompt 14).",
 	},
+	PlayAgain = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.2 },
+		Doc = "Press Play Again on the results screen: a team vote to go again on a fresh Run server (Section 21; ResultsService, Prompt 15).",
+	},
+	KeepGoing = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.2 },
+		Doc = "Press Keep Going on the results screen after a victory: a team vote to carry on in Endless (Section 5; ResultsService, Prompt 15).",
+	},
+	ReturnToLobby = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.2 },
+		Doc = "Press Return to Lobby on the results screen: back to the lobby (Section 21; ResultsService, Prompt 15).",
+	},
 
 	-- server -> client
 	Delta = {

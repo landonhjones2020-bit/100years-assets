@@ -45,6 +45,8 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Rules.Combat", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Threat", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Votes", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Boss", "ModuleScript" }, -- Prompt 15
+	{ "ReplicatedStorage.Shared.Rules.Results", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities.Delta", "ModuleScript" },
@@ -113,6 +115,11 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.DisasterController", "ModuleScript" },
 		{ "ServerScriptService.Services.DigService", "ModuleScript" }, -- Prompt 14
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.DigController", "ModuleScript" },
+		{ "ServerScriptService.Services.BossService", "ModuleScript" }, -- Prompt 15
+		{ "ServerScriptService.Services.ResultsService", "ModuleScript" },
+		{ "StarterPlayer.StarterPlayerScripts.Controllers.BossController", "ModuleScript" },
+		{ "StarterPlayer.StarterPlayerScripts.Controllers.ResultsController", "ModuleScript" },
+		{ "StarterGui.HUD.BossBar", "ImageLabel" },
 		{ "StarterGui.Reticle.Sight.Hit", "Frame" },
 		{ "StarterGui.Reticle.Sight.Kill", "Frame" },
 	},

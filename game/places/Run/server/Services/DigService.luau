@@ -53,7 +53,7 @@
 		DigService:Mark(floor, column, on, player?): (boolean, string?)
 		DigService:SetModifier(source, key, value?)      -- DigSpeed, DigDisturbance (team-wide)
 		DigService:Feature(floor, column): string?
-		DigService.Dug: Signal<number, number, string, string> -- floor, column, result, cause
+		DigService.Dug: Signal<number, number, string, string, Player?> -- floor, column, result, cause, who finished it
 	Dev: digs, dig, dig.roll, dig.mark, disturbance, disturbance.add, tremor, pushdeeper, nest, cache, cave.
 ]]
 
@@ -83,7 +83,7 @@ local DigService = {
 		"BunkerGrid", "CycleClock", "RunDirector", "SessionService", "ReplicationService", "EconomyService", "WeaponService",
 		"CombatService", "VoteService", "BuildService", "BreachService", "ThreatDirector", "DisasterService", "DevService",
 	},
-	Dug = Signal.new() :: Signal.Signal<number, number, string, string>,
+	Dug = Signal.new() :: Signal.Signal<number, number, string, string, Player?>,
 }
 
 -- Results whose systems exist; the rest count as Empty (hazard pockets: Prompt 23; cryo pods: 17).
@@ -711,7 +711,7 @@ local function open(floor: number, column: number, cause: string, finisher: Play
 			disasters:CaveIn(floor, column, side, "Digging")
 		end)
 	end
-	DigService.Dug:Fire(floor, column, result, cause)
+	DigService.Dug:Fire(floor, column, result, cause, finisher)
 	return true, nil
 end
 

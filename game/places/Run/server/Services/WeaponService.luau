@@ -64,7 +64,9 @@
 	ShotSalt, ShotNext, SwingEndsAt, ToolInUse.
 	API: Loadout(player), Items(player): { string }, Carries(player, itemId): boolean,
 	GiveThrowable(player, itemId, count): number (Prompt 14: caches); signals Foamed, ToolTick,
-	Swung (Prompt 13) and Exploded (Prompt 14: explosives raise Disturbance).
+	Swung (Prompt 13) and Exploded (Prompt 14: explosives raise Disturbance);
+	SetHitModifier(fn) (Prompt 15: a boss's armour and weak points scale hits and may rename them,
+	"weakpoint").
 	Dev: class, give, ammo, medkits, loadout, stamina.
 ]]
 
@@ -417,6 +419,22 @@ end
 
 -- Guns ---------------------------------------------------------------------------------------
 
+-- A boss's armour and weak points (Prompt 15): BossService's hook scales a hit and may rename it.
+local hitModifier: ((target: any, point: Vector3?, how: string, player: Player) -> (number, string?))? = nil
+
+local function modified(target: any, amount: number, point: Vector3?, how: string, player: Player): (number, string)
+	local fn = hitModifier
+	if fn then
+		local ok, multiplier, newHow = pcall(fn, target, point, how, player)
+		if ok and type(multiplier) == "number" then
+			return amount * multiplier, if type(newHow) == "string" then newHow else how
+		elseif not ok then
+			log:Warn("hit modifier: %s", tostring(multiplier))
+		end
+	end
+	return amount, how
+end
+
 local function explode(player: Player, at: Vector3, radius: number, damage: number, shooterId: string)
 	WeaponService.Exploded:Fire(at, radius, player)
 	local blast = Instance.new("Explosion")
@@ -430,7 +448,8 @@ local function explode(player: Player, at: Vector3, radius: number, damage: numb
 		local distance = (c.Root.Position - at).Magnitude - c.Reach
 		if distance <= radius and not blocked(at, c.Root.Position, ignore) then
 			local scale = 1 - math.clamp(distance / radius, 0, 1) * 0.5
-			local done = combat:Damage(c.Id, damage * scale, shooterId, "blast")
+			local amount, how = modified(c, damage * scale, at, "blast", player)
+			local done = combat:Damage(c.Id, amount, shooterId, how)
 			if done > 0 then
 				confirm(player, c.Id, done, c.Root.Position)
 			end
@@ -721,7 +740,8 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 		for _, c in combat:All("Monsters") do
 			if Combat.InCone(origin, aim, c.Root.Position, gun.Range, gun.SpreadDegrees, c.Reach)
 				and not blocked(origin, c.Root.Position, ignore) then
-				local done = combat:Damage(c.Id, damage, shooter.Id, "burned")
+				local amount, how = modified(c, damage, nil, "burned", player)
+				local done = combat:Damage(c.Id, amount, shooter.Id, how)
 				if done > 0 then
 					confirm(player, c.Id, done, c.Root.Position)
 				end
@@ -741,7 +761,8 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 				ok, why = false, "the line of sight is blocked"
 			end
 			if ok then
-				local done = combat:Damage(target.Id, damage, shooter.Id, "shot")
+				local amount, how = modified(target, damage, claim.Point, "shot", player)
+				local done = combat:Damage(target.Id, amount, shooter.Id, how)
 				if done > 0 then
 					confirm(player, target.Id, done, claim.Point)
 				end
@@ -837,6 +858,12 @@ local function toolLoop()
 			end
 		end
 	end
+end
+
+-- Bosses (Prompt 15): fn(target, point?, how, player) -> (multiplier, how?) for every hit on a
+-- monster: its armour, its weak points, what burns.
+function WeaponService:SetHitModifier(fn: ((target: any, point: Vector3?, how: string, player: Player) -> (number, string?))?)
+	hitModifier = fn
 end
 
 -- Everything a player carries: hotbar items and the melee weapon.
@@ -947,7 +974,9 @@ local function onSwing(player: Player, heavy: boolean, facing: Vector3)
 		for _, c in combat:All("Monsters") do
 			if Combat.InArc(at, c.Root.Position, t.MeleeReach + t.MeleeReachTolerance, t.MeleeArcDegrees, c.Reach)
 				and not blocked(root.Position, c.Root.Position, ignore) then
-				local done = combat:Damage(c.Id, damage, attacker.Id, if heavy then "smashed" else "struck")
+				local swingPoint = root.Position + look.Unit * t.MeleeReach * 0.6
+				local amount, how = modified(c, damage, swingPoint, if heavy then "smashed" else "struck", player)
+				local done = combat:Damage(c.Id, amount, attacker.Id, how)
 				if done > 0 then
 					confirm(player, c.Id, done, c.Root.Position)
 					if melee.Knockback and not c.Root.Anchored then
