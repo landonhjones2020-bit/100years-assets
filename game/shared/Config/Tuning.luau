@@ -98,7 +98,7 @@ local Schemas: { [string]: Check.Checker } = {
 		SurgeSurvivedMorale = N, DeathReviveSeconds = S, XPPerWorkCycle = N, XPPerKill = N,
 		XPPerExpeditionCycle = N, XPToLevelBase = N, XPToLevelStep = N,
 		RareStatBonus = I, HealthBase = N, HealthPerGrit = N, MedbayHealPerCycle = N,
-		AutoAssignOrder = list(Check.ref("Rooms"), 21),
+		AutoAssignOrder = list(Check.ref("Rooms"), 21), MealSeconds = S, WalkSpeedBase = N, WalkSpeedPerSpeed = N,
 	}),
 	Aging = shape({
 		StartAge = F.Range, YoungUntil = I, YoungXP = N, VeteranFrom = I, VeteranSpeed = N,
@@ -222,6 +222,10 @@ return {
 			AutoAssignOrder = { "ReactorCore", "Generator", "WaterPurifier", "Kitchen", "Medbay", "Greenhouse",
 				"Armory", "Workshop", "Lab", "DrillBay", "RadioRoom", "Lounge", "DeconRoom", "CryoBay", "TradingPost",
 				"BlastDoor" },
+			-- the routine (Section 11: work a shift, eat at the Kitchen, rest in Quarters), prov.: the first
+			-- MealSeconds of each day at the Kitchen, the rest of the day at work, the Surge in bed; walking
+			-- speed grows with Speed (Section 11: Speed affects moving)
+			MealSeconds = 20, WalkSpeedBase = 8, WalkSpeedPerSpeed = 0.6,
 		},
 		Aging = { -- Section 11
 			StartAge = { Min = 18, Max = 50 }, YoungUntil = 29, YoungXP = 1.1, VeteranFrom = 55, VeteranSpeed = 0.9,

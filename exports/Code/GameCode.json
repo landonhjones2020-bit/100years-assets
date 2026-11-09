@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T00:34:03Z",
- "commit": "4a34bb56c680d6a3debd62b6fb36e6e0fc9ac3db",
- "label": "p9-4a34bb5",
+ "built": "2026-11-09T00:44:20Z",
+ "commit": "e4d9a533fbfb4cd9141c14611230e01ee4069c90",
+ "label": "p9-e4d9a53",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -177,7 +177,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "4e9864d3"
+    "Hash": "06ebdd69"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -202,7 +202,7 @@
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "01eeefb0"
+    "Hash": "5ac6e211"
    },
    "ReplicatedStorage.Shared.Rules.Bunker": {
     "Class": "ModuleScript",
@@ -243,6 +243,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Hud.luau",
     "Hash": "7c6a2d05"
+   },
+   "ReplicatedStorage.Shared.Rules.Residents": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Residents.luau",
+    "Hash": "7cb5cd9b"
    },
    "ReplicatedStorage.Shared.Rules.Votes": {
     "Class": "ModuleScript",
@@ -312,12 +317,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "a4d00416"
+    "Hash": "d10869c9"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "396086cf"
+    "Hash": "5fba5cf5"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -347,7 +352,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "a95388c3"
+    "Hash": "08a2a592"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -594,7 +599,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "4e9864d3"
+    "Hash": "06ebdd69"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -619,7 +624,7 @@
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "01eeefb0"
+    "Hash": "5ac6e211"
    },
    "ReplicatedStorage.Shared.Rules.Bunker": {
     "Class": "ModuleScript",
@@ -660,6 +665,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Hud.luau",
     "Hash": "7c6a2d05"
+   },
+   "ReplicatedStorage.Shared.Rules.Residents": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Residents.luau",
+    "Hash": "7cb5cd9b"
    },
    "ReplicatedStorage.Shared.Rules.Votes": {
     "Class": "ModuleScript",
@@ -729,12 +739,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "a4d00416"
+    "Hash": "d10869c9"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "396086cf"
+    "Hash": "5fba5cf5"
    },
    "ServerScriptService.Lib.BunkerKit": {
     "Class": "ModuleScript",
@@ -769,7 +779,7 @@
    "ServerScriptService.Services.EconomyService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/EconomyService.luau",
-    "Hash": "670006e1"
+    "Hash": "72288f87"
    },
    "ServerScriptService.Services.ObjectiveService": {
     "Class": "ModuleScript",
@@ -796,6 +806,11 @@
     "From": "game/server/Services/ReplicationService.luau",
     "Hash": "2debe1c4"
    },
+   "ServerScriptService.Services.ResidentService": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Services/ResidentService.luau",
+    "Hash": "75224788"
+   },
    "ServerScriptService.Services.RunDirector": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/RunDirector.luau",
@@ -814,7 +829,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "a95388c3"
+    "Hash": "08a2a592"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",

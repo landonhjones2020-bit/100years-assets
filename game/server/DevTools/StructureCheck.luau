@@ -64,6 +64,7 @@ local SKELETON: { { string } } = {
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.MiniMapController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.VoteController", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib", "Folder" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.Fade", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.KitRuntime", "ModuleScript" },
@@ -89,6 +90,8 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.VoteService", "ModuleScript" },
 		{ "ServerScriptService.Services.BuildService", "ModuleScript" },
 		{ "ServerScriptService.Lib.BunkerKit", "ModuleScript" },
+		{ "ServerScriptService.Lib.PathGraph", "ModuleScript" },
+		{ "ServerScriptService.Services.ResidentBrain", "ModuleScript" },
 	},
 	Lobby = {},
 }
