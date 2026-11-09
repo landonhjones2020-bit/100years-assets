@@ -296,7 +296,7 @@ return {
 			-- armour do ArmourMultiplier; hits within WeakPointTolerance of a WeakPoint part do
 			-- WeakPointMultiplier (the Sharpshooter's WeakPointMultiplier replaces it). Its bar updates
 			-- every PublishSeconds; dead, it collapses for DeathSeconds before it dissolves.
-			ArrivalWarningSeconds = 8, RiseSeconds = 2, FirstRunHealth = 0.7, ArmourMultiplier = 0.25, WeakPointMultiplier = 2,
+			ArrivalWarningSeconds = 8, RiseSeconds = 2, FirstRunHealth = 0.7, ArmourMultiplier = 0.5, WeakPointMultiplier = 2,
 			WeakPointTolerance = 1, PublishSeconds = 0.25, DeathSeconds = 4, TickSeconds = 0.1,
 		},
 		BroodMother = { -- Section 10: lays egg sacs that hatch Burrow Ticks; break or burn the sacs and hit her

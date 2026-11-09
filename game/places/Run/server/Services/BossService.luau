@@ -179,7 +179,7 @@ local function publish(force: boolean?)
 		count += 1
 	end
 	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}`
-	if not force and (sent == f.Sent or os.clock() - f.PublishedAt < f.T.PublishSeconds) then
+	if not force and (sent == f.Sent or os.clock() - f.PublishedAt < Boss.Tuning().PublishSeconds) then
 		return
 	end
 	f.Sent = sent
@@ -339,6 +339,17 @@ local function makeModel(f: Fight): (Model, BasePart)
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
 		humanoid.PlatformStand = true
 	end
+	-- Her glow lights the tunnel around her, so her body reads in the dark (the art has no lights).
+	local glowAt = Instance.new("Attachment")
+	glowAt.Name = "BossGlow"
+	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * Vector3.new(0, 10, 2))
+	glowAt.Parent = root
+	local glow = Instance.new("PointLight")
+	glow.Color = Color3.fromRGB(124, 255, 155)
+	glow.Range = 24
+	glow.Brightness = 1.2
+	glow.Shadows = false
+	glow.Parent = glowAt
 	model:SetAttribute("Rig", f.BossId)
 	model:SetAttribute("MonsterType", f.BossId)
 	model:SetAttribute("Boss", f.BossId)
