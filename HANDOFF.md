@@ -1,7 +1,7 @@
 # 100 Years Of Fallout: handoff for the next chat
 
-Written 2026-11-09 (night), at the end of Prompt 15. The game bible (live doc
-https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 130, and the two project parts, which match
+Written 2026-11-09 (night), at the end of Prompt 16. The game bible (live doc
+https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 133, and the two project parts, which match
 it) wins over everything here.
 
 ## Start here
@@ -14,20 +14,16 @@ it) wins over everything here.
 
 ## Where things stand
 
-* Prompts 0 to 15 are built and tested in Studio: the First Playable milestone's prompts are all
-  done. Code build `p15-c2fc8a4` (code asset 95026446991297, revision 57) is installed in both
-  places; 99 data tests pass.
-* Prompt 15 (the Brood Mother and the results screen): Year 25's boss Surge brings her up through
-  the deepest tunnel after an 8 s warning; she slams, lays egg sacs that hatch Burrow Ticks (break
-  or burn them), takes double damage on her glowing belly and half on armour, staggers, shrieks
-  into phase 2 at half health, and her death ends the Surge. The HUD has a boss bar. When a run
-  ends, every player is paid (Glowshards, account experience, profile stats, `FirstRunDone`) and
-  the Run Report shows the summary, the story, the residents, the rewards and the MVP, with Play
-  Again (a vote), Keep Going and Return to Lobby. Report: `game/reports/P15_BroodMother_Results.md`.
-* Prompt 14 (digging, depth bands, Disturbance, Push Deeper) and Prompt 13 (disasters and
-  repairs): reports in `game/reports/`.
-* Art: the Brood Mother's body parts now use Hull raycast shapes (the new `queryhull` collision
-  kind), set in Studio; her uploaded model is unchanged.
+* Prompts 0 to 16 are built and tested in Studio. Code build `p16-2e4b703` (code asset
+  95026446991297, revision 64) is installed in both places; 102 data tests pass.
+* Prompt 16 (the surface): the elevator behind the Blast Door goes up to Brightwater Ruins
+  (`workspace.Surface`, Y 200, built in Studio by `Lib.BrightwaterMap.Build()` from the A5 art).
+  Search containers into a 10-slot backpack, unload at the Blast Door hall or a Storage room, carry
+  generator parts home with both hands, free survivors and walk them home (they join as residents),
+  radiation (Decon Room, Clear-Rad pills), a storm every Surge, Ash Jackals, Raiders (Era II) and
+  Wraiths (storms). Report: `game/reports/P16_Surface.md`.
+* A5 surface kit in Studio: 11 buildings, props, the loot bag, generator parts, three monsters
+  with clips (`previews/Game/P16_A5_*.jpg`).
 
 ## Landon's latest decisions (all in the bible)
 
@@ -37,18 +33,25 @@ it) wins over everything here.
 
 ## Next, in order
 
-1. Prompt 16: the surface (Brightwater Ruins, storms, loot, hauling, rescues). Add hauls and
-   rescues to the run's stats and story (`ResultsService`: `bump`, `story`).
+1. Prompt 17: the Deep (Mines and Flooded cave pieces, cryo pods, Lost Crews) with A6.
+2. Prompt 18: resident expeditions and distress calls.
 
 ## Waiting on Landon
 
-* His answers to the six Prompt 15, eight Prompt 14 and six Prompt 13 Bible Questions (in the
-  reports).
-* His look at the Brood Mother in action (`previews/Game/P15_*.jpg`) and the rebuilt monsters
-  (`previews/Game/A4_Studio_*.jpg`).
+* His answers to the eight Prompt 16, eight Prompt 14 and six Prompt 13 Bible Questions (in the
+  reports). The six Prompt 15 answers are approved and in the bible.
+* His look at the town and the surface monsters (`previews/Game/P16_*.jpg`).
 
 ## Testing tips
 
+* Surface: `surface.up`/`surface.down` (from the server Invoke they take the first player),
+  `pack.add <resource> <n>` and `class <Id>` from the client's `DevInvoke` (they need the invoking
+  player), `god <s> <player>` from the server. `god` can't be shortened: `kill <player>` and the
+  respawn clear it. `surface.spawn <type> [n]`, `survivor`, `surface.find`, `find`, `storm on`,
+  `year 51` (Era III opens the checkpoint), `grid.build DeconRoom 1 3`, `residents.auto` (power).
+* Prompt visibility: Roblox shows one prompt per key, by distance and what the camera sees; a
+  prompt on a small floor item shows only when the camera looks at it. Log
+  `ProximityPromptService.PromptShown` on the client to see which prompt a key will press.
 * `god [seconds] [player]` keeps a player alive through a boss fight; `boss.freeze [s]` holds her
   still so a shot can be lined up; `boss.start`, `boss.hurt <n> [weak]`, `boss.lay`, `boss.end`.
   A real boss Surge: `year 24`, then `clock.next` until cycle 2's Surge.

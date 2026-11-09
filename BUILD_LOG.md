@@ -30,11 +30,13 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 13: disasters and repairs (Run) | ✅ done 2026-11-09 | Run playtests with real keys, clicks and holds: fires put out by residents, the Extinguisher and a Foam Grenade, spreading; blackouts and the fuse box; cave-ins dug, smashed, trapping a resident, cutting off a monster; the meltdown stopped by three valves and lost when left; the Welder's repairs and an electrical surge welded; a Surge's disaster bought from its budget; Command View statuses; Lobby start check; `game/reports/P13_Disasters.md`, `previews/Game/P13_*.jpg` |
 | Prompt 14: digging, depth bands, Disturbance, Push Deeper (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, clicks and throws: digging with the Drill (the Driller, dust at the face), a Push Deeper vote with a pretend voter, a cache opened, a nest destroyed by grenades and shotgun, the Drill Bay digging a cell queued with real Command View clicks, the extra breach at 50, a Tremor (cave-in, wave, camera shake), the cycle's decay, the Driller's eye; Lobby start check; `game/reports/P14_Digging.md`, `previews/Game/P14_*.jpg` |
 | Prompt 15: the Brood Mother and the results screen (Run) | ✅ done 2026-11-09 | Run playtests with real shots, clicks and a real boss Surge: her warning, rise and roar, slams, egg sacs laid and hatching, a sac broken by Revolver shots and one burned by the Flamethrower, belly hits for double, a stagger, phase 2, her death ending the Surge (Year 25 to 27, Era II); the Run Report with payouts saved to the profile, Play Again, Keep Going and Return to Lobby clicked; Lobby start check; `game/reports/P15_BroodMother_Results.md`, `previews/Game/P15_*.jpg` |
+| Prompt 16: the surface (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, presses and clicks: the elevator both ways, searching, a survivor freed, followed home and joined, generator parts carried and delivered, unloading at the hall, a jackal shot dead into the pack, raider rifle hits, a dropped bag picked up, radiation death and a clean respawn, a Decon Room, the checkpoint opening in Era III, the Scout's outline and storm warning; Lobby start check; `game/reports/P16_Surface.md`, `previews/Game/P16_*.jpg` |
+| A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
 | A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the Drill held and digging (Prompt 14); the Pickaxe in Studio, not yet swung; the rest of the class kits to come |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
-| A3, A5 to A11 | not started | |
+| A3, A6 to A11 | not started (A6 comes with Prompt 17) | |
 
 ## Ids
 
@@ -61,8 +63,48 @@ Newest first. Every "verified" line says how it was checked.
 | Mines monsters (rigs, revision 2 after the detail pass) | Burrow Tick 90784985441642, Tunnel Hound 111045663637462, Spitter Grub 70536165729662, Hollow Miner 83503998043819; their clips in `manifest.csv` and `Config.Animations` |
 | Boss_BroodMother | model 132844909378352; clips Idle 116082078619476, Walk 105510410741576, Attack 87449889032585, Roar 104063099850529, LayEggs 125795678354746, Stagger 121846906504911, Death 115302160037147 |
 | Boss_BroodMother_EggSac | model 98283751054755 |
+| A5 buildings | Bldg_BunkerEntrance 136471216640058 (revision 2: the sign above the ring), Bldg_Checkpoint 99960013965832, Bldg_Diner 90817408363257, Bldg_GasStation 94452141526135, Bldg_Grocery 75037755291525, Bldg_HardwareStore 74921566661365, Bldg_Motel 109378714490689, Bldg_RadioTower 115435627788663, Bldg_RailYard 97376228075003, Bldg_Showroom 127482590185586, Bldg_WaterTower 76988598885900 |
+| A5 props | Prop_BurntTree 109228472383503, Prop_Cabinet 103949699846399, Prop_CarWreck_A 75526591155472, Prop_CarWreck_B 105808061470942, Prop_Debris 83482976617480, Prop_Locker 118990684990389, Prop_GeneratorParts 92467000818852, Prop_LootBag 72177580542444 |
+| A5 monsters (rigs) | Monster_AshJackal 121226055816229 (Walk 84332717499460, Attack 119698905968735), Monster_AshWraith 86571623522715 (Walk 101978077102714, Attack 95768211145275), Monster_AshRaider 89393935264400 (Walk 92909841950988, Attack 71659501687501) |
+| UI atlas: surface | decal 134611993314949, image 83031843710701 (eight surface icons) |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 16, the surface; the A5 surface kit
+
+Game code builds `p16-effb6c4` to `p16-2e4b703` (final): code asset 95026446991297 revision 64,
+installed in Run and Lobby: StructureCheck 0 errors (Run 439 checks, Lobby 247), 102 data tests
+passed in each.
+
+**Done**
+* Prompt 16: Rules.Surface, SurfaceService (map, zones, elevator, containers, storms, radiation,
+  surface creatures), InventoryService (backpacks, unloading, big finds and carrying, dropped bags,
+  Clear-Rad pills, monster drops), RescueService (trapped survivors, the escort, joining),
+  SurfaceController, Lib.BrightwaterMap (the town at Y 200, built in Studio). MonsterService zones,
+  pathing, circling and shooting; busy hands in WeaponService and CombatController; hauls and
+  rescues in the results. Report: `game/reports/P16_Surface.md` (eight Bible Questions).
+* The HUD's backpack chip and fade (`studio/ui/HUD_Surface.lua`, patch `HUD_P16.lua`; 358
+  instances); eight surface icons in a new atlas.
+* A5: 11 buildings, 6 props, the loot bag and generator parts, the Ash Jackal, Ash Wraith and Ash
+  Raider with walk and attack clips, all uploaded, set up in Run (`ServerStorage.Assets.Surface`,
+  `.Props`, `.Monsters`) and built into `workspace.Surface` (11 places from the art, 10 signs
+  lettered, 43 containers).
+* Fixes from the playtests: survivors stand at their feet and path round walls; PUT DOWN steps
+  aside near a station; the camera looks out of the elevator; the Ash's colour grade and a lighter
+  storm; creatures hunt the whole town (aggro 300); softer jackals and slower raider shots; four
+  creature spawn points out of the north hill (creatures fell through it to the old baseplate) and
+  a fall guard; the hall's drop-off 15 studs from the elevator (RIDE UP won the E press at 9);
+  Scouts' outline read the flag modifier wrongly; the entrance sign moved above the door ring
+  (revision 2); stand-in containers face the room; the haul story line.
+
+**Verified in Studio**: see the testing checklist in `game/reports/P16_Surface.md`. Captures:
+`previews/Game/P16_*.jpg`.
+
+**Open**
+* Landon's answers to the eight Prompt 16 Bible Questions, the eight from Prompt 14 and the six
+  from Prompt 13.
+* Not seen: four players, Help Carry with two players, a Storage room's drop-off, gamepad and touch.
+* The test account now has the Scout's kit only through the dev tool (`class`).
 
 ## 2026-11-09 (night): Prompt 15, the Brood Mother's fight and the results screen
 
