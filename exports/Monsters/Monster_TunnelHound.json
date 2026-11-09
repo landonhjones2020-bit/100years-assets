@@ -1,0 +1,543 @@
+{
+ "asset": "Monster_TunnelHound",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  1.896,
+  3.556,
+  5.658
+ ],
+ "tris": 952,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Pelvis",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Pelvis",
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    1.95,
+    0.896
+   ],
+   "size": [
+    1.25,
+    0.95,
+    1.6
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Chest",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    2.098,
+    -0.654
+   ],
+   "size": [
+    1.55,
+    1.396,
+    1.75
+   ],
+   "tris": 108
+  },
+  {
+   "name": "ChestGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    3.023,
+    -0.374
+   ],
+   "size": [
+    0.312,
+    0.965,
+    1.543
+   ],
+   "tris": 60
+  },
+  {
+   "name": "PelvisGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Pelvis",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    2.593,
+    0.839
+   ],
+   "size": [
+    0.208,
+    0.565,
+    0.312
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    2.267,
+    -2.154
+   ],
+   "size": [
+    0.942,
+    1.114,
+    1.35
+   ],
+   "tris": 224
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    2.25,
+    -2.604
+   ],
+   "size": [
+    0.7,
+    0.1,
+    0.08
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Tail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    1.712,
+    2.138
+   ],
+   "size": [
+    0.312,
+    0.795,
+    1.252
+   ],
+   "tris": 20
+  },
+  {
+   "name": "FrontLeftLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "FrontLeftLeg",
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    -0.55,
+    1.353,
+    -1.176
+   ],
+   "size": [
+    0.492,
+    1.051,
+    0.535
+   ],
+   "tris": 28
+  },
+  {
+   "name": "FrontLeftPaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "FrontLeftPaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    -0.62,
+    0.441,
+    -1.472
+   ],
+   "size": [
+    0.42,
+    0.882,
+    0.785
+   ],
+   "tris": 72
+  },
+  {
+   "name": "FrontRightLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "FrontRightLeg",
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.55,
+    1.353,
+    -1.176
+   ],
+   "size": [
+    0.492,
+    1.051,
+    0.535
+   ],
+   "tris": 28
+  },
+  {
+   "name": "FrontRightPaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "FrontRightPaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    0.62,
+    0.441,
+    -1.472
+   ],
+   "size": [
+    0.42,
+    0.882,
+    0.785
+   ],
+   "tris": 72
+  },
+  {
+   "name": "BackLeftLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "BackLeftLeg",
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -0.55,
+    1.355,
+    0.993
+   ],
+   "size": [
+    0.493,
+    1.072,
+    0.581
+   ],
+   "tris": 28
+  },
+  {
+   "name": "BackLeftPaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "BackLeftPaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    -0.62,
+    0.441,
+    0.878
+   ],
+   "size": [
+    0.42,
+    0.882,
+    0.785
+   ],
+   "tris": 72
+  },
+  {
+   "name": "BackRightLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "BackRightLeg",
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.55,
+    1.355,
+    0.993
+   ],
+   "size": [
+    0.493,
+    1.072,
+    0.581
+   ],
+   "tris": 28
+  },
+  {
+   "name": "BackRightPaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "BackRightPaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    0.62,
+    0.441,
+    0.878
+   ],
+   "size": [
+    0.42,
+    0.882,
+    0.785
+   ],
+   "tris": 72
+  }
+ ],
+ "meta": {
+  "role": "Runner",
+  "band": "Mines",
+  "hitTime": 0.45
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Bite": {
+   "p": [
+    0.0,
+    1.9,
+    -2.804
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Pelvis",
+    "parent": null,
+    "jointName": "PelvisJoint",
+    "joint": [
+     0.0,
+     1.75,
+     0.896
+    ]
+   },
+   {
+    "name": "Chest",
+    "parent": "Pelvis",
+    "jointName": "ChestJoint",
+    "joint": [
+     0.0,
+     1.9,
+     -0.504
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Chest",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.0,
+     2.2,
+     -1.654
+    ]
+   },
+   {
+    "name": "FrontLeftLeg",
+    "parent": "Chest",
+    "jointName": "FrontLeftLegJoint",
+    "joint": [
+     -0.55,
+     1.7,
+     -1.154
+    ]
+   },
+   {
+    "name": "FrontLeftPaw",
+    "parent": "FrontLeftLeg",
+    "jointName": "FrontLeftPawJoint",
+    "joint": [
+     -0.6,
+     0.85,
+     -1.254
+    ]
+   },
+   {
+    "name": "FrontRightLeg",
+    "parent": "Chest",
+    "jointName": "FrontRightLegJoint",
+    "joint": [
+     0.55,
+     1.7,
+     -1.154
+    ]
+   },
+   {
+    "name": "FrontRightPaw",
+    "parent": "FrontRightLeg",
+    "jointName": "FrontRightPawJoint",
+    "joint": [
+     0.6,
+     0.85,
+     -1.254
+    ]
+   },
+   {
+    "name": "Tail",
+    "parent": "Pelvis",
+    "jointName": "TailJoint",
+    "joint": [
+     0.0,
+     1.9,
+     1.546
+    ]
+   },
+   {
+    "name": "BackLeftLeg",
+    "parent": "Pelvis",
+    "jointName": "BackLeftLegJoint",
+    "joint": [
+     -0.58,
+     1.6,
+     0.946
+    ]
+   },
+   {
+    "name": "BackLeftPaw",
+    "parent": "BackLeftLeg",
+    "jointName": "BackLeftPawJoint",
+    "joint": [
+     -0.62,
+     0.8,
+     1.096
+    ]
+   },
+   {
+    "name": "BackRightLeg",
+    "parent": "Pelvis",
+    "jointName": "BackRightLegJoint",
+    "joint": [
+     0.58,
+     1.6,
+     0.946
+    ]
+   },
+   {
+    "name": "BackRightPaw",
+    "parent": "BackRightLeg",
+    "jointName": "BackRightPawJoint",
+    "joint": [
+     0.62,
+     0.8,
+     1.096
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   1.6,
+   1.4,
+   3.6
+  ],
+  "hrpCenter": [
+   0.0,
+   1.8,
+   -0.104
+  ],
+  "hipHeight": 1.1
+ },
+ "fbx_sha1": "281351dc4d34036c"
+}

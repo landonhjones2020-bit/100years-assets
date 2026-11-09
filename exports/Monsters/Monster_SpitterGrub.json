@@ -1,0 +1,247 @@
+{
+ "asset": "Monster_SpitterGrub",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  2.4,
+  2.663,
+  5.618
+ ],
+ "tris": 1524,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    1.22,
+    0.481
+   ],
+   "size": [
+    2.4,
+    2.4,
+    2.185
+   ],
+   "tris": 404
+  },
+  {
+   "name": "Tail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    1.02,
+    1.831
+   ],
+   "size": [
+    2.04,
+    2.04,
+    1.955
+   ],
+   "tris": 248
+  },
+  {
+   "name": "Front",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Front",
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    1.216,
+    -0.869
+   ],
+   "size": [
+    1.95,
+    2.149,
+    1.8
+   ],
+   "tris": 404
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "gunmetal",
+    "olive"
+   ],
+   "offset": [
+    0.0,
+    1.47,
+    -2.017
+   ],
+   "size": [
+    1.44,
+    1.296,
+    1.464
+   ],
+   "tris": 260
+  },
+  {
+   "name": "FrontGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Front",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    2.17,
+    -0.569
+   ],
+   "size": [
+    1.103,
+    0.986,
+    1.276
+   ],
+   "tris": 100
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    1.6,
+    -2.554
+   ],
+   "size": [
+    0.813,
+    0.78,
+    0.51
+   ],
+   "tris": 108
+  }
+ ],
+ "meta": {
+  "role": "Ranged",
+  "band": "Mines",
+  "hitTime": 0.85
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Mouth": {
+   "p": [
+    0.0,
+    1.47,
+    -2.819
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.0,
+     1.17,
+     0.431
+    ]
+   },
+   {
+    "name": "Tail",
+    "parent": "Body",
+    "jointName": "TailJoint",
+    "joint": [
+     0.0,
+     1.07,
+     1.431
+    ]
+   },
+   {
+    "name": "Front",
+    "parent": "Body",
+    "jointName": "FrontJoint",
+    "joint": [
+     0.0,
+     1.22,
+     -0.719
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Front",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.0,
+     1.42,
+     -1.719
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   2.0,
+   1.4,
+   4.2
+  ],
+  "hrpCenter": [
+   0.0,
+   1.22,
+   -0.019
+  ],
+  "hipHeight": 0.35
+ },
+ "fbx_sha1": "ffb8308532802011"
+}

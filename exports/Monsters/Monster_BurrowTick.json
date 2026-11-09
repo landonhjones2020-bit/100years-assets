@@ -1,0 +1,385 @@
+{
+ "asset": "Monster_BurrowTick",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  3.432,
+  1.688,
+  3.064
+ ],
+ "tris": 816,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.843,
+    0.343
+   ],
+   "size": [
+    1.806,
+    1.04,
+    2.379
+   ],
+   "tris": 280
+  },
+  {
+   "name": "BodyGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.01,
+    1.312,
+    0.352
+   ],
+   "size": [
+    0.876,
+    0.708,
+    0.913
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "gunmetal",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.723,
+    -1.012
+   ],
+   "size": [
+    0.879,
+    0.63,
+    0.986
+   ],
+   "tris": 140
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    0.843,
+    -1.197
+   ],
+   "size": [
+    0.58,
+    0.18,
+    0.18
+   ],
+   "tris": 96
+  },
+  {
+   "name": "LeftLeg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    -1.153,
+    0.583,
+    -0.442
+   ],
+   "size": [
+    0.988,
+    1.138,
+    0.39
+   ],
+   "tris": 40
+  },
+  {
+   "name": "RightLeg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    1.153,
+    0.583,
+    -0.442
+   ],
+   "size": [
+    0.988,
+    1.138,
+    0.39
+   ],
+   "tris": 40
+  },
+  {
+   "name": "LeftLeg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    -1.152,
+    0.583,
+    0.273
+   ],
+   "size": [
+    0.993,
+    1.137,
+    0.156
+   ],
+   "tris": 40
+  },
+  {
+   "name": "RightLeg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    1.152,
+    0.583,
+    0.273
+   ],
+   "size": [
+    0.993,
+    1.137,
+    0.156
+   ],
+   "tris": 40
+  },
+  {
+   "name": "LeftLeg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    -1.153,
+    0.583,
+    0.957
+   ],
+   "size": [
+    0.988,
+    1.138,
+    0.39
+   ],
+   "tris": 40
+  },
+  {
+   "name": "RightLeg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "gunmetal"
+   ],
+   "offset": [
+    1.153,
+    0.583,
+    0.957
+   ],
+   "size": [
+    0.988,
+    1.138,
+    0.39
+   ],
+   "tris": 40
+  }
+ ],
+ "meta": {
+  "role": "Swarmer",
+  "band": "Mines",
+  "hitTime": 0.3
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Bite": {
+   "p": [
+    0.0,
+    0.573,
+    -1.377
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.0,
+     0.743,
+     0.323
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Body",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.0,
+     0.743,
+     -0.727
+    ]
+   },
+   {
+    "name": "LeftLeg1",
+    "parent": "Body",
+    "jointName": "LeftLeg1Joint",
+    "joint": [
+     -0.72,
+     0.723,
+     -0.327
+    ]
+   },
+   {
+    "name": "RightLeg1",
+    "parent": "Body",
+    "jointName": "RightLeg1Joint",
+    "joint": [
+     0.72,
+     0.723,
+     -0.327
+    ]
+   },
+   {
+    "name": "LeftLeg2",
+    "parent": "Body",
+    "jointName": "LeftLeg2Joint",
+    "joint": [
+     -0.72,
+     0.723,
+     0.273
+    ]
+   },
+   {
+    "name": "RightLeg2",
+    "parent": "Body",
+    "jointName": "RightLeg2Joint",
+    "joint": [
+     0.72,
+     0.723,
+     0.273
+    ]
+   },
+   {
+    "name": "LeftLeg3",
+    "parent": "Body",
+    "jointName": "LeftLeg3Joint",
+    "joint": [
+     -0.72,
+     0.723,
+     0.843
+    ]
+   },
+   {
+    "name": "RightLeg3",
+    "parent": "Body",
+    "jointName": "RightLeg3Joint",
+    "joint": [
+     0.72,
+     0.723,
+     0.843
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   1.8,
+   1.0,
+   2.4
+  ],
+  "hrpCenter": [
+   0.0,
+   0.773,
+   0.323
+  ],
+  "hipHeight": 0.25
+ },
+ "fbx_sha1": "0aca506d94fc1f00"
+}

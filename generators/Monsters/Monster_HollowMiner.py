@@ -202,6 +202,22 @@ def attack_action():
     return act
 
 
+def walk_action():
+    """HollowMiner_Walk (A4, Prompt 12): a heavy, lumbering walk, 1.2 s a cycle; the pickaxe
+    arm swings low and the torso rolls with each step."""
+    act = sf.new_action(arm, "Walk", 0, 36, loop=True, priority="Movement")
+    k = lambda b, f, rot, loc=None: sf.key(arm, b, f, rot=rot, loc=loc)  # noqa: E731
+    for f, s in ((0, 1), (18, -1), (36, 1)):
+        k("LeftUpperLeg", f, (-22 * s, 0, 0)); k("RightUpperLeg", f, (22 * s, 0, 0))
+        k("LeftLowerLeg", f, (12 if s > 0 else 30, 0, 0)); k("RightLowerLeg", f, (30 if s > 0 else 12, 0, 0))
+        k("LeftUpperArm", f, (16 * s, 0, 4)); k("RightUpperArm", f, (-14 * s, 0, -4))
+        k("Torso", f, (6, -7 * s, 0)); k("Head", f, (-4, 5 * s, 0))
+        k("Pelvis", f, (0, 5 * s, 0), loc=(0, 0, 0))
+    for f in (9, 27):
+        k("Pelvis", f, (0, 0, 0), loc=(0, 0.16, 0))
+    return act
+
+
 def contact_sheet(act, frames, name):
     from PIL import Image
     arm.animation_data.action = act
@@ -234,8 +250,10 @@ if __name__ == "__main__":
                               sockets={"Strike": ((-2.43, -2.6, 0.2), 0.0)})
         print(f"[{ASSET}] {len(doc['parts'])} MeshParts, {doc['tris']} tris, size {doc['size']}")
     act = attack_action()
+    walk = walk_action()
     if os.environ.get("SF_EXPORT") == "1":
-        print(sf.export_clips(arm, "HollowMiner", [act], root="HumanoidRootPart",
+        print(sf.export_clips(arm, "HollowMiner", [act, walk], root="HumanoidRootPart",
                               markers={"Attack": {"Hit": HIT_TIME}}))
     if os.environ.get("SF_NORENDER") != "1":
         print(contact_sheet(act, [0, 15, 21, 27], "HollowMiner_Attack_sheet"))
+        print(contact_sheet(walk, [0, 9, 18, 27], "HollowMiner_Walk_sheet"))
