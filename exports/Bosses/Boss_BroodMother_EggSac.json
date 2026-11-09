@@ -1,0 +1,114 @@
+{
+ "asset": "Boss_BroodMother_EggSac",
+ "category": "Bosses",
+ "format": 1,
+ "size": [
+  4.47,
+  2.721,
+  4.086
+ ],
+ "tris": 1302,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Mound",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "plum",
+    "stone"
+   ],
+   "offset": [
+    0.051,
+    0.542,
+    0.165
+   ],
+   "size": [
+    3.752,
+    1.083,
+    3.162
+   ],
+   "tris": 138
+  },
+  {
+   "name": "Eggs",
+   "material": "Neon",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.047,
+    1.6,
+    -0.038
+   ],
+   "size": [
+    2.934,
+    2.242,
+    2.339
+   ],
+   "tris": 360
+  },
+  {
+   "name": "Unborn",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum",
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    1.504,
+    0.0
+   ],
+   "size": [
+    4.47,
+    2.248,
+    4.086
+   ],
+   "tris": 804
+  }
+ ],
+ "meta": {
+  "role": "EggSac",
+  "hatches": "BurrowTick"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Hatch": {
+   "p": [
+    0.0,
+    0.874,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "ff1f2723824441d5"
+}

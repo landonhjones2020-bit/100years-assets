@@ -18,6 +18,9 @@ import steadfast as sf  # noqa: E402
 import bpy  # noqa: E402
 from mathutils import Vector  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(__file__))
+from _beast import spike, claw, limb, blob  # noqa: E402  (detail pass 2026-11-08)
+
 ASSET, CATEGORY = "Monster_HollowMiner", "Monsters"
 BUDGET = 4000
 HIT_TIME = 0.7
@@ -119,7 +122,7 @@ def build():
 
     # ---- Head: a dented hard hat over an empty dark face; the headlamp and eyes burn green
     part(sf.box((1.25, 1.05, 1.05), loc=(0, -1.5, 5.72), bevel=0.3, segments=1), "Head", "basalt", collision="query")
-    dome = sf.sphere(0.88, loc=(0, -1.5, 6.18), scale=(1, 1.05, 0.7), segs=12, rings=6)
+    dome = blob(0.88, (0, -1.5, 6.18), scale=(1, 1.05, 0.7), segs=12, rings=6, noise=0.045, seed=7)
     part(dome, "Head", "hazard", collision="query")
     part(sf.cyl(1.0, 0.09, loc=(0, -1.45, 6.16), verts=14, bevel=0.0), "Head", "hazard", collision="query")
     part(sf.cyl(0.24, 0.26, loc=(0, -2.38, 6.32), rot=(90, 0, 0), verts=10, bevel=0.0), "Head", "steel")
@@ -143,6 +146,22 @@ def build():
         sf.tag(o, f"{side}ArmGlow", "glow", "Neon", collision="none", cast_shadow=False)
         o["sf_bone"] = la
         out.append(o)
+        # detail pass: a torn sleeve hem, stone crust, crystals through the forearm, claw fingers
+        for i, a in enumerate(range(0, 360, 45)):
+            ang = math.radians(a)
+            base = Vector((2.13 + 0.6 * math.cos(ang), -0.58 + 0.6 * math.sin(ang), 3.86))
+            out.append(part(spike(base, (math.cos(ang) * 0.2, math.sin(ang) * 0.2, -1), 0.28 + 0.1 * (i % 2), 0.1,
+                                  verts=3), ua, "olive", bind=False))
+        out.append(part(blob(0.36, (2.5, -0.5, 3.25), scale=(0.8, 1.1, 1.3), segs=7, rings=4, noise=0.12, seed=3),
+                        la, "stone", bind=False))
+        for (bx, by, bz, d, ln) in ((2.62, -0.45, 3.4, (1, 0.3, 0.5), 0.6), (2.55, -0.25, 3.1, (0.9, 0.6, 0.1), 0.42)):
+            c = crystal((bx, by, bz), d, ln, 0.11)
+            sf.tag(c, f"{side}ArmGlow", "glow", "Neon", collision="none", cast_shadow=False)
+            c["sf_bone"] = la
+            out.append(c)
+        for dx in (-0.32, 0.0, 0.32):
+            out.append(part(claw((2.25 + dx, -1.42, 2.55), (dx * 0.4, -0.55, -1.0), 0.62, 0.12, bend=(0, 1, 0),
+                                 curl=0.35, sides=4), la, "basalt", bind=False))
         return out
 
     # ---- Legs (left; mirrored): stumpy trouser legs, steel-toed boots
@@ -154,6 +173,11 @@ def build():
         out.append(part(sf.box((1.1, 1.65, 0.62), loc=(0.98, -0.22, 0.33), bevel=0.2, segments=1), ll, "leather", bind=False))
         out.append(part(sf.box((1.12, 0.5, 0.4), loc=(0.98, -0.95, 0.24), bevel=0.12, segments=1), ll, "steel", bind=False))
         out.append(part(sf.box((1.16, 1.7, 0.12), loc=(0.98, -0.22, 0.06), bevel=0.03, segments=1), ll, "rubber", bind=False))
+        out.append(part(sf.box((0.7, 0.14, 0.6), loc=(0.95, -0.58, 1.35), rot=(8, 0, 4), bevel=0.06, segments=1), ll,
+                        "leather", bind=False))
+        for (x, z) in ((0.75, 0.62), (1.18, 0.62)):
+            out.append(part(sf.cyl(0.07, 0.08, loc=(x, -1.02, z), rot=(90, 0, 0), verts=6, bevel=0.0), ll, "brass",
+                            bind=False))
         return out
 
     left_and_right(make_arm)
@@ -168,8 +192,66 @@ def build():
     part(sf.box((0.5, 0.62, 0.56), loc=head_c + Vector((0, 0.15, 0.0)), bevel=0.08, segments=1), rf, "steel")
     part(sf.box((0.62, 0.55, 0.42), loc=head_c + Vector((0, 0.68, 0.0)), bevel=0.06, segments=1), rf, "gunmetal")
 
+    detail_pass()
     return {"rig_type": "Custom", "root": "HumanoidRootPart", "hrp_size": HRP_SIZE,
             "hrp_center": HRP_CENTER, "hip_height": HRP_CENTER[2] - HRP_SIZE[1] / 2}
+
+
+def detail_pass():
+    """2026-11-08 (Landon: "make the monsters more detailed"): the Source breaking out of him.
+    A cracked helmet leaking light, a caged lamp and its cable, glowing streaks running from
+    the eyes and a wider shard grin; a chest pocket, name plate and Steadfast patch on the
+    coveralls; a branching chest rift; a big crystal cluster bursting from the back; a
+    hanging lantern, rope and canteen on the belt; a heavier pickaxe with a cracked glowing
+    head and leather grip bands."""
+    # ---- Head
+    for (x, y, z, rx, ry) in ((0.32, -1.62, 6.52, 0, 30), (0.5, -1.5, 6.4, 0, -25), (0.62, -1.35, 6.25, 0, 35)):
+        glow(sf.box((0.22, 0.06, 0.05), loc=(x, y, z), rot=(rx, ry, 0), bevel=0.0), "Head", "HeadGlow")
+    for (b, d, ln, r) in (((0.62, -1.15, 6.3), (0.8, 0.3, 0.55), 0.62, 0.12), ((0.45, -1.0, 6.45), (0.4, 0.4, 0.9), 0.45, 0.09)):
+        glow(crystal(b, d, ln, r), "Head", "HeadGlow")
+    for sx in (-1, 1):
+        part(rod((sx * 0.22, -2.53, 6.55), (sx * 0.22, -2.53, 6.09), 0.025, verts=4), "Head", "steel")
+        glow(sf.box((0.07, 0.05, 0.42), loc=(sx * 0.3, -2.05, 5.5), rot=(0, sx * -6, 0), bevel=0.0), "Head", "HeadGlow")
+    part(rod((-0.31, -2.53, 6.32), (0.31, -2.53, 6.32), 0.025, verts=4), "Head", "steel")
+    part(limb([(0.1, -2.3, 6.4), (0.55, -1.8, 6.62), (0.7, -0.95, 6.3), (0.5, -0.75, 5.8)], [0.05] * 4, sides=4),
+         "Head", "rubber")
+    for i, (x, z) in enumerate(((-0.42, 5.47), (0.42, 5.46), (-0.22, 5.3), (0.02, 5.27), (0.24, 5.31))):
+        glow(spike((x, -2.05, z), (0, -0.2, 1 if i < 2 else -1), 0.16, 0.06, verts=3), "Head", "HeadGlow")
+    # ---- Torso: pocket, name plate, patch, a branching rift, a crystal cluster from the back
+    part(sf.box((0.62, 0.12, 0.5), loc=(-0.7, -1.42, 4.75), rot=(-14, 0, 0), bevel=0.04, segments=1), "Torso", "olive")
+    part(sf.box((0.66, 0.08, 0.16), loc=(-0.7, -1.5, 5.02), rot=(-14, 0, 0), bevel=0.02, segments=1), "Torso", "olive")
+    part(sf.box((0.5, 0.06, 0.16), loc=(0.75, -1.5, 5.05), rot=(-14, 0, 0), bevel=0.02, segments=1), "Torso", "cream")
+    part(sf.box((0.08, 0.38, 0.38), loc=(1.88, -0.4, 4.9), bevel=0.03, segments=1), "LeftUpperArm", "teal")
+    for (x, y, z, rx, ry, ln) in ((0.38, -1.4, 4.85, -14, 35, 0.5), (-0.1, -1.42, 3.85, -14, -30, 0.45),
+                                  (0.45, -1.36, 3.75, -14, 40, 0.38)):
+        glow(sf.box((0.1, 0.18, ln), loc=(x, y, z), rot=(rx, ry, 0), bevel=0.0), "Torso", "TorsoGlow")
+    for (b, d, ln, r) in (((0.0, 1.0, 5.2), (0.0, 1.0, 0.55), 1.9, 0.32), ((0.55, 1.0, 4.9), (0.55, 1.0, 0.2), 1.35, 0.22),
+                          ((-0.6, 1.0, 4.95), (-0.6, 1.0, 0.35), 1.45, 0.24), ((0.25, 0.95, 4.4), (0.2, 1.0, -0.3), 0.9, 0.16),
+                          ((-0.3, 0.9, 5.7), (-0.2, 0.6, 1.0), 1.1, 0.18)):
+        glow(crystal(b, d, ln, r), "Torso", "TorsoGlow")
+    part(blob(0.62, (0, 0.82, 4.95), scale=(1.3, 0.6, 1.0), segs=8, rings=5, noise=0.12, seed=9), "Torso", "stone")
+    # ---- Belt: a hanging lantern, a coil of rope, a canteen
+    part(rod((1.15, -0.55, 3.15), (1.2, -0.62, 2.62), 0.03, verts=4), "Pelvis", "steel")
+    part(sf.cyl(0.2, 0.06, loc=(1.2, -0.62, 2.56), verts=8, bevel=0.0), "Pelvis", "gunmetal")
+    part(sf.cyl(0.17, 0.06, loc=(1.2, -0.62, 2.12), verts=8, bevel=0.0), "Pelvis", "gunmetal")
+    glow(sf.cyl(0.13, 0.4, loc=(1.2, -0.62, 2.34), verts=8, bevel=0.0), "Pelvis", "PelvisGlow")
+    for a in (0, 120, 240):
+        ang = math.radians(a)
+        part(rod((1.2 + 0.17 * math.cos(ang), -0.62 + 0.17 * math.sin(ang), 2.14),
+                 (1.2 + 0.18 * math.cos(ang), -0.62 + 0.18 * math.sin(ang), 2.54), 0.02, verts=4), "Pelvis", "gunmetal")
+    part(sf.torus(0.36, 0.09, loc=(-1.3, 0.25, 2.85), rot=(0, 90, 0), major_segs=10, minor_segs=4), "Pelvis", "pine")
+    part(sf.cyl(0.24, 0.12, loc=(0.3, 0.88, 2.8), rot=(90, 0, 0), verts=10, bevel=0.02), "Pelvis", "steel")
+    # ---- Pickaxe: leather grip bands, a cracked glowing head with a crystal fused to it
+    rf = "RightLowerArm"
+    for t in (0.55, 0.7, 0.85):
+        p0, p1 = Vector((-2.27, -0.82, 3.15)), Vector((-2.45, -1.95, 0.62))
+        c = p0.lerp(p1, t)
+        o = sf.cyl(0.2, 0.12, loc=c, verts=8, bevel=0.0)
+        o.rotation_euler = (p1 - p0).to_track_quat("Z", "Y").to_euler()
+        part(o, rf, "leather")
+    head_c = Vector((-2.46, -2.0, 0.58))
+    glow(sf.box((0.08, 0.9, 0.1), loc=head_c + Vector((0.27, -0.35, 0.05)), rot=(4, 0, 0), bevel=0.0), rf, "PickGlow")
+    glow(crystal(head_c + Vector((0, 0.5, 0.2)), (0.2, 0.5, 1.0), 0.55, 0.12), rf, "PickGlow")
 
 
 def attack_action():
@@ -254,6 +336,6 @@ if __name__ == "__main__":
     if os.environ.get("SF_EXPORT") == "1":
         print(sf.export_clips(arm, "HollowMiner", [act, walk], root="HumanoidRootPart",
                               markers={"Attack": {"Hit": HIT_TIME}}))
-    if os.environ.get("SF_NORENDER") != "1":
+    if os.environ.get("SF_NORENDER") != "1" and os.environ.get("SF_NOSHEETS") != "1":
         print(contact_sheet(act, [0, 15, 21, 27], "HollowMiner_Attack_sheet"))
         print(contact_sheet(walk, [0, 9, 18, 27], "HollowMiner_Walk_sheet"))

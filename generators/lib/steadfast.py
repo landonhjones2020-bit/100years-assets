@@ -272,7 +272,7 @@ def tube(points, radii, sides=8, resolution=4, name="Tube"):
     cd.dimensions = "3D"
     cd.resolution_u = resolution
     cd.bevel_depth = 1.0
-    cd.bevel_resolution = max(1, sides // 4 - 1)
+    cd.bevel_resolution = max(0, round(sides / 4) - 1)   # 4 sides: a diamond, 8: round
     cd.use_fill_caps = True
     sp = cd.splines.new("BEZIER")
     sp.bezier_points.add(len(points) - 1)

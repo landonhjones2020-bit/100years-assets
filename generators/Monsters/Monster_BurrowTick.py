@@ -1,7 +1,8 @@
 """Monster_BurrowTick: the Mines swarmer (bible Section 27: fast and weak, comes in packs,
-latches onto residents). A fist-sized-to-a-dog tick the Source warped: a squat basalt
-carapace with a stone rim, six jointed legs, small mandibles, two green eyes and Source
-crystals growing out of its back. Never gory.
+latches onto residents). A dog-sized tick the Source warped: a banded wet-black shield over
+an abdomen swollen with Source light that leaks through the seams, stone spines, four
+burning eyes, two hooked pale fangs, twitching palps and six spiny legs ending in hooks.
+Scary, never gory (detail pass 2026-11-08).
 
 Rig: Body (root), Head, six one-bone legs. Clips: Walk (a quick tripod scuttle, looped),
 Attack (a lunge bite, Hit at 0.3 s).
@@ -13,7 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 import _beast as B  # noqa: E402
-from _beast import sf, rod, crystal  # noqa: E402
+from _beast import sf, rod, crystal, spike, claw, limb, blob, shell, eye  # noqa: E402,F401
 
 ASSET, CATEGORY = "Monster_BurrowTick", "Monsters"
 HIT_TIME = 0.3
@@ -25,25 +26,56 @@ for i, y in enumerate(LEG_Y, 1):
 
 
 def build(b):
-    # carapace: a low dome over a stone rim and underbelly
-    b.part(sf.sphere(1.0, loc=(0, 0.12, 0.82), scale=(0.95, 1.22, 0.52), segs=14, rings=7), "Body", "basalt")
-    b.part(sf.sphere(0.98, loc=(0, 0.1, 0.66), scale=(0.98, 1.2, 0.3), segs=14, rings=5), "Body", "stone")
-    for (x, y, z, rx) in ((0.0, -0.2, 1.22, -20), (0.32, 0.35, 1.12, 25), (-0.3, 0.4, 1.1, 30)):
-        b.glow(crystal((x, y, z - 0.12), (x * 0.6, 0.25 + y * 0.2, 1.0), 0.55, 0.13), "Body", "BodyGlow")
-    # head: a small stone knob with gunmetal mandibles and green eyes
-    b.part(sf.sphere(0.42, loc=(0, -1.12, 0.7), scale=(1.1, 0.9, 0.75), segs=10, rings=6), "Head", "stone")
+    # ---- Body: a hard tick shield over a Source-swollen abdomen that leaks light at the seams
+    b.part(blob(0.98, (0, 0.12, 0.66), scale=(0.98, 1.22, 0.3), segs=10, rings=4, seed=5), "Body", "plum")   # belly
+    b.glow(blob(0.8, (0, 0.42, 0.9), scale=(0.92, 0.78, 0.6), segs=10, rings=6, seed=6), "Body", "BodyGlow")
+    bands = (((1.02, 1.3, 0.62), -1.0, -0.02, "basalt"), ((1.05, 1.34, 0.64), 0.06, 0.36, "murk"),
+             ((1.0, 1.3, 0.6), 0.44, 0.78, "murk"))
+    for radii, y0, y1, sw in bands:
+        b.part(shell(radii, (0, 0.12, 0.72), y0, y1, z_from=0.05, thickness=0.08, segs=12, rings=8), "Body", sw)
+    # a stone rim and spines along the ridges
+    b.part(flat_ring(1.0, 1.26, 0.07, (0, 0.12, 0.74)), "Body", "stone")
+    for (x, y, z, ln) in ((0.0, -0.55, 1.22, 0.42), (0.45, -0.35, 1.14, 0.36), (-0.45, -0.35, 1.14, 0.36),
+                          (0.66, 0.1, 1.06, 0.34), (-0.66, 0.1, 1.06, 0.34), (0.0, -0.1, 1.32, 0.46)):
+        b.part(spike((x, y, z - 0.08), (x * 0.9, 0.35, 1.0), ln, 0.085, verts=4), "Body", "stone")
+    for (x, y, z, ln) in ((0.0, 0.5, 1.22, 0.6), (0.38, 0.72, 1.06, 0.45), (-0.38, 0.72, 1.06, 0.45)):
+        b.glow(crystal((x, y, z - 0.12), (x * 0.8, 0.45, 1.0), ln, 0.12), "Body", "BodyGlow")
+
+    # ---- Head: an armoured knob, four eyes, two hooked pale fangs and twitching palps
+    b.part(blob(0.4, (0, -1.1, 0.7), scale=(1.15, 0.95, 0.72), segs=8, rings=5, noise=0.05, seed=8), "Head", "basalt")
+    b.part(shell((0.48, 0.42, 0.34), (0, -1.08, 0.74), -1.0, 0.6, z_from=0.0, thickness=0.06, segs=10, rings=6),
+           "Head", "murk")
     for sx in (-1, 1):
-        b.part(rod((sx * 0.18, -1.38, 0.58), (sx * 0.06, -1.72, 0.5), 0.07, verts=6, radius_top=0.02), "Head", "gunmetal")
-        b.glow(sf.sphere(0.09, loc=(sx * 0.2, -1.42, 0.82), segs=8, rings=4), "Head", "HeadGlow")
-    # legs: out and up to a knee, then down to the ground
+        eye(b, "Head", (sx * 0.17, -1.42, 0.86), 0.075, facing=(sx * 0.3, -1, 0.3), segs=6)
+        eye(b, "Head", (sx * 0.32, -1.3, 0.92), 0.05, facing=(sx * 0.8, -0.6, 0.3), segs=6)
+        b.part(claw((sx * 0.14, -1.42, 0.6), (sx * 0.15, -1.0, -0.25), 0.5, 0.075, bend=(-sx, 0, 0), curl=0.45,
+                    sides=4), "Head", "cream")
+        b.part(limb([(sx * 0.3, -1.3, 0.62), (sx * 0.45, -1.55, 0.5), (sx * 0.4, -1.72, 0.3)], [0.06, 0.045, 0.03],
+                    sides=4), "Head", "basalt")
+
+    # ---- Legs: up to a spiny knee, down to a hooked foot
     for i, y in enumerate(LEG_Y, 1):
         for side, sx in (("Left", 1), ("Right", -1)):
             spread = (i - 2) * 0.28   # front legs reach forward, back legs back
-            knee = (sx * 1.32, y + spread * 0.6, 1.05)
-            foot = (sx * 1.62, y + spread, 0.0)
+            hip = (sx * 0.72, y, 0.7)
+            knee = (sx * 1.32, y + spread * 0.6, 1.12)
+            foot = (sx * 1.66, y + spread, 0.06)
             bone = f"{side}Leg{i}"
-            b.part(rod((sx * 0.7, y, 0.7), knee, 0.09, verts=6), bone, "gunmetal")
-            b.part(rod(knee, foot, 0.08, verts=6, radius_top=0.03), bone, "basalt")
+            b.part(limb([hip, ((hip[0] + knee[0]) / 2, (hip[1] + knee[1]) / 2, 1.02), knee], [0.13, 0.11, 0.09],
+                        sides=4), bone, "basalt")
+            b.part(limb([knee, (sx * 1.55, y + spread * 0.85, 0.6), foot], [0.08, 0.06, 0.03], sides=4), bone, "murk")
+            b.part(spike(knee, (sx * 0.5, spread * 0.4, 1.0), 0.3, 0.06, verts=4), bone, "stone")
+            b.part(spike((sx * 1.48, y + spread * 0.8, 0.72), (sx * 1.0, 0, 0.3), 0.14, 0.03, verts=3), bone, "stone")
+            b.part(claw(foot, (sx * 0.3, -0.2 + spread * 0.3, -0.2), 0.16, 0.035, bend=(-sx, 0, -1), curl=0.4,
+                        sides=4), bone, "cream")
+
+
+def flat_ring(r_in, r_out_y, thickness, loc):
+    """An oval stone rim under the shield (x radius r_in, y radius r_out_y)."""
+    o = sf.ring(r_in * 0.86, r_in, thickness, loc=loc, verts=14)
+    for v in o.data.vertices:
+        v.co.y *= r_out_y / r_in
+    return o
 
 
 def walk(b):
@@ -85,6 +117,6 @@ def attack(b):
 
 if __name__ == "__main__":
     B.run(ASSET, CATEGORY, lambda: B.Beast("BurrowTick", JOINTS), build, lambda b: [walk(b), attack(b)],
-          budget=1500, hrp_center=(0, 0.1, 0.75), hrp_size=(1.8, 1.0, 2.4),
+          budget=2100, hrp_center=(0, 0.1, 0.75), hrp_size=(1.8, 1.0, 2.4),
           meta={"role": "Swarmer", "band": "Mines", "hitTime": HIT_TIME},
           sockets={"Bite": ((0, -1.6, 0.55), 0.0)}, markers={"Attack": {"Hit": HIT_TIME}})

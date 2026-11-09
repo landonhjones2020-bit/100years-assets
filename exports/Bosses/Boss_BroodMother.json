@@ -1,0 +1,1239 @@
+{
+ "asset": "Boss_BroodMother",
+ "category": "Bosses",
+ "format": 1,
+ "size": [
+  20.995,
+  11.358,
+  23.344
+ ],
+ "tris": 9924,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Thorax",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Thorax",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    5.545,
+    -2.922
+   ],
+   "size": [
+    7.165,
+    3.64,
+    6.96
+   ],
+   "tris": 780
+  },
+  {
+   "name": "ThoraxGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Thorax",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    7.402,
+    -1.853
+   ],
+   "size": [
+    3.455,
+    2.853,
+    4.315
+   ],
+   "tris": 100
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "plum",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    5.213,
+    -6.3
+   ],
+   "size": [
+    5.045,
+    3.464,
+    4.104
+   ],
+   "tris": 1272
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    6.807,
+    -7.169
+   ],
+   "size": [
+    4.702,
+    5.916,
+    2.607
+   ],
+   "tris": 840
+  },
+  {
+   "name": "LeftFang",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFang",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk"
+   ],
+   "offset": [
+    -0.73,
+    3.28,
+    -7.305
+   ],
+   "size": [
+    1.154,
+    3.809,
+    1.546
+   ],
+   "tris": 180
+  },
+  {
+   "name": "LeftFangGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftFang",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.156,
+    1.228,
+    -7.293
+   ],
+   "size": [
+    0.14,
+    0.4,
+    0.14
+   ],
+   "tris": 6
+  },
+  {
+   "name": "LeftPalp",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftPalp",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream",
+    "stone"
+   ],
+   "offset": [
+    -1.905,
+    3.246,
+    -7.617
+   ],
+   "size": [
+    1.298,
+    2.567,
+    2.613
+   ],
+   "tris": 164
+  },
+  {
+   "name": "RightFang",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFang",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk"
+   ],
+   "offset": [
+    0.73,
+    3.28,
+    -7.305
+   ],
+   "size": [
+    1.154,
+    3.809,
+    1.546
+   ],
+   "tris": 180
+  },
+  {
+   "name": "RightFangGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightFang",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.156,
+    1.228,
+    -7.293
+   ],
+   "size": [
+    0.14,
+    0.4,
+    0.14
+   ],
+   "tris": 6
+  },
+  {
+   "name": "RightPalp",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightPalp",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream",
+    "stone"
+   ],
+   "offset": [
+    1.905,
+    3.246,
+    -7.617
+   ],
+   "size": [
+    1.298,
+    2.567,
+    2.613
+   ],
+   "tris": 164
+  },
+  {
+   "name": "Abdomen",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Abdomen",
+   "tint": null,
+   "swatches": [
+    "murk",
+    "navy",
+    "plum",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    6.184,
+    5.728
+   ],
+   "size": [
+    9.13,
+    9.339,
+    11.566
+   ],
+   "tris": 1932
+  },
+  {
+   "name": "AbdomenGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Abdomen",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    6.354,
+    7.071
+   ],
+   "size": [
+    8.563,
+    7.759,
+    9.203
+   ],
+   "tris": 924
+  },
+  {
+   "name": "Belly",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": false,
+   "role": "WeakPoint",
+   "bone": "Abdomen",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.002,
+    3.491,
+    5.312
+   ],
+   "size": [
+    6.23,
+    3.524,
+    8.483
+   ],
+   "tris": 288
+  },
+  {
+   "name": "LeftLeg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    -3.977,
+    7.232,
+    -6.052
+   ],
+   "size": [
+    4.485,
+    5.43,
+    5.3
+   ],
+   "tris": 234
+  },
+  {
+   "name": "LeftLeg1Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftLeg1",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -5.773,
+    9.939,
+    -8.068
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftFoot1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFoot1",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    -6.989,
+    4.675,
+    -9.684
+   ],
+   "size": [
+    3.608,
+    9.336,
+    3.976
+   ],
+   "tris": 132
+  },
+  {
+   "name": "RightLeg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    3.977,
+    7.232,
+    -6.052
+   ],
+   "size": [
+    4.485,
+    5.43,
+    5.3
+   ],
+   "tris": 234
+  },
+  {
+   "name": "RightLeg1Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightLeg1",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    5.773,
+    9.939,
+    -8.068
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightFoot1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFoot1",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    6.989,
+    4.675,
+    -9.684
+   ],
+   "size": [
+    3.608,
+    9.336,
+    3.976
+   ],
+   "tris": 132
+  },
+  {
+   "name": "LeftLeg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    -4.458,
+    7.587,
+    -3.66
+   ],
+   "size": [
+    5.524,
+    6.019,
+    3.084
+   ],
+   "tris": 234
+  },
+  {
+   "name": "LeftLeg2Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftLeg2",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -6.773,
+    10.739,
+    -4.568
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftFoot2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFoot2",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    -8.345,
+    5.061,
+    -5.154
+   ],
+   "size": [
+    4.305,
+    10.12,
+    2.028
+   ],
+   "tris": 132
+  },
+  {
+   "name": "RightLeg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    4.458,
+    7.587,
+    -3.66
+   ],
+   "size": [
+    5.524,
+    6.019,
+    3.084
+   ],
+   "tris": 234
+  },
+  {
+   "name": "RightLeg2Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightLeg2",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    6.773,
+    10.739,
+    -4.568
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightFoot2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFoot2",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    8.345,
+    5.061,
+    -5.154
+   ],
+   "size": [
+    4.305,
+    10.12,
+    2.028
+   ],
+   "tris": 132
+  },
+  {
+   "name": "LeftLeg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    -4.469,
+    7.595,
+    -1.123
+   ],
+   "size": [
+    5.501,
+    6.008,
+    2.321
+   ],
+   "tris": 234
+  },
+  {
+   "name": "LeftLeg3Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftLeg3",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -6.773,
+    10.739,
+    -0.568
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftFoot3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFoot3",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    -8.349,
+    5.059,
+    -0.261
+   ],
+   "size": [
+    4.289,
+    10.117,
+    1.546
+   ],
+   "tris": 132
+  },
+  {
+   "name": "RightLeg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    4.469,
+    7.595,
+    -1.123
+   ],
+   "size": [
+    5.501,
+    6.008,
+    2.321
+   ],
+   "tris": 234
+  },
+  {
+   "name": "RightLeg3Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightLeg3",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    6.773,
+    10.739,
+    -0.568
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightFoot3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFoot3",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    8.349,
+    5.059,
+    -0.261
+   ],
+   "size": [
+    4.289,
+    10.117,
+    1.546
+   ],
+   "tris": 132
+  },
+  {
+   "name": "LeftLeg4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg4",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    -4.06,
+    7.251,
+    1.035
+   ],
+   "size": [
+    4.72,
+    5.404,
+    4.207
+   ],
+   "tris": 234
+  },
+  {
+   "name": "LeftLeg4Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftLeg4",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -5.973,
+    9.939,
+    2.532
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftFoot4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftFoot4",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    -7.39,
+    4.667,
+    3.601
+   ],
+   "size": [
+    4.016,
+    9.327,
+    2.991
+   ],
+   "tris": 132
+  },
+  {
+   "name": "RightLeg4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg4",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "navy",
+    "stone"
+   ],
+   "offset": [
+    4.06,
+    7.251,
+    1.035
+   ],
+   "size": [
+    4.72,
+    5.404,
+    4.207
+   ],
+   "tris": 234
+  },
+  {
+   "name": "RightLeg4Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightLeg4",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    5.973,
+    9.939,
+    2.532
+   ],
+   "size": [
+    0.672,
+    1.078,
+    0.416
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightFoot4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightFoot4",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "stone"
+   ],
+   "offset": [
+    7.39,
+    4.667,
+    3.601
+   ],
+   "size": [
+    4.016,
+    9.327,
+    2.991
+   ],
+   "tris": 132
+  }
+ ],
+ "meta": {
+  "role": "Boss",
+  "band": "Mines",
+  "era": 1,
+  "hitTime": 0.8,
+  "layTime": 1.4
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Maw": {
+   "p": [
+    0.0,
+    4.345,
+    -7.682
+   ],
+   "yaw": 0.0
+  },
+  "Ovipositor": {
+   "p": [
+    0.0,
+    2.545,
+    11.318
+   ],
+   "yaw": 0.0
+  },
+  "Slam": {
+   "p": [
+    0.0,
+    -0.055,
+    -10.582
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Thorax",
+    "parent": null,
+    "jointName": "ThoraxJoint",
+    "joint": [
+     0.0,
+     4.945,
+     -2.482
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Thorax",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.0,
+     4.945,
+     -5.082
+    ]
+   },
+   {
+    "name": "LeftFang",
+    "parent": "Head",
+    "jointName": "LeftFangJoint",
+    "joint": [
+     -0.85,
+     4.445,
+     -6.982
+    ]
+   },
+   {
+    "name": "RightFang",
+    "parent": "Head",
+    "jointName": "RightFangJoint",
+    "joint": [
+     0.85,
+     4.445,
+     -6.982
+    ]
+   },
+   {
+    "name": "LeftPalp",
+    "parent": "Head",
+    "jointName": "LeftPalpJoint",
+    "joint": [
+     -1.55,
+     4.245,
+     -6.482
+    ]
+   },
+   {
+    "name": "RightPalp",
+    "parent": "Head",
+    "jointName": "RightPalpJoint",
+    "joint": [
+     1.55,
+     4.245,
+     -6.482
+    ]
+   },
+   {
+    "name": "Abdomen",
+    "parent": "Thorax",
+    "jointName": "AbdomenJoint",
+    "joint": [
+     0.0,
+     5.245,
+     0.318
+    ]
+   },
+   {
+    "name": "LeftLeg1",
+    "parent": "Thorax",
+    "jointName": "LeftLeg1Joint",
+    "joint": [
+     -2.3,
+     4.945,
+     -3.982
+    ]
+   },
+   {
+    "name": "LeftFoot1",
+    "parent": "LeftLeg1",
+    "jointName": "LeftFoot1Joint",
+    "joint": [
+     -5.6,
+     9.145,
+     -8.082
+    ]
+   },
+   {
+    "name": "RightLeg1",
+    "parent": "Thorax",
+    "jointName": "RightLeg1Joint",
+    "joint": [
+     2.3,
+     4.945,
+     -3.982
+    ]
+   },
+   {
+    "name": "RightFoot1",
+    "parent": "RightLeg1",
+    "jointName": "RightFoot1Joint",
+    "joint": [
+     5.6,
+     9.145,
+     -8.082
+    ]
+   },
+   {
+    "name": "LeftLeg2",
+    "parent": "Thorax",
+    "jointName": "LeftLeg2Joint",
+    "joint": [
+     -2.3,
+     4.945,
+     -2.782
+    ]
+   },
+   {
+    "name": "LeftFoot2",
+    "parent": "LeftLeg2",
+    "jointName": "LeftFoot2Joint",
+    "joint": [
+     -6.6,
+     9.945,
+     -4.582
+    ]
+   },
+   {
+    "name": "RightLeg2",
+    "parent": "Thorax",
+    "jointName": "RightLeg2Joint",
+    "joint": [
+     2.3,
+     4.945,
+     -2.782
+    ]
+   },
+   {
+    "name": "RightFoot2",
+    "parent": "RightLeg2",
+    "jointName": "RightFoot2Joint",
+    "joint": [
+     6.6,
+     9.945,
+     -4.582
+    ]
+   },
+   {
+    "name": "LeftLeg3",
+    "parent": "Thorax",
+    "jointName": "LeftLeg3Joint",
+    "joint": [
+     -2.3,
+     4.945,
+     -1.582
+    ]
+   },
+   {
+    "name": "LeftFoot3",
+    "parent": "LeftLeg3",
+    "jointName": "LeftFoot3Joint",
+    "joint": [
+     -6.6,
+     9.945,
+     -0.582
+    ]
+   },
+   {
+    "name": "RightLeg3",
+    "parent": "Thorax",
+    "jointName": "RightLeg3Joint",
+    "joint": [
+     2.3,
+     4.945,
+     -1.582
+    ]
+   },
+   {
+    "name": "RightFoot3",
+    "parent": "RightLeg3",
+    "jointName": "RightFoot3Joint",
+    "joint": [
+     6.6,
+     9.945,
+     -0.582
+    ]
+   },
+   {
+    "name": "LeftLeg4",
+    "parent": "Thorax",
+    "jointName": "LeftLeg4Joint",
+    "joint": [
+     -2.3,
+     4.945,
+     -0.482
+    ]
+   },
+   {
+    "name": "LeftFoot4",
+    "parent": "LeftLeg4",
+    "jointName": "LeftFoot4Joint",
+    "joint": [
+     -5.8,
+     9.145,
+     2.518
+    ]
+   },
+   {
+    "name": "RightLeg4",
+    "parent": "Thorax",
+    "jointName": "RightLeg4Joint",
+    "joint": [
+     2.3,
+     4.945,
+     -0.482
+    ]
+   },
+   {
+    "name": "RightFoot4",
+    "parent": "RightLeg4",
+    "jointName": "RightFoot4Joint",
+    "joint": [
+     5.8,
+     9.145,
+     2.518
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   5.0,
+   4.0,
+   7.0
+  ],
+  "hrpCenter": [
+   0.0,
+   4.945,
+   -2.482
+  ],
+  "hipHeight": 3.0
+ },
+ "fbx_sha1": "da0d0728d89b357e"
+}

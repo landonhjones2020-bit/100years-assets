@@ -31,6 +31,11 @@ def sidecar(asset: str) -> dict:
     d["parts"] = [{k: v for k, v in p.items() if v is not None} for p in d["parts"]]
     for p in d["parts"]:
         p["swatches"] = p.get("swatches", [])[:1]
+    # scalar meta becomes model attributes (hitTime -> HitTime: MonsterService reads it)
+    meta = d.get("meta") or {}
+    attrs = {k[:1].upper() + k[1:]: v for k, v in meta.items() if isinstance(v, (int, float, str, bool))}
+    if attrs:
+        d["attrs"] = attrs
     for unused in ("export", "meta", "format", "pivot"):     # AssetSetup never reads these
         d.pop(unused, None)
     return d

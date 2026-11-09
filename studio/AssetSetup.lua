@@ -127,6 +127,11 @@ function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchH
 	model:SetAttribute("Category", doc.category)
 	model:SetAttribute("Tris", doc.tris)
 	model:SetAttribute("FbxSha1", doc.fbx_sha1)
+	if doc.attrs then -- the generator's scalar meta (HitTime, LayTime, Role...), set by setup_batch.py
+		for name, value in doc.attrs do
+			model:SetAttribute(name, value)
+		end
+	end
 	if doc.sockets then
 		for name, s in doc.sockets do
 			model:SetAttribute("Socket_" .. name, CFrame.new(vec(s.p)) * CFrame.Angles(0, math.rad(s.yaw), 0))

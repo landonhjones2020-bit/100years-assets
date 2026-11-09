@@ -14,18 +14,35 @@ local F = require(script.Parent._Fields)
 
 return {
 	Schema = Check.shape({
-		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub" }), -- a model's Rig attribute
+		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
 			"Dodge", "Downed", "Revive", -- players (CombatController, Prompt 11)
 			"Attack", "Run", "Stunned", "Latched", "Fight", "Flee", -- monsters and residents in danger (Prompt 12)
+			"Roar", "LayEggs", "Stagger", "Death", -- bosses (A4: the Brood Mother; played from Prompt 15)
 		}),
 		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
 		Text = F.Short,
 	}),
 	Entries = {
+		-- The Brood Mother (A4; Rig BroodMother; Prompt 15 plays these: Attack's Hit marker 0.8 s,
+		-- LayEggs' Lay marker 1.4 s, the model's HitTime and LayTime attributes say the same)
+		BroodMotherIdle = { Rig = "BroodMother", Activity = "Idle", AssetId = "rbxassetid://116082078619476", Looped = true,
+			Text = "The Brood Mother breathes, palps and fangs twitching (A4, BroodMother_Idle)" },
+		BroodMotherWalk = { Rig = "BroodMother", Activity = "Walk", AssetId = "rbxassetid://105510410741576", Looped = true,
+			Text = "The Brood Mother's eight-legged creep (A4, BroodMother_Walk)" },
+		BroodMotherAttack = { Rig = "BroodMother", Activity = "Attack", AssetId = "rbxassetid://87449889032585", Looped = false,
+			Text = "She rears, fangs wide, and slams down (A4, BroodMother_Attack; Hit 0.8 s)" },
+		BroodMotherRoar = { Rig = "BroodMother", Activity = "Roar", AssetId = "rbxassetid://104063099850529", Looped = false,
+			Text = "Her entrance: rearing high, front legs splayed, fangs shaking (A4, BroodMother_Roar)" },
+		BroodMotherLayEggs = { Rig = "BroodMother", Activity = "LayEggs", AssetId = "rbxassetid://125795678354746", Looped = false,
+			Text = "The abdomen drops and pulses; an egg sac leaves at 1.4 s (A4, BroodMother_LayEggs)" },
+		BroodMotherStagger = { Rig = "BroodMother", Activity = "Stagger", AssetId = "rbxassetid://121846906504911", Looped = false,
+			Text = "Her belly is hit: she jolts back, legs splayed (A4, BroodMother_Stagger)" },
+		BroodMotherDeath = { Rig = "BroodMother", Activity = "Death", AssetId = "rbxassetid://115302160037147", Looped = false,
+			Text = "She collapses and her legs curl in (A4, BroodMother_Death)" },
 		-- Monsters (A0 and A4; NPCAnimator replays Attack on each AttackAt)
 		HollowMinerAttack = {
 			Rig = "HollowMiner",
@@ -58,30 +75,30 @@ return {
 		SpitterGrubAttack = {
 			Rig = "SpitterGrub",
 			Activity = "Attack",
-			AssetId = "rbxassetid://95760502875798",
+			AssetId = "rbxassetid://122661270451993",
 			Looped = false,
-			Text = "A Spitter Grub rears and spits (A4, SpitterGrub_Attack; goo at 0.85 s)",
+			Text = "A Spitter Grub rears, its mouth peels open and it spits (A4 detail pass, SpitterGrub_Attack; goo at 0.85 s)",
 		},
 		SpitterGrubWalk = {
 			Rig = "SpitterGrub",
 			Activity = "Walk",
-			AssetId = "rbxassetid://111390425610996",
+			AssetId = "rbxassetid://140730453067658",
 			Looped = true,
-			Text = "A Spitter Grub's crawl (A4, SpitterGrub_Walk)",
+			Text = "A Spitter Grub's crawl, mouth petals twitching (A4 detail pass, SpitterGrub_Walk)",
 		},
 		TunnelHoundAttack = {
 			Rig = "TunnelHound",
 			Activity = "Attack",
-			AssetId = "rbxassetid://124881347548172",
+			AssetId = "rbxassetid://134469102219911",
 			Looped = false,
-			Text = "A Tunnel Hound's lunging bite (A4, TunnelHound_Attack; Hit 0.45 s)",
+			Text = "A Tunnel Hound's lunging bite, the jaw drops and snaps (A4 detail pass, TunnelHound_Attack; Hit 0.45 s)",
 		},
 		TunnelHoundWalk = {
 			Rig = "TunnelHound",
 			Activity = "Walk",
-			AssetId = "rbxassetid://73107799873866",
+			AssetId = "rbxassetid://87238019294136",
 			Looped = true,
-			Text = "A Tunnel Hound's gallop (A4, TunnelHound_Walk)",
+			Text = "A Tunnel Hound's gallop, jaw hanging (A4 detail pass, TunnelHound_Walk)",
 		},
 		ResidentWalk = {
 			Rig = "R15",

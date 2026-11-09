@@ -1,0 +1,287 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" version="4">
+  <Item class="ModuleScript" referent="RBX0">
+    <Properties>
+      <string name="Name">ArtSetupBatch</string>
+      <ProtectedString name="Source"><![CDATA[return function()
+local SS = game:GetService("ServerStorage")
+local folder = SS:FindFirstChild("ArtPipeline") or Instance.new("Folder")
+folder.Name = "ArtPipeline"
+folder.Parent = SS
+local oldm = folder:FindFirstChild("AssetSetup")
+if oldm then oldm:Destroy() end
+local mod = Instance.new("ModuleScript")
+mod.Name = "AssetSetup"
+mod.Source = [====[
+local CollectionService = game:GetService("CollectionService")
+local ServerStorage = game:GetService("ServerStorage")
+local AssetSetup = {}
+local TOLERANCE = 0.01
+local FIDELITY: { [string]: Enum.CollisionFidelity } = {
+	none = Enum.CollisionFidelity.Box,
+	query = Enum.CollisionFidelity.Box,
+	box = Enum.CollisionFidelity.Box,
+	hull = Enum.CollisionFidelity.Hull,
+	precise = Enum.CollisionFidelity.PreciseConvexDecomposition,
+}
+local NO_TEXTURE: { [string]: boolean } = { Neon = true, Glass = true, ForceField = true }
+local function vec(t: { number }): Vector3
+	return Vector3.new(t[1], t[2], t[3])
+end
+local function hexColor(h: string?): Color3
+	if not h then
+		return Color3.new(1, 1, 1)
+	end
+	return Color3.fromHex(h)
+end
+function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchHex: { [string]: string }? }): string
+	local report = {}
+	local function say(s: string)
+		table.insert(report, s)
+	end
+	local assets = ServerStorage:WaitForChild("Assets")
+	local palette = {
+		color = assets:GetAttribute("PaletteColor"),
+		metalness = assets:GetAttribute("PaletteMetalness"),
+		roughness = assets:GetAttribute("PaletteRoughness"),
+	}
+	assert(palette.color, "ServerStorage.Assets has no PaletteColor attribute")
+	if doc.rig then
+		return "rigs are set up by the rig step (Motor6Ds from doc.rig), not by AssetSetup.run"
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("PackageLink") then
+			d:Destroy()
+		end
+	end
+	model.Name = doc.asset
+	local pivot = model.WorldPivot
+	local problems = 0
+	for _, spec in doc.parts do
+		local part = model:FindFirstChild(spec.name, true)
+		if not (part and part:IsA("MeshPart")) then
+			say("missing MeshPart " .. spec.name)
+			problems += 1
+			continue
+		end
+		local size = vec(spec.size)
+		local offset = vec(spec.offset)
+		local rel = pivot:PointToObjectSpace(part.Position)
+		if (part.Size - size).Magnitude > TOLERANCE or (rel - offset).Magnitude > TOLERANCE then
+			say(string.format("%s: size %s (want %s), offset %s (want %s)", spec.name, tostring(part.Size),
+				tostring(size), tostring(rel), tostring(offset)))
+			problems += 1
+		end
+		local collide = spec.collision ~= "none" and spec.collision ~= "query"
+		part.Anchored = true
+		part.CanCollide = collide
+		part.CanQuery = collide or spec.collision == "query"
+		part.CanTouch = collide
+		part.CollisionFidelity = FIDELITY[spec.collision] or Enum.CollisionFidelity.Box
+		part.CastShadow = spec.castShadow
+		part.Transparency = spec.transparency
+		part.Material = (Enum.Material :: any)[spec.material]
+		for _, old in part:GetChildren() do
+			if old:IsA("SurfaceAppearance") then
+				old:Destroy()
+			end
+		end
+		if NO_TEXTURE[spec.material] then
+			local first = spec.swatches[1]
+			local hx = opts.swatchHex and first and opts.swatchHex[first]
+			part.TextureID = ""
+			part.Color = hexColor(hx)
+		else
+			part.TextureID = ""
+			part.Color = hexColor(spec.tint)
+			local sa = Instance.new("SurfaceAppearance")
+			sa.ColorMap = palette.color
+			if palette.metalness then
+				sa.MetalnessMap = palette.metalness
+			end
+			if palette.roughness then
+				sa.RoughnessMap = palette.roughness
+			end
+			sa.AlphaMode = Enum.AlphaMode.Overlay
+			sa.Parent = part
+		end
+		if spec.role then
+			part:SetAttribute("Role", spec.role)
+		end
+	end
+	model:SetAttribute("AssetId", opts.assetId)
+	model:SetAttribute("Category", doc.category)
+	model:SetAttribute("Tris", doc.tris)
+	model:SetAttribute("FbxSha1", doc.fbx_sha1)
+	if doc.attrs then -- the generator's scalar meta (HitTime, LayTime, Role...), set by setup_batch.py
+		for name, value in doc.attrs do
+			model:SetAttribute(name, value)
+		end
+	end
+	if doc.sockets then
+		for name, s in doc.sockets do
+			model:SetAttribute("Socket_" .. name, CFrame.new(vec(s.p)) * CFrame.Angles(0, math.rad(s.yaw), 0))
+		end
+	end
+	CollectionService:AddTag(model, "Asset")
+	if problems > 0 then
+		say(string.format("%d problem(s): left in ServerStorage.Assets.Pipeline", problems))
+		return table.concat(report, "\n")
+	end
+	local folder = assets:FindFirstChild(doc.category)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = doc.category
+		folder.Parent = assets
+	end
+	local old = folder:FindFirstChild(doc.asset)
+	if old and old ~= model then
+		old:Destroy()
+	end
+	model:PivotTo(CFrame.new())
+	model.Parent = folder
+	say(string.format("%s ready in ServerStorage.Assets.%s: %d MeshPart(s), %d tris, size %s",
+		doc.asset, doc.category, #doc.parts, doc.tris, tostring(vec(doc.size))))
+	return table.concat(report, "\n")
+end
+function AssetSetup.rig(model: Model, doc: any, opts: { assetId: string, swatchHex: { [string]: string }?,
+	faceImage: string?, clips: { [string]: string }? }): string
+	local rig = doc.rig
+	assert(rig, "AssetSetup.rig needs doc.rig")
+	local stripped = table.clone(doc)
+	stripped.rig = nil
+	local category = doc.category
+	stripped.category = "__RigStep"
+	local report = AssetSetup.run(model, stripped, opts)
+	local assets = ServerStorage:WaitForChild("Assets")
+	local holder = assets:FindFirstChild("__RigStep")
+	if model.Parent ~= holder then
+		return report .. "\nrig step skipped: fix the problems above first"
+	end
+	local pivot = model.WorldPivot
+	local hrp = model:FindFirstChild(rig.root)
+	if hrp then
+		hrp:Destroy()
+	end
+	local root = Instance.new("Part")
+	root.Name = rig.root
+	root.Size = vec(rig.hrpSize)
+	root.CFrame = pivot * CFrame.new(vec(rig.hrpCenter))
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = true
+	root.CanQuery = false
+	root.CanTouch = true
+	root.CastShadow = false
+	root.Parent = model
+	local made = 0
+	for _, b in rig.bones do
+		local part1 = model:FindFirstChild(b.name)
+		local part0 = if b.parent then model:FindFirstChild(b.parent) else root
+		assert(part1 and part1:IsA("BasePart"), "missing bone part " .. b.name)
+		assert(part0 and part0:IsA("BasePart"), "missing parent part for " .. b.name)
+		for _, old in part1:GetChildren() do
+			if old:IsA("JointInstance") then
+				old:Destroy()
+			end
+		end
+		local j = pivot * CFrame.new(vec(b.joint))
+		local m = Instance.new("Motor6D")
+		m.Name = b.jointName
+		m.Part0 = part0
+		m.Part1 = part1
+		m.C0 = part0.CFrame:ToObjectSpace(j)
+		m.C1 = part1.CFrame:ToObjectSpace(j)
+		m.Parent = part1
+		made += 1
+	end
+	local boneSet = {}
+	for _, b in rig.bones do
+		boneSet[b.name] = true
+	end
+	local welded = 0
+	for _, spec in doc.parts do
+		local part = model:FindFirstChild(spec.name)
+		if part and part:IsA("BasePart") then
+			part.Anchored = false
+			part.Massless = true
+			if not boneSet[spec.name] and spec.bone then
+				local host = model:FindFirstChild(spec.bone)
+				assert(host and host:IsA("BasePart"), "missing host part " .. spec.bone)
+				local w = Instance.new("WeldConstraint")
+				w.Name = "RideOn_" .. spec.bone
+				w.Part0 = host :: BasePart
+				w.Part1 = part
+				w.Parent = part
+				welded += 1
+			end
+		end
+	end
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum:Destroy()
+	end
+	hum = Instance.new("Humanoid")
+	hum.RigType = Enum.HumanoidRigType.R15
+	hum.HipHeight = rig.hipHeight
+	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+	hum.Parent = model
+	Instance.new("Animator").Parent = hum
+	model.PrimaryPart = root
+	root.PivotOffset = root.CFrame:ToObjectSpace(pivot)
+	if opts.faceImage then
+		local head = model:FindFirstChild("Head")
+		if head then
+			local face = head:FindFirstChild("face") or Instance.new("Decal")
+			face.Name = "face"
+			face.Face = Enum.NormalId.Front
+			face.Texture = opts.faceImage
+			face.Parent = head
+			model:SetAttribute("FaceImage", opts.faceImage)
+		end
+	end
+	model:SetAttribute("RigType", rig.rigType)
+	model:SetAttribute("HipHeight", rig.hipHeight)
+	for clip, id in opts.clips or {} do
+		model:SetAttribute("Anim_" .. clip, id)
+	end
+	local folder = assets:FindFirstChild(category)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = category
+		folder.Parent = assets
+	end
+	local old = folder:FindFirstChild(doc.asset)
+	if old and old ~= model then
+		old:Destroy()
+	end
+	model:PivotTo(CFrame.new())
+	model.Parent = folder
+	if holder and #holder:GetChildren() == 0 then
+		holder:Destroy()
+	end
+	return (report:gsub("__RigStep", category))
+		.. string.format("\nrig: %s root, %d Motor6D(s), %d welded part(s), HipHeight %.2f", rig.root, made,
+			welded, rig.hipHeight)
+end
+return AssetSetup
+]====]
+mod.Parent = folder
+local AssetSetup = require(mod)
+local HttpService = game:GetService("HttpService")
+local hexes = HttpService:JSONDecode([==[{"teal":"#2F6F73","mint":"#8CC2B5","cream":"#F2E6C9","porcelain":"#F7F5EE","signal":"#E8743B","hazard":"#F2C14E","blush":"#E8A09A","skyblue":"#9DC4DB","chrome":"#DADFE3","steel":"#8D969D","gunmetal":"#4A5259","rubber":"#23262A","navy":"#1B2A3A","copper":"#B8743A","brass":"#C8A23E","olive":"#5E6A44","pine":"#C49A63","walnut":"#6B4630","leather":"#8C5B3B","rust":"#B5412B","plum":"#6E4766","avocado":"#8A9A46","leaf":"#6F9B4C","forest":"#3D5C35","sandstone":"#A39A8C","stone":"#6F665C","basalt":"#403B37","ash":"#8E8C88","murk":"#2D4A57","crystal":"#8FE3E0","glow":"#7CFF9B"}]==])
+local pipe = game:GetService("ServerStorage").Assets.Pipeline
+local report = {}
+do local m = pipe:FindFirstChild("Monster_TunnelHound") if not m then table.insert(report, "Monster_TunnelHound: not in Pipeline") else local ok, r = pcall(AssetSetup.rig, m, HttpService:JSONDecode([==[{"asset":"Monster_TunnelHound","category":"Monsters","size":[1.825,3.677,6.638],"tris":3414,"parts":[{"name":"Chest","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Chest","swatches":["basalt"],"offset":[0.0,2.263,-0.959],"size":[1.644,1.941,2.138]},{"name":"ChestGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Chest","swatches":["glow"],"offset":[-0.077,2.729,-0.634],"size":[1.306,1.813,1.35]},{"name":"Pelvis","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Pelvis","swatches":["basalt"],"offset":[-0.012,2.224,0.528],"size":[1.198,1.318,2.075]},{"name":"PelvisGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Pelvis","swatches":["glow"],"offset":[-0.228,2.658,0.498],"size":[0.24,0.384,0.24]},{"name":"Head","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Head","swatches":["basalt"],"offset":[0.0,2.362,-2.157],"size":[1.305,1.177,2.324]},{"name":"HeadGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Head","swatches":["glow"],"offset":[0.0,2.4,-2.22],"size":[0.927,0.579,0.674]},{"name":"Jaw","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Jaw","swatches":["cream"],"offset":[0.0,2.022,-2.568],"size":[0.6,0.404,1.132]},{"name":"JawGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Jaw","swatches":["glow"],"offset":[0.0,2.03,-2.55],"size":[0.288,0.102,0.832]},{"name":"Tail","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Tail","swatches":["basalt"],"offset":[0.0,1.885,2.162],"size":[0.4,1.206,1.744]},{"name":"TailGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Tail","swatches":["glow"],"offset":[0.0,1.171,3.083],"size":[0.156,0.424,0.35]},{"name":"FrontLeftLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"FrontLeftLeg","swatches":["basalt"],"offset":[-0.588,1.649,-1.22],"size":[0.648,1.429,0.817]},{"name":"FrontLeftPaw","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"FrontLeftPaw","swatches":["basalt"],"offset":[-0.62,0.499,-1.749],"size":[0.552,0.998,0.973]},{"name":"BackLeftLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"BackLeftLeg","swatches":["basalt"],"offset":[-0.594,1.611,0.715],"size":[0.548,1.419,0.922]},{"name":"BackLeftPaw","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"BackLeftPaw","swatches":["basalt"],"offset":[-0.62,0.531,0.733],"size":[0.484,0.952,1.014]},{"name":"FrontRightLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"FrontRightLeg","swatches":["basalt"],"offset":[0.588,1.649,-1.22],"size":[0.648,1.429,0.817]},{"name":"FrontRightPaw","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"FrontRightPaw","swatches":["basalt"],"offset":[0.62,0.499,-1.749],"size":[0.552,0.998,0.973]},{"name":"BackRightLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"BackRightLeg","swatches":["basalt"],"offset":[0.606,1.611,0.715],"size":[0.548,1.419,0.922]},{"name":"BackRightPaw","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"BackRightPaw","swatches":["basalt"],"offset":[0.62,0.531,0.733],"size":[0.484,0.952,1.014]}],"sockets":{"Bite":{"p":[0.0,2.03,-3.0],"yaw":0.0}},"rig":{"bones":[{"name":"Pelvis","parent":null,"jointName":"PelvisJoint","joint":[0.0,1.88,0.7]},{"name":"Chest","parent":"Pelvis","jointName":"ChestJoint","joint":[0.0,2.03,-0.7]},{"name":"Head","parent":"Chest","jointName":"HeadJoint","joint":[0.0,2.33,-1.85]},{"name":"Jaw","parent":"Head","jointName":"JawJoint","joint":[0.0,2.13,-2.1]},{"name":"FrontLeftLeg","parent":"Chest","jointName":"FrontLeftLegJoint","joint":[-0.55,1.83,-1.35]},{"name":"FrontLeftPaw","parent":"FrontLeftLeg","jointName":"FrontLeftPawJoint","joint":[-0.6,0.98,-1.45]},{"name":"FrontRightLeg","parent":"Chest","jointName":"FrontRightLegJoint","joint":[0.55,1.83,-1.35]},{"name":"FrontRightPaw","parent":"FrontRightLeg","jointName":"FrontRightPawJoint","joint":[0.6,0.98,-1.45]},{"name":"Tail","parent":"Pelvis","jointName":"TailJoint","joint":[0.0,2.03,1.35]},{"name":"BackLeftLeg","parent":"Pelvis","jointName":"BackLeftLegJoint","joint":[-0.58,1.73,0.75]},{"name":"BackLeftPaw","parent":"BackLeftLeg","jointName":"BackLeftPawJoint","joint":[-0.62,0.93,0.9]},{"name":"BackRightLeg","parent":"Pelvis","jointName":"BackRightLegJoint","joint":[0.58,1.73,0.75]},{"name":"BackRightPaw","parent":"BackRightLeg","jointName":"BackRightPawJoint","joint":[0.62,0.93,0.9]}],"root":"HumanoidRootPart","rigType":"Custom","hrpSize":[1.6,1.4,3.6],"hrpCenter":[0.0,1.93,-0.3],"hipHeight":1.1},"fbx_sha1":"06b902410290c6af","attrs":{"Role":"Runner","Band":"Mines","HitTime":0.45}}]==]), { assetId = "111045663637462", swatchHex = hexes, clips = {Walk = "rbxassetid://87238019294136", Attack = "rbxassetid://134469102219911"} }) table.insert(report, "Monster_TunnelHound: " .. tostring(r)) end end
+do local m = pipe:FindFirstChild("Monster_BurrowTick") if not m then table.insert(report, "Monster_BurrowTick: not in Pipeline") else local ok, r = pcall(AssetSetup.rig, m, HttpService:JSONDecode([==[{"asset":"Monster_BurrowTick","category":"Monsters","size":[3.492,1.766,3.213],"tris":2028,"parts":[{"name":"Body","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Body","swatches":["basalt"],"offset":[0.0,1.084,0.312],"size":[2.195,1.308,2.589]},{"name":"BodyGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Body","swatches":["glow"],"offset":[0.0,1.101,0.678],"size":[1.4,1.235,1.248]},{"name":"Head","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Head","swatches":["basalt"],"offset":[0.0,0.775,-1.036],"size":[0.985,0.857,1.142]},{"name":"HeadGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Head","swatches":["glow"],"offset":[0.0,0.948,-1.134],"size":[0.757,0.182,0.261]},{"name":"LeftLeg1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg1","swatches":["basalt"],"offset":[-1.18,0.732,-0.416],"size":[1.099,1.438,0.5]},{"name":"RightLeg1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg1","swatches":["basalt"],"offset":[1.18,0.732,-0.416],"size":[1.099,1.438,0.5]},{"name":"LeftLeg2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg2","swatches":["basalt"],"offset":[-1.181,0.729,0.308],"size":[1.111,1.446,0.26]},{"name":"RightLeg2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg2","swatches":["basalt"],"offset":[1.181,0.729,0.308],"size":[1.111,1.446,0.26]},{"name":"LeftLeg3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg3","swatches":["basalt"],"offset":[-1.188,0.725,0.972],"size":[1.116,1.451,0.437]},{"name":"RightLeg3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg3","swatches":["basalt"],"offset":[1.188,0.725,0.972],"size":[1.116,1.451,0.437]}],"sockets":{"Bite":{"p":[0.0,0.614,-1.342],"yaw":0.0}},"rig":{"bones":[{"name":"Body","parent":null,"jointName":"BodyJoint","joint":[0.0,0.784,0.358]},{"name":"Head","parent":"Body","jointName":"HeadJoint","joint":[0.0,0.784,-0.692]},{"name":"LeftLeg1","parent":"Body","jointName":"LeftLeg1Joint","joint":[-0.72,0.764,-0.292]},{"name":"RightLeg1","parent":"Body","jointName":"RightLeg1Joint","joint":[0.72,0.764,-0.292]},{"name":"LeftLeg2","parent":"Body","jointName":"LeftLeg2Joint","joint":[-0.72,0.764,0.308]},{"name":"RightLeg2","parent":"Body","jointName":"RightLeg2Joint","joint":[0.72,0.764,0.308]},{"name":"LeftLeg3","parent":"Body","jointName":"LeftLeg3Joint","joint":[-0.72,0.764,0.878]},{"name":"RightLeg3","parent":"Body","jointName":"RightLeg3Joint","joint":[0.72,0.764,0.878]}],"root":"HumanoidRootPart","rigType":"Custom","hrpSize":[1.8,1.0,2.4],"hrpCenter":[0.0,0.814,0.358],"hipHeight":0.25},"fbx_sha1":"f997006ac989364f","attrs":{"Role":"Swarmer","Band":"Mines","HitTime":0.3}}]==]), { assetId = "90784985441642", swatchHex = hexes, clips = {Walk = "rbxassetid://106449894515190", Attack = "rbxassetid://98828341050691"} }) table.insert(report, "Monster_BurrowTick: " .. tostring(r)) end end
+do local m = pipe:FindFirstChild("Monster_SpitterGrub") if not m then table.insert(report, "Monster_SpitterGrub: not in Pipeline") else local ok, r = pcall(AssetSetup.rig, m, HttpService:JSONDecode([==[{"asset":"Monster_SpitterGrub","category":"Monsters","size":[2.731,2.458,6.322],"tris":3474,"parts":[{"name":"Head","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Head","swatches":["basalt"],"offset":[0.0,1.33,-2.128],"size":[1.606,1.245,0.982]},{"name":"Front","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Front","swatches":["basalt"],"offset":[0.0,1.03,-1.131],"size":[2.385,2.061,2.003]},{"name":"Body","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Body","swatches":["basalt"],"offset":[0.0,1.054,0.197],"size":[2.677,2.109,2.304]},{"name":"Tail","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Tail","swatches":["basalt"],"offset":[0.0,0.846,1.908],"size":[2.093,1.693,2.45]},{"name":"FrontGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Front","swatches":["glow"],"offset":[0.0,1.976,-1.067],"size":[1.179,0.751,1.169]},{"name":"BodyGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Body","swatches":["glow"],"offset":[0.0,1.982,0.15],"size":[1.672,0.953,1.61]},{"name":"HeadGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Head","swatches":["glow"],"offset":[0.0,1.456,-2.356],"size":[0.804,0.935,0.34]},{"name":"MouthTop","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"MouthTop","swatches":["cream"],"offset":[0.0,1.523,-2.819],"size":[0.571,0.31,0.685]},{"name":"MouthLeft","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"MouthLeft","swatches":["cream"],"offset":[-0.235,1.289,-2.819],"size":[0.31,0.571,0.685]},{"name":"MouthBottom","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"MouthBottom","swatches":["cream"],"offset":[0.0,1.054,-2.819],"size":[0.571,0.31,0.685]},{"name":"MouthRight","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"MouthRight","swatches":["cream"],"offset":[0.235,1.289,-2.819],"size":[0.31,0.571,0.685]}],"sockets":{"Mouth":{"p":[0.0,1.289,-2.939],"yaw":0.0}},"rig":{"bones":[{"name":"Body","parent":null,"jointName":"BodyJoint","joint":[0.0,0.989,0.311]},{"name":"Tail","parent":"Body","jointName":"TailJoint","joint":[0.0,0.889,1.311]},{"name":"Front","parent":"Body","jointName":"FrontJoint","joint":[0.0,1.039,-0.839]},{"name":"Head","parent":"Front","jointName":"HeadJoint","joint":[0.0,1.239,-1.839]},{"name":"MouthTop","parent":"Head","jointName":"MouthTopJoint","joint":[0.0,1.649,-2.559]},{"name":"MouthLeft","parent":"Head","jointName":"MouthLeftJoint","joint":[-0.36,1.289,-2.559]},{"name":"MouthBottom","parent":"Head","jointName":"MouthBottomJoint","joint":[0.0,0.929,-2.559]},{"name":"MouthRight","parent":"Head","jointName":"MouthRightJoint","joint":[0.36,1.289,-2.559]}],"root":"HumanoidRootPart","rigType":"Custom","hrpSize":[2.0,1.4,4.2],"hrpCenter":[0.0,1.039,-0.139],"hipHeight":0.35},"fbx_sha1":"e9258e0d0113ae18","attrs":{"Role":"Ranged","Band":"Mines","HitTime":0.85}}]==]), { assetId = "70536165729662", swatchHex = hexes, clips = {Walk = "rbxassetid://140730453067658", Attack = "rbxassetid://122661270451993"} }) table.insert(report, "Monster_SpitterGrub: " .. tostring(r)) end end
+do local m = pipe:FindFirstChild("Monster_HollowMiner") if not m then table.insert(report, "Monster_HollowMiner: not in Pipeline") else local ok, r = pcall(AssetSetup.rig, m, HttpService:JSONDecode([==[{"asset":"Monster_HollowMiner","category":"Monsters","size":[6.357,6.879,6.719],"tris":3734,"parts":[{"name":"Pelvis","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Pelvis","swatches":["gunmetal"],"offset":[0.028,2.715,0.6],"size":[2.79,1.25,1.76]},{"name":"Torso","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Torso","swatches":["cream"],"offset":[-0.061,4.623,0.418],"size":[3.491,2.646,2.861]},{"name":"TorsoGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Torso","swatches":["glow"],"offset":[0.236,5.111,1.059],"size":[3.143,3.103,4.339]},{"name":"Head","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Head","swatches":["basalt"],"offset":[0.033,5.989,-0.962],"size":[1.95,1.587,2.105]},{"name":"HeadGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Head","swatches":["glow"],"offset":[-0.272,5.976,-1.144],"size":[1.628,1.725,1.732]},{"name":"LeftUpperArm","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftUpperArm","swatches":["olive"],"offset":[-1.942,4.606,0.058],"size":[1.706,2.238,1.591]},{"name":"LeftLowerArm","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLowerArm","swatches":["basalt"],"offset":[-2.205,2.893,-0.315],"size":[1.074,1.947,1.481]},{"name":"LeftArmGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftLowerArm","swatches":["glow"],"offset":[-2.684,3.332,-0.002],"size":[0.858,0.684,1.074]},{"name":"RightUpperArm","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightUpperArm","swatches":["olive"],"offset":[2.008,4.606,0.058],"size":[1.706,2.238,1.591]},{"name":"RightLowerArm","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLowerArm","swatches":["basalt"],"offset":[2.271,2.063,-1.467],"size":[1.074,3.607,3.785]},{"name":"RightArmGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightLowerArm","swatches":["glow"],"offset":[2.681,2.111,-0.864],"size":[0.996,3.125,2.797]},{"name":"LeftUpperLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftUpperLeg","swatches":["olive"],"offset":[-0.867,2.1,0.62],"size":[1.05,1.45,1.15]},{"name":"LeftLowerLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLowerLeg","swatches":["brass"],"offset":[-0.947,0.824,0.255],"size":[1.16,1.648,1.83]},{"name":"RightUpperLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightUpperLeg","swatches":["olive"],"offset":[0.933,2.1,0.62],"size":[1.05,1.45,1.15]},{"name":"RightLowerLeg","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLowerLeg","swatches":["brass"],"offset":[1.013,0.824,0.255],"size":[1.16,1.648,1.83]},{"name":"PelvisGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Pelvis","swatches":["glow"],"offset":[-1.167,2.34,-0.08],"size":[0.26,0.4,0.26]}],"sockets":{"Strike":{"p":[2.463,0.2,-2.06],"yaw":0.0}},"rig":{"bones":[{"name":"Pelvis","parent":null,"jointName":"PelvisJoint","joint":[0.033,2.9,0.64]},{"name":"Torso","parent":"Pelvis","jointName":"TorsoJoint","joint":[0.033,3.45,0.59]},{"name":"Head","parent":"Torso","jointName":"HeadJoint","joint":[0.033,5.35,-0.61]},{"name":"LeftUpperArm","parent":"Torso","jointName":"LeftUpperArmJoint","joint":[-1.717,5.2,0.14]},{"name":"LeftLowerArm","parent":"LeftUpperArm","jointName":"LeftLowerArmJoint","joint":[-2.117,3.75,-0.06]},{"name":"RightUpperArm","parent":"Torso","jointName":"RightUpperArmJoint","joint":[1.783,5.2,0.14]},{"name":"RightLowerArm","parent":"RightUpperArm","jointName":"RightLowerArmJoint","joint":[2.183,3.75,-0.06]},{"name":"LeftUpperLeg","parent":"Pelvis","jointName":"LeftUpperLegJoint","joint":[-0.817,2.75,0.69]},{"name":"LeftLowerLeg","parent":"LeftUpperLeg","jointName":"LeftLowerLegJoint","joint":[-0.917,1.45,0.54]},{"name":"RightUpperLeg","parent":"Pelvis","jointName":"RightUpperLegJoint","joint":[0.883,2.75,0.69]},{"name":"RightLowerLeg","parent":"RightUpperLeg","jointName":"RightLowerLegJoint","joint":[0.983,1.45,0.54]}],"root":"HumanoidRootPart","rigType":"Custom","hrpSize":[3.0,2.0,2.0],"hrpCenter":[0.033,3.6,0.64],"hipHeight":2.6},"fbx_sha1":"83362dc9ffc73fff","attrs":{"Role":"Brute","Band":"Mines","HitTime":0.7}}]==]), { assetId = "83503998043819", swatchHex = hexes, clips = {Walk = "rbxassetid://90905812087558", Attack = "rbxassetid://99038102545112"} }) table.insert(report, "Monster_HollowMiner: " .. tostring(r)) end end
+do local m = pipe:FindFirstChild("Boss_BroodMother") if not m then table.insert(report, "Boss_BroodMother: not in Pipeline") else local ok, r = pcall(AssetSetup.rig, m, HttpService:JSONDecode([==[{"asset":"Boss_BroodMother","category":"Bosses","size":[20.995,11.358,23.344],"tris":9924,"parts":[{"name":"Thorax","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Thorax","swatches":["basalt"],"offset":[0.0,5.545,-2.922],"size":[7.165,3.64,6.96]},{"name":"ThoraxGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Thorax","swatches":["glow"],"offset":[0.0,7.402,-1.853],"size":[3.455,2.853,4.315]},{"name":"Head","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Head","swatches":["basalt"],"offset":[0.0,5.213,-6.3],"size":[5.045,3.464,4.104]},{"name":"HeadGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Head","swatches":["glow"],"offset":[0.0,6.807,-7.169],"size":[4.702,5.916,2.607]},{"name":"LeftFang","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftFang","swatches":["cream"],"offset":[-0.73,3.28,-7.305],"size":[1.154,3.809,1.546]},{"name":"LeftFangGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftFang","swatches":["glow"],"offset":[-0.156,1.228,-7.293],"size":[0.14,0.4,0.14]},{"name":"LeftPalp","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftPalp","swatches":["basalt"],"offset":[-1.905,3.246,-7.617],"size":[1.298,2.567,2.613]},{"name":"RightFang","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightFang","swatches":["cream"],"offset":[0.73,3.28,-7.305],"size":[1.154,3.809,1.546]},{"name":"RightFangGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightFang","swatches":["glow"],"offset":[0.156,1.228,-7.293],"size":[0.14,0.4,0.14]},{"name":"RightPalp","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightPalp","swatches":["basalt"],"offset":[1.905,3.246,-7.617],"size":[1.298,2.567,2.613]},{"name":"Abdomen","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"Abdomen","swatches":["murk"],"offset":[0.0,6.184,5.728],"size":[9.13,9.339,11.566]},{"name":"AbdomenGlow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"Abdomen","swatches":["glow"],"offset":[0.0,6.354,7.071],"size":[8.563,7.759,9.203]},{"name":"Belly","material":"Neon","transparency":0.0,"collision":"query","castShadow":false,"role":"WeakPoint","bone":"Abdomen","swatches":["glow"],"offset":[0.002,3.491,5.312],"size":[6.23,3.524,8.483]},{"name":"LeftLeg1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg1","swatches":["basalt"],"offset":[-3.977,7.232,-6.052],"size":[4.485,5.43,5.3]},{"name":"LeftLeg1Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftLeg1","swatches":["glow"],"offset":[-5.773,9.939,-8.068],"size":[0.672,1.078,0.416]},{"name":"LeftFoot1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftFoot1","swatches":["cream"],"offset":[-6.989,4.675,-9.684],"size":[3.608,9.336,3.976]},{"name":"RightLeg1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg1","swatches":["basalt"],"offset":[3.977,7.232,-6.052],"size":[4.485,5.43,5.3]},{"name":"RightLeg1Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightLeg1","swatches":["glow"],"offset":[5.773,9.939,-8.068],"size":[0.672,1.078,0.416]},{"name":"RightFoot1","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightFoot1","swatches":["cream"],"offset":[6.989,4.675,-9.684],"size":[3.608,9.336,3.976]},{"name":"LeftLeg2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg2","swatches":["basalt"],"offset":[-4.458,7.587,-3.66],"size":[5.524,6.019,3.084]},{"name":"LeftLeg2Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftLeg2","swatches":["glow"],"offset":[-6.773,10.739,-4.568],"size":[0.672,1.078,0.416]},{"name":"LeftFoot2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftFoot2","swatches":["cream"],"offset":[-8.345,5.061,-5.154],"size":[4.305,10.12,2.028]},{"name":"RightLeg2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg2","swatches":["basalt"],"offset":[4.458,7.587,-3.66],"size":[5.524,6.019,3.084]},{"name":"RightLeg2Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightLeg2","swatches":["glow"],"offset":[6.773,10.739,-4.568],"size":[0.672,1.078,0.416]},{"name":"RightFoot2","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightFoot2","swatches":["cream"],"offset":[8.345,5.061,-5.154],"size":[4.305,10.12,2.028]},{"name":"LeftLeg3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg3","swatches":["basalt"],"offset":[-4.469,7.595,-1.123],"size":[5.501,6.008,2.321]},{"name":"LeftLeg3Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftLeg3","swatches":["glow"],"offset":[-6.773,10.739,-0.568],"size":[0.672,1.078,0.416]},{"name":"LeftFoot3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftFoot3","swatches":["cream"],"offset":[-8.349,5.059,-0.261],"size":[4.289,10.117,1.546]},{"name":"RightLeg3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg3","swatches":["basalt"],"offset":[4.469,7.595,-1.123],"size":[5.501,6.008,2.321]},{"name":"RightLeg3Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightLeg3","swatches":["glow"],"offset":[6.773,10.739,-0.568],"size":[0.672,1.078,0.416]},{"name":"RightFoot3","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightFoot3","swatches":["cream"],"offset":[8.349,5.059,-0.261],"size":[4.289,10.117,1.546]},{"name":"LeftLeg4","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftLeg4","swatches":["basalt"],"offset":[-4.06,7.251,1.035],"size":[4.72,5.404,4.207]},{"name":"LeftLeg4Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"LeftLeg4","swatches":["glow"],"offset":[-5.973,9.939,2.532],"size":[0.672,1.078,0.416]},{"name":"LeftFoot4","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"LeftFoot4","swatches":["cream"],"offset":[-7.39,4.667,3.601],"size":[4.016,9.327,2.991]},{"name":"RightLeg4","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightLeg4","swatches":["basalt"],"offset":[4.06,7.251,1.035],"size":[4.72,5.404,4.207]},{"name":"RightLeg4Glow","material":"Neon","transparency":0.0,"collision":"none","castShadow":false,"bone":"RightLeg4","swatches":["glow"],"offset":[5.973,9.939,2.532],"size":[0.672,1.078,0.416]},{"name":"RightFoot4","material":"SmoothPlastic","transparency":0.0,"collision":"query","castShadow":true,"bone":"RightFoot4","swatches":["cream"],"offset":[7.39,4.667,3.601],"size":[4.016,9.327,2.991]}],"sockets":{"Maw":{"p":[0.0,4.345,-7.682],"yaw":0.0},"Ovipositor":{"p":[0.0,2.545,11.318],"yaw":0.0},"Slam":{"p":[0.0,-0.055,-10.582],"yaw":0.0}},"rig":{"bones":[{"name":"Thorax","parent":null,"jointName":"ThoraxJoint","joint":[0.0,4.945,-2.482]},{"name":"Head","parent":"Thorax","jointName":"HeadJoint","joint":[0.0,4.945,-5.082]},{"name":"LeftFang","parent":"Head","jointName":"LeftFangJoint","joint":[-0.85,4.445,-6.982]},{"name":"RightFang","parent":"Head","jointName":"RightFangJoint","joint":[0.85,4.445,-6.982]},{"name":"LeftPalp","parent":"Head","jointName":"LeftPalpJoint","joint":[-1.55,4.245,-6.482]},{"name":"RightPalp","parent":"Head","jointName":"RightPalpJoint","joint":[1.55,4.245,-6.482]},{"name":"Abdomen","parent":"Thorax","jointName":"AbdomenJoint","joint":[0.0,5.245,0.318]},{"name":"LeftLeg1","parent":"Thorax","jointName":"LeftLeg1Joint","joint":[-2.3,4.945,-3.982]},{"name":"LeftFoot1","parent":"LeftLeg1","jointName":"LeftFoot1Joint","joint":[-5.6,9.145,-8.082]},{"name":"RightLeg1","parent":"Thorax","jointName":"RightLeg1Joint","joint":[2.3,4.945,-3.982]},{"name":"RightFoot1","parent":"RightLeg1","jointName":"RightFoot1Joint","joint":[5.6,9.145,-8.082]},{"name":"LeftLeg2","parent":"Thorax","jointName":"LeftLeg2Joint","joint":[-2.3,4.945,-2.782]},{"name":"LeftFoot2","parent":"LeftLeg2","jointName":"LeftFoot2Joint","joint":[-6.6,9.945,-4.582]},{"name":"RightLeg2","parent":"Thorax","jointName":"RightLeg2Joint","joint":[2.3,4.945,-2.782]},{"name":"RightFoot2","parent":"RightLeg2","jointName":"RightFoot2Joint","joint":[6.6,9.945,-4.582]},{"name":"LeftLeg3","parent":"Thorax","jointName":"LeftLeg3Joint","joint":[-2.3,4.945,-1.582]},{"name":"LeftFoot3","parent":"LeftLeg3","jointName":"LeftFoot3Joint","joint":[-6.6,9.945,-0.582]},{"name":"RightLeg3","parent":"Thorax","jointName":"RightLeg3Joint","joint":[2.3,4.945,-1.582]},{"name":"RightFoot3","parent":"RightLeg3","jointName":"RightFoot3Joint","joint":[6.6,9.945,-0.582]},{"name":"LeftLeg4","parent":"Thorax","jointName":"LeftLeg4Joint","joint":[-2.3,4.945,-0.482]},{"name":"LeftFoot4","parent":"LeftLeg4","jointName":"LeftFoot4Joint","joint":[-5.8,9.145,2.518]},{"name":"RightLeg4","parent":"Thorax","jointName":"RightLeg4Joint","joint":[2.3,4.945,-0.482]},{"name":"RightFoot4","parent":"RightLeg4","jointName":"RightFoot4Joint","joint":[5.8,9.145,2.518]}],"root":"HumanoidRootPart","rigType":"Custom","hrpSize":[5.0,4.0,7.0],"hrpCenter":[0.0,4.945,-2.482],"hipHeight":3.0},"fbx_sha1":"da0d0728d89b357e","attrs":{"Role":"Boss","Band":"Mines","Era":1,"HitTime":0.8,"LayTime":1.4}}]==]), { assetId = "132844909378352", swatchHex = hexes, clips = {Idle = "rbxassetid://116082078619476", Walk = "rbxassetid://105510410741576", Attack = "rbxassetid://87449889032585", Roar = "rbxassetid://104063099850529", LayEggs = "rbxassetid://125795678354746", Stagger = "rbxassetid://121846906504911", Death = "rbxassetid://115302160037147"} }) table.insert(report, "Boss_BroodMother: " .. tostring(r)) end end
+do local m = pipe:FindFirstChild("Boss_BroodMother_EggSac") if not m then table.insert(report, "Boss_BroodMother_EggSac: not in Pipeline") else local ok, r = pcall(AssetSetup.run, m, HttpService:JSONDecode([==[{"asset":"Boss_BroodMother_EggSac","category":"Bosses","size":[4.47,2.721,4.086],"tris":1302,"parts":[{"name":"Mound","material":"SmoothPlastic","transparency":0.0,"collision":"box","castShadow":true,"swatches":["plum"],"offset":[0.051,0.542,0.165],"size":[3.752,1.083,3.162]},{"name":"Eggs","material":"Neon","transparency":0.3,"collision":"query","castShadow":false,"swatches":["glow"],"offset":[-0.047,1.6,-0.038],"size":[2.934,2.242,2.339]},{"name":"Unborn","material":"SmoothPlastic","transparency":0.0,"collision":"none","castShadow":true,"swatches":["basalt"],"offset":[0.0,1.504,0.0],"size":[4.47,2.248,4.086]}],"sockets":{"Hatch":{"p":[0.0,0.874,0.0],"yaw":0.0}},"fbx_sha1":"ff1f2723824441d5","attrs":{"Role":"EggSac","Hatches":"BurrowTick"}}]==]), { assetId = "98283751054755", swatchHex = hexes }) table.insert(report, "Boss_BroodMother_EggSac: " .. tostring(r)) end end
+return table.concat(report, "\n")
+
+end
+]]></ProtectedString>
+    </Properties>
+  </Item>
+</roblox>

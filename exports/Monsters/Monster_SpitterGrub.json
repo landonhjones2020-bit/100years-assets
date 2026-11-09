@@ -3,11 +3,11 @@
  "category": "Monsters",
  "format": 1,
  "size": [
-  2.4,
-  2.663,
-  5.618
+  2.731,
+  2.458,
+  6.322
  ],
- "tris": 1524,
+ "tris": 3474,
  "pivot": [
   0.0,
   0.0,
@@ -15,55 +15,30 @@
  ],
  "parts": [
   {
-   "name": "Body",
+   "name": "Head",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "query",
    "castShadow": true,
    "role": null,
-   "bone": "Body",
+   "bone": "Head",
    "tint": null,
    "swatches": [
-    "avocado",
-    "rubber",
-    "stone"
+    "basalt",
+    "plum",
+    "sandstone"
    ],
    "offset": [
     0.0,
-    1.22,
-    0.481
+    1.33,
+    -2.128
    ],
    "size": [
-    2.4,
-    2.4,
-    2.185
+    1.606,
+    1.245,
+    0.982
    ],
-   "tris": 404
-  },
-  {
-   "name": "Tail",
-   "material": "SmoothPlastic",
-   "transparency": 0.0,
-   "collision": "query",
-   "castShadow": true,
-   "role": null,
-   "bone": "Tail",
-   "tint": null,
-   "swatches": [
-    "avocado",
-    "stone"
-   ],
-   "offset": [
-    0.0,
-    1.02,
-    1.831
-   ],
-   "size": [
-    2.04,
-    2.04,
-    1.955
-   ],
-   "tris": 248
+   "tris": 580
   },
   {
    "name": "Front",
@@ -75,46 +50,73 @@
    "bone": "Front",
    "tint": null,
    "swatches": [
-    "avocado",
-    "rubber",
-    "stone"
+    "basalt",
+    "plum",
+    "sandstone"
    ],
    "offset": [
     0.0,
-    1.216,
-    -0.869
+    1.03,
+    -1.131
    ],
    "size": [
-    1.95,
-    2.149,
-    1.8
+    2.385,
+    2.061,
+    2.003
    ],
-   "tris": 404
+   "tris": 644
   },
   {
-   "name": "Head",
+   "name": "Body",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "query",
    "castShadow": true,
    "role": null,
-   "bone": "Head",
+   "bone": "Body",
    "tint": null,
    "swatches": [
-    "gunmetal",
-    "olive"
+    "basalt",
+    "plum",
+    "sandstone"
    ],
    "offset": [
     0.0,
-    1.47,
-    -2.017
+    1.054,
+    0.197
    ],
    "size": [
-    1.44,
-    1.296,
-    1.464
+    2.677,
+    2.109,
+    2.304
    ],
-   "tris": 260
+   "tris": 704
+  },
+  {
+   "name": "Tail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum",
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    0.846,
+    1.908
+   ],
+   "size": [
+    2.093,
+    1.693,
+    2.45
+   ],
+   "tris": 606
   },
   {
    "name": "FrontGlow",
@@ -130,15 +132,39 @@
    ],
    "offset": [
     0.0,
-    2.17,
-    -0.569
+    1.976,
+    -1.067
    ],
    "size": [
-    1.103,
-    0.986,
-    1.276
+    1.179,
+    0.751,
+    1.169
    ],
-   "tris": 100
+   "tris": 152
+  },
+  {
+   "name": "BodyGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    1.982,
+    0.15
+   ],
+   "size": [
+    1.672,
+    0.953,
+    1.61
+   ],
+   "tris": 232
   },
   {
    "name": "HeadGlow",
@@ -154,15 +180,115 @@
    ],
    "offset": [
     0.0,
-    1.6,
-    -2.554
+    1.456,
+    -2.356
    ],
    "size": [
-    0.813,
-    0.78,
-    0.51
+    0.804,
+    0.935,
+    0.34
    ],
-   "tris": 108
+   "tris": 252
+  },
+  {
+   "name": "MouthTop",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "MouthTop",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "plum"
+   ],
+   "offset": [
+    0.0,
+    1.523,
+    -2.819
+   ],
+   "size": [
+    0.571,
+    0.31,
+    0.685
+   ],
+   "tris": 76
+  },
+  {
+   "name": "MouthLeft",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "MouthLeft",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "plum"
+   ],
+   "offset": [
+    -0.235,
+    1.289,
+    -2.819
+   ],
+   "size": [
+    0.31,
+    0.571,
+    0.685
+   ],
+   "tris": 76
+  },
+  {
+   "name": "MouthBottom",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "MouthBottom",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "plum"
+   ],
+   "offset": [
+    0.0,
+    1.054,
+    -2.819
+   ],
+   "size": [
+    0.571,
+    0.31,
+    0.685
+   ],
+   "tris": 76
+  },
+  {
+   "name": "MouthRight",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "MouthRight",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "plum"
+   ],
+   "offset": [
+    0.235,
+    1.289,
+    -2.819
+   ],
+   "size": [
+    0.31,
+    0.571,
+    0.685
+   ],
+   "tris": 76
   }
  ],
  "meta": {
@@ -180,8 +306,8 @@
   "Mouth": {
    "p": [
     0.0,
-    1.47,
-    -2.819
+    1.289,
+    -2.939
    ],
    "yaw": 0.0
   }
@@ -194,8 +320,8 @@
     "jointName": "BodyJoint",
     "joint": [
      0.0,
-     1.17,
-     0.431
+     0.989,
+     0.311
     ]
    },
    {
@@ -204,8 +330,8 @@
     "jointName": "TailJoint",
     "joint": [
      0.0,
-     1.07,
-     1.431
+     0.889,
+     1.311
     ]
    },
    {
@@ -214,8 +340,8 @@
     "jointName": "FrontJoint",
     "joint": [
      0.0,
-     1.22,
-     -0.719
+     1.039,
+     -0.839
     ]
    },
    {
@@ -224,8 +350,48 @@
     "jointName": "HeadJoint",
     "joint": [
      0.0,
-     1.42,
-     -1.719
+     1.239,
+     -1.839
+    ]
+   },
+   {
+    "name": "MouthTop",
+    "parent": "Head",
+    "jointName": "MouthTopJoint",
+    "joint": [
+     0.0,
+     1.649,
+     -2.559
+    ]
+   },
+   {
+    "name": "MouthLeft",
+    "parent": "Head",
+    "jointName": "MouthLeftJoint",
+    "joint": [
+     -0.36,
+     1.289,
+     -2.559
+    ]
+   },
+   {
+    "name": "MouthBottom",
+    "parent": "Head",
+    "jointName": "MouthBottomJoint",
+    "joint": [
+     0.0,
+     0.929,
+     -2.559
+    ]
+   },
+   {
+    "name": "MouthRight",
+    "parent": "Head",
+    "jointName": "MouthRightJoint",
+    "joint": [
+     0.36,
+     1.289,
+     -2.559
     ]
    }
   ],
@@ -238,10 +404,10 @@
   ],
   "hrpCenter": [
    0.0,
-   1.22,
-   -0.019
+   1.039,
+   -0.139
   ],
   "hipHeight": 0.35
  },
- "fbx_sha1": "ffb8308532802011"
+ "fbx_sha1": "e9258e0d0113ae18"
 }

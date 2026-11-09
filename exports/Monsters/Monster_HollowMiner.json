@@ -3,11 +3,11 @@
  "category": "Monsters",
  "format": 1,
  "size": [
-  5.762,
-  6.799,
-  5.886
+  6.357,
+  6.879,
+  6.719
  ],
- "tris": 2142,
+ "tris": 3734,
  "pivot": [
   0.0,
   0.0,
@@ -26,19 +26,21 @@
    "swatches": [
     "gunmetal",
     "leather",
-    "olive"
+    "olive",
+    "pine",
+    "steel"
    ],
    "offset": [
-    0.106,
-    2.858,
-    1.027
+    0.028,
+    2.715,
+    0.6
    ],
    "size": [
-    2.42,
-    0.965,
-    1.68
+    2.79,
+    1.25,
+    1.76
    ],
-   "tris": 132
+   "tris": 432
   },
   {
    "name": "Torso",
@@ -50,21 +52,22 @@
    "bone": "Torso",
    "tint": null,
    "swatches": [
+    "cream",
     "leather",
     "olive",
     "stone"
    ],
    "offset": [
-    0.012,
+    -0.061,
     4.623,
-    0.844
+    0.418
    ],
    "size": [
     3.491,
     2.646,
-    2.842
+    2.861
    ],
-   "tris": 322
+   "tris": 518
   },
   {
    "name": "TorsoGlow",
@@ -79,16 +82,16 @@
     "glow"
    ],
    "offset": [
-    0.309,
-    5.179,
-    1.031
+    0.236,
+    5.111,
+    1.059
    ],
    "size": [
     3.143,
-    2.967,
-    3.451
+    3.103,
+    4.339
    ],
-   "tris": 104
+   "tris": 240
   },
   {
    "name": "Head",
@@ -102,19 +105,20 @@
    "swatches": [
     "basalt",
     "hazard",
+    "rubber",
     "steel"
    ],
    "offset": [
-    0.106,
-    5.996,
-    -0.523
+    0.033,
+    5.989,
+    -0.962
    ],
    "size": [
     1.95,
-    1.601,
-    2.06
+    1.587,
+    2.105
    ],
-   "tris": 252
+   "tris": 340
   },
   {
    "name": "HeadGlow",
@@ -129,16 +133,16 @@
     "glow"
    ],
    "offset": [
-    0.106,
-    5.893,
-    -1.291
+    -0.272,
+    5.976,
+    -1.144
    ],
    "size": [
-    1.019,
-    1.234,
-    0.604
+    1.628,
+    1.725,
+    1.732
    ],
-   "tris": 180
+   "tris": 300
   },
   {
    "name": "LeftUpperArm",
@@ -150,19 +154,20 @@
    "bone": "LeftUpperArm",
    "tint": null,
    "swatches": [
-    "olive"
+    "olive",
+    "teal"
    ],
    "offset": [
-    -1.837,
-    4.717,
-    0.516
+    -1.942,
+    4.606,
+    0.058
    ],
    "size": [
-    1.643,
-    2.016,
-    1.509
+    1.706,
+    2.238,
+    1.591
    ],
-   "tris": 152
+   "tris": 228
   },
   {
    "name": "LeftLowerArm",
@@ -174,19 +179,20 @@
    "bone": "LeftLowerArm",
    "tint": null,
    "swatches": [
+    "basalt",
     "stone"
    ],
    "offset": [
-    -2.132,
+    -2.205,
     2.893,
-    0.144
+    -0.315
    ],
    "size": [
     1.074,
     1.947,
-    1.334
+    1.481
    ],
-   "tris": 124
+   "tris": 250
   },
   {
    "name": "LeftArmGlow",
@@ -201,16 +207,16 @@
     "glow"
    ],
    "offset": [
-    -2.314,
-    3.3,
-    -0.063
+    -2.684,
+    3.332,
+    -0.002
    ],
    "size": [
-    0.265,
-    0.504,
-    0.12
+    0.858,
+    0.684,
+    1.074
    ],
-   "tris": 12
+   "tris": 52
   },
   {
    "name": "RightUpperArm",
@@ -225,16 +231,16 @@
     "olive"
    ],
    "offset": [
-    2.049,
-    4.717,
-    0.516
+    2.008,
+    4.606,
+    0.058
    ],
    "size": [
-    1.643,
-    2.016,
-    1.509
+    1.706,
+    2.238,
+    1.591
    ],
-   "tris": 152
+   "tris": 184
   },
   {
    "name": "RightLowerArm",
@@ -246,22 +252,24 @@
    "bone": "RightLowerArm",
    "tint": null,
    "swatches": [
+    "basalt",
     "gunmetal",
+    "leather",
     "pine",
     "steel",
     "stone"
    ],
    "offset": [
-    2.344,
+    2.271,
     2.063,
-    -1.066
+    -1.467
    ],
    "size": [
     1.074,
     3.607,
-    3.754
+    3.785
    ],
-   "tris": 260
+   "tris": 470
   },
   {
    "name": "RightArmGlow",
@@ -276,16 +284,16 @@
     "glow"
    ],
    "offset": [
-    2.526,
-    3.3,
-    -0.063
+    2.681,
+    2.111,
+    -0.864
    ],
    "size": [
-    0.265,
-    0.504,
-    0.12
+    0.996,
+    3.125,
+    2.797
    ],
-   "tris": 12
+   "tris": 84
   },
   {
    "name": "LeftUpperLeg",
@@ -300,9 +308,9 @@
     "olive"
    ],
    "offset": [
-    -0.794,
+    -0.867,
     2.1,
-    1.037
+    0.62
    ],
    "size": [
     1.05,
@@ -321,22 +329,23 @@
    "bone": "LeftLowerLeg",
    "tint": null,
    "swatches": [
+    "brass",
     "leather",
     "olive",
     "rubber",
     "steel"
    ],
    "offset": [
-    -0.874,
-    0.763,
-    0.672
+    -0.947,
+    0.824,
+    0.255
    ],
    "size": [
     1.16,
-    1.525,
+    1.648,
     1.83
    ],
-   "tris": 176
+   "tris": 260
   },
   {
    "name": "RightUpperLeg",
@@ -351,9 +360,9 @@
     "olive"
    ],
    "offset": [
-    1.006,
+    0.933,
     2.1,
-    1.037
+    0.62
    ],
    "size": [
     1.05,
@@ -372,22 +381,47 @@
    "bone": "RightLowerLeg",
    "tint": null,
    "swatches": [
+    "brass",
     "leather",
     "olive",
     "rubber",
     "steel"
    ],
    "offset": [
-    1.086,
-    0.763,
-    0.672
+    1.013,
+    0.824,
+    0.255
    ],
    "size": [
     1.16,
-    1.525,
+    1.648,
     1.83
    ],
-   "tris": 176
+   "tris": 260
+  },
+  {
+   "name": "PelvisGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Pelvis",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -1.167,
+    2.34,
+    -0.08
+   ],
+   "size": [
+    0.26,
+    0.4,
+    0.26
+   ],
+   "tris": 28
   }
  ],
  "meta": {
@@ -404,9 +438,9 @@
  "sockets": {
   "Strike": {
    "p": [
-    2.536,
+    2.463,
     0.2,
-    -1.643
+    -2.06
    ],
    "yaw": 0.0
   }
@@ -418,9 +452,9 @@
     "parent": null,
     "jointName": "PelvisJoint",
     "joint": [
-     0.106,
+     0.033,
      2.9,
-     1.057
+     0.64
     ]
    },
    {
@@ -428,9 +462,9 @@
     "parent": "Pelvis",
     "jointName": "TorsoJoint",
     "joint": [
-     0.106,
+     0.033,
      3.45,
-     1.007
+     0.59
     ]
    },
    {
@@ -438,9 +472,9 @@
     "parent": "Torso",
     "jointName": "HeadJoint",
     "joint": [
-     0.106,
+     0.033,
      5.35,
-     -0.193
+     -0.61
     ]
    },
    {
@@ -448,9 +482,9 @@
     "parent": "Torso",
     "jointName": "LeftUpperArmJoint",
     "joint": [
-     -1.644,
+     -1.717,
      5.2,
-     0.557
+     0.14
     ]
    },
    {
@@ -458,9 +492,9 @@
     "parent": "LeftUpperArm",
     "jointName": "LeftLowerArmJoint",
     "joint": [
-     -2.044,
+     -2.117,
      3.75,
-     0.357
+     -0.06
     ]
    },
    {
@@ -468,9 +502,9 @@
     "parent": "Torso",
     "jointName": "RightUpperArmJoint",
     "joint": [
-     1.856,
+     1.783,
      5.2,
-     0.557
+     0.14
     ]
    },
    {
@@ -478,9 +512,9 @@
     "parent": "RightUpperArm",
     "jointName": "RightLowerArmJoint",
     "joint": [
-     2.256,
+     2.183,
      3.75,
-     0.357
+     -0.06
     ]
    },
    {
@@ -488,9 +522,9 @@
     "parent": "Pelvis",
     "jointName": "LeftUpperLegJoint",
     "joint": [
-     -0.744,
+     -0.817,
      2.75,
-     1.107
+     0.69
     ]
    },
    {
@@ -498,9 +532,9 @@
     "parent": "LeftUpperLeg",
     "jointName": "LeftLowerLegJoint",
     "joint": [
-     -0.844,
+     -0.917,
      1.45,
-     0.957
+     0.54
     ]
    },
    {
@@ -508,9 +542,9 @@
     "parent": "Pelvis",
     "jointName": "RightUpperLegJoint",
     "joint": [
-     0.956,
+     0.883,
      2.75,
-     1.107
+     0.69
     ]
    },
    {
@@ -518,9 +552,9 @@
     "parent": "RightUpperLeg",
     "jointName": "RightLowerLegJoint",
     "joint": [
-     1.056,
+     0.983,
      1.45,
-     0.957
+     0.54
     ]
    }
   ],
@@ -532,11 +566,11 @@
    2.0
   ],
   "hrpCenter": [
-   0.106,
+   0.033,
    3.6,
-   1.057
+   0.64
   ],
   "hipHeight": 2.6
  },
- "fbx_sha1": "78f20b35ab7b819e"
+ "fbx_sha1": "83362dc9ffc73fff"
 }
