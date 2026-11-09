@@ -823,6 +823,38 @@ local function refreshHotbar()
 	end
 end
 
+-- Aiming: the upper body follows the camera's pitch ------------------------------------------------
+-- The aim clip holds the gun straight and level (Landon, Nov 8: the aim looked crooked); while
+-- aiming, the waist tips with the camera so the barrel points at the reticle up and down too.
+-- Local only: other players see the clip's level aim.
+
+local waistMotor: Motor6D? = nil
+local waistBase: CFrame? = nil
+local waistPitch = 0
+local function aimPitch(dt: number)
+	local character = player.Character
+	local upper = character and character:FindFirstChild("UpperTorso")
+	local motor = upper and upper:FindFirstChild("Waist")
+	if motor ~= waistMotor then
+		waistMotor = if motor and motor:IsA("Motor6D") then motor else nil
+		waistBase = if waistMotor then waistMotor.C0 else nil
+		waistPitch = 0
+	end
+	if not waistMotor or not waistBase then
+		return
+	end
+	local want = 0
+	if camera:IsAiming() and alive() then
+		local ray = camera:AimRay()
+		if ray then
+			local y = math.clamp(ray.Direction.Unit.Y, -1, 1)
+			want = math.clamp(math.asin(y), math.rad(-50), math.rad(50))
+		end
+	end
+	waistPitch += (want - waistPitch) * math.min(1, dt * 12)
+	waistMotor.C0 = waistBase * CFrame.Angles(waistPitch, 0, 0)
+end
+
 -- Medkits -----------------------------------------------------------------------------------------
 
 local function healEndsAt(): number?
@@ -1024,6 +1056,7 @@ function CombatController:Start()
 		assist(dt)
 		updateHold()
 		updateHeal()
+		aimPitch(dt)
 		-- sprint
 		local h = humanoidRef
 		local moving = h ~= nil and h.MoveDirection.Magnitude > 0.1

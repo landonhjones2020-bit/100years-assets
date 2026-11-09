@@ -53,27 +53,75 @@ def action(arm, name, frames, loop, priority):
 HOLD = {"RightUpperArm": (-25, 10, -8), "RightLowerArm": (-65, 0, 0), "RightHand": (0, 0, 0)}
 AIM = {"RightUpperArm": (-88, 22, 0), "RightLowerArm": (-6, 0, 0), "RightHand": (0, 0, 0),
        "LeftUpperArm": (-76, -40, 0), "LeftLowerArm": (-28, 0, 0), "UpperTorso": (2, 6, 0), "Head": (0, -6, 0)}
+
+
+def finger_direction(arm, pose: dict):
+    """Where the right hand's fingers point (the held gun's barrel: RightGripAttachment's -Z runs
+    along the fingers) in a pose: (yaw, pitch) in degrees, yaw + toward the character's left,
+    0 = straight ahead (the rig faces -Y)."""
+    import math
+    from mathutils import Euler, Vector
+    for pb in arm.pose.bones:
+        pb.rotation_quaternion = (1, 0, 0, 0)
+        pb.location = (0, 0, 0)
+    for bone, value in pose.items():
+        rot, loc = (value[0], value[1]) if isinstance(value[0], (tuple, list)) else (value, None)
+        pb = arm.pose.bones[bone]
+        pb.rotation_quaternion = Euler(tuple(math.radians(a) for a in rot), "XYZ").to_quaternion()
+        if loc is not None:
+            pb.location = Vector(loc)
+    bpy.context.view_layer.update()
+    m = arm.matrix_world.to_3x3() @ arm.pose.bones["RightHand"].matrix.to_3x3()
+    d = -(m @ Vector((0, 1, 0)))
+    d.normalize()
+    return math.degrees(math.atan2(d.x, -d.y)), math.degrees(math.asin(max(-1.0, min(1.0, d.z))))
+
+
+def straighten(arm, pose: dict) -> dict:
+    """The pose with the right wrist turned so the gun points straight ahead and level (Landon,
+    Nov 8: the aim was crooked: the barrel pointed 27 degrees left of the crosshair). The wrist's
+    Z turns the gun left and right (its Z axis is vertical when the forearm is raised) and X
+    tips it up and down."""
+    out = dict(pose)
+    rx, ry, rz = out.get("RightHand", (0, 0, 0))
+    for _ in range(6):
+        out["RightHand"] = (rx, ry, rz)
+        yaw, pitch = finger_direction(arm, out)
+        if abs(yaw) < 0.2 and abs(pitch) < 0.2:
+            break
+        rz -= yaw
+        rx += pitch
+    out["RightHand"] = (round(rx, 2), ry, round(rz, 2))
+    yaw, pitch = finger_direction(arm, out)
+    print(f"[R15_PlayerCombat] straightened RightHand {out['RightHand']}: barrel yaw {yaw:.2f}, pitch {pitch:.2f}")
+    for pb in arm.pose.bones:
+        pb.rotation_quaternion = (1, 0, 0, 0)
+        pb.location = (0, 0, 0)
+    return out
 RAISED = {"RightUpperArm": (-168, 14, -4), "RightLowerArm": (-38, 0, 0),
           "LeftUpperArm": (-162, -20, 4), "LeftLowerArm": (-42, 0, 0),
           "UpperTorso": (-14, 0, 0), "LowerTorso": ((0, 0, 0), (0, -0.12, 0))}
 
 
 def gun_hold(arm):
+    hold = straighten(arm, HOLD)
     act = action(arm, "GunHold", 30, True, "Action")
-    keys(arm, 0, HOLD)
-    keys(arm, 15, {"RightUpperArm": (-27, 10, -8), "RightLowerArm": (-64, 0, 0), "RightHand": (-2, 0, 0)})
-    keys(arm, 30, HOLD)
+    keys(arm, 0, hold)
+    rx, ry, rz = hold["RightHand"]
+    keys(arm, 15, {"RightUpperArm": (-27, 10, -8), "RightLowerArm": (-64, 0, 0), "RightHand": (rx - 2, ry, rz)})
+    keys(arm, 30, hold)
     return act
 
 
 def gun_aim(arm):
+    aim = straighten(arm, AIM)
     act = action(arm, "GunAim", 30, True, "Action")
-    keys(arm, 0, AIM)
-    breathe = dict(AIM)
+    keys(arm, 0, aim)
+    breathe = dict(aim)
     breathe["RightUpperArm"] = (-89, 22, 0)
     breathe["LeftUpperArm"] = (-77, -40, 0)
     keys(arm, 15, breathe)
-    keys(arm, 30, AIM)
+    keys(arm, 30, aim)
     return act
 
 

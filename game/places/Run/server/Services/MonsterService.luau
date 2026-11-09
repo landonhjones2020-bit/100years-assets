@@ -22,7 +22,8 @@
 	* Attacks: in Range, a windup (the rig's HitTime attribute, else WindupFraction of
 	  AttackSeconds), then the hit is checked again (Monster Lab's rule) and lands:
 	  - on a player or resident through CombatService:Damage;
-	  - on a machine (a room): its HP falls (SmashesMachines: SmashMultiplier times). A wrecked
+	  - on a machine (a room): its HP falls by RoomDamageMultiplier of the damage (SmashesMachines:
+	    SmashMultiplier times that). A wrecked
 	    room stops (Prompt 9). The Reactor Core at 0 HP is destroyed and the run is lost
 	    (Section 5).
 	* Traits: Latches (Burrow Tick) hangs on a resident and bites until killed or swatted;
@@ -566,7 +567,7 @@ local function hurtRoom(m: Monster, roomId: string, amount: number)
 		return
 	end
 	local smash = if m.Spec.Traits and table.find(m.Spec.Traits, "SmashesMachines") then ai().SmashMultiplier else 1
-	local hp = grid:SetHP(roomId, math.max(room.HP - amount * smash, 0))
+	local hp = grid:SetHP(roomId, math.max(room.HP - amount * smash * ai().RoomDamageMultiplier, 0))
 	if hp and hp <= 0 then
 		log:Info("%s wrecked %s (%s)", m.Id, roomId, room.Type)
 		if room.Type == "ReactorCore" then
@@ -703,9 +704,10 @@ local function step(m: Monster)
 			unlatch(m)
 		else
 			if os.clock() >= m.AttackReadyAt then
-				m.AttackReadyAt = os.clock() + m.Spec.AttackSeconds
+				local t = ai()
+				m.AttackReadyAt = os.clock() + m.Spec.AttackSeconds * t.LatchIntervalMultiplier
 				m.Model:SetAttribute("AttackAt", os.clock())
-				combat:Damage(c.Id, m.Spec.Damage, m.Id, "bitten")
+				combat:Damage(c.Id, m.Spec.Damage * t.LatchDamageMultiplier, m.Id, "bitten")
 			end
 			return
 		end

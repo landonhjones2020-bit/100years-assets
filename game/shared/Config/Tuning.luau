@@ -109,6 +109,7 @@ local Schemas: { [string]: Check.Checker } = {
 	}),
 	MonsterAI = shape({
 		TickSeconds = S, AggroSeconds = S, ProximityAggro = N, SmashMultiplier = N, StuckSeconds = S, KeepDistanceFraction = Fr,
+		RoomDamageMultiplier = N, LatchDamageMultiplier = N, LatchIntervalMultiplier = N,
 		GooSpeed = N, GooSlowSeconds = S, GooSlowMultiplier = Fr, WindupFraction = Fr,
 		ResidentFleeRadius = N, ResidentCalmSeconds = S, ResidentSwatDamage = N, ResidentSwatSeconds = S,
 	}),
@@ -254,7 +255,11 @@ return {
 			DarkRoomWeight = 2, BarricadeWeight = 0.25, MaxBreachPointsPerSurge = 3,
 		},
 		MonsterAI = { -- Prompt 12 (Section 10: residents first, then machines, then players who hit them); prov.
-			TickSeconds = 0.2, AggroSeconds = 10, ProximityAggro = 9, SmashMultiplier = 2, StuckSeconds = 2.5,
+			-- Playtest, Nov 8: one Hollow Miner wrecked a 500-HP room in 12 s at full damage, and three
+			-- latched ticks downed a resident in 5 s; rooms now take half a monster's damage (the Hollow
+			-- Miner 1.25x that) and a latched tick bites at 0.4x, half as often.
+			TickSeconds = 0.2, AggroSeconds = 10, ProximityAggro = 9, SmashMultiplier = 1.25, StuckSeconds = 2.5,
+			RoomDamageMultiplier = 0.5, LatchDamageMultiplier = 0.4, LatchIntervalMultiplier = 2,
 			KeepDistanceFraction = 0.7, GooSpeed = 60, GooSlowSeconds = 3, GooSlowMultiplier = 0.6, WindupFraction = 0.45,
 			-- Section 11: the unarmed flee to the nearest safe room; a lone Burrow Tick they swat themselves
 			ResidentFleeRadius = 22, ResidentCalmSeconds = 6, ResidentSwatDamage = 6, ResidentSwatSeconds = 1,
