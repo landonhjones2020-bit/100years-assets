@@ -169,15 +169,17 @@ function ThreatDirector:SpendSurge(kind: string?): number
 	return total
 end
 
+-- Disturbance's breaches (Prompt 14) are priced like a normal Surge now, so the first run's Era I
+-- is easier for them too: a quarter of one for the extra breach, a whole one for a Tremor.
 function ThreatDirector:ExtraBreach(): boolean
-	local level = ThreatDirector:Level()
-	local groups = Threat.Groups(level * 0.25, Threat.Roster(clock:Era()), rng)
+	local budget = Threat.SurgeBudget(ThreatDirector:Level(), "Normal", firstRunEraI()) * 0.25
+	local groups = Threat.Groups(budget, Threat.Roster(clock:Era()), rng)
 	return spend(groups, "Extra", 1, 0) > 0
 end
 
 function ThreatDirector:Tremor(): number
-	local level = ThreatDirector:Level()
-	local groups = Threat.Groups(level, Threat.Roster(clock:Era()), rng)
+	local budget = Threat.SurgeBudget(ThreatDirector:Level(), "Normal", firstRunEraI())
+	local groups = Threat.Groups(budget, Threat.Roster(clock:Era()), rng)
 	return spend(groups, "Tremor", tuning().MaxBreachPointsPerSurge, 0)
 end
 
