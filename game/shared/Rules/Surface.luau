@@ -4,7 +4,9 @@
 	data tests, the server and the client share it. The numbers are Tuning.Surface (provisional).
 
 	* Zones: Zone(position) is "Surface" above Tuning.Surface.ZoneY (the town is high above the
-	  bunker, Section 23), else "Bunker". The Deep's caves (Prompt 17) sit beside the grid.
+	  bunker, Section 23), "Deep" behind the grid (the caves, Prompt 17: z past Tuning.Deep.GridBack),
+	  else "Bunker". Realm(zone) joins the Bunker and the Deep ("Underground"): they touch through
+	  the cave mouths, so people follow and monsters hunt across them.
 	* Radiation (Section 9: 0 to 100, builds on the surface, faster in a storm; at 100 it drains
 	  health): RadiationRate(zone, storm, gain) per second.
 	* Backpacks (Section 12: 10 slots, Scavenger +8, Big Backpack +5): a pack is a list of stacks
@@ -22,7 +24,7 @@ local Config = require(script.Parent.Parent.Config)
 
 local Surface = {}
 
-export type Zone = "Surface" | "Bunker"
+export type Zone = "Surface" | "Bunker" | "Deep"
 export type Stack = { Id: string, Count: number }
 export type Pack = { Stack }
 
@@ -33,7 +35,19 @@ end
 -- Zones -------------------------------------------------------------------------------------------
 
 function Surface.Zone(position: Vector3): Zone
-	return if position.Y > Surface.Tuning().ZoneY then "Surface" else "Bunker"
+	if position.Y > Surface.Tuning().ZoneY then
+		return "Surface"
+	end
+	return if position.Z < Config.Get("Tuning", "Deep").GridBack then "Deep" else "Bunker"
+end
+
+-- The Bunker and the Deep are one realm ("Underground"): a cave mouth is a walk away.
+function Surface.Realm(zone: string): string
+	return if zone == "Surface" then "Surface" else "Underground"
+end
+
+function Surface.SameRealm(a: Vector3, b: Vector3): boolean
+	return Surface.Realm(Surface.Zone(a)) == Surface.Realm(Surface.Zone(b))
 end
 
 -- Radiation ----------------------------------------------------------------------------------------

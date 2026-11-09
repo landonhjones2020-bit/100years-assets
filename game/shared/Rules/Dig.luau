@@ -16,7 +16,9 @@
 	* The roll (Section 6: rolled when it opens): Roll is the same for a cell every time in one
 	  run (seeded by the run and the cell), so the Driller can see ore and caves before they are
 	  dug (Hint). Results whose systems aren't built yet, and those of a later era, count as
-	  Empty, so the others keep the bible's odds.
+	  Empty, so the others keep the bible's odds. A few cells hold a fixed result this run
+	  (overrides, Prompt 17: the Lost Crews' caves); RunState.DigOverrides carries them
+	  (EncodeOverrides), so the Driller's hints match.
 	* Disturbance (Section 10): 0 to Max; Add clamps; Crossed says whether a change set off the
 	  extra breach (crossing ExtraBreachAt upward) or a Tremor (reaching TremorAt, after which it
 	  drops to AfterTremor). Level names the reading for the seismograph.
@@ -28,6 +30,7 @@ local Grid = require(script.Parent.Grid)
 local Dig = {}
 
 export type Face = { Side: "Left" | "Right" | "Above", Floor: number, Column: number } -- the open cell it's dug from
+export type Overrides = { [string]: string } -- "<floor>,<column>" -> a DigResults id
 
 function Dig.Tuning(): { [string]: any }
 	return Config.Get("Tuning", "Digging")
@@ -131,8 +134,12 @@ function Dig.CellRandom(seed: number, floor: number, column: number): Random
 end
 
 -- What opening this cell finds. `available` names the results that can happen now (systems
--- built); the rest, and those of a later era, are Empty.
-function Dig.Roll(seed: number, floor: number, column: number, era: number, available: { [string]: boolean }): string
+-- built; the rest count as Empty). `overrides` fixes a cell's result for the run (Prompt 17).
+function Dig.Roll(seed: number, floor: number, column: number, era: number, available: { [string]: boolean }, overrides: Overrides?): string
+	local fixed = if overrides then overrides[Grid.Key(floor, column)] else nil
+	if fixed and available[fixed] then
+		return fixed
+	end
 	local rng = Dig.CellRandom(seed, floor, column)
 	local total = 0
 	for _, entry in Config.All("DigResults") do
@@ -154,9 +161,30 @@ end
 
 -- What the Driller sees in rock before it is dug (Section 14: ore and caves): the roll when it is
 -- an ore pocket or a cave opening, else nil.
-function Dig.Hint(seed: number, floor: number, column: number, era: number, available: { [string]: boolean }): string?
-	local result = Dig.Roll(seed, floor, column, era, available)
+function Dig.Hint(seed: number, floor: number, column: number, era: number, available: { [string]: boolean }, overrides: Overrides?): string?
+	local result = Dig.Roll(seed, floor, column, era, available, overrides)
 	return if result == "OrePocket" or result == "CaveOpening" then result else nil
+end
+
+-- Overrides as one string for RunState ("3,-2=CaveOpening;5,4=CaveOpening"), and back.
+function Dig.EncodeOverrides(overrides: Overrides): string
+	local parts = {}
+	for key, result in overrides do
+		table.insert(parts, `{key}={result}`)
+	end
+	table.sort(parts)
+	return table.concat(parts, ";")
+end
+
+function Dig.DecodeOverrides(text: any): Overrides
+	local overrides: Overrides = {}
+	if type(text) ~= "string" then
+		return overrides
+	end
+	for key, result in string.gmatch(text, "([%-%d]+,[%-%d]+)=(%w+)") do
+		overrides[key] = result
+	end
+	return overrides
 end
 
 -- How far into rock a cell is: steps from the nearest open cell (left, right, up, down), up to max.

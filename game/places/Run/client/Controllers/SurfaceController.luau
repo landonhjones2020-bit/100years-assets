@@ -5,7 +5,8 @@
 
 	* Lighting by zone (Section 23: each zone has its own lighting preset, switched on the client;
 	  Section 19: an ashy orange-grey surface): the bunker keeps the place's own Lighting (captured
-	  at start); the surface and the storm have their presets. Ash drifts down on the surface; in a
+	  at start); the surface, the storm and the Deep's caves (Prompt 17: darkness, Section 12) have
+	  their presets. Ash drifts down on the surface; in a
 	  storm (RunState Storm) it blows sideways, the light drops and lightning flashes.
 	* The elevator: the Elevator remote fades the HUD's Fade to black, the server moves the
 	  character, and the screen comes back. Arriving on the surface shows a banner.
@@ -56,6 +57,15 @@ local PRESETS: { [string]: Preset } = {
 		},
 		Atmosphere = {
 			Density = 0.42, Offset = 0.16, Color = Color3.fromRGB(204, 166, 134), Decay = Color3.fromRGB(128, 92, 72), Glare = 0.1, Haze = 2.6,
+		},
+	},
+	Deep = { -- the caves (Prompt 17): dark but for the lanterns and the players' own lights
+		Lighting = {
+			ClockTime = 0, Brightness = 0, Ambient = Color3.fromRGB(34, 32, 38), OutdoorAmbient = Color3.fromRGB(24, 22, 26),
+			ExposureCompensation = -0.1, EnvironmentDiffuseScale = 0.15, EnvironmentSpecularScale = 0.25,
+		},
+		Atmosphere = {
+			Density = 0.45, Offset = 0, Color = Color3.fromRGB(34, 32, 38), Decay = Color3.fromRGB(16, 14, 18), Glare = 0, Haze = 1.2,
 		},
 	},
 	Storm = { -- playtest: darker than this read as night; the storm is a brown-grey murk you can still see in
@@ -148,7 +158,9 @@ local function apply(name: string, seconds: number)
 end
 
 local function wanted(): string
-	if zone ~= "Surface" then
+	if zone == "Deep" then
+		return "Deep"
+	elseif zone ~= "Surface" then
 		return "Bunker"
 	end
 	return if storming() then "Storm" else "Surface"
@@ -161,6 +173,7 @@ local function refreshLighting(seconds: number)
 		local name = wanted()
 		local props = if name == "Storm" then { TintColor = Color3.fromRGB(236, 226, 216), Saturation = -0.3, Contrast = 0.06, Brightness = 0.02 }
 			elseif name == "Surface" then { TintColor = Color3.fromRGB(255, 232, 210), Saturation = -0.22, Contrast = 0.05, Brightness = 0 }
+			elseif name == "Deep" then { TintColor = Color3.fromRGB(228, 234, 242), Saturation = -0.15, Contrast = 0.08, Brightness = 0 }
 			else { TintColor = Color3.new(1, 1, 1), Saturation = 0, Contrast = 0, Brightness = 0 }
 		local g = grade :: ColorCorrectionEffect
 		g.Enabled = name ~= "Bunker"

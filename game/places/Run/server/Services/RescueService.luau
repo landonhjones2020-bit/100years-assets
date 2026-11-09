@@ -2,23 +2,24 @@
 --[[
 	RescueService: trapped people and bringing them home (bible Sections 11 and 12; Run place,
 	Prompt 16). Survivors are trapped in buildings on the surface; trapped miners in the Deep and
-	the Lost Crews use the same rescue from Prompt 17.
+	the Lost Crews' members (Prompt 17) use the same rescue (Kind Survivor, Miner or Crew).
 
 	* Trap(at, options) puts one in workspace.Rescues, pinned under a little rubble, with a Free
 	  prompt (hold Tuning.Surface.FreeSeconds; Section 12: free them, hold interact).
 	* Freed, they follow the player who freed them (their leader) FollowDistance behind, at
 	  SurvivorWalkSpeed times the leader's RescuedFollowSpeed (Spelunker, Section 14). A leader who
-	  is downed, gone or out of EscortRange is replaced by the nearest standing player in range;
-	  with none they wait where they are. A survivor left far behind on open ground is brought up to
-	  their leader (no one is lost to a fence).
+	  is downed, gone, out of EscortRange or in another realm (the surface, or underground: the
+	  bunker and the Deep are one) is replaced by the nearest standing player in range; with none
+	  they wait where they are. A survivor left far behind on open ground is brought up to their
+	  leader (no one is lost to a fence).
 	* On the way they are CombatService combatants (Kind Survivor, team Survivors): monsters treat
 	  them as residents (Section 12: protect them on the way). Their health is SurvivorHealth divided
 	  by the leader's RescuedDamageTaken; killed, they are lost.
 	* The elevator: SurfaceService moves a rider's followers with them (Followers).
 	* Home (Section 12: each rescue becomes a resident, sometimes a Rare one): a follower in the bunker
 	  joins it through ResidentService:Add(tier, level), their new body stepping out where they
-	  stood. Joined(residentId, player?, kind, where) fires; SetArrival(kind, fn) lets a kind (Prompt
-	  17's Lost Crews) do something else.
+	  stood. Joined(residentId, player?, kind, where) fires; SetArrival(kind, fn) adds what a kind
+	  does after joining (Prompt 17: a Lost Crew home completes its objective).
 
 	Dev: rescues, rescue.free <id>.
 ]]
@@ -52,7 +53,7 @@ local CATCH_UP = 40 -- studs behind on the same zone for a while: brought up to 
 local REPLAN_SECONDS = 1.5
 
 export type Options = {
-	Kind: string?, -- "Survivor" (the surface), later "Miner" and "Crew" (Prompt 17)
+	Kind: string?, -- "Survivor" (the surface), "Miner" (the Deep) or "Crew" (a Lost Crew's member; Prompt 17)
 	Tier: string?, -- Common or Rare (rolled when nil)
 	Level: number?,
 	Where: string?, -- "the motel": for the alerts and the run's story
@@ -88,7 +89,17 @@ local brain: any = nil
 local director: any = nil
 
 local rescues: { [string]: Rescue } = {}
-local arrivals: { [string]: (Rescue, Player?) -> () } = {}
+local arrivals: { [string]: (any, Player?, string) -> () } = {} -- kind -> after joining (rescue, leader, resident id)
+-- what the prompt and the alerts call each kind
+local KIND_TEXT: { [string]: { Trapped: string, Freed: string, Lost: string } } = {
+	Survivor = { Trapped = "Trapped survivor", Freed = "YOU FREED A SURVIVOR: BRING THEM HOME TO THE BLAST DOOR", Lost = "A SURVIVOR DIDN'T MAKE IT" },
+	Miner = { Trapped = "Trapped miner", Freed = "YOU FREED A TRAPPED MINER: BRING THEM BACK INTO THE BUNKER", Lost = "A RESCUED MINER DIDN'T MAKE IT" },
+	Crew = { Trapped = "Steadfast work crew", Freed = "YOU FREED ONE OF THE LOST CREW: BRING THEM HOME", Lost = "WE LOST ONE OF THE LOST CREW" },
+}
+
+local function kindText(kind: string): { Trapped: string, Freed: string, Lost: string }
+	return KIND_TEXT[kind] or KIND_TEXT.Survivor
+end
 local counter = 0
 local rng = Random.new()
 
@@ -208,7 +219,7 @@ local function free(r: Rescue, player: Player)
 	r.Model:SetAttribute("Leader", player.UserId)
 	setActivity(r, "Walk")
 	RescueService.Freed:Fire(r.Id, player)
-	Remotes.FireClient("Alert", player, "Info", `YOU FREED A SURVIVOR: BRING THEM HOME TO THE BLAST DOOR`)
+	Remotes.FireClient("Alert", player, "Info", kindText(r.Kind).Freed)
 	log:Info("%s freed %s (%s)", player.Name, r.Id, r.Where)
 end
 
@@ -235,7 +246,8 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "FreePrompt"
 	prompt.ActionText = "FREE"
-	prompt.ObjectText = if tier == "Rare" then "Trapped survivor (Rare)" else "Trapped survivor"
+	local label = kindText(o.Kind or "Survivor").Trapped
+	prompt.ObjectText = if tier == "Common" then label else `{label} ({tier})`
 	prompt.HoldDuration = t.FreeSeconds
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
@@ -334,8 +346,20 @@ function RescueService:MoveTo(id: string, at: CFrame)
 	end
 end
 
-function RescueService:SetArrival(kind: string, fn: (any, Player?) -> ())
+-- What a kind does after one of them joins the bunker: fn(rescue, leader, residentId).
+function RescueService:SetArrival(kind: string, fn: ((any, Player?, string) -> ())?)
 	arrivals[kind] = fn
+end
+
+-- The trapped and the rescued with a tag (a Lost Crew's members): { Id, State, Position }.
+function RescueService:Tagged(tag: string): { { Id: string, State: string, Position: Vector3 } }
+	local list = {}
+	for id, r in rescues do
+		if r.Tag == tag then
+			table.insert(list, { Id = id, State = r.State, Position = r.Root.Position })
+		end
+	end
+	return list
 end
 
 -- Home ------------------------------------------------------------------------------------------
@@ -347,12 +371,6 @@ local function arrive(r: Rescue)
 	end
 	local where = r.Root.CFrame
 	local leader = r.Leader
-	local handler = arrivals[r.Kind]
-	if handler then
-		r.Model:Destroy()
-		handler(r, leader)
-		return
-	end
 	local residentId = residents:Add(r.Tier, r.Level)
 	local record = residents:Get(residentId)
 	local name = if record then Residents.Name(record) else residentId
@@ -361,10 +379,17 @@ local function arrive(r: Rescue)
 		body:PivotTo(where)
 	end
 	r.Model:Destroy()
-	alertAll("Info", `{string.upper(name)}{if r.Tier == "Rare" then " (RARE)" else ""} JOINS THE BUNKER`
+	alertAll("Info", `{string.upper(name)}{if r.Tier ~= "Common" then ` ({string.upper(r.Tier)})` else ""} JOINS THE BUNKER`
 		.. (if leader then `: RESCUED BY {string.upper(leader.DisplayName)}` else ""))
 	RescueService.Joined:Fire(residentId, leader, r.Kind, r.Where)
 	log:Info("%s joined as %s (%s, %s)", r.Id, residentId, r.Tier, r.Where)
+	local after = arrivals[r.Kind]
+	if after then
+		local ok, err = pcall(after, r, leader, residentId)
+		if not ok then
+			log:Warn("%s arrival: %s", r.Kind, tostring(err))
+		end
+	end
 end
 
 local function lose(r: Rescue)
@@ -375,7 +400,7 @@ local function lose(r: Rescue)
 	if r.Rubble then
 		r.Rubble:Destroy()
 	end
-	alertAll("Danger", if r.Kind == "Survivor" then "A SURVIVOR DIDN'T MAKE IT" else "WE LOST ONE OF THEM")
+	alertAll("Danger", kindText(r.Kind).Lost)
 	RescueService.Lost:Fire(r.Id, r.Kind)
 	log:Info("%s was lost", r.Id)
 end
@@ -386,7 +411,7 @@ local function nearestStanding(position: Vector3, range: number): Player?
 	local best, bestDistance = nil, range
 	for _, player in Players:GetPlayers() do
 		local root = rootOf(player)
-		if root and standing(player) and Surface.Zone(root.Position) == Surface.Zone(position) then
+		if root and standing(player) and Surface.SameRealm(root.Position, position) then
 			local d = (root.Position - position).Magnitude
 			if d <= bestDistance then
 				best, bestDistance = player, d
@@ -434,7 +459,7 @@ local function follow(r: Rescue)
 	local leader = r.Leader
 	local leaderRoot = leader and rootOf(leader)
 	if not leader or not leaderRoot or not standing(leader) or (leaderRoot.Position - position).Magnitude > t.EscortRange * 2
-		or Surface.Zone(leaderRoot.Position) ~= Surface.Zone(position) then
+		or not Surface.SameRealm(leaderRoot.Position, position) then
 		local other = nearestStanding(position, t.EscortRange)
 		if other ~= leader then
 			r.Leader = other

@@ -41,7 +41,7 @@ local DUST_TEXTURE = "rbxasset://textures/particles/smoke_main.dds"
 local DUST_COLOR = Color3.fromRGB(150, 138, 120)
 local CHIP_COLOR = Color3.fromRGB(98, 90, 82)
 -- What the client can know of the roll (the same results DigService rolls; the rest are Empty).
-local AVAILABLE: { [string]: boolean } = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true }
+local AVAILABLE: { [string]: boolean } = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true, CryoPod = true }
 
 local replica: any = nil
 local commandView: any = nil
@@ -264,7 +264,7 @@ local function notes(floor: number, column: number, state: string): { any }
 		local depth = Dig.Depth(currentBunker(), floor, column, reach)
 		local seed = RunState.Get("DigSeed")
 		if depth and type(seed) == "number" then
-			local hint = Dig.Hint(seed, floor, column, eraNumber(), AVAILABLE)
+			local hint = Dig.Hint(seed, floor, column, eraNumber(), AVAILABLE, Dig.DecodeOverrides(RunState.Get("DigOverrides")))
 			table.insert(list, { Title = "Driller's eye", Text = if hint == "OrePocket" then "An ore pocket is in this rock."
 				elseif hint == "CaveOpening" then "A cave lies behind this rock."
 				else "No ore or cave here." })

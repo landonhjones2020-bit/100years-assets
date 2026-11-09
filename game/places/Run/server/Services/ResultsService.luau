@@ -9,6 +9,9 @@
 	  residents lost, disasters, bosses beaten), and keeps the run's story: the moments worth
 	  telling, each with its year (a boss beaten, a resident's death, a Push Deeper, a Tremor, a
 	  meltdown stopped, the end).
+	* The Deep (Prompt 17): caves found, Lost Crews brought home and cryo pods thawed go in the
+	  story; Glowshard chests pay when they are opened (DeepService), and the results show them as
+	  a line of their own (already paid).
 	* When the run ends (RunDirector.RunEnded) it pays everyone still in it: Glowshards
 	  (Rules.Results.Payout: years, depth bands, a victory, bosses, the difficulty, the first win of
 	  the day), account experience and levels, the profile's Stats (Runs, Wins, BestYear, Deepest,
@@ -51,7 +54,7 @@ local ResultsService = {
 	Dependencies = {
 		"RunDirector", "CycleClock", "SessionService", "ProfileService", "CombatService", "MonsterService", "ResidentService",
 		"BuildService", "DigService", "DisasterService", "ObjectiveService", "BossService", "BunkerGrid", "VoteService",
-		"InventoryService", "RescueService", "ReplicationService", "DevService",
+		"InventoryService", "RescueService", "DeepService", "ReplicationService", "DevService",
 	},
 }
 
@@ -78,6 +81,8 @@ local ledgers: { [number]: Results.Ledger } = {}
 local paidKills: { [number]: number } = {} -- kills already added to the profile's MonstersKilled
 local counted: { [number]: boolean } = {} -- the run counted in the profile's Runs
 local deepest = 0
+local chestShards: { [number]: number } = {} -- user id -> Glowshards from chests (paid when opened, Prompt 17)
+local bandsWithCaves: { [string]: boolean } = {}
 local voteOpen: { [string]: string } = {} -- vote kind -> id
 local published: { [string]: any }? = nil
 
@@ -219,12 +224,17 @@ local function pay(player: Player, summary: any, run: Results.Run): { [string]: 
 	else
 		log:Warn("%s: the payout couldn't be written", player.Name)
 	end
+	local lines = table.clone(payout.Lines)
+	local fromChests = chestShards[userId] or 0
+	if fromChests > 0 then
+		table.insert(lines, { Text = "Glowshard chests (paid when opened)", Amount = fromChests })
+	end
 	local row: { [string]: any } = {
 		Name = player.DisplayName,
 		Class = playerClass(player),
 		Score = Results.Score(s),
-		Glowshards = if ok then payout.Total else 0,
-		Lines = payout.Lines,
+		Glowshards = (if ok then payout.Total else 0) + fromChests,
+		Lines = lines,
 		XP = xp,
 		Level = level,
 		LevelUp = levelUp,
@@ -445,6 +455,7 @@ function ResultsService:Init(registry)
 	services.Boss = registry.BossService
 	services.Inventory = registry.InventoryService
 	services.Rescue = registry.RescueService
+	services.Deep = registry.DeepService
 	collection = registry.ReplicationService:Collection("Results")
 	registerCommands(registry.DevService)
 end
@@ -529,7 +540,9 @@ function ResultsService:Start()
 		team.Hauled += n
 		bump(player.UserId, "Hauled", n)
 		local entry = Config.Find("LootTables", kind)
-		story(`{player.DisplayName} hauled {if entry then string.lower(entry.Text) else kind} home`)
+		local dug = Config.Find("DigResults", kind) -- a cryo pod (Prompt 17)
+		local what = if entry then string.lower(entry.Text) elseif dug then `a {string.lower(dug.Name)}` else kind
+		story(`{player.DisplayName} hauled {what} home`)
 	end)
 	services.Rescue.Joined:Connect(function(residentId: string, leader: Player?, _kind: string, where: string)
 		team.Rescued += 1
@@ -537,6 +550,28 @@ function ResultsService:Start()
 			bump(leader.UserId, "Rescues", 1)
 		end
 		story(`{if leader then leader.DisplayName else "the team"} rescued {residentName(residentId)} from {where}`)
+	end)
+	-- the Deep (Prompt 17)
+	services.Deep.CaveOpened:Connect(function(_key: string, band: string, _pieces: number)
+		if not bandsWithCaves[band] then
+			bandsWithCaves[band] = true
+			local entry = Config.Find("DepthBands", band)
+			story(`digging broke into a cave in the {if entry then entry.Name else band}`)
+		end
+	end)
+	services.Deep.CrewHome:Connect(function(objectiveId: string, leader: Player?)
+		local objective = Config.Find("Objectives", objectiveId)
+		local crew = if objective then (string.gsub(objective.Name, "^Lost Crew: ", "")) else "a lost"
+		story(`{if leader then leader.DisplayName else "the team"} brought {crew} crew home`)
+	end)
+	services.Deep.Thawed:Connect(function(residentId: string, tier: string)
+		story(`{residentName(residentId)} ({string.lower(tier)}) thawed out of a cryo pod`)
+	end)
+	services.Deep.ChestOpened:Connect(function(opener: Player, shards: number)
+		for _, player in session:ReadyPlayers() do
+			chestShards[player.UserId] = (chestShards[player.UserId] or 0) + shards
+		end
+		story(`{opener.DisplayName} opened a Glowshard chest`)
 	end)
 	services.Boss.Defeated:Connect(function(bossId: string, killer: Player?)
 		if not table.find(bosses, bossId) then

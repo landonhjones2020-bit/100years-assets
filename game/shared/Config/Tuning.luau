@@ -189,6 +189,16 @@ local Schemas: { [string]: Check.Checker } = {
 		MaxMonsters = I, SpawnDistance = F.Range, JackalEverySeconds = F.Range, RaiderEverySeconds = F.Range,
 		RaiderMinEra = Check.integer(1, 4), WraithEverySeconds = F.Range, WraithDistance = F.Range, DespawnSeconds = S,
 	}),
+	Deep = shape({ -- Prompt 17
+		CavePieces = F.Range, PlannerTries = I, Margin = N, GridBack = N, LowestY = F.Number,
+		FindOdds = Check.map(Check.string(20), N, 12), NestChance = Fr, GuardChance = Fr, GuardBudget = N,
+		WakeRange = N, GuardRange = N, DeepAggro = N, MineSeconds = S, OpenSeconds = S, ListenSeconds = S, ChestSeconds = S,
+		FallDamageFrom = N, FallDamagePerStud = N, FallDamageMax = N, LightRange = N, LightBrightness = N,
+		LampRange = N, LampBrightness = N,
+		ThawPoints = N, LegendaryChance = Fr, CryoLevel = F.Range, MinerRareChance = Fr, MinerLevel = F.Range,
+		CrewLevel = F.Range, CrewFloors = Check.map(Check.ref("DepthBands"), F.Range, 4), CrewMinDepth = I,
+		HintChance = Fr, NestBudget = N, RevealRange = N, CampWakeRange = N, CampSleepSeconds = S,
+	}),
 	Legends = shape({ StartLevel = I, RenownMax = I, RenownStatBonus = I, StarterLegend = Check.ref("Legends") }),
 	ClassShop = shape({
 		Slots = I, ResetHourUTC = I, FreeRerolls = I, VIPFreeRerolls = I, RerollRobux = I, WishlistDays = I,
@@ -451,6 +461,32 @@ return {
 			MaxMonsters = 8, SpawnDistance = { Min = 70, Max = 160 }, JackalEverySeconds = { Min = 30, Max = 55 },
 			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, WraithEverySeconds = { Min = 10, Max = 18 },
 			WraithDistance = { Min = 35, Max = 70 }, DespawnSeconds = 20,
+		},
+		Deep = { -- Section 12 (Prompt 17), all prov.
+			-- caves: pieces after the mouth, tries per exit, the gap kept between pieces; nothing in front of
+			-- the grid's back (z -17) and nothing below the Source Chamber's floor
+			CavePieces = { Min = 3, Max = 6 }, PlannerTries = 6, Margin = 1, GridBack = -17.5, LowestY = -300,
+			-- what a Find spot holds (weights; cryo pods from Era II, as in DigResults)
+			FindOdds = { OreVein = 30, Cache = 18, RadioLog = 10, TrappedMiner = 8, CryoPod = 4, GlowshardChest = 2, Nothing = 28 },
+			-- a cavern holds a nest (else a cache); guards wake when a player comes near, then stay near their post
+			NestChance = 0.5, GuardChance = 0.6, GuardBudget = 6, WakeRange = 60, GuardRange = 45, DeepAggro = 60,
+			MineSeconds = 3, OpenSeconds = 1.5, ListenSeconds = 1, ChestSeconds = 2,
+			-- drops (Section 12): a fall past FallDamageFrom studs hurts (the Spelunker's NoFallDamage)
+			FallDamageFrom = 14, FallDamagePerStud = 4, FallDamageMax = 80,
+			-- darkness (Section 12): a player's own light in the Deep (LightRadius doubles it), the lanterns
+			LightRange = 18, LightBrightness = 1.4, LampRange = 22, LampBrightness = 1.6,
+			-- cryo pods (Section 6): a Cryo Bay's Thawing output per pod; Rare or Legendary
+			ThawPoints = 2, LegendaryChance = 0.15, CryoLevel = { Min = 2, Max = 5 },
+			-- trapped miners and the Lost Crews (Section 12)
+			MinerRareChance = 0.25, MinerLevel = { Min = 1, Max = 4 }, CrewLevel = { Min = 2, Max = 5 },
+			CrewFloors = { Mines = { Min = 2, Max = 3 }, FloodedCaverns = { Min = 4, Max = 6 } }, CrewMinDepth = 2,
+			-- a radio log found while a crew is still lost is a crew's log this often (with where they were heard)
+			HintChance = 0.6, NestBudget = 6,
+			-- the Spelunker's RevealCaveLayouts: finds, nests and the trapped show through rock this close
+			RevealRange = 90,
+			-- the surface crew's raider camp: its guards come out when a player is this close, and go back
+			-- in when nobody has been near for CampSleepSeconds
+			CampWakeRange = 110, CampSleepSeconds = 60,
 		},
 		Legends = { StartLevel = 5, RenownMax = 5, RenownStatBonus = 1, StarterLegend = "RosieKowalski" }, -- Section 15
 		ClassShop = { -- Section 14

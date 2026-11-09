@@ -34,8 +34,15 @@
 	* Survivors and big finds (Section 12): at the start of each day a survivor may be trapped at a
 	  SurvivorSpot (RescueService:Trap) and generator parts may turn up at a BigFindSpot
 	  (InventoryService:PlaceFind).
+	* The surface's Lost Crew (Section 12; Prompt 17): a raider camp (A6's Bldg_RaiderCamp) stands
+	  at one of the map's CampSpots, picked each run, with the crew trapped in its pen (Kind Crew, Tag
+	  CrewSurface: DeepService completes the objective when they come home). Its Ash Raiders guard
+	  it from Era I: they come out at the camp's Guard sockets when a player comes within
+	  Tuning.Deep.CampWakeRange, asleep at their posts until one comes within GuardRange
+	  (MonsterService guards), and go back in after CampSleepSeconds with nobody near; the ones
+	  killed stay dead. CrewWhere() says where the camp is for the radio logs.
 
-	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map().
+	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map(), CrewWhere().
 	Signals: ZoneChanged(player, zone), Searched(player, location, given).
 	Dev: surface, surface.up [player], surface.down [player], rad <n>, storm <on|off>, loot.refill,
 	surface.spawn <type> [n], survivor, surface.find.
@@ -44,6 +51,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
@@ -69,7 +77,10 @@ local SurfaceService = {
 	Searched = Signal.new() :: Signal.Signal<Player, string, { Loot.Drop }>,
 }
 
-local SKIP: { [string]: boolean } = { Gear = true, RadioLog = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
+-- loot nothing hands out yet (radio logs play through InventoryService's handler, Prompt 17)
+local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
+local CAMP_TAG = "Camp"
+local CREW_TAG = "CrewSurface" -- the surface's Lost Crew (Config.Objectives)
 local SURFACE_TAG = "Surface"
 local FALL_GUARD = 30 -- studs under the elevator exit: below this a surface creature has fallen out of the town
 local HALL_ARRIVAL = Vector3.new(0, 0, 6) -- from the Blast Door's Door socket, into the hall
@@ -84,6 +95,15 @@ type Container = {
 	Locked: boolean,
 }
 type Spot = { CFrame: CFrame, Location: string? }
+type Camp = {
+	Model: Model,
+	CFrame: CFrame,
+	Hint: string,
+	Posts: { CFrame }, -- the Guard sockets in the world
+	Guards: { [string]: boolean }, -- monster ids out now
+	Left: number, -- guards not yet killed
+	NearAt: number, -- os.clock a player was last near
+}
 
 local clock: any = nil
 local director: any = nil
@@ -102,6 +122,8 @@ local survivorSpots: { Spot } = {}
 local findSpots: { Spot } = {}
 local spawnPoints: { Vector3 } = {}
 local gates: { Model } = {}
+local campSpots: { { CFrame: CFrame, Hint: string } } = {}
+local camp: Camp? = nil
 local radiation: { [Player]: number } = {}
 local warned: { [Player]: number } = {} -- 0 none, 1 high, 2 sickness
 local earlyWarned: { [Player]: number } = {} -- the cycle a Scout heard the storm coming
@@ -467,6 +489,9 @@ local function readMap()
 				table.insert(findSpots, spot)
 			elseif item.Name == "SpawnPoint" then
 				table.insert(spawnPoints, item.Position)
+			elseif item.Name == "CampSpot" then
+				local hint = item:GetAttribute("Hint")
+				table.insert(campSpots, { CFrame = item.CFrame, Hint = if type(hint) == "string" then hint else "in the ruins" })
 			end
 		elseif item:IsA("Model") then
 			if item:GetAttribute("Container") == true then
@@ -481,8 +506,8 @@ local function readMap()
 			end
 		end
 	end
-	log:Info("surface map: %d containers, %d survivor spots, %d find spots, %d spawn points, %d gates, exit %s",
-		#containers, #survivorSpots, #findSpots, #spawnPoints, #gates, if exitAt then "found" else "MISSING")
+	log:Info("surface map: %d containers, %d survivor spots, %d find spots, %d spawn points, %d camp spots, %d gates, exit %s",
+		#containers, #survivorSpots, #findSpots, #spawnPoints, #campSpots, #gates, if exitAt then "found" else "MISSING")
 end
 
 -- Survivors and big finds -----------------------------------------------------------------------
@@ -545,6 +570,159 @@ local function newDay(cycle: number)
 	end
 	if map and finds < tuning.MaxBigFinds and rng:NextNumber() < tuning.BigFindChancePerDay then
 		placeFind()
+	end
+end
+
+-- The raider camp and the surface's Lost Crew (Prompt 17) ---------------------------------------
+
+local function campSockets(model: Model, pattern: string): { CFrame }
+	local list: { { Name: string, At: CFrame } } = {}
+	for key, value in model:GetAttributes() do
+		local name = string.match(key, "^Socket_(.+)$")
+		if name and string.match(name, pattern) and typeof(value) == "CFrame" then
+			table.insert(list, { Name = name, At = value })
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.Name < b.Name
+	end)
+	local out = {}
+	for _, item in list do
+		table.insert(out, item.At)
+	end
+	return out
+end
+
+local function setupCamp()
+	if not map or #campSpots == 0 or camp then
+		return
+	end
+	local assets = ServerStorage:FindFirstChild("Assets")
+	local art = assets and assets:FindFirstChild("Surface") and assets.Surface:FindFirstChild("Bldg_RaiderCamp")
+	local spot = campSpots[rng:NextInteger(1, #campSpots)]
+	local model: Model
+	if art and art:IsA("Model") then
+		model = art:Clone()
+	else
+		-- graybox until the art is in: a ring of crates and a pen at the back
+		model = Instance.new("Model")
+		local base = Instance.new("Part")
+		base.Name = "Pen"
+		base.Size = Vector3.new(20, 4, 1)
+		base.Color = Color3.fromRGB(116, 86, 62)
+		base.Anchored = true
+		base.CFrame = CFrame.new(0, 2, 15)
+		base.Parent = model
+		model.PrimaryPart = base
+		model.WorldPivot = CFrame.new()
+		for i, at in { CFrame.new(-8, 0, 11), CFrame.new(0, 0, 12.5), CFrame.new(8, 0, 11) } do
+			model:SetAttribute(`Socket_Crew{i}`, at)
+		end
+		for i, at in { CFrame.new(-12, 0, -6), CFrame.new(12, 0, -6), CFrame.new(-6, 0, -14), CFrame.new(6, 0, -14) } do
+			model:SetAttribute(`Socket_Guard{i}`, at)
+		end
+	end
+	model.Name = "RaiderCamp"
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = true
+		end
+	end
+	local folder = workspace:FindFirstChild("SurfaceCamp") or Instance.new("Folder")
+	folder.Name = "SurfaceCamp"
+	folder.Parent = workspace
+	model:PivotTo(spot.CFrame)
+	model.Parent = folder
+	for _, at in campSockets(model, "^Light") do
+		local holder_ = Instance.new("Part")
+		holder_.Name = "CampLight"
+		holder_.Anchored = true
+		holder_.CanCollide = false
+		holder_.CanQuery = false
+		holder_.CanTouch = false
+		holder_.Transparency = 1
+		holder_.Size = Vector3.new(0.2, 0.2, 0.2)
+		holder_.CFrame = spot.CFrame * at
+		holder_.Parent = model
+		local light = Instance.new("PointLight")
+		light.Color = Color3.fromRGB(255, 160, 90)
+		light.Range = 18
+		light.Brightness = 1.5
+		light.Parent = holder_
+	end
+	local posts = {}
+	for _, at in campSockets(model, "^Guard") do
+		table.insert(posts, spot.CFrame * at)
+	end
+	camp = { Model = model, CFrame = spot.CFrame, Hint = spot.Hint, Posts = posts, Guards = {}, Left = #posts, NearAt = 0 }
+	-- the crew in the pen: three, one of them Rare (Section 12)
+	local deep = Config.Get("Tuning", "Deep")
+	local crewSpots = campSockets(model, "^Crew")
+	local rare = rng:NextInteger(1, math.max(#crewSpots, 1))
+	for i, at in crewSpots do
+		rescue:Trap(spot.CFrame * at, {
+			Kind = "Crew",
+			Tier = if i == rare then "Rare" else "Common",
+			Level = rng:NextInteger(deep.CrewLevel.Min, deep.CrewLevel.Max),
+			Where = "the raider camp",
+			Tag = CREW_TAG,
+		})
+	end
+	log:Info("the raider camp stands %s with %d crew and %d guards", spot.Hint, #crewSpots, #posts)
+end
+
+-- Where the surface's Lost Crew is held, while any of them is still trapped (the radio logs' hint).
+function SurfaceService:CrewWhere(): string?
+	local c = camp
+	if not c then
+		return nil
+	end
+	for _, r in rescue:Tagged(CREW_TAG) do
+		if r.State == "Trapped" then
+			return `Brightwater Ruins, a raider camp {c.Hint}`
+		end
+	end
+	return nil
+end
+
+local function campTick()
+	local c = camp
+	if not c or director:Phase() ~= "Playing" then
+		return
+	end
+	local deep = Config.Get("Tuning", "Deep")
+	local near = false
+	for _, player in onSurface() do
+		local root = rootOf(player)
+		if root and (root.Position - c.CFrame.Position).Magnitude <= deep.CampWakeRange then
+			near = true
+		end
+	end
+	local out = 0
+	for id in c.Guards do
+		if monsterService:ZoneOf(id) then
+			out += 1
+		else
+			c.Guards[id] = nil
+		end
+	end
+	if near then
+		c.NearAt = os.clock()
+		if out == 0 and c.Left > 0 then
+			-- the guards come out at their posts (the ones still standing)
+			for i = 1, math.min(c.Left, #c.Posts) do
+				local post = c.Posts[i]
+				local id = monsterService:Spawn("AshRaider", post + Vector3.new(0, 3, 0), CAMP_TAG, { Guard = deep.GuardRange })
+				if id then
+					c.Guards[id] = true
+				end
+			end
+		end
+	elseif out > 0 and os.clock() - c.NearAt > deep.CampSleepSeconds then
+		for id in c.Guards do
+			monsterService:Despawn(id)
+		end
+		table.clear(c.Guards)
 	end
 end
 
@@ -715,6 +893,10 @@ local function loop()
 			if not okC then
 				log:Warn("creatures: %s", tostring(errC))
 			end
+			local okK, errK = pcall(campTick)
+			if not okK then
+				log:Warn("camp: %s", tostring(errK))
+			end
 		end
 	end
 end
@@ -724,6 +906,13 @@ local function clear()
 		monsterService:Despawn(id)
 	end
 	table.clear(creatures)
+	local c = camp
+	if c then
+		for id in c.Guards do
+			monsterService:Despawn(id)
+		end
+		table.clear(c.Guards)
+	end
 	if storm then
 		setStorm(false)
 	end
@@ -870,6 +1059,10 @@ function SurfaceService:Start()
 	set("Storm", false)
 	readMap()
 	refill("start")
+	local okCamp, errCamp = pcall(setupCamp)
+	if not okCamp then
+		log:Warn("the raider camp: %s", tostring(errCamp))
+	end
 	syncHallElevator()
 	grid.Changed:Connect(syncHallElevator)
 	clock.EraChanged:Connect(function()
@@ -898,6 +1091,16 @@ function SurfaceService:Start()
 	end)
 	monsterService.Died:Connect(function(id: string)
 		creatures[id] = nil
+		local c = camp
+		if c and c.Guards[id] then
+			c.Guards[id] = nil
+			c.Left = math.max(c.Left - 1, 0)
+			if c.Left == 0 then
+				for _, player in onSurface() do
+					alert(player, "Info", "THE RAIDER CAMP IS CLEARED: FREE THE CREW IN THE PEN")
+				end
+			end
+		end
 	end)
 	combat.Damaged:Connect(function(targetId: string, amount: number, sourceId: string?)
 		if amount <= 0 or not sourceId or string.sub(sourceId, 1, 1) ~= "M" or string.sub(targetId, 1, 1) ~= "P" then

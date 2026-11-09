@@ -241,6 +241,11 @@ local DEFINITIONS: { [string]: Definition } = {
 		Place = "Run",
 		Doc = "What the player's shot or swing did: the combatant id, the damage, whether it died, and where (WeaponService).",
 	},
+	RadioLog = {
+		To = "Client",
+		Place = "Run",
+		Doc = "A radio log to play for this player (Section 12; Prompt 17): its title, who it is from, its text, and where a Lost Crew was last heard from (or nil) (DeepService).",
+	},
 	Elevator = {
 		To = "Client",
 		Place = "Run",

@@ -21,10 +21,11 @@
 	Threat (ThreatDirector): Threat and Monsters.
 	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt
 	and ValvesTurned.
-	Digging (DigService, Prompt 14): Disturbance, DigLimit, DigSeed, TremorAt and Nests.
-	The surface (SurfaceService, Prompt 16): Storm and StormAt. Players also carry Zone, Radiation,
-	ClearRad, PackUsed, PackSlots, Pack, Carrying and Riding attributes (SurfaceService and
-	InventoryService).
+	Digging (DigService, Prompt 14): Disturbance, DigLimit, DigSeed, DigOverrides, TremorAt and Nests.
+	The surface (SurfaceService, Prompt 16): Storm and StormAt. Players also carry Zone (Surface,
+	Bunker or Deep), Radiation, ClearRad, PackUsed, PackSlots, Pack, Carrying and Riding attributes
+	(SurfaceService and InventoryService).
+	The Deep (DeepService, Prompt 17): Caves and CryoPods.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -35,7 +36,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
-	| "DisasterService" | "DigService" | "SurfaceService"
+	| "DisasterService" | "DigService" | "SurfaceService" | "DeepService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -100,12 +101,17 @@ local FIELDS: { [string]: Field } = {
 	Disturbance = { Type = "number", By = "DigService", Doc = "the Disturbance meter, 0 to 100 (Section 10): the HUD's seismograph" },
 	DigLimit = { Type = "number", By = "DigService", Doc = "the deepest floor the team may dig without a Push Deeper vote (3, then 6, 9, 10)" },
 	DigSeed = { Type = "number", By = "DigService", Doc = "the run's seed for what dug cells hold (Rules.Dig.Roll), so the Driller's hints match" },
+	DigOverrides = { Type = "string", By = "DigService", Doc = "cells whose roll is fixed this run, \"3,-2=CaveOpening;...\" (Rules.Dig.DecodeOverrides; Prompt 17: the Lost Crews' caves)" },
 	TremorAt = { Type = "number", By = "DigService", Doc = "server time of the last Tremor (clients shake the camera)" },
 	Nests = { Type = "number", By = "DigService", Doc = "nests alive in the bunker" },
 
 	-- SurfaceService (Prompt 16): the storm over Brightwater Ruins
 	Storm = { Type = "boolean", By = "SurfaceService", Doc = "the storm is over the surface (every Surge, Section 12): radiation climbs fast, visibility drops, Ash Wraiths hunt" },
 	StormAt = { Type = "number", By = "SurfaceService", Doc = "server time the next storm hits (the Surge siren's end), or the current one began" },
+
+	-- DeepService (Prompt 17): the caves behind the grid and cryo pods
+	Caves = { Type = "number", By = "DeepService", Doc = "caves open behind dug cells (Section 12)" },
+	CryoPods = { Type = "number", By = "DeepService", Doc = "cryo pods hauled home and waiting for a Cryo Bay to thaw them (Section 6)" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

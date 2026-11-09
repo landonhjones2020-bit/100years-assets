@@ -26,12 +26,20 @@
 	    SmashMultiplier times that). A wrecked
 	    room stops (Prompt 9) and isn't a target until it is repaired. The Reactor Core at 0 HP
 	    starts the meltdown (DisasterService, Prompt 13).
-	* The surface (Prompt 16): a monster and its targets must be in the same zone (Rules.Surface.Zone:
-	  the town high above, or the bunker). On the surface there are no machines, rescued survivors
-	  count as residents, players are seen from SurfaceAggro, and paths come from PathfindingService
-	  (Section 23), planned off the AI's thread every PathSeconds. Ash Jackals (PackRunner) circle at
-	  CircleRadius between bites; Ash Raiders (Shoots) keep their distance and fire a rifle
-	  (ShotAccuracy, line of sight checked when the shot lands).
+	* The surface (Prompt 16): a monster and its targets must be in the same realm (Rules.Surface:
+	  the town high above, or underground: the bunker and the Deep's caves behind it, Prompt 17). On
+	  the surface there are no machines, rescued survivors count as residents, players are seen from
+	  SurfaceAggro, and paths come from PathfindingService (Section 23), planned off the AI's thread
+	  every PathSeconds. Ash Jackals (PackRunner) circle at CircleRadius between bites; Ash Raiders
+	  (Shoots) keep their distance and fire a rifle (ShotAccuracy, line of sight checked when the
+	  shot lands).
+	* The Deep (Prompt 17): in a cave there are no machines either, players are seen from
+	  Tuning.Deep.DeepAggro, and paths come from PathfindingService; a target in the bunker is
+	  reached through the cave's mouth (SetCaveExit: DeepService says where a cave position's mouth
+	  is), and a monster in the bunker goes after a target in a cave the same way round.
+	* Guards (Spawn's options.Guard, Prompt 17: the caves' guards and the raider camp's): asleep at
+	  their post until a player comes within Guard studs or hits them; awake, they only go after
+	  what is within 1.6 times that of their post, and with nothing left they walk back and sleep.
 	* Traits: Latches (Burrow Tick) hangs on a resident and bites until killed or swatted;
 	  Slows (Spitter Grub) keeps its distance and spits goo that slows (players: the SlowedUntil
 	  attribute; residents: their walk); stunned monsters (StunnedUntil: melee, Shock Mines)
@@ -40,7 +48,8 @@
 	API:
 		MonsterService.Spawned: Signal<string, string, string?> -- id, type, tag
 		MonsterService.Died: Signal<string, string, string?>    -- id, type, tag
-		MonsterService:Spawn(type, at: CFrame, tag?): string?   -- nil when queued (or no such type)
+		MonsterService:Spawn(type, at: CFrame, tag?, options?): string? -- nil when queued (or no such type); options.Guard
+		MonsterService:SetCaveExit(fn)                          -- fn(position in a cave): its mouth, in the bunker
 		MonsterService:Count(tag?): number                      -- alive plus queued
 		MonsterService:All(): { { Id, Type, Tag, Position } }
 		MonsterService:InUnit(unit): number                     -- monsters in a room or dug cell
@@ -107,7 +116,11 @@ type Monster = {
 	Skip: { [string]: number }, -- a target id rubble cuts it off from -> until (os.clock; Prompt 13)
 	LatchedTo: string?, -- a resident id (Burrow Ticks)
 	Latch: WeldConstraint?,
-	Zone: string, -- "Surface" or "Bunker" (Prompt 16)
+	Zone: string, -- "Surface", "Bunker" or "Deep" (Prompts 16 and 17)
+	Mode: string, -- "Graph" (the room graph) or "Path" (PathfindingService: the surface, the caves)
+	Post: Vector3?, -- a guard's post (Prompt 17)
+	Guard: number?, -- a guard's wake range
+	Asleep: boolean,
 	Pathing: boolean, -- a PathfindingService plan is being worked out (the surface)
 	Path: Path?,
 	CircleUntil: number, -- a PackRunner circles its target until then (os.clock)
@@ -120,8 +133,12 @@ local residents: any = nil
 local director: any = nil
 local dev: any = nil
 
+export type Options = { Guard: number? }
+
 local monsters: { [string]: Monster } = {}
-local queue: { { Type: string, At: CFrame, Tag: string? } } = {}
+local queue: { { Type: string, At: CFrame, Tag: string?, Options: Options? } } = {}
+local caveExit: ((Vector3) -> Vector3?)? = nil -- DeepService: a cave position's mouth (Prompt 17)
+local LEASH = 1.6 -- an awake guard's reach from its post, times its wake range
 local folder: Folder? = nil
 local rng = Random.new()
 
@@ -243,7 +260,7 @@ local function standOn(model: Model, at: CFrame)
 	model:PivotTo(at + Vector3.new(0, floorY - (cf.Position.Y - size.Y / 2) + 0.05, 0))
 end
 
-local function spawnNow(monsterType: string, at: CFrame, tag: string?): string?
+local function spawnNow(monsterType: string, at: CFrame, tag: string?, options: Options?): string?
 	local spec = Config.Find("Monsters", monsterType)
 	if not spec then
 		return nil
@@ -304,6 +321,10 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?): string?
 		LatchedTo = nil,
 		Latch = nil,
 		Zone = Surface.Zone(at.Position),
+		Mode = "Graph",
+		Post = if options and options.Guard then at.Position else nil,
+		Guard = if options then options.Guard else nil,
+		Asleep = options ~= nil and options.Guard ~= nil,
 		Pathing = false,
 		Path = nil,
 		CircleUntil = 0,
@@ -313,22 +334,27 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?): string?
 	return id
 end
 
-function MonsterService:Spawn(monsterType: string, at: CFrame, tag: string?): string?
+function MonsterService:Spawn(monsterType: string, at: CFrame, tag: string?, options: Options?): string?
 	if not Config.Find("Monsters", monsterType) then
 		return nil
 	end
 	if aliveCount() >= cap() then
-		table.insert(queue, { Type = monsterType, At = at, Tag = tag })
+		table.insert(queue, { Type = monsterType, At = at, Tag = tag, Options = options })
 		return nil
 	end
-	return spawnNow(monsterType, at, tag)
+	return spawnNow(monsterType, at, tag, options)
+end
+
+-- DeepService (Prompt 17): where a position in a cave comes out into the bunker.
+function MonsterService:SetCaveExit(fn: ((Vector3) -> Vector3?)?)
+	caveExit = fn
 end
 
 local function drainQueue()
 	while #queue > 0 and aliveCount() < cap() do
 		local next_ = table.remove(queue, 1)
 		if next_ then
-			spawnNow(next_.Type, next_.At, next_.Tag)
+			spawnNow(next_.Type, next_.At, next_.Tag, next_.Options)
 		end
 	end
 end
@@ -441,17 +467,30 @@ local function skipped(m: Monster, id: string): boolean
 	return untilAt ~= nil and untilAt > os.clock()
 end
 
+-- In reach of the monster at all: the same realm (the surface, or underground: the bunker and the
+-- Deep), and for an awake guard within its leash of its post (Prompt 17).
+local function reachable(m: Monster, position: Vector3): boolean
+	if Surface.Realm(Surface.Zone(position)) ~= Surface.Realm(m.Zone) then
+		return false
+	end
+	local post, guard = m.Post, m.Guard
+	if post and guard and (position - post).Magnitude > guard * LEASH then
+		return false
+	end
+	return true
+end
+
 local function residentTarget(m: Monster): Target?
 	local best, bestScore = nil, math.huge
 	for _, c in combat:All("Survivors") do
-		if c.Kind == "Survivor" and c.State == "Alive" and not skipped(m, c.Id) and Surface.Zone(c.Root.Position) == m.Zone then
+		if c.Kind == "Survivor" and c.State == "Alive" and not skipped(m, c.Id) and reachable(m, c.Root.Position) then
 			-- a rescued survivor on the way home (Prompt 16) counts as a resident
 			local s = score(m.Root.Position, c.Root.Position)
 			if s < bestScore then
 				best, bestScore = c, s
 			end
 		elseif c.Kind == "Resident" and c.State == "Alive" and c.ResidentId and not skipped(m, c.Id)
-			and Surface.Zone(c.Root.Position) == m.Zone then
+			and reachable(m, c.Root.Position) then
 			local record = residents:Get(c.ResidentId)
 			if record and record.State == "Alive" then
 				local s = score(m.Root.Position, c.Root.Position)
@@ -465,8 +504,8 @@ local function residentTarget(m: Monster): Target?
 end
 
 local function machineTarget(m: Monster): Target?
-	if m.Zone ~= "Bunker" then
-		return nil -- no machines up in the town
+	if m.Zone ~= "Bunker" or m.Post then
+		return nil -- no machines up in the town or in the caves; guards keep to their post
 	end
 	local best, bestScore = nil, math.huge
 	for _, room in grid:Rooms() do
@@ -484,10 +523,12 @@ local function playerTarget(m: Monster): Target?
 	local t = ai()
 	local best, bestScore = nil, math.huge
 	local runner = m.Spec.Role == "Runner"
-	local aggro = if m.Zone == "Surface" then t.SurfaceAggro else t.ProximityAggro
+	local aggro = if m.Zone == "Surface" then t.SurfaceAggro
+		elseif m.Zone == "Deep" then Config.Get("Tuning", "Deep").DeepAggro
+		else t.ProximityAggro
 	for _, c in combat:All("Survivors") do
 		if c.Kind == "Player" and c.State == "Alive" and c.Player and c.Player:GetAttribute("Life") == "Alive"
-			and not skipped(m, c.Id) and Surface.Zone(c.Root.Position) == m.Zone then
+			and not skipped(m, c.Id) and reachable(m, c.Root.Position) then
 			local hit = (m.Aggro[c.Id] or 0) > os.clock()
 			local s = score(m.Root.Position, c.Root.Position)
 			local near = not runner and s <= aggro
@@ -541,7 +582,7 @@ local function targetPosition(target: Target): Vector3?
 	elseif c.Kind == "Player" and c.Player and c.Player:GetAttribute("Life") ~= "Alive" then
 		return nil
 	end
-	if Surface.Zone(c.Root.Position) ~= Surface.Zone(target.Position) then
+	if Surface.Realm(Surface.Zone(c.Root.Position)) ~= Surface.Realm(Surface.Zone(target.Position)) then
 		return nil -- it rode the elevator away (Prompt 16)
 	end
 	return c.Root.Position
@@ -659,16 +700,53 @@ local function walkSurface(m: Monster, goal: Vector3)
 	setActivity(m, "Walk")
 end
 
+-- Switching between the room graph and PathfindingService starts the plan afresh.
+local function setMode(m: Monster, mode: string)
+	if m.Mode ~= mode then
+		m.Mode = mode
+		m.Points = {}
+		m.Index = 1
+		m.Best = math.huge
+		m.Since = os.clock()
+		m.PlannedAt = 0
+		m.PlannedFor = nil
+	end
+end
+
 local function walk(m: Monster, goal: Vector3)
 	if m.Zone == "Surface" then
+		setMode(m, "Path")
 		walkSurface(m, goal)
 		return
 	end
+	local goalZone = Surface.Zone(goal)
+	local exit = caveExit
+	if m.Zone == "Deep" then
+		-- in a cave (Prompt 17): PathfindingService; a goal in the bunker through the cave's mouth
+		local mouth = if goalZone ~= "Deep" and exit then exit(m.Root.Position) else nil
+		setMode(m, "Path")
+		walkSurface(m, mouth or goal)
+		return
+	end
+	if goalZone == "Deep" and exit then
+		-- in the bunker, after something in a cave: to the cave's mouth, then in
+		local mouth = exit(goal)
+		if mouth then
+			if Vector3.new(mouth.X - m.Root.Position.X, 0, mouth.Z - m.Root.Position.Z).Magnitude < 6 then
+				setMode(m, "Path")
+				walkSurface(m, goal)
+				return
+			end
+			goal = mouth
+		end
+	end
+	setMode(m, "Graph")
 	local goalUnit = unitOf(goal + Vector3.new(0, 1, 0))
 	if m.PlannedFor ~= goalUnit or os.clock() - m.PlannedAt > REPLAN_SECONDS or #m.Points == 0
 		or m.PlannedVersion ~= Hazards.Version() then
+		local chasing = m.Target ~= nil -- a guard walking back to its post has none
 		plan(m, goal)
-		if not m.Target then
+		if chasing and not m.Target then
 			-- rubble cut the target off (plan): wait here and choose again next tick
 			halt(m)
 			setActivity(m, "Idle")
@@ -711,6 +789,9 @@ local function inReach(m: Monster, target: Target, at: Vector3): boolean
 	local reach = if c then c.Reach else 2
 	local flat = Vector3.new(at.X - m.Root.Position.X, 0, at.Z - m.Root.Position.Z).Magnitude
 	local sameFloor = math.abs(floorOf(at) - floorOf(m.Root.Position)) == 0
+	if m.Zone == "Deep" or Surface.Zone(at) == "Deep" then
+		sameFloor = math.abs(at.Y - m.Root.Position.Y) < 7 -- caves are off the grid: a drop's ledge is another floor
+	end
 	local extra = if target.Kind == "Machines" then 4 else 1
 	return sameFloor and flat - reach <= m.Spec.Range + extra
 end
@@ -915,13 +996,50 @@ local function step(m: Monster)
 			return
 		end
 	end
+	local post = m.Post
+	if post and m.Asleep then
+		-- a guard asleep at its post (Prompt 17): a player close by, or a hit, wakes it
+		local woken = false
+		for _, untilAt in m.Aggro do
+			if untilAt > os.clock() then
+				woken = true
+			end
+		end
+		if not woken then
+			for _, c in combat:All("Survivors") do
+				if c.Kind == "Player" and c.State == "Alive" and c.Player and c.Player:GetAttribute("Life") == "Alive"
+					and (c.Root.Position - m.Root.Position).Magnitude <= (m.Guard or 0) and reachable(m, c.Root.Position) then
+					woken = true
+					break
+				end
+			end
+		end
+		if not woken then
+			halt(m)
+			setActivity(m, "Idle")
+			return
+		end
+		m.Asleep = false
+		m.TargetAt = 0
+	end
 	if not m.Target or os.clock() - m.TargetAt > 1 then
 		chooseTarget(m)
 	end
 	local target = m.Target
 	local at = if target then targetPosition(target) else nil
+	if target and at and not reachable(m, at) then
+		target, at = nil, nil -- off its leash
+	end
 	if not target or not at then
 		m.Target = nil
+		if post then
+			-- nothing near its post: back to it, and asleep there
+			if Vector3.new(post.X - m.Root.Position.X, 0, post.Z - m.Root.Position.Z).Magnitude > 4 then
+				walk(m, post)
+				return
+			end
+			m.Asleep = true
+		end
 		halt(m)
 		setActivity(m, "Idle")
 		return

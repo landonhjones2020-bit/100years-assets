@@ -25,8 +25,11 @@
 	* Clear-Rad pills (Section 9): up to PillsMax carried; TakePill (SurfaceService takes one when
 	  radiation reaches PillUseAt).
 	* Monster drops (Section 13: Scrap from monster drops, ore from each band's monsters): a monster's
-	  Drops table is rolled when it dies; a surface kill goes into the pack of the last player who hit
-	  it (only hauled loot counts), a kill in the bunker straight into the stockpile.
+	  Drops table is rolled when it dies; a kill on the surface or in the Deep goes into the pack of
+	  the last player who hit it (only hauled loot counts), a kill in the bunker straight into the
+	  stockpile. A player downed in the Deep drops their pack too (Prompt 17).
+	* Loot specials (Prompt 17): Give hands a Special to the handler its owner set (SetSpecial:
+	  DeepService plays radio logs and pays Glowshard chests); the rest are left over.
 
 	Signals: Unloaded(player, delivered: { [resource]: number }), Delivered(player, kind, given).
 	Dev: pack, pack.add <resource> <n>, pack.clear, pills <n>, find [kind], finds.
@@ -60,9 +63,9 @@ local InventoryService = {
 	Delivered = Signal.new() :: Signal.Signal<Player, string, { Loot.Drop }>,
 }
 
--- Loot nothing hands out yet: gear (Prompt 26), radio logs (Prompt 17), blueprints (19), recruits
--- (18), Glowshards (17), the Lamp (placeables).
-local SKIP: { [string]: boolean } = { Gear = true, RadioLog = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
+-- Loot nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18), the Lamp
+-- (placeables). Radio logs and Glowshards go to their handlers (SetSpecial, Prompt 17).
+local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Lamp = true }
 local HALL_UNLOAD = Vector3.new(15, 0, 1) -- from the Blast Door's Door socket, towards the shaft: far enough from
 -- RIDE UP (at the socket) that one prompt never hides the other (playtest: at 9 studs the elevator won the E press)
 local UNLOAD_RANGE = 8
@@ -98,6 +101,7 @@ local finds: { [string]: Find } = {}
 local carrying: { [Player]: string } = {} -- player -> the find they carry or help with
 local bags: { [string]: Bag } = {}
 local deliveries: { [string]: (Player, string) -> { Loot.Drop } } = {}
+local specials: { [string]: (Player, number) -> number } = {} -- a loot Special -> its handler (how many it took)
 local lastHit: { [string]: Hit } = {}
 local fullWarnedAt: { [Player]: number } = {}
 local counter = 0
@@ -229,6 +233,8 @@ function InventoryService:Give(player: Player, drops: { Loot.Drop }): ({ Loot.Dr
 			if item and item.Kind == "Throwable" then
 				took = weapons:GiveThrowable(player, drop.Item, drop.Count)
 			end
+		elseif drop.Special then
+			took = InventoryService:GiveSpecial(player, drop.Special, drop.Count)
 		end
 		if took > 0 then
 			table.insert(given, { Resource = drop.Resource, Item = drop.Item, Special = drop.Special, Count = took })
@@ -240,6 +246,24 @@ function InventoryService:Give(player: Player, drops: { Loot.Drop }): ({ Loot.Dr
 	packs[player] = pack
 	publish(player)
 	return given, left
+end
+
+-- Loot specials (Prompt 17): who handles a Special, and handing one over (how many were taken).
+function InventoryService:SetSpecial(special: string, fn: ((Player, number) -> number)?)
+	specials[special] = fn
+end
+
+function InventoryService:GiveSpecial(player: Player, special: string, count: number): number
+	local handler = specials[special]
+	if not handler or count <= 0 then
+		return 0
+	end
+	local ok, took = pcall(handler, player, count)
+	if not ok then
+		log:Warn("special %s for %s: %s", special, player.Name, tostring(took))
+		return 0
+	end
+	return math.clamp(math.floor(tonumber(took) or 0), 0, count)
 end
 
 local function packLine(player: Player): string
@@ -376,8 +400,8 @@ local function help(f: Find, player: Player)
 end
 
 local function findName(kind: string): string
-	local entry = Config.Find("LootTables", kind)
-	return if entry then entry.Text else kind
+	local entry = Config.Find("LootTables", kind) or Config.Find("DigResults", kind) -- generator parts; a cryo pod
+	return if entry then entry.Text or entry.Name else kind
 end
 
 local function makeFindModel(kind: string): Model
@@ -730,7 +754,7 @@ local function onMonsterDied(id: string, monsterType: string)
 		return
 	end
 	local drops = Loot.Roll(spec.Drops, rng, { Skip = SKIP })
-	if hit and hit.Zone == "Surface" then
+	if hit and hit.Zone ~= "Bunker" then
 		local player = hit.Player
 		if player and player.Parent == Players and alive(player) then
 			local _, left = InventoryService:Give(player, drops)
@@ -772,7 +796,7 @@ local function onDowned(combatantId: string)
 	end
 	letGo(player, nil)
 	local root = rootOf(player)
-	if root and Surface.Zone(root.Position) == "Surface" and not Modifiers.ClassValue(classOf(player), "KeepBackpackWhenDowned") then
+	if root and Surface.Zone(root.Position) ~= "Bunker" and not Modifiers.ClassValue(classOf(player), "KeepBackpackWhenDowned") then
 		dropBag(player, root.Position)
 	end
 end
@@ -924,7 +948,7 @@ function InventoryService:Start()
 	Players.PlayerRemoving:Connect(function(player: Player)
 		letGo(player, nil)
 		local root = rootOf(player)
-		if root and Surface.Zone(root.Position) == "Surface" then
+		if root and Surface.Zone(root.Position) ~= "Bunker" then
 			dropBag(player, root.Position)
 		end
 		packs[player] = nil

@@ -14,7 +14,9 @@
 	* Rebuilding keeps every place where it was moved in Studio (its current pivot) and leaves
 	  workspace.Surface.Decor alone: Landon's own dressing goes there.
 	* SurfaceService reads the result (markers ElevatorExit, ElevatorCall, SurvivorSpot, BigFindSpot,
-	  SpawnPoint; containers with Container and Location attributes; gates with MinEra).
+	  SpawnPoint, CampSpot; containers with Container and Location attributes; gates with MinEra).
+	* CampSpot (Prompt 17): where the raider camp holding the surface's Lost Crew may stand (one is
+	  picked each run), on open ground, each with a Hint for the radio logs.
 	* The layout is shared with the lobby's clean town (Prompt 21): -Z is north, Main Street runs
 	  along X at Z = 0, the bunker entrance is in the north hill.
 ]]
@@ -79,6 +81,15 @@ local SPAWNS = {
 	{ -285, -196 }, { -285, -60 }, { -285, 80 }, { -285, 205 }, { -120, 212 }, { 60, 212 }, { 220, 208 },
 	{ 288, 120 }, { 288, -100 }, { 252, -196 }, { 100, -196 }, { -90, -196 }, { -200, -60 }, { 110, -125 },
 	{ -70, 112 }, { 170, 112 }, { -250, -165 }, { 240, -40 },
+}
+
+-- The raider camp's possible spots (Prompt 17: the surface's Lost Crew; their spots change each run):
+-- { x, z, yaw, hint }, each clear of the places, wrecks and trees for its 34-stud square.
+local CAMPS = {
+	{ -245, 75, 0, "west of the grocery" },
+	{ 95, 125, 0, "behind the motel, by the rail yard" },
+	{ 230, 115, 0, "south of the military checkpoint" },
+	{ -120, -130, 180, "north of the diner, among the burnt trees" },
 }
 
 -- Builds (or rebuilds) workspace.Surface; returns a summary.
@@ -482,6 +493,11 @@ function BrightwaterMap.Build(): string
 	for _, s in SPAWNS do
 		marker(spawns, "SpawnPoint", W(s[1], 1, s[2]))
 	end
+	for i, c in CAMPS do
+		local m = marker(spawns, "CampSpot", W(c[1], 0, c[2]) * CFrame.Angles(0, math.rad(c[3]), 0))
+		m:SetAttribute("Hint", c[4])
+		m:SetAttribute("Index", i)
+	end
 	if decor then
 		decor.Parent = holder
 	else
@@ -490,8 +506,8 @@ function BrightwaterMap.Build(): string
 		d.Parent = holder
 	end
 	holder.Parent = workspace
-	return string.format("workspace.Surface built: %d places (%d art, %d stand-ins), %d signs lettered, %d containers, %d survivor spots, %d find spots, %d spawn points, %d wrecks",
-		counts.Art + counts.Stand, counts.Art, counts.Stand, counts.Signs, counts.Containers, counts.Survivors, counts.Finds, #SPAWNS, #DECOR)
+	return string.format("workspace.Surface built: %d places (%d art, %d stand-ins), %d signs lettered, %d containers, %d survivor spots, %d find spots, %d spawn points, %d camp spots, %d wrecks",
+		counts.Art + counts.Stand, counts.Art, counts.Stand, counts.Signs, counts.Containers, counts.Survivors, counts.Finds, #SPAWNS, #CAMPS, #DECOR)
 end
 
 return BrightwaterMap

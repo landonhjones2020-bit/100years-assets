@@ -29,8 +29,11 @@
 	  * Nest: monsters pour out at once (ThreatDirector:Burst), it is a breach point while it
 	    lives and raises Disturbance every cycle (NestPerCycle); destroying it (it is a monster
 	    combatant, NestHealth) pays Loot Nest and drops Disturbance by NestDestroyed.
-	  * Hazard pockets (gas and water, Prompt 23) and cryo pods (Era II, Prompt 17) count as
-	    Empty until their systems exist.
+	  * Cryo pod (Era II, Prompt 17): the handler DeepService sets (SetResultHandler) puts a pod in
+	    the cell, a big find to carry home.
+	  * Hazard pockets (gas and water, Prompt 23) count as Empty until their system exists.
+	  A few cells hold a fixed result this run (SetRoll, Prompt 17: the Lost Crews' caves); RunState
+	  DigOverrides carries them so the Driller's hints match.
 	  Nothing is built on a cell with a nest, a cache or a cave opening (BuildService:SetCellCheck).
 	* Disturbance (Section 10): RunState.Disturbance 0 to 100. Digging, explosives
 	  (WeaponService.Exploded, Explosive) and living nests raise it; it falls DecayPerCycle each
@@ -44,7 +47,7 @@
 	Replication: the Digs collection, "S:<floor>,<column>" -> { Floor, Column, Progress, Diggers,
 	Queue, Bay, Vote } for cells being dug or queued, "F:<floor>,<column>" -> { Floor, Column,
 	Kind } for what dug cells hold (CaveOpening, Cache, Nest). RunState Disturbance, DigLimit,
-	DigSeed, TremorAt and Nests.
+	DigSeed, DigOverrides, TremorAt and Nests.
 
 	API:
 		DigService:Disturbance(): number
@@ -53,7 +56,11 @@
 		DigService:Mark(floor, column, on, player?): (boolean, string?)
 		DigService:SetModifier(source, key, value?)      -- DigSpeed, DigDisturbance (team-wide)
 		DigService:Feature(floor, column): string?
+		DigService:SetRoll(floor, column, result?)        -- fix a cell's roll this run (Prompt 17)
+		DigService:SetResultHandler(result, fn?)          -- fn(floor, column, finisher): text (Prompt 17's cryo pods)
+		DigService:OpenCave(floor, column)                -- the cave behind is built: the mouth's stand-in goes
 		DigService.Dug: Signal<number, number, string, string, Player?> -- floor, column, result, cause, who finished it
+		DigService.FeatureAdded: Signal<string, number, number> -- kind, floor, column (Prompt 17 builds caves on it)
 	Dev: digs, dig, dig.roll, dig.mark, disturbance, disturbance.add, tremor, pushdeeper, nest, cache, cave.
 ]]
 
@@ -81,15 +88,18 @@ local DigService = {
 	Name = "DigService",
 	Dependencies = {
 		"BunkerGrid", "CycleClock", "RunDirector", "SessionService", "ReplicationService", "EconomyService", "WeaponService",
-		"CombatService", "VoteService", "BuildService", "BreachService", "ThreatDirector", "DisasterService", "DevService",
+		"CombatService", "VoteService", "BuildService", "BreachService", "ThreatDirector", "DisasterService", "InventoryService",
+		"DevService",
 	},
 	Dug = Signal.new() :: Signal.Signal<number, number, string, string, Player?>,
+	FeatureAdded = Signal.new() :: Signal.Signal<string, number, number>,
 }
 
--- Results whose systems exist; the rest count as Empty (hazard pockets: Prompt 23; cryo pods: 17).
-local AVAILABLE: { [string]: boolean } = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true }
--- Loot specials nothing hands out yet: gear (Prompt 26), radio logs (the Codex), and the rest.
-local SKIP_SPECIALS: { [string]: boolean } = { Gear = true, RadioLog = true, Blueprint = true, Recruit = true, Glowshards = true }
+-- Results whose systems exist; the rest count as Empty (hazard pockets: Prompt 23).
+local AVAILABLE: { [string]: boolean } = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true, CryoPod = true }
+-- Loot specials nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18). Radio logs
+-- go to InventoryService's handler (Prompt 17).
+local SKIP_SPECIALS: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Glowshards = true }
 local CAMERA_IGNORE_TAG = "CameraIgnore"
 local MARK_COLOR = Color3.fromHex("#F2C14E") -- Hazard Yellow
 local FILL_COLOR = Color3.fromHex("#E8743B") -- Signal Orange
@@ -125,6 +135,7 @@ local builds: any = nil
 local breaches: any = nil
 local threat: any = nil
 local disasters: any = nil
+local inventory: any = nil
 local collection: any = nil
 local set: (string, any) -> () = function() end
 
@@ -138,6 +149,8 @@ local seed = 0
 local votesOpen: { [number]: string } = {} -- a band's first floor -> its vote id
 local retryAt: { [number]: number } = {}
 local modifiers: { [string]: { [string]: number } } = {} -- key -> source -> value
+local overrides: Dig.Overrides = {} -- cells whose roll is fixed this run (Prompt 17)
+local resultHandlers: { [string]: (number, number, Player?) -> string } = {}
 local prompts: { [string]: { Part: BasePart, Prompt: ProximityPrompt, Key: string } } = {} -- "<key>|<side>"
 local markers: { [string]: Model } = {}
 local folder: Folder? = nil
@@ -557,6 +570,12 @@ local function giveDrops(drops: { Loot.Drop }, player: Player?, why: string): { 
 			if took > 0 then
 				table.insert(given, { Item = drop.Item, Count = took })
 			end
+		elseif drop.Special and player then
+			-- a radio log plays for the player who found it (InventoryService's handlers, Prompt 17)
+			local took = inventory:GiveSpecial(player, drop.Special, drop.Count)
+			if took > 0 then
+				table.insert(given, { Special = drop.Special, Count = took })
+			end
 		end
 	end
 	return given
@@ -635,12 +654,35 @@ local function addFeature(kind: string, floor: number, column: number): Feature
 		breaches:SetExtraPoint(`N:{key}`, breachPoint(f, "Nest"))
 	end
 	publishFeature(f, key)
+	DigService.FeatureAdded:Fire(kind, floor, column)
 	return f
 end
 
 function DigService:Feature(floor: number, column: number): string?
 	local f = features[Grid.Key(floor, column)]
 	return if f then f.Kind else nil
+end
+
+-- The cave behind a cave opening is built (DeepService): its stand-in mouth goes, the breach point
+-- stays (Section 12: caves stay open, so they are routes monsters take).
+function DigService:OpenCave(floor: number, column: number)
+	local f = features[Grid.Key(floor, column)]
+	if f and f.Kind == "CaveOpening" and f.Model then
+		f.Model:Destroy()
+		f.Model = nil
+	end
+end
+
+-- Fixes what a cell holds this run (nil puts it back to its roll). Prompt 17: the Lost Crews' caves.
+function DigService:SetRoll(floor: number, column: number, result: string?)
+	assert(result == nil or Config.Find("DigResults", result), `DigService:SetRoll: no dig result {tostring(result)}`)
+	overrides[Grid.Key(floor, column)] = result
+	set("DigOverrides", Dig.EncodeOverrides(overrides))
+end
+
+-- What a result does when a cell opens with it, for results another service owns (cryo pods).
+function DigService:SetResultHandler(result: string, fn: ((number, number, Player?) -> string)?)
+	resultHandlers[result] = fn
 end
 
 -- Opening a cell ----------------------------------------------------------------------------------------
@@ -678,6 +720,15 @@ local function applyRoll(result: string, floor: number, column: number, finisher
 		end
 		return "A NEST! MONSTERS POUR OUT · DESTROY IT"
 	end
+	local handler = resultHandlers[result]
+	if handler then
+		local ok, text = pcall(handler, floor, column, finisher)
+		if not ok then
+			log:Warn("%s at %s: %s", result, Grid.Key(floor, column), tostring(text))
+			return ""
+		end
+		return text
+	end
 	return ""
 end
 
@@ -695,7 +746,7 @@ local function open(floor: number, column: number, cause: string, finisher: Play
 	-- Section 10: every dug cell adds Disturbance (the Driller's level 3, Deep Charges)
 	local amount = Dig.Tuning().DisturbancePerCell * classValue(finisher, "DigDisturbance") * teamValue("DigDisturbance")
 	DigService:AddDisturbance(amount, "Digging")
-	local result = Dig.Roll(seed, floor, column, eraNumber(), AVAILABLE)
+	local result = Dig.Roll(seed, floor, column, eraNumber(), AVAILABLE, overrides)
 	local found = applyRoll(result, floor, column, finisher)
 	log:Info("dug %s (%s, %s): %s", key, cause, if finisher then finisher.Name else "-", result)
 	announce(if result == "Nest" then "Danger" else "Info",
@@ -1100,7 +1151,7 @@ local function registerCommands(dev: any)
 			if not floor or not column then
 				return "usage: dig.roll <floor> <column>"
 			end
-			return `{Dig.Roll(seed, floor, column, eraNumber(), AVAILABLE)} (hint {Dig.Hint(seed, floor, column, eraNumber(), AVAILABLE) or "none"})`
+			return `{Dig.Roll(seed, floor, column, eraNumber(), AVAILABLE, overrides)} (hint {Dig.Hint(seed, floor, column, eraNumber(), AVAILABLE, overrides) or "none"})`
 		end,
 	})
 	dev:Register("dig.mark", {
@@ -1188,6 +1239,7 @@ function DigService:Init(registry)
 	breaches = registry.BreachService
 	threat = registry.ThreatDirector
 	disasters = registry.DisasterService
+	inventory = registry.InventoryService
 	collection = registry.ReplicationService:Collection("Digs")
 	set = RunState.Writer("DigService")
 	registerCommands(registry.DevService)
@@ -1200,6 +1252,7 @@ function DigService:Start()
 	set("DigLimit", limit)
 	set("Disturbance", 0)
 	set("Nests", 0)
+	set("DigOverrides", Dig.EncodeOverrides(overrides))
 	grid.Changed:Connect(onGridChanged)
 	clock.CycleStarted:Connect(function(cycle: number)
 		if cycle > 1 then

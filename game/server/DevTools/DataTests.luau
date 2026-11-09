@@ -39,6 +39,7 @@ local Votes = require(Shared.Rules.Votes)
 local Boss = require(Shared.Rules.Boss)
 local Results = require(Shared.Rules.Results)
 local Surface = require(Shared.Rules.Surface)
+local Deep = require(Shared.Rules.Deep)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -2128,6 +2129,165 @@ test("Surface: carrying, spawns, survivors and the map's content (Section 12)", 
 	expect(table.find(Config.Get("Monsters", "AshWraith").Traits, "StormOnly") ~= nil, "wraiths only in storms")
 	local extra = Loot.Roll("Diner", Random.new(3), { ExtraRolls = 2 })
 	expect(#extra >= 1, "extra rolls still roll")
+end)
+
+-- The Deep (Prompt 17) --------------------------------------------------------------------
+
+test("Deep: zones, realms and a cave's mouth (Sections 12 and 23)", function()
+	local d = Deep.Tuning()
+	local cell = Grid.CellPosition(3, 1)
+	expectEqual(Surface.Zone(Vector3.new(cell.X, cell.Y + 3, d.GridBack - 5)), "Deep", "behind the grid's back")
+	expectEqual(Surface.Zone(Vector3.new(cell.X, cell.Y + 3, cell.Z)), "Bunker", "in the cell")
+	expectEqual(Surface.Realm("Deep"), "Underground", "the Deep is underground")
+	expectEqual(Surface.Realm("Bunker"), "Underground", "so is the bunker")
+	expect(Surface.SameRealm(Vector3.new(0, -150, -60), Vector3.new(0, -150, 0)), "a cave and the bunker: one realm")
+	expect(not Surface.SameRealm(Vector3.new(0, 0, 0), Vector3.new(0, -150, 0)), "the town is another")
+	local mouth = Deep.MouthCFrame(3, 1)
+	expectEqual(mouth.Position.Z, cell.Z - Grid.Tuning().CellDepth / 2, "the mouth: the back wall")
+	expectEqual(Surface.Zone(Deep.MouthPoint(3, 1)), "Bunker", "monsters come out into the dug cell")
+	expect(d.GridBack <= Grid.CellPosition(1, 0).Z - Grid.Pitch().Z / 2, "nothing of a cave in front of the grid's back")
+end)
+
+test("Deep: caves are put together from the band's pieces (Section 12)", function()
+	local d = Deep.Tuning()
+	for _, band in { "Mines", "FloodedCaverns" } do
+		expectEqual(#Deep.Pieces(band, "Entry"), 1, `{band}: one mouth`)
+		expectEqual(#Deep.Pieces(band, "CrewPocket"), 1, `{band}: one crew pocket`)
+		local all = 0
+		for _, piece in Config.All("CavePieces") do
+			if piece.Band == band then
+				all += 1
+				expect(piece.Box.Max[3] <= 1.5 and piece.Box.Min[3] < -20, `{piece.Id}: it runs back into the rock`)
+				for _, exit in piece.Exits do
+					expect(exit.P[3] < 0, `{piece.Id}: its exits are inside it`)
+				end
+			end
+		end
+		expectEqual(all, 8, `{band}: 8 pieces at launch (Section 12)`)
+		for seed = 1, 12 do
+			local occupied = {}
+			local plan = Deep.Plan(band, Deep.MouthCFrame(3, (seed % 5) - 2), Random.new(seed * 31), occupied, { Crew = seed % 2 == 0 })
+			expect(#plan.Pieces >= 2, `{band} {seed}: more than the mouth`)
+			expect(#plan.Pieces <= d.CavePieces.Max + 2, `{band} {seed}: not too many`)
+			expectEqual(Config.Get("CavePieces", plan.Pieces[1].Piece).Kind, "Entry", `{band} {seed}: the mouth first`)
+			for i, p in plan.Pieces do
+				if i > 1 then
+					expect(p.Box.Max.Z <= d.GridBack, `{band} {seed}: piece {i} behind the grid`)
+					expect(p.Box.Min.Y >= d.LowestY, `{band} {seed}: piece {i} above the bottom`)
+				end
+				for j, q in plan.Pieces do
+					if j > i then
+						expect(not Deep.Overlaps(p.Box, q.Box, d.Margin), `{band} {seed}: pieces {i} and {j} apart`)
+					end
+				end
+			end
+			if seed % 2 == 0 then
+				expect(plan.Crew, `{band} {seed}: the crew's pocket found a place`)
+			end
+		end
+	end
+	-- two caves side by side keep clear of each other
+	local occupied = {}
+	local a = Deep.Plan("Mines", Deep.MouthCFrame(3, 0), Random.new(5), occupied, { Pieces = 6 })
+	local b = Deep.Plan("Mines", Deep.MouthCFrame(3, 1), Random.new(6), occupied, { Pieces = 6 })
+	for _, p in a.Pieces do
+		for i, q in b.Pieces do
+			if i > 1 then
+				expect(not Deep.Overlaps(p.Box, q.Box, d.Margin), "the second cave keeps clear of the first")
+			end
+		end
+	end
+	-- no room at all: the mouth, and its exit plugged
+	local walled = { { Min = Vector3.new(-1e4, -1e4, -1e4), Max = Vector3.new(1e4, 1e4, d.GridBack) } }
+	local c = Deep.Plan("Mines", Deep.MouthCFrame(2, 0), Random.new(1), walled, {})
+	expectEqual(#c.Pieces, 1, "only the mouth")
+	expectEqual(#c.Plugs, 1, "its exit plugged with rubble")
+end)
+
+test("Deep: finds, cryo pods, crews, hints, drops and guards (Sections 6, 12 and 14)", function()
+	local d = Deep.Tuning()
+	local counts1, counts2, boosted = {}, {}, {}
+	for i = 0, 999 do
+		local roll = (i + 0.5) / 1000
+		local a, b, c = Deep.RollFind(roll, 1, 1), Deep.RollFind(roll, 2, 1), Deep.RollFind(roll, 2, 2)
+		counts1[a] = (counts1[a] or 0) + 1
+		counts2[b] = (counts2[b] or 0) + 1
+		boosted[c] = (boosted[c] or 0) + 1
+	end
+	expectEqual(counts1.CryoPod, nil, "no cryo pods in Era I (Section 6)")
+	expect((counts2.CryoPod or 0) > 0, "cryo pods from Era II")
+	expect((boosted.CryoPod or 0) > (counts2.CryoPod or 0) and (boosted.Cache or 0) > (counts2.Cache or 0), "the Spelunker's FindChance")
+	for _, kind in { "OreVein", "Cache", "RadioLog", "TrappedMiner", "GlowshardChest", "Nothing" } do
+		expect((counts2[kind] or 0) > 0, `{kind} turns up`)
+	end
+	expect((counts2.GlowshardChest or 0) < (counts2.OreVein or 0) / 5, "Glowshard chests are rare")
+	expectEqual(Deep.CryoTier(0), "Legendary", "sometimes Legendary")
+	expectEqual(Deep.CryoTier(0.99), "Rare", "else Rare (Section 6: Rare or Legendary)")
+	local vein, pocket = Config.Get("LootTables", "OreVein").Lines[1], Config.Get("LootTables", "OrePocket").Lines[1]
+	expect(vein.Min >= pocket.Max, "an ore vein is much richer than an ore pocket")
+	-- the crews' cells
+	local function isOpen(floor: number, column: number): boolean
+		return floor <= 2 and math.abs(column) <= 1
+	end
+	for _, band in { "Mines", "FloodedCaverns" } do
+		local floor, column = Deep.CrewCell(1234, band, isOpen)
+		expect(floor ~= nil and column ~= nil, `{band}: a cell for its crew`)
+		local f, col = floor :: number, column :: number
+		local range = d.CrewFloors[band]
+		expect(f >= range.Min and f <= range.Max, `{band}: on its crew floors`)
+		expect(not isOpen(f, col), `{band}: in rock`)
+		expectEqual({ Deep.CrewCell(1234, band, isOpen) }, { f, col }, `{band}: the same for one seed`)
+	end
+	local f1, c1 = Deep.CrewCell(1, "Mines", isOpen)
+	local moved = false
+	for seed = 2, 20 do
+		local f2, c2 = Deep.CrewCell(seed, "Mines", isOpen)
+		if f2 ~= f1 or c2 ~= c1 then
+			moved = true
+		end
+	end
+	expect(moved, "the crew's spot changes from run to run (Section 12)")
+	expectEqual(Deep.Hint(3, -2), "the Mines, floor 3, two cells west of the shaft", "a hint in words")
+	expectEqual(Deep.Hint(5, 0), "the Flooded Caverns, floor 5, under the shaft", "under the shaft")
+	-- drops and light
+	expectEqual(Deep.FallDamage(d.FallDamageFrom, false), 0, "a short drop doesn't hurt")
+	expectEqual(Deep.FallDamage(d.FallDamageFrom + 5, false), 5 * d.FallDamagePerStud, "past it, by the stud")
+	expectEqual(Deep.FallDamage(1000, false), d.FallDamageMax, "capped")
+	expectEqual(Deep.FallDamage(1000, true), 0, "the Spelunker's NoFallDamage")
+	expectEqual(Deep.LightRange(2), d.LightRange * 2, "the Spelunker's double light radius")
+	-- guards
+	local function all(_id: string): boolean
+		return true
+	end
+	local function minesOnly(id: string): boolean
+		return table.find(Config.Get("Monsters", id).Where, "Mines") ~= nil
+	end
+	expect(table.find(Deep.Roster("Mines", all), "BurrowTick") ~= nil, "the Mines' own monsters guard its caves")
+	for _, id in Deep.Roster("FloodedCaverns", minesOnly) do
+		expect(table.find(Config.Get("Monsters", id).Where, "Mines") ~= nil, "until the Flooded monsters arrive, the Mines' guard the Flooded caves")
+	end
+	expect(#Deep.Roster("FloodedCaverns", all) > 0, "the Flooded Caverns have their own")
+	-- the Lost Crews' caves: a fixed roll, and the Driller sees it
+	local overrides = Dig.DecodeOverrides(Dig.EncodeOverrides({ ["3,-2"] = "CaveOpening", ["5,4"] = "CaveOpening" }))
+	expectEqual(overrides, { ["3,-2"] = "CaveOpening", ["5,4"] = "CaveOpening" }, "overrides go through RunState and back")
+	local available = { Empty = true, OrePocket = true, CaveOpening = true }
+	expectEqual(Dig.Roll(9, 3, -2, 1, available, overrides), "CaveOpening", "a crew's cell is a cave")
+	expectEqual(Dig.Hint(9, 3, -2, 1, available, overrides), "CaveOpening", "the Driller sees the cave")
+	expectEqual(Dig.Roll(9, 3, -2, 1, { Empty = true }, overrides), "Empty", "not while caves can't open")
+	expectEqual(Dig.DecodeOverrides(nil), {}, "none")
+	-- radio logs
+	local hints = 0
+	for _, id in Config.Ids("RadioLogs") do
+		local entry = Config.Get("RadioLogs", id)
+		expect(#entry.Text > 40, `{id} says something`)
+		if entry.Hint == "Crew" then
+			hints += 1
+		end
+	end
+	expect(hints >= 3, "enough crew logs to point at every crew")
+	expect(d.HintChance > 0 and d.HintChance < 1, "crew logs and story logs both turn up")
+	expect(Config.Get("Rooms", "CryoBay").Unlock.Kind == "CryoPod", "the Cryo Bay unlocks with a cryo pod (Section 6)")
+	expectEqual(Config.Get("Rooms", "CryoBay").Output.Kind, "Thawing", "the Cryo Bay thaws")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

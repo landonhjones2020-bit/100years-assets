@@ -93,6 +93,8 @@ return {
 		},
 		-- Big finds (Prompt 16): carried home with both hands (Section 12); what they give is ours (a Bible Question)
 		GeneratorParts = { Text = "Generator parts", Rolls = 2, Lines = { r("Scrap", 50, 90, 3), r("Iron", 5, 10, 2) } },
+		-- Prompt 17: an ore vein in a cave (Section 12: much richer than digging alone; ore pockets give 8 to 15)
+		OreVein = { Text = "An ore vein in the Deep", Rolls = 1, Lines = { s("BandOre", 20, 35, 1) } },
 
 		-- Expeditions (per cycle away)
 		ExpeditionSurface = {
