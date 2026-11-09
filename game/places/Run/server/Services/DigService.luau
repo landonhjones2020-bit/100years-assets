@@ -598,7 +598,8 @@ local function addFeature(kind: string, floor: number, column: number): Feature
 		f.Model = placeModel(f, art("Kit", "Kit_CaveMouth"), CFrame.new(0, 0, depth / 2 - 2))
 		breaches:SetExtraPoint(`O:{key}`, breachPoint(f, "Cave"))
 	elseif kind == "Cache" then
-		local model = placeModel(f, art("Props", "Prop_SupplyCrate"), CFrame.new(5, 0, 4) * CFrame.Angles(0, math.rad(18), 0))
+		-- towards the back and to the right, clear of the dug cells' dressing (the Mines' ore cart)
+		local model = placeModel(f, art("Props", "Prop_SupplyCrate"), CFrame.new(-6, 0, 5) * CFrame.Angles(0, math.rad(-18), 0))
 		f.Model = model
 		local _, size = model:GetBoundingBox()
 		local spot = Instance.new("Part")
@@ -626,8 +627,9 @@ local function addFeature(kind: string, floor: number, column: number): Feature
 	elseif kind == "Nest" then
 		local model = placeModel(f, art("Props", "Prop_Nest"), CFrame.new(0, 0, 8))
 		f.Model = model
+		-- an ordinary monster id (M<n>): FireWeapon only takes those as hits
 		local id = combat:Register(model, {
-			Kind = "Monster", Team = "Monsters", Health = Dig.Tuning().NestHealth, MonsterType = "Nest", Id = `NEST{key}`,
+			Kind = "Monster", Team = "Monsters", Health = Dig.Tuning().NestHealth, MonsterType = "Nest",
 		})
 		f.CombatId = id
 		breaches:SetExtraPoint(`N:{key}`, breachPoint(f, "Nest"))
@@ -1203,8 +1205,16 @@ function DigService:Start()
 		end
 	end)
 	local lastHit: { [string]: string } = {} -- a nest's combatant id -> who hit it last
+	local function isNest(id: string): boolean
+		for _, f in features do
+			if f.CombatId == id then
+				return true
+			end
+		end
+		return false
+	end
 	combat.Damaged:Connect(function(id: string, _amount: number, source: string?)
-		if source and string.sub(id, 1, 4) == "NEST" then
+		if source and isNest(id) then
 			lastHit[id] = source
 		end
 	end)

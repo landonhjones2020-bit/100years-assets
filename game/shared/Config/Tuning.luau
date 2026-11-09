@@ -264,8 +264,8 @@ return {
 			-- Prompt 14, prov. A Drill or a Pickaxe digs; a dig prompt answers within PromptReach. A Drill
 			-- Bay digs the queue at ResidentDigMultiplier of a player's speed for each unit of its crew's
 			-- output (two average workers are one unit). A dug cell's passage caves in CaveInChance of the
-			-- time (Section 10: digging causes cave-ins). A nest: NestHealth, NestBudget of the threat
-			-- level in monsters pouring out when it opens, NestPerCycle Disturbance each cycle it lives
+			-- time (Section 10: digging causes cave-ins). A nest: NestHealth, NestBudget of a normal
+			-- Surge's budget in monsters pouring out when it opens, NestPerCycle Disturbance each cycle it lives
 			-- (Section 10: nests left alive raise it). A cache opens after CacheOpenSeconds of holding
 			-- Interact. A failed Push Deeper vote can be asked again after VoteRetrySeconds.
 			Tools = { "Drill", "Pickaxe" }, PromptReach = 8, TickSeconds = 0.25, CaveInChance = 0.05,

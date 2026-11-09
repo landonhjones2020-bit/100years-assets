@@ -182,9 +182,11 @@ function ThreatDirector:Tremor(): number
 end
 
 -- Monsters all at once at one spot, no warning (Prompt 14: a nest pours its monsters out when it is
--- dug open): `fraction` of the threat level, bought like any group.
+-- dug open): `fraction` of what a normal Surge would spend now (so the first run's Era I is
+-- easier here too), bought like any group.
 function ThreatDirector:Burst(fraction: number, at: CFrame, tag: string): number
-	local groups = Threat.Groups(ThreatDirector:Level() * fraction, Threat.Roster(clock:Era()), rng)
+	local budget = Threat.SurgeBudget(ThreatDirector:Level(), "Normal", firstRunEraI()) * fraction
+	local groups = Threat.Groups(budget, Threat.Roster(clock:Era()), rng)
 	local n = 0
 	for _, group in groups do
 		for _ = 1, group.Count do
