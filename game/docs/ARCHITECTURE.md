@@ -1149,3 +1149,10 @@ ClassShop, Account, Lobby).
   camp and the surface crew in SurfaceService; DigService's fixed rolls and FeatureAdded;
   InventoryService's loot specials; the Deep's lighting; art: A6 (16 cave pieces, the cryo pod,
   the radio log recorder, two ore veins, the Glowshard chest, the raider camp).
+* **Prompt 18 (2026-11-09)**: resident expeditions and distress calls (Run). Rules.Expeditions,
+  ExpeditionService (the consoles, sending, cycles away, finds, harm and losses, coming home,
+  distress calls, the Radio Room's recruits and crew calls), ExpeditionsController (the
+  Expeditions screen, distress markers and edge arrows), Config.ExpeditionLogs; residents Away
+  (ResidentService, ResidentBrain), residents already in the run as rescues (RescueService),
+  distress spots (SurfaceService, DeepService), the Residents screen's AWAY tab, expedition
+  stories in the results; HUD.Templates.Distress.

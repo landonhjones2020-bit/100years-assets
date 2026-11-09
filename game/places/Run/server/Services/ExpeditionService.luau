@@ -444,7 +444,9 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 	local candidates = {}
 	for _, id in memberIds do
 		local resident = residents:Get(id)
-		if seen[id] or not resident then
+		if not resident then
+			return nil, "That resident isn't in the bunker."
+		elseif seen[id] then
 			return nil, "Pick each resident once."
 		end
 		seen[id] = true
@@ -666,7 +668,7 @@ local function call(e: Expedition)
 	for _, player in session:ReadyPlayers() do
 		Remotes.FireClient("RadioLog", player, "Distress call", `{caller.Name}, {destinationText(e)} expedition`, message, where)
 	end
-	alertAll("Danger", `DISTRESS CALL: {string.upper(names)} {if #pinned == 1 then "IS" else "ARE"} PINNED DOWN AT {string.upper(where)}: REACH THEM BEFORE TOMORROW'S SURGE`)
+	alertAll("Danger", `DISTRESS CALL FROM {string.upper(where)}: REACH THEM BEFORE TOMORROW'S SURGE`)
 	log:Info("%s radioed for help from %s (deadline: cycle %d's day)", e.Id, where, e.Deadline :: number)
 	publish(e)
 	ExpeditionService.Distress:Fire(e.Id, where)

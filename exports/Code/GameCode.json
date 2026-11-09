@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T21:48:33Z",
- "commit": "9b83031aba7f3cfa718b36e76f6a8b8995fb8934",
- "label": "p18-9b83031",
+ "built": "2026-11-09T21:55:03Z",
+ "commit": "0b8b6611e290c08502c3c2eba82eae307b14e161",
+ "label": "p18-0b8b661",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -974,7 +974,7 @@
    "ServerScriptService.Services.DeepService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DeepService.luau",
-    "Hash": "5ad594b0"
+    "Hash": "c08ee859"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
@@ -999,7 +999,7 @@
    "ServerScriptService.Services.ExpeditionService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ExpeditionService.luau",
-    "Hash": "5e3bac6e"
+    "Hash": "5f22a976"
    },
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
