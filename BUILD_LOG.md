@@ -27,8 +27,10 @@ Newest first. Every "verified" line says how it was checked.
 | Landon's answers to the Prompt 11 questions; the crooked aim | ✅ built 2026-11-08 | A Run playtest (a Medkit heal, a Frag throw, the Medbay's Medkits), the aim measured in Studio (about 3.5° at the hip); addendum in `game/reports/P11_Combat.md` |
 | Prompt 12: threats and monsters (Run) | ✅ done 2026-11-08 | Run playtests: breach warnings, monsters from vents and the rock edge, rooms smashed, ticks latching, residents fleeing, a cleared Tutorial Surge ending early, a player killing a monster; Lobby start check; `game/reports/P12_Threats.md`, `previews/Game/P12_*.jpg` |
 | Landon's answers to the Prompt 12 questions | ✅ built 2026-11-08 (the meltdown goes to Prompt 13) | Every rock-edge tunnel a breach point (Run playtest, floors 1 to 4); throwables in loot tables with a data test; the bible updated (live doc rev 128); addendum in `game/reports/P12_Threats.md` |
+| Prompt 13: disasters and repairs (Run) | ✅ done 2026-11-09 | Run playtests with real keys, clicks and holds: fires put out by residents, the Extinguisher and a Foam Grenade, spreading; blackouts and the fuse box; cave-ins dug, smashed, trapping a resident, cutting off a monster; the meltdown stopped by three valves and lost when left; the Welder's repairs and an electrical surge welded; a Surge's disaster bought from its budget; Command View statuses; Lobby start check; `game/reports/P13_Disasters.md`, `previews/Game/P13_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
-| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the rest of the class kits to come |
+| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the rest of the class kits to come |
+| Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | A3, A5 to A11 | not started | |
 
 ## Ids
@@ -46,13 +48,49 @@ Newest first. Every "verified" line says how it was checked.
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Weapon_PocketPistol | model 132352458683098 (revision 2: the v2 grip) |
 | Weapon_Wrench | model 73400938739387 |
-| UI atlas: items | decal 77379333015803, image 99859624879456 |
+| UI atlas: items | decal 116109976139787, image 99377896545998 (Prompt 13: four icons; before it decal 77379333015803, image 99859624879456) |
+| Tool_Extinguisher | model 76126163117722 (revision 2: 0.8 scale) |
+| Tool_Welder | model 128082564413732 |
+| Kit_Rubble_Doorway, Kit_Rubble_Tunnel | models 122746670882128, 120681518972920 |
 | Player combat clips (11) | `manifest.csv`, rows `R15_GunHold` to `R15_Revive` |
 | Mines monsters (rigs, revision 2 after the detail pass) | Burrow Tick 90784985441642, Tunnel Hound 111045663637462, Spitter Grub 70536165729662, Hollow Miner 83503998043819; their clips in `manifest.csv` and `Config.Animations` |
 | Boss_BroodMother | model 132844909378352; clips Idle 116082078619476, Walk 105510410741576, Attack 87449889032585, Roar 104063099850529, LayEggs 125795678354746, Stagger 121846906504911, Death 115302160037147 |
 | Boss_BroodMother_EggSac | model 98283751054755 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 13, disasters and repairs; the Extinguisher, the Welder and rubble
+
+Game code builds `p13-a760abc` to `p13-7d05592` (final): code asset 95026446991297 revision 46,
+installed in Run and Lobby: StructureCheck 0 errors (Run 394 checks, Lobby 236), 90 data tests
+passed in each. The Lobby starts cleanly with it.
+
+**Done**
+* Prompt 13: Rules.Disasters and Rules.Modifiers, DisasterService (fires, blackouts and the fuse
+  box, cave-ins with Lib.Hazards, the Reactor meltdown with Landon's valve rules, electrical
+  surges, the Surge's one disaster), DisasterController, wrecked rooms and repairs (the Welder,
+  residents), trapped residents, monsters skipping blocked targets. Report:
+  `game/reports/P13_Disasters.md` (six Bible Questions).
+* A destroyed Reactor Core now starts the 60-second meltdown instead of losing at once
+  (Landon's Prompt 12 answer).
+* Art: `Tool_Extinguisher` (v2 at 0.8 scale after the playtest: v1's tank reached the floor on
+  Landon's avatar), `Tool_Welder` (the Pocket Pistol's raked grip), `Kit_Rubble_Doorway`,
+  `Kit_Rubble_Tunnel`, and their hotbar icons in a new items atlas.
+* Fixes from the playtests: disasters keep running while the dev clock is paused; the Welder's
+  HP bar at eye height; bigger flames and smoke; no respawn into a burning Medbay; a filled
+  tunnel's rubble stays inside the tunnel (it spilled 7 studs into the Medbay,
+  `previews/Game/P13_Rubble_Tunnel_v1_spill.jpg`); weapon icons centre on the model.
+
+**Verified in Studio**: see the testing checklist in `game/reports/P13_Disasters.md`. Captures:
+`previews/Game/P13_*.jpg`.
+
+**Open**
+* Landon's answers to the six Prompt 13 Bible Questions (blackouts ending on their own, fire and
+  the Shaft, the repaired threshold, a Surge's disaster kinds, rubble numbers, electrical
+  surges).
+* Not seen: the billboard plates on screen (Studio's captures leave billboards out, even a plain
+  test one), two real players on the valves, phones with several fires.
+* The Drill and Pickaxe have no models or icons yet (Prompt 14 is a good time).
 
 ## 2026-11-08 (night): Prompt 12, threats and monsters; the A4 detail pass and the Brood Mother
 

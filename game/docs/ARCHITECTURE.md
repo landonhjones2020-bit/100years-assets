@@ -485,7 +485,9 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
     `MaxBreachPointsPerSurge` breach points, tagged `Surge:<cycle>`;
   * between Surges (the day, from cycle 2): single monsters when the trickle budget allows;
   * ends the Surge early (`CycleClock:EndSurge()`) once every wave is out, none of its monsters
-    is left and no disaster runs (`SetDisasterCheck`, for Prompt 13);
+    is left and no disaster holds it (`DisasterService:HoldsSurge`; `SetDisasterCheck` for tests);
+  * pays for a Normal or Endless Surge's one disaster first (`DisasterService:SurgeDisaster`),
+    and from the second day rolls a daily electrical surge (Prompt 13);
   * `ExtraBreach` and `Tremor` for Disturbance (Prompt 14); `RunState.Threat` and
     `RunState.Monsters` every second.
 * `BreachService` owns breach points: room vents `V:<roomId>` (not the Shaft or the Blast Door;
@@ -502,8 +504,9 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
     machines, players who hit it, any player within `ProximityAggro` except Runners), walks the
     PathGraph (a stuck monster is moved on), attacks after a windup (the model's `HitTime`
     attribute, written from the generator's meta), damages rooms through `BunkerGrid:SetHP`
-    (`RoomDamageMultiplier`, Brutes `SmashMultiplier`; the Reactor Core at 0 HP ends the run
-    until Prompt 13 turns that into the 60-second meltdown Landon chose),
+    (`RoomDamageMultiplier`, Brutes `SmashMultiplier`; a Reactor Core at 0 HP starts
+    DisasterService's meltdown, Prompt 13), skips a target that rubble cuts off for a while
+    (`Skip`) and plans again when `Lib.Hazards` changes,
     spits goo (`SlowedUntil`), latches ticks (a weld, bites every `AttackSeconds` ×
     `LatchIntervalMultiplier`), and obeys `StunnedUntil`.
   * Signals `Spawned` and `Died`; dev commands `monster`, `monsters`, `monsters.clear`.
@@ -518,6 +521,68 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
   `ServerStorage.Assets.Bosses` has a `Belly` part with Role `WeakPoint` (raycasts hit it),
   sockets `Ovipositor`, `Maw` and `Slam`, `HitTime` 0.8 and `LayTime` 1.4, and seven clips in
   `Config.Animations` (Rig `BroodMother`); `Boss_BroodMother_EggSac` is what she lays.
+
+## Disasters and repairs (Run place)
+
+Bible Section 10, with Sections 5, 6 and 11 (Prompt 13). `Shared.Rules.Disasters` is pure: fire
+growth, damage and spread targets (doorways on one floor; `Fireproof` rooms such as the Shaft
+never burn), the Surge's pick (`SurgeWeight` disasters of the era and before that the budget
+pays for), blackout floors and units, the valves (`ValveTurned`, `ValveReleased`, `ValvesOn`,
+`MeltdownStopped`; solo players' turns last `SoloValveSeconds`, a team's while held), rubble HP,
+dig times, damage and the passages it blocks, electrical surge odds and aftermath, repair rates.
+The numbers are `Config.Disasters` and `Tuning.Disasters` / `Tuning.Repairs` (provisional).
+`Shared.Rules.Modifiers.ClassValue(class, key, level?)` folds a class's passive modifiers
+(ExtinguishSpeed, FireFloodDamageTaken, RepairSpeed; level 2 and 3 effects with Prompt 20).
+
+* `DisasterService` owns every disaster and the `Disasters` collection (ids `F:<room>` fire,
+  `B:<n>` blackout, `C:<n>` rubble, `M:<n>` meltdown, `S:<room>` electrical surge), RunState
+  `Fires`, `BlackoutRooms`, `Rubble`, `Meltdown`, `MeltdownEndsAt`, `ValvesTurned`, and
+  `workspace.Bunker.Disasters` (the fuse box, the valves, the rubble). It ticks every
+  `TickSeconds` while the run is playing (also with the dev clock paused):
+  * fires grow, burn rooms (`BunkerGrid:SetHP`), players (CombatService, the Firefighter a
+    quarter) and residents, spread every `SpreadSeconds` (`SetModifier(source, "FireSpread",
+    x)`), and go out under residents (ResidentBrain's Extinguish activity), the Extinguisher
+    (`WeaponService.ToolTick`, the Firefighter 3x) and Foam Grenades (`WeaponService.Foamed`);
+  * blackouts darken units through `PowerService:SetBlackout` until the fuse box in the Reactor
+    Core is held for `FuseSeconds` or `DurationSeconds` pass (`BlackoutDuration` modifiers);
+  * `CaveIn(floor, column, side?, cause)` drops rubble in a doorway or fills a dug cell: it
+    blocks graph edges in `Lib.Hazards` (PathGraph routes round them or answers Blocked), hurts
+    whoever is under it, shows `Kit_Rubble_Doorway` or `Kit_Rubble_Tunnel` (by the face's
+    width; a filled tunnel's piles sit inside the tunnel) over an invisible block, and goes when
+    a Drill or Pickaxe holder digs through (one hold) or melee smashes it (`WeaponService.Swung`;
+    BreaksRubble weapons 3x); the pile sinks as it is hit;
+  * a Reactor Core wrecked (`BunkerGrid.Wrecked`) starts the meltdown (`StartMeltdown`): a fire
+    in the Reactor, the valves' prompts, `TimerSeconds` to turn all three; it ends Fixed, or
+    Lost (`RunDirector:Lose("ReactorDestroyed")`);
+  * electrical surges damage a room's machines until it is welded (`BuildService.Repaired`) or
+    they expire into a fire or a floor blackout;
+  * `SurgeDisaster(budget, rng)` buys the Surge's one disaster (started `SurgeDelaySeconds` in);
+    `HoldsSurge()` keeps the Surge open while it, any fire or a meltdown is on.
+  * Signals `Started` and `Ended`; dev commands `disasters`, `fire`, `fire.out`, `blackout`,
+    `blackout.end`, `cavein`, `rubble.clear`, `meltdown`, `meltdown.stop`, `valve`, `esurge`,
+    `disaster.surge`.
+* Wrecked rooms (`Rules.Bunker`): a room at 0 HP is `Wrecked` (no output, power made or drawn,
+  crew or machine target) until it is back to `RepairedAt` (25%) of its HP. `BunkerGrid` fires
+  `Wrecked` and `Repaired` and applies HP modifiers (`SetHPModifier`, Reinforced Walls).
+* Repairs (`BuildService`): the Welder held (`UseTool`) repairs the first damaged room ahead
+  within `WelderReach` (`RepairSpeed`: the Engineer 2x); residents at work repair their own room
+  by Smarts; `Repair(roomId, amount, how, player?)` and the `Repaired` signal; wreck and works
+  again alerts; dev `repairs`, `repair`.
+* `ResidentService:SetTrapped` and ResidentBrain: a resident whose route is Blocked waits,
+  trapped (out of the crew), until the rubble goes; residents fight a fire where they stand
+  until hurt below `ResidentFleeHealth`, then keep out of burning rooms.
+* `WeaponService`: tools (`Kind = "Tool"`) are used by holding Fire (`UseTool` true/false); it
+  fires `ToolTick` every `ToolTickSeconds` and sets the `ToolInUse` attribute; `Swung` for melee
+  landings, `Foamed` for Foam Grenade bursts, `Items(player)`.
+* `DisasterController` (client): flames, smoke, embers and light per burning cell, steam, surge
+  sparks, the meltdown's alarm light, rubble dust, the tools' foam and sparks from the held
+  model's Muzzle, the Welder's room HP bar, the HUD's Meltdown telegram and valve plates, the dig
+  prompt shown only to Drill and Pickaxe holders, statuses and blinking in the Command View and
+  on the mini-map (`CommandViewController:SetStatus`, `SetConditionNote`), and the named sounds
+  once Prompt 32 adds them.
+* Art: `Tool_Extinguisher` and `Tool_Welder` in `ServerStorage.Assets.Weapons` (Grip and Muzzle
+  sockets), `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` in `ServerStorage.Assets.Kit`, their
+  icons in the items atlas.
 
 ## Saved data
 
@@ -635,16 +700,17 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
 | Run | PingService | service | SessionService, DevService | cell pings (PingCell in, CellPinged out to every ready player) |
 | Run | EconomyService | service | BunkerGrid, CycleClock, SessionService, ReplicationService, DevService | the stockpile (amounts, caps, spending, research), production, food and water, bunker-wide output modifiers |
-| Run | PowerService | service | BunkerGrid, EconomyService, SessionService, ReplicationService, DevService | the power balance, dark rooms (lights, fittings, alerts) |
+| Run | PowerService | service | BunkerGrid, EconomyService, SessionService, ReplicationService, DevService | the power balance, dark rooms (lights, fittings, alerts), blackouts' dark units |
 | Run | ResidentService | service | BunkerGrid, EconomyService, PowerService, CycleClock, RunDirector, SessionService, ReplicationService, DevService | residents: records, jobs, needs, levels, death |
 | Run | ResidentBrain | service | ResidentService, BunkerGrid, CycleClock, DevService | residents' bodies, routines, walking (Lib.PathGraph) |
 | Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
-| Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks |
+| Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, WeaponService, CombatService, ResidentService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks, repairs (the Welder, residents) |
 | Run | CombatService | service | SessionService, BunkerGrid, PowerService, ResidentService, DevService | everyone who can be hurt: combatants, history, damage, down, revive, death, respawn |
 | Run | WeaponService | service | CombatService, EconomyService, BunkerGrid, SessionService, DevService | loadouts, the hotbar, held items, shots and their checks, reloads, melee, dodge, sprint, stamina, restocking |
 | Run | MonsterService | service | CombatService, BunkerGrid, ResidentService, RunDirector, DevService | monsters: spawning, the cap and queue, the AI, attacks, room damage, goo, latching, stuns |
 | Run | BreachService | service | BunkerGrid, PowerService, MonsterService, SessionService, ReplicationService, DevService | breach points, warnings, the Breaches collection, spawning at a breach |
-| Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DevService | the threat level, Surge waves, the trickle, ending a cleared Surge, RunState Threat and Monsters |
+| Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
+| Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, RunState Threat and Monsters |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -658,6 +724,7 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
+| Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -729,3 +796,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   detailed monsters, scary bosses): the four monsters rebuilt (the Tunnel Hound gained a Jaw
   bone, the Spitter Grub four mouth petals), the Brood Mother with seven clips and her egg sac,
   generator meta written as model attributes.
+* **Prompt 13 (2026-11-08 and 9)**: disasters and repairs (Run). Rules.Disasters,
+  Rules.Modifiers, DisasterService (fires, blackouts and the fuse box, cave-ins with
+  Lib.Hazards, the Reactor meltdown and its valves, electrical surges, the Surge's disaster),
+  DisasterController, wrecked rooms and repairs (the Welder, residents), trapped residents,
+  monsters skipping blocked targets, tools in WeaponService, the HUD's Meltdown telegram; art:
+  the Extinguisher, the Welder, doorway and tunnel rubble and two hotbar icons.
