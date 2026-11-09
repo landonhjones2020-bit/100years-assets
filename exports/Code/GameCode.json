@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T18:18:44Z",
- "commit": "effb6c4a3d375c370a7c7834c7e59b83390a2348",
- "label": "p16-effb6c4",
+ "built": "2026-11-09T18:24:49Z",
+ "commit": "d266b5e7dcc8c01034d62d5dc3900699f16bc949",
+ "label": "p16-d266b5e",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -367,12 +367,17 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "e1ac74cd"
+    "Hash": "7170ec5c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
     "Hash": "d7d9c847"
+   },
+   "ServerScriptService.Lib.BrightwaterMap": {
+    "Class": "ModuleScript",
+    "From": "game/server/Lib/BrightwaterMap.luau",
+    "Hash": "98a70efd"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -854,12 +859,17 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "e1ac74cd"
+    "Hash": "7170ec5c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
     "Hash": "d7d9c847"
+   },
+   "ServerScriptService.Lib.BrightwaterMap": {
+    "Class": "ModuleScript",
+    "From": "game/server/Lib/BrightwaterMap.luau",
+    "Hash": "98a70efd"
    },
    "ServerScriptService.Lib.BunkerKit": {
     "Class": "ModuleScript",
@@ -969,7 +979,7 @@
    "ServerScriptService.Services.RescueService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/RescueService.luau",
-    "Hash": "ac79ec8e"
+    "Hash": "b2e83c55"
    },
    "ServerScriptService.Services.ResidentBrain": {
     "Class": "ModuleScript",
@@ -1104,7 +1114,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.SurfaceController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/SurfaceController.luau",
-    "Hash": "e10cdbb4"
+    "Hash": "438fa120"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ThreatController": {
     "Class": "ModuleScript",

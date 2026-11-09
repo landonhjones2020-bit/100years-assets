@@ -58,13 +58,13 @@ local PRESETS: { [string]: Preset } = {
 			Density = 0.42, Offset = 0.16, Color = Color3.fromRGB(204, 166, 134), Decay = Color3.fromRGB(128, 92, 72), Glare = 0.1, Haze = 2.6,
 		},
 	},
-	Storm = {
+	Storm = { -- playtest: darker than this read as night; the storm is a brown-grey murk you can still see in
 		Lighting = {
-			ClockTime = 17.4, Brightness = 0.9, Ambient = Color3.fromRGB(62, 56, 54), OutdoorAmbient = Color3.fromRGB(90, 80, 76),
-			ExposureCompensation = -0.2, EnvironmentDiffuseScale = 0.4, EnvironmentSpecularScale = 0.3,
+			ClockTime = 16.2, Brightness = 1.4, Ambient = Color3.fromRGB(98, 90, 86), OutdoorAmbient = Color3.fromRGB(132, 120, 112),
+			ExposureCompensation = 0, EnvironmentDiffuseScale = 0.45, EnvironmentSpecularScale = 0.3,
 		},
 		Atmosphere = {
-			Density = 0.6, Offset = 0.28, Color = Color3.fromRGB(122, 106, 96), Decay = Color3.fromRGB(72, 60, 56), Glare = 0, Haze = 3,
+			Density = 0.5, Offset = 0.2, Color = Color3.fromRGB(152, 134, 120), Decay = Color3.fromRGB(106, 90, 82), Glare = 0, Haze = 2.8,
 		},
 	},
 }
@@ -159,7 +159,7 @@ local function refreshLighting(seconds: number)
 	if grade then
 		-- the Ash's grade (Section 19: an ashy orange-grey surface): warm, washed out; greyer in a storm
 		local name = wanted()
-		local props = if name == "Storm" then { TintColor = Color3.fromRGB(226, 214, 204), Saturation = -0.35, Contrast = 0.08, Brightness = -0.02 }
+		local props = if name == "Storm" then { TintColor = Color3.fromRGB(236, 226, 216), Saturation = -0.3, Contrast = 0.06, Brightness = 0.02 }
 			elseif name == "Surface" then { TintColor = Color3.fromRGB(255, 232, 210), Saturation = -0.22, Contrast = 0.05, Brightness = 0 }
 			else { TintColor = Color3.new(1, 1, 1), Saturation = 0, Contrast = 0, Brightness = 0 }
 		local g = grade :: ColorCorrectionEffect
@@ -334,6 +334,8 @@ end
 -- Prompts ---------------------------------------------------------------------------------------
 
 local gated: { [ProximityPrompt]: boolean } = {}
+local stations: { [ProximityPrompt]: boolean } = {} -- Elevator and Unload prompts
+local atStation = false -- an Elevator or Unload prompt is in reach: PUT DOWN steps aside for it
 
 local function gate(prompt: ProximityPrompt)
 	local kind = prompt:GetAttribute("Kind")
@@ -344,7 +346,9 @@ local function gate(prompt: ProximityPrompt)
 	elseif kind == "HelpCarry" then
 		prompt.Enabled = by ~= nil and by ~= player.UserId and not busy
 	elseif kind == "PutDown" then
-		prompt.Enabled = by == player.UserId
+		-- the carried find's PUT DOWN is always the nearest prompt: by the elevator or a drop-off it
+		-- steps aside, so RIDE and UNLOAD (which delivers the find) can be pressed
+		prompt.Enabled = by == player.UserId and not atStation
 	elseif kind == "Unload" then
 		local used = player:GetAttribute("PackUsed")
 		prompt.Enabled = (type(used) == "number" and used > 0) or busy
@@ -366,6 +370,14 @@ local function watchPrompt(instance: Instance)
 		return
 	end
 	local kind = instance:GetAttribute("Kind")
+	if kind == "Elevator" or kind == "Unload" then
+		stations[instance] = true
+		instance.AncestryChanged:Connect(function()
+			if not instance.Parent then
+				stations[instance] = nil
+			end
+		end)
+	end
 	if kind ~= "Carry" and kind ~= "HelpCarry" and kind ~= "PutDown" and kind ~= "Unload" then
 		return
 	end
@@ -379,6 +391,25 @@ local function watchPrompt(instance: Instance)
 		end
 	end)
 	gate(instance)
+end
+
+-- Is an Elevator or Unload prompt within its reach of the player? (checked 4 times a second)
+local function updateStations()
+	local root = myRoot()
+	local near = false
+	if root and player:GetAttribute("Carrying") ~= nil then
+		for prompt in stations do
+			local part = prompt.Parent
+			if part and part:IsA("BasePart") and (part.Position - root.Position).Magnitude <= prompt.MaxActivationDistance then
+				near = true
+				break
+			end
+		end
+	end
+	if near ~= atStation then
+		atStation = near
+		regateAll()
+	end
 end
 
 local function watchFolder(name: string, parentName: string?)
@@ -494,6 +525,22 @@ function SurfaceController:Start()
 	player:GetAttributeChangedSignal("PackUsed"):Connect(regateAll)
 	watchFolder("Finds")
 	watchFolder("Hauling", "Bunker")
+	watchFolder("Elevator", "Bunker")
+	task.spawn(function()
+		local map = workspace:WaitForChild("Surface", 120)
+		if map then
+			for _, d in map:GetDescendants() do
+				watchPrompt(d)
+			end
+			map.DescendantAdded:Connect(watchPrompt)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(0.25)
+			updateStations()
+		end
+	end)
 	updateRadiation()
 	updatePack()
 	updateMovement()

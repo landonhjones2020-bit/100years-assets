@@ -23,6 +23,7 @@
 	Dev: rescues, rescue.free <id>.
 ]]
 
+local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -47,7 +48,8 @@ local RescueService = {
 
 local GROUP = "Residents" -- ResidentBrain's collision group: no bumping into players or monsters
 local TICK = 0.25
-local CATCH_UP = 45 -- studs behind on the same zone: brought up to the leader
+local CATCH_UP = 40 -- studs behind on the same zone for a while: brought up to the leader
+local REPLAN_SECONDS = 1.5
 
 export type Options = {
 	Kind: string?, -- "Survivor" (the surface), later "Miner" and "Crew" (Prompt 17)
@@ -73,6 +75,11 @@ type Rescue = {
 	Prompt: ProximityPrompt?,
 	Rubble: BasePart?,
 	BehindSince: number,
+	Points: { PathWaypoint }, -- PathfindingService's way round walls and wrecks
+	Index: number,
+	PlannedAt: number,
+	Pathing: boolean,
+	Path: Path?,
 }
 
 local combat: any = nil
@@ -253,6 +260,11 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 		Prompt = prompt,
 		Rubble = makeRubble(at, model),
 		BehindSince = 0,
+		Points = {},
+		Index = 1,
+		PlannedAt = 0,
+		Pathing = false,
+		Path = nil,
 	}
 	prompt.Triggered:Connect(function(player: Player)
 		free(r, player)
@@ -384,6 +396,34 @@ local function nearestStanding(position: Vector3, range: number): Player?
 	return best
 end
 
+-- A path round the walls (Section 23: PathfindingService off the bunker's room graph), planned off
+-- the loop's thread; until it arrives they head straight for their leader.
+local function plan(r: Rescue, goal: Vector3)
+	if r.Pathing then
+		return
+	end
+	r.Pathing = true
+	r.PlannedAt = os.clock()
+	task.spawn(function()
+		local path = r.Path or PathfindingService:CreatePath({ AgentRadius = 1.6, AgentHeight = 5.5, AgentCanJump = true, WaypointSpacing = 6 })
+		r.Path = path
+		local ok = pcall(function()
+			(path :: Path):ComputeAsync(r.Root.Position, goal)
+		end)
+		r.Pathing = false
+		if rescues[r.Id] ~= r then
+			return
+		end
+		local points: { PathWaypoint } = {}
+		if ok and (path :: Path).Status == Enum.PathStatus.Success then
+			points = (path :: Path):GetWaypoints()
+			table.remove(points, 1)
+		end
+		r.Points = points
+		r.Index = 1
+	end)
+end
+
 local function follow(r: Rescue)
 	local t = Surface.Tuning()
 	local position = r.Root.Position
@@ -431,7 +471,22 @@ local function follow(r: Rescue)
 	end
 	if distance > t.FollowDistance then
 		local spot = leaderRoot.Position + flat.Unit * t.FollowDistance
-		r.Humanoid:MoveTo(spot)
+		if os.clock() - r.PlannedAt > REPLAN_SECONDS then
+			plan(r, spot)
+		end
+		local waypoint = r.Points[r.Index]
+		local point = if waypoint and distance > t.FollowDistance + 6 then waypoint.Position else spot
+		if waypoint and (Vector3.new(point.X, 0, point.Z) - Vector3.new(position.X, 0, position.Z)).Magnitude < 2.5 then
+			r.Index += 1
+			local next_ = r.Points[r.Index]
+			if next_ then
+				point = next_.Position
+				if next_.Action == Enum.PathWaypointAction.Jump then
+					r.Humanoid.Jump = true
+				end
+			end
+		end
+		r.Humanoid:MoveTo(point)
 		setActivity(r, "Walk")
 	else
 		r.Humanoid:MoveTo(position)
