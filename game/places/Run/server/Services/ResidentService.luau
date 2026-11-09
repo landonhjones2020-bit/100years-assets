@@ -4,15 +4,17 @@
 	11 and 23). Run place only. The rules are Shared.Rules.Residents; walking and routines are
 	ResidentBrain's.
 
-	* The six founders (Tuning.StartingBunker: Common, levels 1 to 3) arrive when the run starts,
-	  and Auto-Assign gives them jobs, power first, so the lights come on.
+	* The six founders (Tuning.StartingBunker: Common, levels 1 to 3) arrive idle when the run
+	  starts (Landon, Nov 8, 2026): the players give them their jobs, and on a first run the
+	  tutorial does (Prompt 31). Until someone works the Reactor Core the bunker is dark. When the
+	  run starts, the team is told who is waiting for work.
 	* Jobs: AssignResident (a room id, or "" for none) and AutoAssign come from players, with no
 	  vote (Section 8). A room's crew goes to EconomyService (SetResidents), which works out
 	  production and power. When a room goes, its workers move to the room standing in its cells
 	  (a merge) if it has room, or go idle.
 	* Every cycle, after the meal (EconomyService.Ate), each resident's needs move (Rules.Residents
 	  .Cycle): rest with work and beds, the meal (the newest arrivals go hungry first when the
-	  stockpile runs short), morale with job fit, dark job rooms and beds. Workers gain
+	  stockpile runs short; Landon, Nov 8, 2026), morale with job fit, dark job rooms and beds. Workers gain
 	  XPPerWorkCycle; each level adds 1 to their job's stat. A staffed, lit Medbay heals the hurt.
 	  Surviving a Surge gives everyone SurgeSurvivedMorale.
 	* At 0 health a resident is down for DeathReviveSeconds: a player can revive them with a
@@ -560,7 +562,25 @@ function ResidentService:Start()
 	for _ = 1, start.Residents do
 		ResidentService:Add(start.ResidentTier, rng:NextInteger(start.ResidentLevels.Min, start.ResidentLevels.Max))
 	end
-	ResidentService:AutoAssign()
+	-- the founders start idle (Landon): when play starts, tell the team they're waiting for work
+	director.PhaseChanged:Connect(function(phase: string, old: string)
+		if phase ~= "Playing" or old ~= "Intro" then -- only when the run starts (not after Keep Going)
+			return
+		end
+		local idle = 0
+		for _, resident in residents do
+			if resident.State == "Alive" and not resident.Job then
+				idle += 1
+			end
+		end
+		if idle > 0 then
+			task.delay(2, function()
+				announce("Warning", if idle == 1
+					then "1 RESIDENT IS WAITING FOR A JOB: OPEN THE COMMAND VIEW AND ASSIGN THEM"
+					else `{idle} RESIDENTS ARE WAITING FOR JOBS: OPEN THE COMMAND VIEW AND ASSIGN THEM`)
+			end)
+		end
+	end)
 	economy:SetResidents({
 		Crew = function(roomId: string): Residents.Crew?
 			local room = grid:Room(roomId)

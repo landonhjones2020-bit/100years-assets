@@ -1280,7 +1280,18 @@ test("Economy: power goes dark farthest from the Reactor Core first", function()
 	local kitchen = bunker:RoomAt(2, -2) :: any
 	balance = Economy.Balance(bunker, crewWith({ Workers = 1, StatSum = 4, Morale = 1 }))
 	expect(math.abs(balance.Made - 9.6) < 1e-6, "a weak crew makes 9.6")
-	expectEqual(balance.Dark, { [kitchen.Id] = true }, "short by 0.4: the newest of the farthest rooms goes dark")
+	expectEqual(balance.Dark, { [kitchen.Id] = true }, "short by 0.4: equal draws, so the newest of the farthest rooms goes dark")
+	-- at the same distance the biggest draw goes first (Landon): the Quarters at level 3 draw 4
+	local quarters = bunker:RoomAt(1, 1) :: any
+	bunker:SetLevel(quarters.Id, 3)
+	balance = Economy.Balance(bunker, crewWith({ Workers = 1, StatSum = 4, Morale = 1 }))
+	expectEqual(balance.Dark, { [quarters.Id] = true }, "12 needed, 9.6 made: the Quarters (draw 4) go before the newer Kitchen (draw 2)")
+	bunker:SetLevel(quarters.Id, 1)
+	-- a wrecked room draws nothing (Landon)
+	bunker:SetHP(kitchen.Id, 0)
+	balance = Economy.Balance(bunker, crewWith(full))
+	expect(balance.Needed == 8 and balance.Draw[kitchen.Id] == nil, `a wrecked Kitchen draws nothing ({balance.Needed})`)
+	bunker:SetHP(kitchen.Id, kitchen.MaxHP)
 	balance = Economy.Balance(bunker, crewWith(nil))
 	local darkCount = 0
 	for id in balance.Dark do

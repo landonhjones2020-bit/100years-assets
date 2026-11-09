@@ -19,9 +19,10 @@
 	(the level is already in it) x (crew stat / 10) x M x R. Every room
 	draws Power[level] per cell. When the draw passes what is made, rooms go dark farthest
 	first: steps along the room graph from the nearest Reactor Core or Generator, dug cells
-	counting as steps (Landon, Nov 7, 2026). A room nothing can reach is farthest of all; ties
-	go dark newest room first. Rooms that draw nothing (Shafts, Storage at level 1) never go
-	dark.
+	counting as steps (Landon, Nov 7, 2026). A room nothing can reach is farthest of all; at the
+	same distance the room drawing the most goes dark first (Landon, Nov 8, 2026), then the newest.
+	Rooms that draw nothing (Shafts, Storage at level 1) never go dark, and a wrecked room (0 HP)
+	draws nothing until it is repaired (Landon, Nov 8, 2026).
 
 	Food and water (Section 5): every resident eats FoodPerCycle and drinks WaterPerCycle at the
 	start of each cycle (food times their FoodUse). Whole units come off the stockpile and the
@@ -156,8 +157,8 @@ function Economy.Order(roomId: string): number
 	return tonumber(string.match(roomId, "%d+")) or 0
 end
 
--- The rooms that go dark: farthest first (unreachable first of all, then newest first) until
--- what the rest draw fits in `made`.
+-- The rooms that go dark: farthest first (unreachable first of all), then the biggest draw, then
+-- the newest, until what the rest draw fits in `made`.
 function Economy.Shed(consumers: { Consumer }, made: number): { [string]: boolean }
 	local needed = 0
 	for _, consumer in consumers do
@@ -172,6 +173,9 @@ function Economy.Shed(consumers: { Consumer }, made: number): { [string]: boolea
 		local sa, sb = a.Steps or math.huge, b.Steps or math.huge
 		if sa ~= sb then
 			return sa > sb
+		end
+		if a.Draw ~= b.Draw then
+			return a.Draw > b.Draw
 		end
 		return a.Order > b.Order
 	end)
@@ -206,7 +210,7 @@ function Economy.Balance(bunker: any, crewOf: (string) -> Crew?, multiplierOf: (
 			madeBy[room.Id] = amount
 			made += amount
 		end
-		local d = Economy.Draw(room.Type, room.Level, room.Span)
+		local d = if room.HP > 0 then Economy.Draw(room.Type, room.Level, room.Span) else 0 -- wrecked: none
 		if d > 0 then
 			draw[room.Id] = d
 			table.insert(consumers, { Id = room.Id, Draw = d, Steps = steps[room.Id], Order = Economy.Order(room.Id) })

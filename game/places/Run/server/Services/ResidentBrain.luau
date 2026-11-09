@@ -14,6 +14,8 @@
 	* the rest of the day: a work spot in their job's room (WorkSpot1, 2... in the order they
 	  joined it); with no job, their bed;
 	* the Surge: their bed in the Quarters (Bed1, 2... by arrival; no bed: standing in the Quarters).
+	* idle during the day: a seat in the Lounge when there is one (Section 11: socialise in the
+	  Lounge; Landon, Nov 8, 2026), or by their bed.
 	* Down: lying where they fell with a Revive prompt (a Medkit from the stockpile); dead: gone.
 	They walk the room graph (Lib.PathGraph: doorways, Shaft stairs) with Humanoid:MoveTo, at a
 	speed from their Speed stat. A resident stuck for STUCK_SECONDS steps to their next waypoint.
@@ -255,6 +257,10 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 		local spot = spots[index] or spots[1]
 			or CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 0, 4))
 		return `Work:{resident.Job}:{index}`, resident.Job, spot, "Work"
+	end
+	if #grid:RoomsOfType("Lounge") > 0 then
+		local roomId, spot = spotAcross("Lounge", "^Seat%d+$", order)
+		return `Idle:{roomId}:{order}`, roomId, spot, "Idle"
 	end
 	local roomId, spot = spotAcross("Quarters", "^Bed%d+$", order)
 	return `Idle:{roomId}:{order}`, roomId, spot, "Idle"
