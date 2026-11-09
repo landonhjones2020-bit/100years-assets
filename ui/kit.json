@@ -59,6 +59,16 @@
     1024,
     1012
    ]
+  },
+  "surface": {
+   "decalId": "134611993314949",
+   "file": "ui/atlas_surface.png",
+   "imageId": "83031843710701",
+   "sha1": "c11966f82fecdc980ca159c2b7589f07ec088c59",
+   "size": [
+    1024,
+    272
+   ]
   }
  },
  "scale": 2,
@@ -591,6 +601,19 @@
    ],
    "slice": null
   },
+  "Icon_Backpack": {
+   "atlas": "surface",
+   "note": "the backpack (HUD chip; Prompt 16)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Check": {
    "atlas": "kit_b",
    "note": "tab: owned (white, tint with ImageColor3)",
@@ -623,6 +646,32 @@
    "offset": [
     276,
     268
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Crew": {
+   "atlas": "surface",
+   "note": "a Steadfast work crew's hard hat (Lost Crews, Prompt 17)",
+   "offset": [
+    140,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Cryo": {
+   "atlas": "surface",
+   "note": "a cryo pod (Prompt 17)",
+   "offset": [
+    276,
+    4
    ],
    "size": [
     128,
@@ -851,6 +900,45 @@
    ],
    "slice": null
   },
+  "Icon_Radiation": {
+   "atlas": "surface",
+   "note": "radiation (alerts and the gauge; Prompt 16)",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Radio": {
+   "atlas": "surface",
+   "note": "a radio: logs, distress calls, the Radio Room (Prompts 17 and 18)",
+   "offset": [
+    548,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Route": {
+   "atlas": "surface",
+   "note": "an expedition's route: a compass (Prompt 18)",
+   "offset": [
+    684,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Scrap": {
    "atlas": "kit_b",
    "note": "Scrap",
@@ -909,6 +997,32 @@
    "offset": [
     548,
     404
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Storm": {
+   "atlas": "surface",
+   "note": "the storm over the surface (Prompt 16)",
+   "offset": [
+    820,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Survivor": {
+   "atlas": "surface",
+   "note": "a survivor or resident (rescues, Prompt 16)",
+   "offset": [
+    4,
+    140
    ],
    "size": [
     128,

@@ -985,16 +985,31 @@ function CombatController:Init(registry)
 	p = Config.Get("Tuning", "Player")
 end
 
+-- Both hands on a big find (Prompt 16): no firing, reloading, swinging, rolling or healing.
+local function handsBusy(): boolean
+	return player:GetAttribute("Carrying") ~= nil
+end
+
 function CombatController:Start()
 	-- input
 	input:On("Fire", function()
+		if handsBusy() then
+			return
+		end
 		fireHeld = true
 		firePressed = true
 	end, function()
 		fireHeld = false
 	end)
-	input:On("Reload", reload)
+	input:On("Reload", function()
+		if not handsBusy() then
+			reload()
+		end
+	end)
 	input:On("Melee", function()
+		if handsBusy() then
+			return
+		end
 		meleeDownAt = os.clock()
 		local pressedAt = meleeDownAt
 		task.delay(t.HeavyChargeSeconds, function()
@@ -1009,8 +1024,23 @@ function CombatController:Start()
 			swing(os.clock() - pressedAt >= t.HeavyChargeSeconds)
 		end
 	end)
-	input:On("Dodge", dodge)
-	input:On("Heal", heal)
+	input:On("Dodge", function()
+		if not handsBusy() then
+			dodge()
+		end
+	end)
+	input:On("Heal", function()
+		if not handsBusy() then
+			heal()
+		end
+	end)
+	player:GetAttributeChangedSignal("Carrying"):Connect(function()
+		if handsBusy() then
+			fireHeld = false
+			firePressed = false
+			meleeDownAt = nil
+		end
+	end)
 	input:On("Sprint", function()
 		if input:Device() == "Gamepad" then
 			sprintToggle = not sprintToggle

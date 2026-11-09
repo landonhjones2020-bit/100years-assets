@@ -28,6 +28,7 @@ return {
 		Traits = Check.optional(Check.array(Check.enum({
 			"Latches", "Slows", "Explodes", "Floods", "Hides", "Grabs", "ArmoredFront", "WeakPointBack",
 			"Shatters", "Invisible", "ShrugsSmallGuns", "Heals", "Hastes", "Fades", "StormOnly", "Radiates", "SmashesMachines",
+			"Shoots", -- Prompt 16: a rifle from range (Ash Raiders: "melee or rifles")
 		}), 6)),
 		Drops = Check.optional(Check.ref("LootTables")),
 		Era = Check.integer(1, 4),
@@ -172,7 +173,7 @@ return {
 			Health = 120, Damage = 14, AttackSeconds = 1, Range = 60, MoveSpeed = 16,
 			Targets = { "BlastDoor", "Residents", "Players", "Machines" },
 			ThreatCost = 5, Group = { Min = 2, Max = 5 },
-			Traits = { "Fades" },
+			Traits = { "Fades", "Shoots" },
 			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider",
 		},
 		AshJackal = {

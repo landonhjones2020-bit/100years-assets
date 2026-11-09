@@ -23,8 +23,8 @@
 
 	Results: { Outcome, DefeatReason, Victory, Endless, Year, Cycle, Era, Difficulty, Seconds,
 	DeepestFloor, Band, Team = { MonstersKilled, CellsDug, RoomsBuilt, ResidentsAlive, ResidentsLost,
-	Disasters, Bosses }, Stories = { string }, MVP = user id (string) or nil, Players = { [user id]
-	= { Name, Class, Damage, Kills, BossDamage, Revives, CellsDug, Repairs, Score, Glowshards,
+	Disasters, Hauled, Rescued, Bosses }, Stories = { string }, MVP = user id (string) or nil, Players = { [user id]
+	= { Name, Class, Damage, Kills, BossDamage, Revives, CellsDug, Repairs, Hauled, Rescues, Score, Glowshards,
 	Lines = { { Text, Amount } }, XP, Level, LevelUp, Paid } }, At }.
 
 	Dev: results, results.pay.
@@ -51,11 +51,11 @@ local ResultsService = {
 	Dependencies = {
 		"RunDirector", "CycleClock", "SessionService", "ProfileService", "CombatService", "MonsterService", "ResidentService",
 		"BuildService", "DigService", "DisasterService", "ObjectiveService", "BossService", "BunkerGrid", "VoteService",
-		"ReplicationService", "DevService",
+		"InventoryService", "RescueService", "ReplicationService", "DevService",
 	},
 }
 
-local STAT_KEYS = { "Damage", "Kills", "BossDamage", "Revives", "CellsDug", "Repairs" }
+local STAT_KEYS = { "Damage", "Kills", "BossDamage", "Revives", "CellsDug", "Repairs", "Hauled", "Rescues" } -- Hauled, Rescues: Prompt 16
 
 local director: any = nil
 local clock: any = nil
@@ -70,7 +70,7 @@ local collection: any = nil
 
 local stats: { [number]: { [string]: number } } = {} -- user id -> stats
 local names: { [number]: string } = {}
-local team = { MonstersKilled = 0, CellsDug = 0, RoomsBuilt = 0, ResidentsLost = 0, Disasters = 0 }
+local team = { MonstersKilled = 0, CellsDug = 0, RoomsBuilt = 0, ResidentsLost = 0, Disasters = 0, Hauled = 0, Rescued = 0 }
 local bosses: { string } = {}
 local stories: { string } = {}
 local lastHit: { [string]: string } = {} -- combatant id -> who hit it last ("P<user id>")
@@ -147,6 +147,8 @@ local function teamNumbers(): { [string]: any }
 		ResidentsAlive = alive,
 		ResidentsLost = lost,
 		Disasters = team.Disasters,
+		Hauled = team.Hauled,
+		Rescued = team.Rescued,
 		Bosses = names_,
 	}
 end
@@ -410,7 +412,7 @@ local function registerCommands(dev: any)
 	})
 	dev:Register("results.stat", {
 		Description = "Add to a player's results stat (Studio testing of the MVP).",
-		Usage = "results.stat <Damage|Kills|BossDamage|Revives|CellsDug|Repairs> <amount>",
+		Usage = "results.stat <Damage|Kills|BossDamage|Revives|CellsDug|Repairs|Hauled|Rescues> <amount>",
 		Run = function(player, args): string?
 			local key, amount = tostring(args[1] or ""), tonumber(args[2])
 			if not table.find(STAT_KEYS, key) or not amount or not player then
@@ -441,6 +443,8 @@ function ResultsService:Init(registry)
 	services.Dig = registry.DigService
 	services.Disaster = registry.DisasterService
 	services.Boss = registry.BossService
+	services.Inventory = registry.InventoryService
+	services.Rescue = registry.RescueService
 	collection = registry.ReplicationService:Collection("Results")
 	registerCommands(registry.DevService)
 end
@@ -507,6 +511,32 @@ function ResultsService:Start()
 		if kind == "Meltdown" and how == "Fixed" then
 			story("three valves turned together stopped the meltdown")
 		end
+	end)
+	-- the surface (Prompt 16): what players hauled home and who they rescued
+	services.Inventory.Unloaded:Connect(function(player: Player, delivered: { [string]: number })
+		local n = 0
+		for _, amount in delivered do
+			n += amount
+		end
+		team.Hauled += n
+		bump(player.UserId, "Hauled", n)
+	end)
+	services.Inventory.Delivered:Connect(function(player: Player, kind: string, given: { any })
+		local n = 0
+		for _, drop in given do
+			n += drop.Count or 0
+		end
+		team.Hauled += n
+		bump(player.UserId, "Hauled", n)
+		local entry = Config.Find("LootTables", kind)
+		story(`{player.DisplayName} hauled {if entry then string.lower(entry.Text) else kind} home`)
+	end)
+	services.Rescue.Joined:Connect(function(residentId: string, leader: Player?, _kind: string, where: string)
+		team.Rescued += 1
+		if leader then
+			bump(leader.UserId, "Rescues", 1)
+		end
+		story(`{if leader then leader.DisplayName else "the team"} rescued {residentName(residentId)} from {where}`)
 	end)
 	services.Boss.Defeated:Connect(function(bossId: string, killer: Player?)
 		if not table.find(bosses, bossId) then

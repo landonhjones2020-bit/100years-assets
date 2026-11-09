@@ -26,6 +26,12 @@
 	    SmashMultiplier times that). A wrecked
 	    room stops (Prompt 9) and isn't a target until it is repaired. The Reactor Core at 0 HP
 	    starts the meltdown (DisasterService, Prompt 13).
+	* The surface (Prompt 16): a monster and its targets must be in the same zone (Rules.Surface.Zone:
+	  the town high above, or the bunker). On the surface there are no machines, rescued survivors
+	  count as residents, players are seen from SurfaceAggro, and paths come from PathfindingService
+	  (Section 23), planned off the AI's thread every PathSeconds. Ash Jackals (PackRunner) circle at
+	  CircleRadius between bites; Ash Raiders (Shoots) keep their distance and fire a rifle
+	  (ShotAccuracy, line of sight checked when the shot lands).
 	* Traits: Latches (Burrow Tick) hangs on a resident and bites until killed or swatted;
 	  Slows (Spitter Grub) keeps its distance and spits goo that slows (players: the SlowedUntil
 	  attribute; residents: their walk); stunned monsters (StunnedUntil: melee, Shock Mines)
@@ -39,9 +45,12 @@
 		MonsterService:All(): { { Id, Type, Tag, Position } }
 		MonsterService:InUnit(unit): number                     -- monsters in a room or dug cell
 		MonsterService:Clear()
+		MonsterService:Despawn(id)                              -- fades one away (the surface's leftovers)
+		MonsterService:ZoneOf(id): string?
 	Dev: monster, monsters, monsters.clear.
 ]]
 
+local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local PhysicsService = game:GetService("PhysicsService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -54,6 +63,7 @@ local Config = require(Shared.Config)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Signal = require(Shared.Utilities.Signal)
+local Surface = require(Shared.Rules.Surface)
 local Threat = require(Shared.Rules.Threat)
 local Hazards = require(ServerScriptService.Lib.Hazards)
 local PathGraph = require(ServerScriptService.Lib.PathGraph)
@@ -97,6 +107,11 @@ type Monster = {
 	Skip: { [string]: number }, -- a target id rubble cuts it off from -> until (os.clock; Prompt 13)
 	LatchedTo: string?, -- a resident id (Burrow Ticks)
 	Latch: WeldConstraint?,
+	Zone: string, -- "Surface" or "Bunker" (Prompt 16)
+	Pathing: boolean, -- a PathfindingService plan is being worked out (the surface)
+	Path: Path?,
+	CircleUntil: number, -- a PackRunner circles its target until then (os.clock)
+	CircleAngle: number,
 }
 
 local combat: any = nil
@@ -288,6 +303,11 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?): string?
 		Skip = {},
 		LatchedTo = nil,
 		Latch = nil,
+		Zone = Surface.Zone(at.Position),
+		Pathing = false,
+		Path = nil,
+		CircleUntil = 0,
+		CircleAngle = rng:NextNumber() * math.pi * 2,
 	}
 	MonsterService.Spawned:Fire(id, monsterType, tag)
 	return id
@@ -369,6 +389,25 @@ local function unlatch(m: Monster)
 	end
 end
 
+-- Fades one monster away without a kill (surface creatures left behind when everyone goes home,
+-- wraiths when the storm passes).
+function MonsterService:Despawn(id: string)
+	local m = monsters[id]
+	if not m then
+		return
+	end
+	unlatch(m)
+	monsters[id] = nil
+	combat:Unregister(id)
+	combat:Dissolve(m.Model)
+	task.defer(drainQueue)
+end
+
+function MonsterService:ZoneOf(id: string): string?
+	local m = monsters[id]
+	return if m then m.Zone else nil
+end
+
 function MonsterService:Clear()
 	table.clear(queue)
 	for id, m in monsters do
@@ -405,7 +444,14 @@ end
 local function residentTarget(m: Monster): Target?
 	local best, bestScore = nil, math.huge
 	for _, c in combat:All("Survivors") do
-		if c.Kind == "Resident" and c.State == "Alive" and c.ResidentId and not skipped(m, c.Id) then
+		if c.Kind == "Survivor" and c.State == "Alive" and not skipped(m, c.Id) and Surface.Zone(c.Root.Position) == m.Zone then
+			-- a rescued survivor on the way home (Prompt 16) counts as a resident
+			local s = score(m.Root.Position, c.Root.Position)
+			if s < bestScore then
+				best, bestScore = c, s
+			end
+		elseif c.Kind == "Resident" and c.State == "Alive" and c.ResidentId and not skipped(m, c.Id)
+			and Surface.Zone(c.Root.Position) == m.Zone then
 			local record = residents:Get(c.ResidentId)
 			if record and record.State == "Alive" then
 				local s = score(m.Root.Position, c.Root.Position)
@@ -419,6 +465,9 @@ local function residentTarget(m: Monster): Target?
 end
 
 local function machineTarget(m: Monster): Target?
+	if m.Zone ~= "Bunker" then
+		return nil -- no machines up in the town
+	end
 	local best, bestScore = nil, math.huge
 	for _, room in grid:Rooms() do
 		if not NO_MACHINE[room.Type] and not room.Wrecked and not skipped(m, room.Id) then
@@ -435,12 +484,13 @@ local function playerTarget(m: Monster): Target?
 	local t = ai()
 	local best, bestScore = nil, math.huge
 	local runner = m.Spec.Role == "Runner"
+	local aggro = if m.Zone == "Surface" then t.SurfaceAggro else t.ProximityAggro
 	for _, c in combat:All("Survivors") do
 		if c.Kind == "Player" and c.State == "Alive" and c.Player and c.Player:GetAttribute("Life") == "Alive"
-			and not skipped(m, c.Id) then
+			and not skipped(m, c.Id) and Surface.Zone(c.Root.Position) == m.Zone then
 			local hit = (m.Aggro[c.Id] or 0) > os.clock()
 			local s = score(m.Root.Position, c.Root.Position)
-			local near = not runner and s <= t.ProximityAggro
+			local near = not runner and s <= aggro
 			if (hit or near) and s < bestScore then
 				best, bestScore = c, s
 			end
@@ -491,6 +541,9 @@ local function targetPosition(target: Target): Vector3?
 	elseif c.Kind == "Player" and c.Player and c.Player:GetAttribute("Life") ~= "Alive" then
 		return nil
 	end
+	if Surface.Zone(c.Root.Position) ~= Surface.Zone(target.Position) then
+		return nil -- it rode the elevator away (Prompt 16)
+	end
 	return c.Root.Position
 end
 
@@ -539,7 +592,78 @@ local function plan(m: Monster, goal: Vector3)
 	m.Points = { goal }
 end
 
+-- The surface (Prompt 16): PathfindingService plans off the AI's thread; until a plan arrives the
+-- monster heads straight for its goal.
+local function surfacePlan(m: Monster, goal: Vector3)
+	if m.Pathing then
+		return
+	end
+	m.Pathing = true
+	m.PlannedAt = os.clock()
+	task.spawn(function()
+		local path = m.Path or PathfindingService:CreatePath({
+			AgentRadius = 2.5, AgentHeight = 5, AgentCanJump = true, WaypointSpacing = 8,
+		})
+		m.Path = path
+		local ok = pcall(function()
+			(path :: Path):ComputeAsync(m.Root.Position, goal)
+		end)
+		m.Pathing = false
+		if monsters[m.Id] ~= m then
+			return
+		end
+		local points: { Vector3 } = {}
+		if ok and (path :: Path).Status == Enum.PathStatus.Success then
+			for _, waypoint in (path :: Path):GetWaypoints() do
+				table.insert(points, waypoint.Position)
+			end
+			table.remove(points, 1) -- where it stands
+		end
+		if #points == 0 then
+			points = { goal }
+		end
+		m.Points = points
+		m.Index = 1
+		m.Best = math.huge
+		m.Since = os.clock()
+	end)
+end
+
+local function walkSurface(m: Monster, goal: Vector3)
+	local root = m.Root
+	local flatGoal = Vector3.new(goal.X - root.Position.X, 0, goal.Z - root.Position.Z).Magnitude
+	if os.clock() - m.PlannedAt > ai().PathSeconds or #m.Points == 0 then
+		surfacePlan(m, goal)
+	end
+	local point = m.Points[m.Index]
+	if flatGoal < 14 or not point then
+		point = goal -- close: straight at it
+	end
+	local distance = Vector3.new(point.X - root.Position.X, 0, point.Z - root.Position.Z).Magnitude
+	if distance <= ARRIVE + 1 and m.Index < #m.Points then
+		m.Index += 1
+		m.Best = math.huge
+		m.Since = os.clock()
+		point = m.Points[m.Index]
+	elseif distance < m.Best - 0.5 then
+		m.Best = distance
+		m.Since = os.clock()
+	elseif os.clock() - m.Since > ai().StuckSeconds then
+		-- stuck on wreckage: hop, and plan again
+		m.Humanoid.Jump = true
+		m.Best = math.huge
+		m.Since = os.clock()
+		m.PlannedAt = 0
+	end
+	m.Humanoid:MoveTo(point)
+	setActivity(m, "Walk")
+end
+
 local function walk(m: Monster, goal: Vector3)
+	if m.Zone == "Surface" then
+		walkSurface(m, goal)
+		return
+	end
 	local goalUnit = unitOf(goal + Vector3.new(0, 1, 0))
 	if m.PlannedFor ~= goalUnit or os.clock() - m.PlannedAt > REPLAN_SECONDS or #m.Points == 0
 		or m.PlannedVersion ~= Hazards.Version() then
@@ -660,6 +784,44 @@ local function spit(m: Monster, target: Target)
 	end)
 end
 
+-- An Ash Raider's rifle (Prompt 16): line of sight from its chest to the target when the shot
+-- lands, then ShotAccuracy of the time a hit. A tracer shows every shot.
+local function shoot(m: Monster, target: Target, at: Vector3)
+	local from = m.Root.Position + Vector3.new(0, 1.5, 0) + m.Root.CFrame.LookVector * 1.5
+	local to = at + Vector3.new(0, 1, 0)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local ignore: { Instance } = { holder(), m.Model }
+	local c = combat:Get(target.Id)
+	if c then
+		table.insert(ignore, c.Model)
+	end
+	params.FilterDescendantsInstances = ignore
+	local blocked = workspace:Raycast(from, to - from, params)
+	local hit = not blocked and rng:NextNumber() < ai().ShotAccuracy
+	local finish = if blocked then blocked.Position
+		elseif hit then to
+		else to + Vector3.new(rng:NextNumber(-3, 3), rng:NextNumber(-1, 2), rng:NextNumber(-3, 3))
+	local tracer = Instance.new("Part")
+	tracer.Name = "Tracer"
+	tracer.Anchored = true
+	tracer.CanCollide = false
+	tracer.CanQuery = false
+	tracer.CanTouch = false
+	tracer.Material = Enum.Material.Neon
+	tracer.Color = Color3.fromRGB(255, 196, 120)
+	local length = (finish - from).Magnitude
+	tracer.Size = Vector3.new(0.12, 0.12, math.max(length, 0.1))
+	tracer.CFrame = CFrame.lookAt(from, finish) * CFrame.new(0, 0, -length / 2)
+	tracer.Parent = holder()
+	task.delay(0.07, function()
+		tracer:Destroy()
+	end)
+	if hit and c then
+		combat:Damage(c.Id, m.Spec.Damage, m.Id, "shot")
+	end
+end
+
 local function latch(m: Monster, c: any)
 	if m.Latch or not c.Root then
 		return
@@ -698,6 +860,12 @@ local function attack(m: Monster, target: Target)
 			spit(m, target)
 			return
 		end
+		if spec.Traits and table.find(spec.Traits, "Shoots") then
+			if (at - m.Root.Position).Magnitude <= spec.Range + 4 then
+				shoot(m, target, at)
+			end
+			return
+		end
 		if not inReach(m, target, at) then
 			return -- the hit is checked again when it lands
 		end
@@ -710,6 +878,11 @@ local function attack(m: Monster, target: Target)
 			return
 		end
 		combat:Damage(c.Id, spec.Damage, m.Id, "attacked")
+		if spec.Role == "PackRunner" then
+			-- circle and dart in (Section 10's Ash Jackals): back off and circle before the next bite
+			local range = ai().CircleSeconds
+			m.CircleUntil = os.clock() + rng:NextNumber(range.Min, range.Max)
+		end
 		if c.Kind == "Resident" and spec.Traits and table.find(spec.Traits, "Latches") then
 			latch(m, c)
 		end
@@ -719,6 +892,7 @@ end
 -- The tick -----------------------------------------------------------------------------------------
 
 local function step(m: Monster)
+	m.Zone = Surface.Zone(m.Root.Position)
 	local stunned = m.Model:GetAttribute("StunnedUntil")
 	if type(stunned) == "number" and stunned > now() then
 		unlatch(m)
@@ -753,7 +927,16 @@ local function step(m: Monster)
 		return
 	end
 	target.Position = at
-	local ranged = m.Spec.Role == "Ranged"
+	if m.Spec.Role == "PackRunner" and os.clock() < m.CircleUntil then
+		-- circling its prey between bites
+		m.CircleAngle += ai().TickSeconds * 1.6
+		local r = ai().CircleRadius
+		local spot = at + Vector3.new(math.cos(m.CircleAngle) * r, 0, math.sin(m.CircleAngle) * r)
+		m.Humanoid:MoveTo(spot)
+		setActivity(m, "Walk")
+		return
+	end
+	local ranged = m.Spec.Role == "Ranged" or (m.Spec.Traits ~= nil and table.find(m.Spec.Traits, "Shoots") ~= nil)
 	if inReach(m, target, at) then
 		local flat = Vector3.new(at.X - m.Root.Position.X, 0, at.Z - m.Root.Position.Z).Magnitude
 		if ranged and flat > m.Spec.Range * ai().KeepDistanceFraction then

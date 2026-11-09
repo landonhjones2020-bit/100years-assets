@@ -349,6 +349,15 @@
   ],
   "slice": null
  },
+ "Icon_Backpack": {
+  "group": "surface",
+  "note": "the backpack (HUD chip; Prompt 16)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
  "Icon_Check": {
   "note": "tab: owned (white, tint with ImageColor3)",
   "size": [
@@ -368,6 +377,24 @@
  "Icon_Copper": {
   "group": "hud",
   "note": "Copper ore",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Crew": {
+  "group": "surface",
+  "note": "a Steadfast work crew's hard hat (Lost Crews, Prompt 17)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Cryo": {
+  "group": "surface",
+  "note": "a cryo pod (Prompt 17)",
   "size": [
    128,
    128
@@ -521,6 +548,33 @@
   ],
   "slice": null
  },
+ "Icon_Radiation": {
+  "group": "surface",
+  "note": "radiation (alerts and the gauge; Prompt 16)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Radio": {
+  "group": "surface",
+  "note": "a radio: logs, distress calls, the Radio Room (Prompts 17 and 18)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Route": {
+  "group": "surface",
+  "note": "an expedition's route: a compass (Prompt 18)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
  "Icon_Scrap": {
   "note": "Scrap",
   "size": [
@@ -557,6 +611,24 @@
  "Icon_Sprint": {
   "group": "hud",
   "note": "touch: sprint (two chevrons; white, tint with ImageColor3)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Storm": {
+  "group": "surface",
+  "note": "the storm over the surface (Prompt 16)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
+ "Icon_Survivor": {
+  "group": "surface",
+  "note": "a survivor or resident (rescues, Prompt 16)",
   "size": [
    128,
    128

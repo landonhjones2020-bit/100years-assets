@@ -52,7 +52,7 @@ local Hazards = require(game:GetService("ServerScriptService").Lib.Hazards)
 local log = Log.new("CombatService")
 
 export type Team = "Survivors" | "Monsters"
-export type Kind = "Player" | "Resident" | "Monster"
+export type Kind = "Player" | "Resident" | "Monster" | "Survivor" -- Survivor: a rescued survivor on the way home (Prompt 16)
 export type Combatant = {
 	Id: string,
 	Kind: Kind,
@@ -162,7 +162,7 @@ function CombatService:Register(model: Model, spec: Spec): string?
 	byModel[model] = record.Id
 	model:SetAttribute("CombatantId", record.Id)
 	model:SetAttribute("Team", record.Team)
-	if record.Kind == "Monster" then
+	if record.Kind == "Monster" or record.Kind == "Survivor" then
 		model:SetAttribute("Health", health)
 		model:SetAttribute("MaxHealth", health)
 	end

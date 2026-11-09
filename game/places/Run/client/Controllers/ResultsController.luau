@@ -129,6 +129,8 @@ local function fillSummary(list: Instance, r: any)
 	add("Icon_Scrap", "Rooms built", commas(team.RoomsBuilt or 0))
 	add("Icon_Medkit", "Residents", `{team.ResidentsAlive or 0} alive · {team.ResidentsLost or 0} lost`)
 	add("Icon_Fire", "Disasters", commas(team.Disasters or 0))
+	add("Icon_Scrap", "Hauled from the surface", commas(team.Hauled or 0)) -- Prompt 16
+	add("Icon_Medkit", "Survivors rescued", commas(team.Rescued or 0))
 	add("Icon_Shield", "Bosses beaten", if team.Bosses and #team.Bosses > 0 then table.concat(team.Bosses, ", ") else "None")
 	add(nil, "The story of the run", "", true)
 	for _, line in r.Stories or {} do
@@ -239,7 +241,8 @@ local function showMVP(r: any)
 	detail.Sub.Text = string.upper(mvp.Class or "")
 	section(body, 1, "MVP · score", commas(mvp.Score or 0))
 	section(body, 2, "Fighting", `{commas(mvp.Damage or 0)} damage · {count(mvp.Kills or 0, "kill")} · {commas(mvp.BossDamage or 0)} to bosses`)
-	section(body, 3, "Helping", `{count(mvp.Revives or 0, "revive")} · {count(mvp.CellsDug or 0, "cell")} dug · {commas(mvp.Repairs or 0)} repaired`)
+	section(body, 3, "Helping", `{count(mvp.Revives or 0, "revive")} · {count(mvp.CellsDug or 0, "cell")} dug · {commas(mvp.Repairs or 0)} repaired`
+		.. ` · {commas(mvp.Hauled or 0)} hauled · {count(mvp.Rescues or 0, "rescue")}`)
 end
 
 local function fill()

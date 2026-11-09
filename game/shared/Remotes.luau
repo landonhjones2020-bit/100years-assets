@@ -241,6 +241,11 @@ local DEFINITIONS: { [string]: Definition } = {
 		Place = "Run",
 		Doc = "What the player's shot or swing did: the combatant id, the damage, whether it died, and where (WeaponService).",
 	},
+	Elevator = {
+		To = "Client",
+		Place = "Run",
+		Doc = "The elevator behind the Blast Door is moving this player (Section 12): the way (Up or Down) and the fade's seconds; the server moves the character once the screen is dark (SurfaceService, Prompt 16).",
+	},
 }
 
 local log = Log.new("Remotes")

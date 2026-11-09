@@ -116,7 +116,7 @@ local Schemas: { [string]: Check.Checker } = {
 	}),
 	Results = shape({
 		OpenDelaySeconds = S, StoriesMax = I,
-		MVP = shape({ Damage = N, Kills = N, Revives = N, CellsDug = N, Repairs = N, BossDamage = N }),
+		MVP = shape({ Damage = N, Kills = N, Revives = N, CellsDug = N, Repairs = N, BossDamage = N, Hauled = N, Rescues = N }),
 	}),
 	Threat = shape({
 		Base = N, PerYear = N, PerDeepestFloor = N, PerDisturbance = N, PerRoom = N,
@@ -147,6 +147,8 @@ local Schemas: { [string]: Check.Checker } = {
 		RoomDamageMultiplier = N, LatchDamageMultiplier = N, LatchIntervalMultiplier = N,
 		GooSpeed = N, GooSlowSeconds = S, GooSlowMultiplier = Fr, WindupFraction = Fr,
 		ResidentFleeRadius = N, ResidentCalmSeconds = S, ResidentSwatDamage = N, ResidentSwatSeconds = S,
+		-- Prompt 16: the surface
+		SurfaceAggro = N, PathSeconds = S, CircleRadius = N, CircleSeconds = F.Range, ShotAccuracy = Fr,
 	}),
 	Residents = shape({
 		StatMin = I, StatMax = I, StatCap = I, LevelMax = I, MoraleStart = N, FoodPerCycle = N, WaterPerCycle = N,
@@ -176,6 +178,16 @@ local Schemas: { [string]: Check.Checker } = {
 	}),
 	Surface = shape({
 		StormSirenSeconds = S, RadiationPerSecond = N, StormRadiationPerSecond = N, RefillEvery = Check.enum({ "Era" }),
+		-- Prompt 16
+		ZoneY = F.Number, TickSeconds = S, RadiationWarnAt = Fr, WraithRadiationPerHit = N, DeconPerSecond = N,
+		PillUseAt = N, PillsMax = I, ElevatorHoldSeconds = S, FadeSeconds = S, EscortRange = N,
+		SearchSeconds = S, Stacks = Check.map(Check.ref("Resources"), I, 9), ItemStack = I,
+		CarryWalkMultiplier = Fr, TeamCarryWalkMultiplier = Fr, HelpRange = N, PickUpSeconds = S,
+		BigFindChancePerDay = Fr, MaxBigFinds = I, BigFindLoot = Check.ref("LootTables"),
+		FreeSeconds = S, SurvivorChancePerDay = Fr, MaxTrapped = I, RareSurvivorChance = Fr, SurvivorLevel = F.Range,
+		SurvivorHealth = I, FollowDistance = N, SurvivorWalkSpeed = N,
+		MaxMonsters = I, SpawnDistance = F.Range, JackalEverySeconds = F.Range, RaiderEverySeconds = F.Range,
+		RaiderMinEra = Check.integer(1, 4), WraithEverySeconds = F.Range, WraithDistance = F.Range, DespawnSeconds = S,
 	}),
 	Legends = shape({ StartLevel = I, RenownMax = I, RenownStatBonus = I, StarterLegend = Check.ref("Legends") }),
 	ClassShop = shape({
@@ -318,7 +330,7 @@ return {
 			-- The screen opens OpenDelaySeconds after the run ends; StoriesMax lines of the run's story.
 			-- MVP: a player's score adds each stat times its weight.
 			OpenDelaySeconds = 4, StoriesMax = 8,
-			MVP = { Damage = 0.1, Kills = 10, Revives = 25, CellsDug = 15, Repairs = 0.05, BossDamage = 0.1 },
+			MVP = { Damage = 0.1, Kills = 10, Revives = 25, CellsDug = 15, Repairs = 0.05, BossDamage = 0.1, Hauled = 0.3, Rescues = 40 }, -- Hauled, Rescues: Prompt 16
 		},
 		Threat = { -- Section 10 lists the inputs; weights prov. First-run Era I is 30% easier (Section 22)
 			Base = 12, PerYear = 1.2, PerDeepestFloor = 4, PerDisturbance = 0.25, PerRoom = 1,
@@ -381,6 +393,10 @@ return {
 			KeepDistanceFraction = 0.7, GooSpeed = 60, GooSlowSeconds = 3, GooSlowMultiplier = 0.6, WindupFraction = 0.45,
 			-- Section 11: the unarmed flee to the nearest safe room; a lone Burrow Tick they swat themselves
 			ResidentFleeRadius = 22, ResidentCalmSeconds = 6, ResidentSwatDamage = 6, ResidentSwatSeconds = 1,
+			-- Prompt 16 (Section 23: PathfindingService on the surface): surface hunters see players this
+			-- far, plan a path this often, Ash Jackals circle at CircleRadius between bites ("circle and
+			-- dart in"), and an Ash Raider's rifle hits this often
+			SurfaceAggro = 90, PathSeconds = 1.5, CircleRadius = 11, CircleSeconds = { Min = 1.2, Max = 2.4 }, ShotAccuracy = 0.55,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,
@@ -416,7 +432,25 @@ return {
 			Size = { Min = 1, Max = 3 }, Cycles = { Min = 1, Max = 3 }, DistressChance = 0.15, BaseLossChance = 0.05,
 			SurfaceLoot = "ExpeditionSurface", DeepLoot = "ExpeditionDeep",
 		},
-		Surface = { StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era" }, -- Section 12; rates prov.
+		Surface = { -- Section 12; rates prov. The rest is Prompt 16, prov.
+			StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era",
+			-- the surface is everything above ZoneY (the bunker's floor 1 is at -120, the town's ground at 0)
+			ZoneY = -60, TickSeconds = 0.5, RadiationWarnAt = 0.75, WraithRadiationPerHit = 8, DeconPerSecond = 10,
+			-- Clear-Rad pills are taken by themselves when radiation reaches PillUseAt (a Bible Question)
+			PillUseAt = 100, PillsMax = 3, ElevatorHoldSeconds = 1, FadeSeconds = 0.35, EscortRange = 30,
+			SearchSeconds = 1.5, ItemStack = 5,
+			Stacks = { Food = 10, Water = 10, Scrap = 50, Iron = 20, Copper = 20, Crystal = 20, Medkits = 3, Ammo = 60 },
+			-- Section 12: big finds are carried with both hands, slowly; two carriers move faster
+			CarryWalkMultiplier = 0.5, TeamCarryWalkMultiplier = 0.8, HelpRange = 10, PickUpSeconds = 1,
+			BigFindChancePerDay = 0.4, MaxBigFinds = 1, BigFindLoot = "GeneratorParts",
+			-- trapped survivors: hold to free, then they follow you home
+			FreeSeconds = 3, SurvivorChancePerDay = 0.6, MaxTrapped = 2, RareSurvivorChance = 0.2,
+			SurvivorLevel = { Min = 1, Max = 3 }, SurvivorHealth = 60, FollowDistance = 6, SurvivorWalkSpeed = 15,
+			-- creatures: jackal packs by day, raiders from RaiderMinEra, wraiths only in storms
+			MaxMonsters = 8, SpawnDistance = { Min = 70, Max = 160 }, JackalEverySeconds = { Min = 30, Max = 55 },
+			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, WraithEverySeconds = { Min = 10, Max = 18 },
+			WraithDistance = { Min = 35, Max = 70 }, DespawnSeconds = 20,
+		},
 		Legends = { StartLevel = 5, RenownMax = 5, RenownStatBonus = 1, StarterLegend = "RosieKowalski" }, -- Section 15
 		ClassShop = { -- Section 14
 			Slots = 4, ResetHourUTC = 0, FreeRerolls = 1, VIPFreeRerolls = 2, RerollRobux = 99, WishlistDays = 3,

@@ -2,6 +2,7 @@
 --[[
 	LootTables: what containers, caches, nests, monsters, expeditions and crates give (bible
 	Sections 6, 10, 12, 13, 17). Each roll picks one line by Weight and gives Min..Max of it.
+	Clear-Rad pills (Section 9) are found on the surface (Prompt 16).
 	A line gives a Resource, an Item, or a Special: BandOre (the ore of the band it's in), Gear
 	(a random weapon or outfit, rarity rolled), Blueprint (a draft card), RadioLog, Glowshards,
 	Recruit. Every number is provisional.
@@ -65,10 +66,18 @@ return {
 			Rolls = 2,
 			Lines = { r("Scrap", 15, 40, 6), s("Gear", 1, 1, 2), i("Lamp", 1, 1, 1), s("Blueprint", 1, 1, 1), i("FoamGrenade", 1, 2, 1) },
 		},
-		Grocery = { Text = "Grocery", Rolls = 2, Lines = { r("Food", 5, 12, 6), r("Water", 4, 10, 4) } },
+		Grocery = { Text = "Grocery", Rolls = 2, Lines = { r("Food", 5, 12, 6), r("Water", 4, 10, 4), i("ClearRadPills", 1, 1, 1) } },
 		GasStation = { Text = "Gas station", Rolls = 2, Lines = { r("Scrap", 10, 25, 5), r("Water", 2, 6, 3), i("Flare", 1, 2, 2) } },
-		Motel = { Text = "Motel", Rolls = 2, Lines = { r("Medkits", 1, 2, 3), r("Food", 2, 6, 3), s("RadioLog", 1, 1, 1), r("Scrap", 5, 15, 3) } },
-		RadioTower = { Text = "Radio tower", Rolls = 2, Lines = { s("RadioLog", 1, 1, 3), r("Scrap", 10, 25, 4), s("Blueprint", 1, 1, 1) } },
+		Motel = {
+			Text = "Motel",
+			Rolls = 2,
+			Lines = { r("Medkits", 1, 2, 3), r("Food", 2, 6, 3), s("RadioLog", 1, 1, 1), r("Scrap", 5, 15, 3), i("ClearRadPills", 1, 2, 2) },
+		},
+		RadioTower = {
+			Text = "Radio tower",
+			Rolls = 2,
+			Lines = { s("RadioLog", 1, 1, 3), r("Scrap", 10, 25, 4), s("Blueprint", 1, 1, 1), i("ClearRadPills", 1, 1, 1) },
+		},
 		WaterTower = { Text = "Water tower", Rolls = 2, Lines = { r("Water", 8, 16, 7), r("Scrap", 5, 10, 2) } },
 		RailYard = { Text = "Rail yard and wrecked train", Rolls = 3, Lines = { r("Scrap", 20, 50, 6), s("Gear", 1, 1, 2), r("Iron", 3, 8, 2) } },
 		Showroom = {
@@ -79,8 +88,11 @@ return {
 		Checkpoint = {
 			Text = "Military checkpoint (Era III)",
 			Rolls = 3,
-			Lines = { r("Ammo", 30, 70, 5), s("Gear", 1, 1, 4), r("Medkits", 2, 4, 3), i("FragGrenade", 1, 2, 2), i("ShockMine", 1, 1, 1) },
+			Lines = { r("Ammo", 30, 70, 5), s("Gear", 1, 1, 4), r("Medkits", 2, 4, 3), i("FragGrenade", 1, 2, 2), i("ShockMine", 1, 1, 1),
+				i("ClearRadPills", 1, 2, 2) },
 		},
+		-- Big finds (Prompt 16): carried home with both hands (Section 12); what they give is ours (a Bible Question)
+		GeneratorParts = { Text = "Generator parts hauled home", Rolls = 2, Lines = { r("Scrap", 50, 90, 3), r("Iron", 5, 10, 2) } },
 
 		-- Expeditions (per cycle away)
 		ExpeditionSurface = {

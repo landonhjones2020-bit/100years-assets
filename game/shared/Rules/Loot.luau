@@ -11,10 +11,11 @@
 
 	* context.BandOre is the ore a BandOre line gives (the band the loot is in). With none (the
 	  Source Chamber) BandOre lines are left out of the draw.
-	* context.Skip names Specials that nothing hands out yet (Gear before Prompt 26, RadioLog
-	  before the Codex): their lines are left out of the draw too, so the rest keep their odds
-	  between them.
+	* context.Skip names Specials (or item ids) that nothing hands out yet (Gear before Prompt 26,
+	  RadioLog before the Codex, the Lamp before placeables): their lines are left out of the draw
+	  too, so the rest keep their odds between them.
 	* context.OreMultiplier scales the ore a BandOre line gives (the Driller's DugOre).
+	* context.ExtraRolls adds draws (the Scavenger's ExtraLootRolls on surface containers).
 ]]
 
 local Config = require(script.Parent.Parent.Config)
@@ -22,7 +23,7 @@ local Config = require(script.Parent.Parent.Config)
 local Loot = {}
 
 export type Drop = { Resource: string?, Item: string?, Special: string?, Count: number }
-export type Context = { BandOre: string?, Skip: { [string]: boolean }?, OreMultiplier: number? }
+export type Context = { BandOre: string?, Skip: { [string]: boolean }?, OreMultiplier: number?, ExtraRolls: number? }
 
 -- The lines a table can give here, with their weights.
 function Loot.Lines(tableId: string, context: Context?): { any }
@@ -35,6 +36,8 @@ function Loot.Lines(tableId: string, context: Context?): { any }
 			usable = false
 		elseif line.Special and line.Special ~= "BandOre" and skip and skip[line.Special] then
 			usable = false
+		elseif line.Item and skip and skip[line.Item] then
+			usable = false -- an item nothing hands out yet (a Lamp before placeables)
 		end
 		if usable then
 			table.insert(list, line)
@@ -59,7 +62,8 @@ function Loot.Roll(tableId: string, rng: Random, context: Context?): { Drop }
 	if total <= 0 then
 		return {}
 	end
-	for _ = 1, entry.Rolls do
+	local rolls = entry.Rolls + math.max(math.floor((context and context.ExtraRolls) or 0), 0)
+	for _ = 1, rolls do
 		local pick = rng:NextNumber() * total
 		local chosen = lines[#lines]
 		for _, line in lines do

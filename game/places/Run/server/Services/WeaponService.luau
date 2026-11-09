@@ -352,6 +352,10 @@ end
 
 -- What the player should be holding now.
 local function refreshHeld(player: Player, state: Loadout)
+	if player:GetAttribute("Carrying") ~= nil then
+		holdItem(player, nil) -- both hands on a big find
+		return
+	end
 	if now() < state.SwingEndsAt then
 		holdItem(player, if state.Melee.Item ~= Combat.UNARMED then state.Melee.Item else nil)
 		return
@@ -368,6 +372,12 @@ end
 
 local function alive(player: Player): boolean
 	return player:GetAttribute("Life") == "Alive"
+end
+
+-- Both hands on a big find (Prompt 16, Section 12): no firing, swinging, throwing, tools, rolls or
+-- Medkits until it is put down.
+local function handsFree(player: Player): boolean
+	return alive(player) and player:GetAttribute("Carrying") == nil
 end
 
 local function spend(state: Loadout, player: Player, amount: number): boolean
@@ -667,7 +677,7 @@ local function onThrow(player: Player, slot: number, origin: Vector3, aim: Vecto
 	local state = loadouts[player]
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if not state or not root or not alive(player) or state.Selected ~= slot or now() < state.SwingEndsAt then
+	if not state or not root or not handsFree(player) or state.Selected ~= slot or now() < state.SwingEndsAt then
 		return
 	end
 	local held = state.Slots[slot]
@@ -698,7 +708,7 @@ end
 local function onFire(player: Player, slot: number, shot: number, origin: Vector3, aim: Vector3, time: number, claims: { any })
 	local state = loadouts[player]
 	local shooter = combat:PlayerCombatant(player)
-	if not state or not shooter or not alive(player) then
+	if not state or not shooter or not handsFree(player) then
 		return
 	end
 	local held = state.Slots[slot]
@@ -832,7 +842,7 @@ local function onUseTool(player: Player, on: boolean)
 	end
 	local held = state.Slots[state.Selected]
 	local item = held and Config.Find("Items", held.Item)
-	if not held or not item or item.Kind ~= "Tool" or not alive(player) or now() < state.SwingEndsAt then
+	if not held or not item or item.Kind ~= "Tool" or not handsFree(player) or now() < state.SwingEndsAt then
 		return
 	end
 	state.ToolOn = held.Item
@@ -935,7 +945,7 @@ end
 local function onSwing(player: Player, heavy: boolean, facing: Vector3)
 	local state = loadouts[player]
 	local attacker = combat:PlayerCombatant(player)
-	if not state or not attacker or not alive(player) then
+	if not state or not attacker or not handsFree(player) then
 		return
 	end
 	local clock = now()
@@ -1006,7 +1016,7 @@ end
 local function onDodge(player: Player, _direction: Vector3)
 	local state = loadouts[player]
 	local me = combat:PlayerCombatant(player)
-	if not state or not me or not alive(player) then
+	if not state or not me or not handsFree(player) then
 		return
 	end
 	local clock = now()
@@ -1099,7 +1109,7 @@ end
 local function onMedkit(player: Player)
 	local state = loadouts[player]
 	local c = combat:PlayerCombatant(player)
-	if not state or not c or not alive(player) or now() < state.HealEndsAt then
+	if not state or not c or not handsFree(player) or now() < state.HealEndsAt then
 		return
 	end
 	if state.Medkits <= 0 then
@@ -1240,6 +1250,16 @@ local function describe(player: Player): string
 	end
 	table.insert(lines, `  melee: {state.Melee.Item}`)
 	return table.concat(lines, "\n")
+end
+
+-- Shows the right thing in the player's hands again (after Carrying changes: Prompt 16).
+function WeaponService:RefreshHeld(player: Player)
+	local state = loadouts[player]
+	if state then
+		stopTool(player, state)
+		cancelReload(player, state)
+		refreshHeld(player, state)
+	end
 end
 
 function WeaponService:Loadout(player: Player): Loadout?

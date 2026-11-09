@@ -745,6 +745,105 @@ for _n in HUD_GROUP:
 
 
 # ------------------------------------------------------------------------------------------
+# Surface, Deep and expedition icons (Prompts 16 to 18). Their own atlas (group "surface"), so
+# the atlases already uploaded keep their ids.
+# ------------------------------------------------------------------------------------------
+
+SURFACE_GROUP: list = []
+
+
+def surface_icon(name, note, tilt=0.0):
+    SURFACE_GROUP.append(name)
+    return icon(name, note, tilt)
+
+
+@surface_icon("Icon_Backpack", "the backpack (HUD chip; Prompt 16)", tilt=14)
+def ic_backpack():
+    canvas = mat("enamel", C["olive"], rough=0.6)
+    leather = mat("enamel", C["leather"], rough=0.5)
+    brass = mat("metal", C["brass"], rough=0.25)
+    K.rr_slab(66, 78, 18, 0, 22, canvas, cy=-4, bevel=6, seg=4)
+    K.rr_slab(70, 30, 12, 18, 30, mat("enamel", "#6E7650", rough=0.6), cy=24, bevel=4, seg=3)
+    K.rr_slab(44, 28, 8, 22, 32, mat("enamel", "#5E6646", rough=0.6), cy=-20, bevel=3, seg=3)
+    for x in (-16, 16):
+        K.box(9, 46, 30, 34, leather, cx=x, cy=12, bevel=1.2, seg=2)
+        K.box(13, 9, 33, 37, brass, cx=x, cy=-2, bevel=1.4, seg=2)
+    K.annulus(10, 5, 0, 8, leather, cy=44, n=32, bevel=1.4, seg=2)
+
+
+@surface_icon("Icon_Radiation", "radiation (alerts and the gauge; Prompt 16)", tilt=0)
+def ic_radiation():
+    K.disc(48, 0, 6, mat("enamel", C["navy"]), n=64, bevel=1.4, seg=2)
+    K.disc(44, 6, 12, mat("enamel", C["hazard"], rough=0.3), n=64, bevel=2.0, seg=2)
+    ink = mat("enamel", C["navy"])
+    for a in (90, 210, 330):
+        K.sector(38, 12, a - 30, a + 30, 12, 16, ink, n=24, bevel=1.2, seg=2)
+    K.disc(7.5, 12, 16, ink, n=32, bevel=1.0, seg=2)
+
+
+@surface_icon("Icon_Radio", "a radio: logs, distress calls, the Radio Room (Prompts 17 and 18)", tilt=12)
+def ic_radio():
+    K.rr_slab(92, 62, 12, 0, 24, mat("enamel", C["teal"], rough=0.28), cy=-8, bevel=6, seg=4)
+    K.disc(19, 24, 27, mat("enamel", C["cream"], rough=0.4), cx=-20, cy=-8, n=48)
+    for y in (-18, -12, -6, 0, 6):
+        K.box(30, 2.6, 27, 28.4, mat("enamel", C["navy"]), cx=-20, cy=y - 2)
+    K.disc(12, 24, 30, mat("metal", C["brass"], rough=0.22), cx=24, cy=-4, n=40, bevel=1.6, seg=2)
+    K.box(3, 18, 30, 32, mat("enamel", C["navy"]), cx=24, cy=0)
+    place(K.box(4, 50, 8, 12, mat("chrome", rough=0.2), cy=40, bevel=0.8, seg=1), rot=(0, 0, -24))
+
+
+@surface_icon("Icon_Cryo", "a cryo pod (Prompt 17)", tilt=0)
+def ic_cryo():
+    K.rr_slab(56, 100, 26, 0, 18, mat("chrome", rough=0.2), bevel=5, seg=4)
+    K.rr_slab(38, 70, 18, 18, 24, mat("glow", "#7FD8D2", emit=C["crystal"], strength=0.6), cy=4, bevel=4, seg=3)
+    for y in (-30, -4, 22):
+        K.box(30, 3, 24, 26, mat("enamel", C["porcelain"], rough=0.4), cy=y)
+    K.box(46, 8, 18, 24, mat("enamel", C["signal"]), cy=-44, bevel=1.4, seg=2)
+
+
+@surface_icon("Icon_Crew", "a Steadfast work crew's hard hat (Lost Crews, Prompt 17)", tilt=10)
+def ic_crew():
+    yellow = mat("enamel", C["hazard"], rough=0.28)
+    K.sector(36, 0, 0, 180, 0, 26, yellow, cy=-8, n=40, bevel=6, seg=4)
+    K.box(92, 10, 0, 22, yellow, cy=-12, bevel=3, seg=3)
+    K.box(8, 34, 26, 30, mat("enamel", "#D9A93A"), cy=10, bevel=1.4, seg=2)
+    K.disc(10, 22, 30, mat("glow", "#FFF1C4", emit="#FFE9A8", strength=1.2), cy=8, n=32, bevel=1.4, seg=2)
+    K.annulus(11, 8, 22, 31, mat("chrome", rough=0.2), cy=8, n=32)
+
+
+@surface_icon("Icon_Route", "an expedition's route: a compass (Prompt 18)", tilt=8)
+def ic_route():
+    K.annulus(46, 38, 0, 12, mat("metal", C["brass"], rough=0.22), n=64, bevel=2.0, seg=2)
+    K.disc(38, 0, 8, mat("enamel", C["cream"], rough=0.4), n=64)
+    for a in (0, 90, 180, 270):
+        K.box(3, 8, 8, 9.5, mat("enamel", C["navy"]), cx=31 * math.cos(math.radians(a)), cy=31 * math.sin(math.radians(a)), rot=a + 90)
+    K.poly(rotated([(0, 34), (8, 0), (-8, 0)], -35), 8, 14, mat("enamel", C["signal"], rough=0.3), bevel=1.0, seg=1)
+    K.poly(rotated([(0, -34), (8, 0), (-8, 0)], -35), 8, 14, mat("enamel", C["navy"]), bevel=1.0, seg=1)
+    K.disc(5, 8, 15, mat("metal", C["brass"]), n=24)
+
+
+@surface_icon("Icon_Storm", "the storm over the surface (Prompt 16)", tilt=0)
+def ic_storm():
+    # overlapping puffs at different heights (puffs flush with each other render dark seams)
+    for i, (x, y, r) in enumerate(((-26, 4, 18), (26, 4, 18), (-8, 14, 22), (12, 18, 24), (0, 0, 22))):
+        K.disc(r, 0, 12 + i * 2.5, mat("enamel", ("#6F6D73", "#76747A", "#7E7C82", "#86848A", "#8C8A90")[i], rough=0.6),
+               cx=x, cy=y, n=40, bevel=3, seg=3)
+    K.poly([(4, -4), (-14, -30), (0, -30), (-10, -56), (18, -22), (4, -22), (14, -4)], 16, 24,
+           mat("enamel", C["hazard"], rough=0.3), bevel=1.6, seg=2)
+
+
+@surface_icon("Icon_Survivor", "a survivor or resident (rescues, Prompt 16)", tilt=0)
+def ic_survivor():
+    K.disc(19, 0, 20, mat("enamel", C["cream"], rough=0.4), cy=24, n=48, bevel=6, seg=4)
+    K.sector(42, 0, 0, 180, 0, 18, mat("enamel", C["teal"], rough=0.3), cy=-44, n=48, bevel=6, seg=4)
+    K.box(14, 14, 18, 21, mat("enamel", C["hazard"]), cx=-16, cy=-26, bevel=1.4, seg=2)
+
+
+for _n in SURFACE_GROUP:
+    SPECS[_n]["group"] = "surface"
+
+
+# ------------------------------------------------------------------------------------------
 # Printed pieces (no render): stamps, glass, blueprint grid
 # ------------------------------------------------------------------------------------------
 

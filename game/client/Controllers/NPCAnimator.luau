@@ -4,7 +4,8 @@
 	Section 23: animations play on clients from a replicated Activity attribute, which keeps the
 	server light and avoids Animate scripts in NPCs). Run place only.
 
-	It watches workspace.Bunker.Residents and workspace.Monsters (Prompt 12). For each model, the
+	It watches workspace.Bunker.Residents, workspace.Monsters (Prompt 12) and workspace.Rescues
+	(Prompt 16). For each model, the
 	clip in Config.Animations whose Rig (the model's Rig attribute; residents are R15) and
 	Activity match its Activity attribute plays, looped as the clip says; any other activity
 	stops it. Fleeing and running use the walk when there is no clip of their own. A monster's
@@ -175,6 +176,17 @@ function NPCAnimator:Start()
 			watch(model)
 		end
 		monsters.ChildAdded:Connect(watch)
+	end)
+	task.spawn(function()
+		-- trapped and rescued people (Prompt 16: RescueService), R15 like residents
+		local rescues = workspace:WaitForChild("Rescues", 120)
+		if not rescues then
+			return
+		end
+		for _, model in rescues:GetChildren() do
+			watch(model)
+		end
+		rescues.ChildAdded:Connect(watch)
 	end)
 end
 

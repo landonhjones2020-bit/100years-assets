@@ -192,6 +192,11 @@ local UIContract: { [string]: Screen } = {
 			"BossBar.Name",
 			"BossBar.Phase",
 			"BossBar.Back.Fill",
+			"Backpack", -- Prompt 16: the backpack chip and the elevator's fade (SurfaceController)
+			"Backpack.Icon",
+			"Backpack.Count",
+			"Backpack.Fill",
+			"Fade",
 		},
 	},
 }

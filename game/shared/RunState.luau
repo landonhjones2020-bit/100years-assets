@@ -22,6 +22,9 @@
 	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt
 	and ValvesTurned.
 	Digging (DigService, Prompt 14): Disturbance, DigLimit, DigSeed, TremorAt and Nests.
+	The surface (SurfaceService, Prompt 16): Storm and StormAt. Players also carry Zone, Radiation,
+	ClearRad, PackUsed, PackSlots, Pack, Carrying and Riding attributes (SurfaceService and
+	InventoryService).
 ]]
 
 local RunService = game:GetService("RunService")
@@ -32,7 +35,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
-	| "DisasterService" | "DigService"
+	| "DisasterService" | "DigService" | "SurfaceService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -99,6 +102,10 @@ local FIELDS: { [string]: Field } = {
 	DigSeed = { Type = "number", By = "DigService", Doc = "the run's seed for what dug cells hold (Rules.Dig.Roll), so the Driller's hints match" },
 	TremorAt = { Type = "number", By = "DigService", Doc = "server time of the last Tremor (clients shake the camera)" },
 	Nests = { Type = "number", By = "DigService", Doc = "nests alive in the bunker" },
+
+	-- SurfaceService (Prompt 16): the storm over Brightwater Ruins
+	Storm = { Type = "boolean", By = "SurfaceService", Doc = "the storm is over the surface (every Surge, Section 12): radiation climbs fast, visibility drops, Ash Wraiths hunt" },
+	StormAt = { Type = "number", By = "SurfaceService", Doc = "server time the next storm hits (the Surge siren's end), or the current one began" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount
