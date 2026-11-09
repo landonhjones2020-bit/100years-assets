@@ -751,7 +751,7 @@ end
 
 -- Away: a cycle ------------------------------------------------------------------------------------
 
-local function live(e: Expedition)
+local function live(e: Expedition, forced: string?)
 	local away = membersWith(e, "Away")
 	if #away == 0 then
 		return
@@ -775,7 +775,7 @@ local function live(e: Expedition)
 	end
 	-- what happened
 	local odds = Expeditions.Odds(e.Destination, statsOf(away))
-	local event = Expeditions.Event(odds, rng:NextNumber())
+	local event = forced or Expeditions.Event(odds, rng:NextNumber())
 	local place = placeFor(e)
 	local m = away[rng:NextInteger(1, #away)]
 	local resident = residents:Get(m.Id)
@@ -1057,12 +1057,14 @@ function ExpeditionService:Init(registry)
 		end,
 	})
 	dev:Register("exp.cycle", {
-		Description = "Every expedition away lives a cycle now (as at dawn).",
-		Usage = "exp.cycle",
-		Run = function(): string?
+		Description = "Every expedition away lives a cycle now (as at dawn); an event forces what happens.",
+		Usage = "exp.cycle [Quiet|Hurt|Lost|Distress]",
+		Run = function(_player: Player?, args): string?
+			local wanted = tostring(args[1] or "")
+			local forced = if table.find({ "Quiet", "Hurt", "Lost", "Distress" }, wanted) then wanted else nil
 			for _, e in sortedActive() do
 				if e.State == "Away" then
-					live(e)
+					live(e, forced)
 				end
 			end
 			return describe()

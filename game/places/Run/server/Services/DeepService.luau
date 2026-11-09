@@ -996,13 +996,14 @@ function DeepService:DistressSpot(): (CFrame?, string?)
 		end
 		return at, `a cave off {Deep.Hint(pick.Cave.Floor, pick.Cave.Column)}`
 	end
+	-- no cave open: the outermost dug cell of the deepest floor, against the rock
 	local floor = grid:DeepestFloor()
 	local t = Grid.Tuning()
-	for column = 0, math.max(math.abs(t.ColumnMin), t.ColumnMax) do
+	for column = math.max(math.abs(t.ColumnMin), t.ColumnMax), 0, -1 do
 		for _, c in (if column == 0 then { 0 } else { -column, column }) do
 			if Grid.OnGrid(floor, c) and grid:State(floor, c) ~= "Rock" then
 				local at = Grid.CellPosition(floor, c) + Vector3.new(0, 0, -t.CellDepth / 2 + 4)
-				return CFrame.new(at), `the rock below the bunker ({Deep.Hint(floor, c)})`
+				return CFrame.new(at), `the rock face at {Deep.Hint(floor, c)}`
 			end
 		end
 	end
