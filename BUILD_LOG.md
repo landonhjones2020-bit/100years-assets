@@ -23,7 +23,9 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 9: economy and power (Run), with Landon's answers to the Prompt 8 questions | ✅ done 2026-11-08 | Run playtests with pretend crews and eaters, the dark order, refunds, a Nightmare upgrade site, Y voting sent by the test tool; a real controller, two real players and touch still need a person; `game/reports/P09_EconomyPower.md`, `previews/Game/P09_Studio_sheet.jpg` |
 | Prompt 10: residents, phase 1 (Run) | ✅ done 2026-11-08 | Run playtests: founders at work, the routine (meal, work, Shaft stairs to bed), assigning with real clicks, the Residents screen, revive and death, defeat; `game/reports/P10_Residents.md`, `previews/Game/P10_Studio_sheet.jpg` |
 | Landon's answers to the Prompt 9 and 10 questions | ✅ built 2026-11-08 | Data tests (dark ties by draw, wrecked rooms) in both places; a Run playtest (founders idle, the jobs alert on the real client, idle residents to a Lounge); addenda in `P09_EconomyPower.md` and `P10_Residents.md` |
-| A2 to A11 | not started | |
+| Prompt 11: combat core (Run) | ✅ done 2026-11-08 | Run playtests with real clicks and keys: server-checked shots, reload, the combo and heavy swings, the roll, sprint, aim, restock, downed, out and respawn, a resident revive; all 11 clips seen playing; the guns held, checked from the side; two real players, a real controller and touch still need a person; `game/reports/P11_Combat.md`, `previews/Game/P11_Studio_sheet.jpg`, `previews/Game/P11_Handles_sheet.jpg` |
+| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the rest of the class kits to come |
+| A3 to A11 | not started | |
 
 ## Ids
 
@@ -38,7 +40,77 @@ Newest first. Every "verified" line says how it was checked.
 | Prop_SupplyCrate | model 126356214563544 (version 2 is the right scale) |
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
+| Weapon_PocketPistol | model 132352458683098 (revision 2: the v2 grip) |
+| Weapon_Wrench | model 73400938739387 |
+| UI atlas: items | decal 77379333015803, image 99859624879456 |
+| Player combat clips (11) | `manifest.csv`, rows `R15_GunHold` to `R15_Revive` |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (night): Prompt 11, combat core; the gun handles
+
+Game code builds `p11-5f1b558` to `p11-2e6632c` (final). The final is code asset 95026446991297
+revision 35, installed in Run and Lobby: StructureCheck 0 errors (Run 357 checks, Lobby 230), 77
+data tests passed. The Lobby starts cleanly with it (11 controllers, the camera on).
+`ServerStorage.Documentation.ARCHITECTURE` in Studio picks up this prompt's section with the next
+code build.
+
+**Done**
+* Rules.Combat, CombatService and WeaponService: combatants with position history, damage with
+  no friendly fire, server-checked shots (seeded spread, 250 ms of history), magazines and
+  carried ammo, reloads, restocking at the Workshop and Armory, melee combos and heavy swings,
+  the roll, sprint and stamina, downed, revive, out and respawn at a working Medbay.
+* CombatController, PromptController and Lib.Movement on the client: the inputs, the shot's
+  feedback, aim assist on gamepad and touch, the hotbar, the stamina gauge, hit and kill markers,
+  damage numbers, health bars, the downed and out telegrams, themed prompts.
+* Art (A2's first part): the 11 player clips; the Pocket Pistol and the Wrench with their hotbar
+  icons (items atlas).
+* **Landon's note, "you keep messing up the gun handles":** the Pocket Pistol's grip leaned
+  forward with a foot-like heel. v2 (revision 2) draws the grip as a side profile raked back
+  about 16°. Checked from the side in Blender and in Studio, held in a Run playtest (the hand
+  made see-through to show the grip in the palm), and aimed. The Service Revolver (v2 since A0)
+  and the Wrench were checked the same way: `previews/Game/P11_Handles_sheet.jpg`.
+
+**Verified in Studio** (Run playtests, real clicks and keys)
+* Three shots at the dev dummy: a hit marker each, 12 damage each (320 → 284), the magazine
+  10 → 7, a health bar on the dummy.
+* R reloads from carried ammo (1 → 10 loaded, 60 → 51 carried). F three times: three swings
+  for 14 each; F held: the charge, then a heavy swing for 26.
+* Ctrl: a 15-stud roll on a flat floor (14 pushed, then a slide), 20 stamina, invulnerable for
+  its first 0.35 s. Shift with W: 23.2 studs a second (16 × 1.45), stamina 100 → 85.6, back to
+  100 after the 0.8 s delay. The right mouse button: the aim clip and the zoom to 50°.
+* Restocking (the controller's X held at a restock point): 60 → 150 carried, the team's Ammo
+  200 → 110.
+* Every clip seen playing from real input: gun hold, aim, reload, three swings, charge, heavy
+  swing, roll, downed, and the revive kneel (E held on a downed resident: Ida Garza up with 22
+  of 88 health).
+* Downed: the telegram and countdown, crawling, the Humanoid kept at 1 health. Out: the respawn
+  countdown, then the Blast Door hall while the Medbay was dark, and the Medbay when powered.
+
+**Findings**
+1. **The server kills a Humanoid at 0 health**, even with the client's Dead state turned off,
+   so the first downed player died at once. A lethal hit now leaves the Humanoid at 1 and downs
+   the player; the HUD shows 0.
+2. **Weapon models carry their sockets as `Socket_<Name>` attributes** (relative to the pivot),
+   not as Attachments. The held copy is welded from the Grip socket, and Muzzle and Tip become
+   attachments on it.
+3. **The HUD wasn't built when CombatController started**, so the hotbar stayed empty. The
+   controller now waits for it.
+4. **Prompts follow the last input device.** Landon's PC has a controller connected, so the
+   prompts sometimes show X, and then holding E does nothing; X works.
+5. **Billboards drawn from PlayerGui show in Studio captures** (the revive plate and its hold
+   gauge in `previews/Game/P11_Studio_revive_prompt.jpg`).
+6. **The roll leaves the floor for about 0.2 s** mid-roll, and Roblox's fall clip flickers.
+   Polish later (keep the Humanoid running during a roll).
+7. **A melee weapon held at rest hangs head-down.** It only happens with an empty hotbar, and
+   then the Wrench's jaw goes into the floor. A carry pose comes with A2.
+
+**Landon to do**
+* Answer the six Bible Questions in `game/reports/P11_Combat.md` (ammo, the hotbar, Medkits and
+  throwables, healing, unarmed, the provisional numbers).
+* Play it with a friend: a teammate's revive needs two real players.
+* Try a real controller (aim assist, Y, X to restock) and touch.
+* The AutoScale Lite pass on the new HUD pieces (the downed telegram, the prompt and damage
+  number templates).
 
 ## 2026-11-08 (late night): Landon's answers to the Prompt 9 and 10 questions
 

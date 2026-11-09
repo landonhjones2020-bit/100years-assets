@@ -27,7 +27,8 @@ ReplicatedStorage
     RunState                     the run's small values, replicated as attributes on it (Run)
     UIContract                   the parts of the UI layout the code uses (StructureCheck checks them)
     Config                       content aggregator; one child ModuleScript per content type
-    Rules                        pure game rules both sides share (Clock, Grid, Bunker, CameraRig, Hud)
+    Rules                        pure game rules both sides share (Clock, Grid, Bunker, CameraRig, Hud,
+                                 CommandView, Votes, Construction, Economy, Residents, Combat)
     Utilities                    Check, Delta, Loader, Log, RateLimit, Signal, TableUtil, Trove
 ServerScriptService
   Bootstrap                      (Script) the only server script
@@ -37,7 +38,7 @@ ServerScriptService
 StarterPlayer.StarterPlayerScripts
   ClientBootstrap                (LocalScript) the only client script
   Controllers                    one ModuleScript per controller
-  Lib                            client-only modules that aren't controllers (Fade, KitRuntime, UIKit, UISamples)
+  Lib                            client-only modules that aren't controllers (Fade, KitRuntime, Movement, UIKit, UISamples)
 StarterGui
   Reticle                        the aim sight (built in Studio, studio/ui/Reticle.lua)
   Frame                          The Frame, the one menu layout (both places; studio/ui/Frame.lua)
@@ -425,6 +426,47 @@ levels, morale states, a room's crew, the Auto-Assign matching, one cycle of nee
 * The Command View lists a room's workers and the idle residents best at its job (Assign, Take
   off the job, Auto-Assign), and its Morale overlay reads the workers' average morale.
 
+## Combat (Run place)
+
+Bible Sections 9 and 23 (Prompt 11). `Shared.Rules.Combat` is pure: guns and melee weapons by
+rarity, damage, fire intervals, pellets, the seeded spread, reloads, hit checks against position
+history, cones and arcs, aim assist, combos, swing timing, stamina, the nearest respawn point.
+The client predicts with it and the server checks with it.
+
+* `CombatService` owns everyone who can be hurt:
+  * `Register(model, spec)` for players (on spawn), residents' bodies (ResidentBrain) and
+    monsters (Prompt 12; a dev dummy until then). Ids: `P<UserId>`, `N#`, `M#`.
+  * Each combatant has a team, health, a reach and 1 s of positions at 20 Hz for the shot checks
+    (Section 23: where the target was over the last 250 ms).
+  * `Damage(id, amount, sourceId?, how?)`: no friendly fire, nothing during a dodge's
+    invulnerable moment. A player's Humanoid never reaches 0 health: the lethal hit leaves it at
+    1 and downs the player. All damage goes through here.
+  * Players: Downed (20 s, crawling, a revive prompt for teammates), then Dead, then a respawn at
+    the nearest working Medbay (not wrecked, not dark) or the Blast Door hall. The `Life`,
+    `LifeEndsAt` and `InvulnerableUntil` attributes on the Player carry it. No natural
+    regeneration.
+  * Signals: `Damaged`, `Downed`, `Revived`, `Died`. Dead monsters dissolve.
+* `WeaponService` owns what players carry and do:
+  * the loadout (the class kit until Prompt 21): guns on hotbar slots 1 and 2, the tool on 3,
+    throwables on 4 and 5, the melee weapon on its own button; the held item is a clone of its
+    model welded to the hand at its Grip socket;
+  * the remotes `SelectSlot`, `FireWeapon` (checked hits, then `HitConfirmed`), `ReloadWeapon`,
+    `MeleeSwing`, `Dodge`, `Sprint`;
+  * magazines, carried ammo and restocking at Workshop and Armory restock points (from the
+    team's Ammo);
+  * stamina (sprint, dodge, heavy swings);
+  * the Player attributes `Class`, `Slot`, `Item1` to `Item5`, `Mag1`, `Mag2`, `MeleeItem`,
+    `CarriedAmmo`, `Stamina`, `ReloadEndsAt`, `ShotSalt`, `ShotNext`, `SwingEndsAt`.
+* `CombatController` (client): input (fire, aim, reload, melee, dodge, sprint, the hotbar), the
+  shot's feedback, recoil, aim assist on gamepad and touch, the roll, the HUD's hotbar and stamina
+  gauge, hit and kill markers, damage numbers, health bars, the downed and out telegrams, the
+  players' clips (`Config.Animations`).
+* `PromptController` (client) draws every Custom-style ProximityPrompt from
+  `HUD.Templates.Prompt` (the key's chip, the action, a hold gauge; on touch the plate is the
+  button). Holding a revive prompt plays the kneel clip.
+* `Lib.Movement` (client) works out one walk speed from several reasons (aiming, sprinting,
+  crawling) on top of `StarterPlayer.CharacterWalkSpeed`.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -546,6 +588,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | ResidentBrain | service | ResidentService, BunkerGrid, CycleClock, DevService | residents' bodies, routines, walking (Lib.PathGraph) |
 | Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
 | Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks |
+| Run | CombatService | service | SessionService, BunkerGrid, PowerService, ResidentService, DevService | everyone who can be hurt: combatants, history, damage, down, revive, death, respawn |
+| Run | WeaponService | service | CombatService, EconomyService, BunkerGrid, SessionService, DevService | loadouts, the hotbar, held items, shots and their checks, reloads, melee, dodge, sprint, stamina, restocking |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -556,6 +600,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
 | both | NPCAnimator | controller | | residents' clips from their Activity attribute (Run) |
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
+| Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
+| Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -609,3 +655,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   Lib.PathGraph (eating, working and sleeping, walking doorways and Shaft stairs), NPCAnimator
   and Config.Animations, the Residents screen, workers and assigning in the Command View, the
   Morale overlay.
+* **Prompt 11 (2026-11-08)**: the combat core (Run). Rules.Combat, CombatService (combatants,
+  history, damage, down, revive, respawn at a working Medbay), WeaponService (loadouts, the
+  hotbar, server-checked shots, reloads, melee combos and heavy swings, dodge, sprint, stamina,
+  restocking), CombatController, PromptController (themed prompts), Lib.Movement, the players'
+  11 clips, the Pocket Pistol (v2: the grip rakes back) and the Wrench. Before it, Landon's
+  answers to the Prompt 9 and 10 questions: the biggest draw goes dark first, wrecked rooms draw
+  nothing, the founders start idle, idle residents use the Lounge.
