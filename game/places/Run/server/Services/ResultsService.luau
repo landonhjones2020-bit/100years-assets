@@ -10,7 +10,7 @@
 	  telling, each with its year (a boss beaten, a resident's death, a Push Deeper, a Tremor, a
 	  meltdown stopped, the end).
 	* The Deep (Prompt 17): caves found, Lost Crews brought home and cryo pods thawed go in the
-	  story; Glowshard chests pay when they are opened (DeepService), and the results show them as
+	  story; so do expeditions home, distress calls answered and recruits (Prompt 18); Glowshard chests pay when they are opened (DeepService), and the results show them as
 	  a line of their own (already paid).
 	* When the run ends (RunDirector.RunEnded) it pays everyone still in it: Glowshards
 	  (Rules.Results.Payout: years, depth bands, a victory, bosses, the difficulty, the first win of
@@ -54,7 +54,7 @@ local ResultsService = {
 	Dependencies = {
 		"RunDirector", "CycleClock", "SessionService", "ProfileService", "CombatService", "MonsterService", "ResidentService",
 		"BuildService", "DigService", "DisasterService", "ObjectiveService", "BossService", "BunkerGrid", "VoteService",
-		"InventoryService", "RescueService", "DeepService", "ReplicationService", "DevService",
+		"InventoryService", "RescueService", "DeepService", "ExpeditionService", "ReplicationService", "DevService",
 	},
 }
 
@@ -456,6 +456,7 @@ function ResultsService:Init(registry)
 	services.Inventory = registry.InventoryService
 	services.Rescue = registry.RescueService
 	services.Deep = registry.DeepService
+	services.Expedition = registry.ExpeditionService
 	collection = registry.ReplicationService:Collection("Results")
 	registerCommands(registry.DevService)
 end
@@ -563,6 +564,17 @@ function ResultsService:Start()
 		local objective = Config.Find("Objectives", objectiveId)
 		local crew = if objective then (string.gsub(objective.Name, "^Lost Crew: ", "")) else "a lost"
 		story(`{if leader then leader.DisplayName else "the team"} brought {crew} crew home`)
+	end)
+	-- Prompt 18: expeditions home, distress calls answered, recruits
+	services.Expedition.Returned:Connect(function(_id: string, destination: string, names: string, finds: string)
+		story(`{names} came back from {if destination == "Deep" then "the Deep" else "the surface"}`
+			.. (if finds ~= "" then ` ({string.lower(finds)})` else ""))
+	end)
+	services.Expedition.Reached:Connect(function(_id: string, player: Player)
+		story(`{player.DisplayName} answered a distress call`)
+	end)
+	services.Expedition.Recruited:Connect(function(residentId: string, how: string)
+		story(`{residentName(residentId)} {how}`)
 	end)
 	services.Deep.Thawed:Connect(function(residentId: string, tier: string)
 		story(`{residentName(residentId)} ({string.lower(tier)}) thawed out of a cryo pod`)

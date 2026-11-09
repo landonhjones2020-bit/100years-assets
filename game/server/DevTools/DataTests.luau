@@ -40,6 +40,7 @@ local Boss = require(Shared.Rules.Boss)
 local Results = require(Shared.Rules.Results)
 local Surface = require(Shared.Rules.Surface)
 local Deep = require(Shared.Rules.Deep)
+local Expeditions = require(Shared.Rules.Expeditions)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -2297,6 +2298,117 @@ test("Deep: finds, cryo pods, crews, hints, drops and guards (Sections 6, 12 and
 	expect(d.HintChance > 0 and d.HintChance < 1, "crew logs and story logs both turn up")
 	expect(Config.Get("Rooms", "CryoBay").Unlock.Kind == "CryoPod", "the Cryo Bay unlocks with a cryo pod (Section 6)")
 	expectEqual(Config.Get("Rooms", "CryoBay").Output.Kind, "Thawing", "the Cryo Bay thaws")
+end)
+
+-- Expeditions (Prompt 18) ------------------------------------------------------------------
+
+test("Expeditions: who goes, for how long and with what (Section 12)", function()
+	local t = Expeditions.Tuning()
+	expectEqual({ t.Size.Min, t.Size.Max, t.Cycles.Min, t.Cycles.Max }, { 1, 3, 1, 3 }, "1 to 3 residents for 1, 2 or 3 cycles")
+	local alive = { State = "Alive" }
+	expect((Expeditions.Check("Surface", { alive, alive }, 2, 1)), "two residents for two cycles to go")
+	expect((Expeditions.Check("Deep", { alive }, 3, t.MedkitsMax)), "one resident with every Medkit to go")
+	local refused = {
+		{ "Moon", { alive }, 1, 0, "a destination that isn't the surface or the Deep" },
+		{ "Surface", {}, 1, 0, "an empty team" },
+		{ "Surface", { alive, alive, alive, alive }, 1, 0, "four residents" },
+		{ "Surface", { alive }, 0, 0, "no cycles" },
+		{ "Surface", { alive }, 4, 0, "four cycles" },
+		{ "Surface", { alive }, 1.5, 0, "half a cycle" },
+		{ "Surface", { alive }, 1, t.MedkitsMax + 1, "too many Medkits" },
+		{ "Surface", { { State = "Away" } }, 1, 0, "someone already away" },
+		{ "Surface", { { State = "Down" } }, 1, 0, "someone down" },
+		{ "Surface", { { State = "Alive", Trapped = true } }, 1, 0, "someone cut off by rubble" },
+	}
+	for _, case in refused do
+		local ok, why = Expeditions.Check(case[1], case[2], case[3], case[4])
+		expect(not ok and type(why) == "string", `{case[5]} to be refused with a reason`)
+	end
+	expectEqual(Expeditions.Supplies(3, 2), { Food = 6, Water = 6 }, "Food and Water for 3 residents for 2 cycles")
+	expectEqual(Expeditions.Names({ "Mara" }), "Mara", "one name")
+	expectEqual(Expeditions.Names({ "Mara", "Jude" }), "Mara and Jude", "two names")
+	expectEqual(Expeditions.Names({ "Mara", "Jude", "Ana" }), "Mara, Jude and Ana", "three names")
+	expectEqual(Expeditions.Place("Motel"), "the motel", "a place mid-sentence")
+	expectEqual(Expeditions.Place("Main Street diner"), "the Main Street diner", "Main Street keeps its capitals")
+	expectEqual(Expeditions.Place(Config.Get("DepthBands", "Mines").Name), "the Mines", "the Mines")
+	expectEqual(Expeditions.Place(Config.Get("DepthBands", "FloodedCaverns").Name), "the Flooded Caverns", "the Flooded Caverns")
+	-- every destination has lines for everything that can happen, and their blanks fill
+	for _, destination in Expeditions.Destinations() do
+		for _, event in { "SetOut", "Quiet", "Hurt", "Patched", "Lost", "Distress", "Call", "Home" } do
+			local lines = Expeditions.Lines(destination, event)
+			expect(#lines > 0, `a {event} line for the {destination}`)
+			for _, text in lines do
+				local filled = Expeditions.Fill(text, { name = "Mara", names = "Mara and Jude", place = "the motel" })
+				expect(not string.find(filled, "[{}]"), `every blank in "{text}" to fill`)
+			end
+		end
+	end
+	expectEqual(Expeditions.Fill("{name} at {place}, {unknown}", { name = "Mara", place = "the motel" }), "Mara at the motel, {unknown}",
+		"unknown blanks to stay")
+	expectEqual(Expeditions.LootTable("Surface"), "ExpeditionSurface", "the surface's loot table")
+	expectEqual(Expeditions.LootTable("Deep"), "ExpeditionDeep", "the Deep's loot table")
+end)
+
+test("Expeditions: danger, finds, harm, distress calls and recruits (Sections 11 and 12)", function()
+	local t = Expeditions.Tuning()
+	local average = { Grit = 5, Speed = 5, Strength = 5 }
+	local tough = { Grit = 10, Speed = 10, Strength = 5 }
+	local weak = { Grit = 1, Speed = 1, Strength = 1 }
+	expectEqual(Expeditions.Risk({ average }), 1, "risk 1 at the pivot")
+	expect(Expeditions.Risk({ tough }) < 1 and Expeditions.Risk({ tough }) >= t.RiskMin, "a tough, fast team to run less risk")
+	expect(Expeditions.Risk({ weak }) > 1 and Expeditions.Risk({ weak }) <= t.RiskMax, "a weak, slow team to run more")
+	expect(Expeditions.Risk({ { Grit = 15, Speed = 15 } }) == t.RiskMin, "risk never below RiskMin")
+	local surface, deep = Expeditions.Odds("Surface", { average }), Expeditions.Odds("Deep", { average })
+	expectEqual(surface.Distress, t.DistressChance, "the bible's distress odds at the pivot on the surface")
+	expectEqual(surface.Lost, t.BaseLossChance, "the bible's loss odds at the pivot on the surface")
+	expect(deep.Hurt > surface.Hurt and deep.Lost > surface.Lost and deep.Distress > surface.Distress, "the Deep to be more dangerous")
+	local safer = Expeditions.Odds("Surface", { tough })
+	expect(safer.Hurt < surface.Hurt and safer.Lost < surface.Lost, "Grit and Speed to lower the odds")
+	expectEqual(Expeditions.Event(surface, 0), "Lost", "the lowest rolls lose someone")
+	expectEqual(Expeditions.Event(surface, surface.Lost + 0.001), "Distress", "then a distress call")
+	expectEqual(Expeditions.Event(surface, surface.Lost + surface.Distress + 0.001), "Hurt", "then someone hurt")
+	expectEqual(Expeditions.Event(surface, 0.999), "Quiet", "and mostly nothing")
+	expect(table.find({ "LOW", "MEDIUM", "HIGH" }, Expeditions.RiskLabel(surface)) ~= nil, "a risk label")
+	-- carrying (Section 11: Strength) and members' own effects (traits, Legends)
+	expectEqual(Expeditions.Carry(average, nil), 1, "Strength 5 carries one share")
+	expect(math.abs(Expeditions.Carry({ Strength = 10 }, nil) - 1.5) < 1e-9, "Strength 10 carries one and a half")
+	local strongBack = Config.Get("Traits", "StrongBack").Modifiers
+	expect(math.abs(Expeditions.Carry(average, strongBack) - 1.25) < 1e-9, "a Strong Back carries a quarter more")
+	local team = Expeditions.Team({ average, average }, { Config.Get("Traits", "Lucky").Modifiers, Config.Get("Traits", "Scrounger").Modifiers })
+	expectEqual(team, { Carry = 2, Loot = 1.25, Scrap = 1.5 }, "two carriers, a Lucky one and a Scrounger")
+	expectEqual(Expeditions.Scale({ { Resource = "Scrap", Count = 10 }, { Resource = "Food", Count = 4 }, { Special = "Recruit", Count = 1 } },
+		{ Carry = 2, Loot = 1, Scrap = 1.5 }),
+		{ { Resource = "Scrap", Count = 30 }, { Resource = "Food", Count = 8 }, { Special = "Recruit", Count = 1 } },
+		"resources scaled, Scrap more, a recruit as it came")
+	local one = Expeditions.Team({ average }, nil)
+	local up = Expeditions.Expected("Surface", one, nil, { Gear = true, Blueprint = true })
+	expect((up.Scrap or 0) > 0 and (up.Food or 0) > 0 and (up.Water or 0) > 0, "the surface to find Scrap, Food and Water")
+	local down = Expeditions.Expected("Deep", one, "Iron", { Gear = true, Blueprint = true })
+	expect((down.Iron or 0) > 0 and (down.Scrap or 0) > 0, "the Deep to find the band's ore and Scrap")
+	expect(Expeditions.Expected("Deep", one, nil, nil).Iron == nil, "no ore where the band has none")
+	local rng = Random.new(18)
+	for _ = 1, 200 do
+		for _, drop in Loot.Roll("ExpeditionSurface", rng, { Skip = { Gear = true, Blueprint = true } }) do
+			expect(drop.Special ~= "Gear" and drop.Special ~= "Blueprint", "no gear or blueprints before their prompts")
+		end
+	end
+	-- harm (a share of max health, halved with a Medkit, never 0) and the rest
+	expectEqual(Expeditions.Harm(100, 0, false), 20, "the least harm")
+	expectEqual(Expeditions.Harm(100, 1, false), 45, "the most harm")
+	expectEqual(Expeditions.Harm(100, 1, true), 23, "a Medkit halves it")
+	expectEqual(Expeditions.Harm(1, 0, true), 1, "harm is at least 1")
+	expectEqual(Expeditions.Deadline(7), 8, "a call in cycle 7 can be answered until cycle 8's day ends")
+	expectEqual(Expeditions.RecruitTier(0.1, 0.2), "Rare", "a low roll is Rare")
+	expectEqual(Expeditions.RecruitTier(0.5, 0.2), "Common", "a high roll is Common")
+	-- the Prompt 18 modifiers and the Radio Operator (Section 14)
+	for _, key in { "ExpeditionLoot", "ExpeditionScrap", "ExpeditionCarry", "RecruitRate", "RareRecruitChance", "DistressCallLeadSeconds" } do
+		expectEqual(Config.Get("Modifiers", key).Prompt, 18, `{key} to be Prompt 18's`)
+	end
+	expectEqual(Modifiers.ClassValue("RadioOperator", "RecruitRate"), 1.3, "the Radio Operator's recruits")
+	expectEqual(Modifiers.ClassValue("RadioOperator", "DistressCallLeadSeconds"), 30, "the Radio Operator's 30 seconds")
+	expectEqual(Modifiers.ClassValue("RadioOperator", "RareRecruitChance", 3), 1.5, "the Radio Operator's level 3")
+	expectEqual(Config.Get("Rooms", "RadioRoom").Output.Kind, "Recruits", "the Radio Room makes recruits")
+	expectEqual(Config.Get("Rooms", "RadioRoom").WorkerStat, "Charm", "the Radio Room's job is Charm")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

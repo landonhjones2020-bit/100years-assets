@@ -106,6 +106,18 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 3, PerSecond = 1 },
 		Doc = "Revive a downed resident with a Medkit from the stockpile (the resident's prompt; Section 11).",
 	},
+	SendExpedition = {
+		To = "Server",
+		Place = "Run",
+		Args = {
+			Check.enum({ "Surface", "Deep" }),
+			Check.array(Check.string(12, { pattern = "^N%d+$", min = 2 }), 3), -- who goes
+			Check.integer(1, 3), -- cycles away
+			Check.integer(0, 3), -- Medkits packed
+		},
+		Rate = { Burst = 3, PerSecond = 0.5 },
+		Doc = "Send residents on an expedition (Section 12; Prompt 18): destination, who goes, cycles, Medkits; no vote (Section 8). ExpeditionService checks the sender is at the Blast Door or a Radio Room, the team and the supplies.",
+	},
 	SelectSlot = {
 		To = "Server",
 		Place = "Run",
@@ -244,7 +256,7 @@ local DEFINITIONS: { [string]: Definition } = {
 	RadioLog = {
 		To = "Client",
 		Place = "Run",
-		Doc = "A radio log to play for this player (Section 12; Prompt 17): its title, who it is from, its text, and where a Lost Crew was last heard from (or nil) (DeepService).",
+		Doc = "A radio log to play for this player (Section 12; Prompt 17): its title, who it is from, its text, and where a Lost Crew was last heard from (or nil) (DeepService; Prompt 18: distress calls and the Radio Room's crew calls, ExpeditionService).",
 	},
 	Elevator = {
 		To = "Client",

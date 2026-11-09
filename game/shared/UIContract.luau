@@ -197,6 +197,11 @@ local UIContract: { [string]: Screen } = {
 			"Backpack.Count",
 			"Backpack.Fill",
 			"Fade",
+			"Templates.Distress.Plate.Lamp", -- Prompt 18: a distress call's plate in the world (ExpeditionsController)
+			"Templates.Distress.Plate.Label",
+			"Templates.Distress.Plate.Count",
+			"Templates.Distress.Plate.Names",
+			"Templates.Distress.Plate.Where",
 		},
 	},
 }

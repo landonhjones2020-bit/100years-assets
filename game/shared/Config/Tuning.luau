@@ -175,6 +175,12 @@ local Schemas: { [string]: Check.Checker } = {
 	Expeditions = shape({
 		Size = F.Range, Cycles = F.Range, DistressChance = Fr, BaseLossChance = Fr,
 		SurfaceLoot = Check.ref("LootTables"), DeepLoot = Check.ref("LootTables"),
+		-- Prompt 18
+		HurtChance = Fr, Danger = Check.map(Check.enum({ "Surface", "Deep" }), N, 2),
+		StatPivot = N, StatStep = N, RiskMin = N, RiskMax = N, HurtShare = F.Range, MedkitsMax = I, MedkitHurtKept = Fr,
+		CarryBase = N, CarryPerStrength = N, CallDelay = F.Range, UseRange = N, LeaveSeconds = S,
+		RecruitRareChance = Fr, RecruitLevel = F.Range, RecruitsMax = I,
+		RadioRareChance = Fr, RadioLevel = F.Range, RadioHintCycles = I,
 	}),
 	Surface = shape({
 		StormSirenSeconds = S, RadiationPerSecond = N, StormRadiationPerSecond = N, RefillEvery = Check.enum({ "Era" }),
@@ -439,9 +445,29 @@ return {
 			Buys = { Food = 2, Water = 2, Iron = 6, Copper = 10, Crystal = 16 },
 		},
 		Wanderers = { EveryCycles = { Min = 2, Max = 3 }, InspectCharm = 7 }, -- Section 10
-		Expeditions = { -- Section 12; distress and loss odds prov.
+		Expeditions = { -- Section 12; distress and loss odds prov. The rest is Prompt 18, prov.
 			Size = { Min = 1, Max = 3 }, Cycles = { Min = 1, Max = 3 }, DistressChance = 0.15, BaseLossChance = 0.05,
 			SurfaceLoot = "ExpeditionSurface", DeepLoot = "ExpeditionDeep",
+			-- each cycle away: someone hurt this often, all of it times the destination's Danger and the
+			-- team's Risk (1 at an average Grit and Speed of StatPivot, StatStep less a point above, within
+			-- RiskMin..RiskMax: Grit 8 and Speed 8 make it 0.76)
+			HurtChance = 0.2, Danger = { Surface = 1, Deep = 1.3 },
+			StatPivot = 5, StatStep = 0.08, RiskMin = 0.4, RiskMax = 1.5,
+			-- the hurt lose this share of their max health; a packed Medkit leaves MedkitHurtKept of it,
+			-- and turns someone lost into someone badly hurt
+			HurtShare = { Min = 0.2, Max = 0.45 }, MedkitsMax = 3, MedkitHurtKept = 0.5,
+			-- finds: each member carries CarryBase + Strength x CarryPerStrength of the table (Strength 5: 1)
+			CarryBase = 0.5, CarryPerStrength = 0.1,
+			-- a distress call comes this many seconds into the day (the Radio Operator's lead earlier);
+			-- they are sent from within UseRange of the Blast Door's or a Radio Room's console, and walk
+			-- out through the Blast Door (gone after LeaveSeconds even if their way is blocked)
+			CallDelay = { Min = 40, Max = 140 }, UseRange = 30, LeaveSeconds = 40,
+			-- a recruit they bring home (one at most each trip): Rare this often
+			RecruitRareChance = 0.2, RecruitLevel = { Min = 1, Max = 3 }, RecruitsMax = 1,
+			-- the Radio Room (Charm): its Recruits output brings a recruit to the Blast Door at each whole
+			-- point (Rare this often); while a Lost Crew is out and a Radio Room is staffed and lit, it
+			-- picks up a crew's call every RadioHintCycles cycles (Section 12: crew hints)
+			RadioRareChance = 0.15, RadioLevel = { Min = 1, Max = 3 }, RadioHintCycles = 2,
 		},
 		Surface = { -- Section 12; rates prov. The rest is Prompt 16, prov.
 			StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era",

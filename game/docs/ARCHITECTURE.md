@@ -411,6 +411,8 @@ levels, morale states, a room's crew, the Auto-Assign matching, one cycle of nee
     hungry first); Surge morale;
   * death: down for 20 s, `Revive` with a stockpile Medkit (the `ReviveResident` remote and a
     prompt), then gone; the last one gone loses the run.
+  * away on an expedition (Prompt 18): `SetAway(id, on, health?)` (no job, no meals, no body),
+    `Wound`, `GainXP`, `Note`, `Lose` (gone at once, no revive), `Count()` (the cap).
   * The `Residents` collection carries the records for the UI.
 * `ResidentBrain` gives each resident a body (the A0 resident) in `workspace.Bunker.Residents`
   and runs the routine at 5 Hz:
@@ -422,7 +424,7 @@ levels, morale states, a room's crew, the Auto-Assign matching, one cycle of nee
     or players.
 * `NPCAnimator` (client) plays `Config.Animations` clips for each body's Activity.
 * `ResidentsController` (client): the Residents screen (Section 18), opened from the Command
-  View's footer: tabs All, Working, Idle, Hurt; a resident card; Assign (the free job on their
+  View's footer: tabs All, Working, Idle, Hurt, Away (Prompt 18); a resident card; Assign (the free job on their
   best stat) or Take off the job; the footer's Auto-Assign.
 * The Command View lists a room's workers and the idle residents best at its job (Assign, Take
   off the job, Auto-Assign), and its Morale overlay reads the workers' average morale.
@@ -827,6 +829,64 @@ the logs `Config.RadioLogs`.
   `CrewHome`, `Thawed`, `ChestOpened`. Dev: `deep`, `deep.cave`, `deep.find`, `deep.tp`,
   `cryo.add`, `radiolog`, `crews`.
 
+## Expeditions and the radio (Run place)
+
+Bible Sections 6, 8, 11, 12 and 14 (Prompt 18). `Shared.Rules.Expeditions` is pure: `Check(destination,
+members, cycles, medkits)` (1 to 3 residents, alive, in the bunker, not cut off; 1 to 3 cycles; up to
+`MedkitsMax` Medkits), `Supplies(members, cycles)` (Food and Water for every member for every cycle),
+`Risk(team)` (the team's average of Grit and Speed against `StatPivot`), `Odds(destination, team)`
+(hurt, distress, lost: the bible's odds times the destination's `Danger` and the Risk), `Event(odds,
+x)`, `RiskLabel`, `Carry(stats, effects)` and `Team(team, effects)` (Strength carries; a member's own
+`ExpeditionCarry`, `ExpeditionLoot`, `ExpeditionScrap`), `Scale(drops, team)`, `Expected(...)` (a
+cycle's average finds, for the screen), `Harm(maxHealth, x, medkit)`, `Deadline(cycle)`,
+`RecruitTier`, `Names`, `Place`, `Fill`, `Lines(destination, event)`. The numbers are
+`Tuning.Expeditions`, the log lines `Config.ExpeditionLogs`, the finds `LootTables` ExpeditionSurface
+and ExpeditionDeep.
+
+* `ExpeditionService` puts an EXPEDITIONS console prompt (Kind `Expeditions`) in the Blast Door
+  hall and in every Radio Room (`<bunker>.ExpeditionConsoles`, again on `BunkerGrid.Changed`). The
+  `SendExpedition` remote (destination, resident ids, cycles, Medkits; no vote, Section 8) is
+  checked: the sender within `UseRange` of a console, `Rules.Expeditions.Check`, the stockpile
+  (`EconomyService:Spend` takes the Food, Water and Medkits). Each member leaves their job and goes
+  Away (`ResidentService:SetAway`); `ResidentBrain` walks them out through the Blast Door and their
+  body goes (no body while away). A Deep expedition goes to the band of the deepest floor (its ore).
+* At each dawn (`CycleClock.CycleStarted`) an expedition out since an earlier cycle lives a cycle:
+  packed Food and Water eaten, `XPPerExpeditionCycle` (`ResidentService:GainXP`), the loot table
+  rolled and scaled by the team (`Scale`; gear and blueprints skipped until Prompts 26 and 19; one
+  recruit at most a trip), and one event: nothing, someone hurt (`ResidentService:Wound`, never
+  below 1; a packed Medkit halves it), someone lost (`ResidentService:Lose`; a packed Medkit makes
+  it a bad hurt instead) or a distress call. Lines go in the expedition's log and the members' run
+  logs (`ResidentService:Note`). After the last cycle they step into the hall with the finds and
+  the supplies left (`EconomyService:Add`) and go back to their old jobs if there's room.
+* Distress calls: the call comes `CallDelay` running seconds into that day, less the team's best
+  `DistressCallLeadSeconds` (the Radio Operator), on everyone's radio card (the `RadioLog` remote)
+  and in the alerts. The team is pinned down at `SurfaceService:DistressSpot()` (a free survivor
+  spot) or `DeepService:DistressSpot()` (a piece of an open cave; with none, the rock face of the
+  deepest floor): each member is a RescueService rescue of Kind `Expedition` (`Resident` = their id,
+  a HELP prompt with their name, their own health). Helped, they follow home; the arrival
+  (`RescueService:SetArrival("Expedition")`) brings that resident back (`SetAway` off, the health
+  the way left them, where they stood) and the first one home brings the finds. At the next cycle's
+  Surge (`SurgeStarted`: the end of the next day phase) whoever is still pinned down is lost; with
+  nobody left to bring them, the finds are lost too.
+* The Radio Room: its `Recruits` output (`EconomyService:Rate`) times the team's best `RecruitRate`
+  accrues while the clock runs (`Rules.Economy.Accrue`); each whole point is a recruit at the Blast
+  Door (`Recruit(tier, how)`: Rare at `RadioRareChance` times `RareRecruitChance`; refused at
+  `Constants.CAPS.Residents`). While a Lost Crew is out and a Radio Room works, every
+  `RadioHintCycles` cycles it plays that crew's call (`DeepService:CrewCall`, `PlayLog`).
+* `ExpeditionService:SetModifier(source, key, value?)` takes RecruitRate, RareRecruitChance and
+  DistressCallLeadSeconds from draft cards and Legends; players' classes are read directly.
+* The `Expeditions` collection (id -> Destination, Band, Members { Id, Name, Status }, Cycles, Done,
+  LeftAt, Back, State, Log, Finds, Recruits, Food, Water, Medkits, CallCycle, Deadline, Marker, Where)
+  feeds `ExpeditionsController` (client): the Expeditions screen (SURFACE and DEEP: pick the team
+  from resident cards, the footer sets the length and the Medkits, zone D the supplies, risk and
+  finds, SEND; ACTIVE: each expedition's team, deadline or return, finds, supplies and log) opened
+  from the console prompts, and the distress markers (a red flare column, the `HUD.Templates.Distress`
+  plate through walls with the time left, and a `HUD.Templates.EdgeArrow` while it's off screen).
+* API `Send(destination, ids, cycles, medkits, player?)`, `Recruit(tier?, how)`, `SetModifier`,
+  `Active()`. Signals `Sent`, `Returned`, `Lost`, `Distress`, `Reached`, `Recruited` (ResultsService
+  tells their stories). Dev: `exp`, `exp.send`, `exp.cycle`, `exp.call`, `exp.home`,
+  `exp.deadline`, `recruit`, `radio [call]`.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -865,7 +925,7 @@ Difficulties, Disasters, DraftCards, Eras, GamePasses, GlowshardPacks, Glowshard
 ItemRarities, Items, Leaderboards, Legends, LootTables, Modifiers, MoraleStates, Monsters,
 Objectives, Quests, Recipes, ResidentNames, Resources, Rooms, Stats, SurfaceLocations,
 TalentSlots, TeamBoosts, Tiers, Traits, Tuning, Votes, WandererOutcomes; Prompt 17: CavePieces
-(generated by `tools/cave_config.py`) and RadioLogs.
+(generated by `tools/cave_config.py`) and RadioLogs; Prompt 18: ExpeditionLogs.
 
 **Effects are data.** Classes, traits, Legends, draft cards and passes describe what they do
 as modifiers: `{ Key = "RoomOutput", Value = 1.25, Room = "Medbay", Scope = "Bunker" }`.
@@ -958,11 +1018,12 @@ ClassShop, Account, Lobby).
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, InventoryService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests; cells with a fixed roll), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
 | Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
-| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
+| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ExpeditionService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
 | Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
 | Run | SurfaceService | service | SessionService, CycleClock, RunDirector, BunkerGrid, PowerService, CombatService, MonsterService, InventoryService, RescueService, DevService | the surface map, zones, the elevator, containers, storms, radiation, surface creatures, the raider camp and the surface's Lost Crew |
 | Run | DeepService | service | BunkerGrid, CycleClock, RunDirector, SessionService, DigService, InventoryService, RescueService, MonsterService, CombatService, ResidentService, ResidentBrain, EconomyService, BuildService, ObjectiveService, BreachService, ProfileService, SurfaceService, DevService | caves from the A6 pieces, finds, guards and cave nests, the Lost Crews, radio logs, Glowshard chests, cryo pods and thawing, the Deep's light and falls |
+| Run | ExpeditionService | service | BunkerGrid, CycleClock, RunDirector, SessionService, EconomyService, ResidentService, ResidentBrain, RescueService, SurfaceService, DeepService, ReplicationService, DevService | resident expeditions (sending, cycles away, finds, harm, losses, coming home), distress calls and their markers, the Radio Room's recruits and crew calls |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -982,6 +1043,7 @@ ClassShop, Account, Lobby).
 | Run | ResultsController | controller | UIController, ReplicaController | the Run Report (results screen) and its buttons |
 | Run | SurfaceController | controller | HUDController, CameraController | the surface's and the Deep's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
 | Run | DeepController | controller | HUDController | the radio log sheet, the Spelunker's eye |
+| Run | ExpeditionsController | controller | UIController, ReplicaController | the Expeditions screen, distress markers and their edge arrows |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log

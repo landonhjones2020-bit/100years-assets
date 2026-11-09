@@ -4,8 +4,7 @@
 	idle, injured, away | Resident cards | Resident card; Assign"), phase 1. Run place only. It
 	opens from the Command View's footer (RESIDENTS) and from DevTools.
 
-	* Tabs: All, Working (by job), Idle, Hurt (hurt or down). Away comes with expeditions
-	  (Prompt 18).
+	* Tabs: All, Working (by job), Idle, Hurt (hurt or down), Away (on an expedition; Prompt 18).
 	* A card per resident: the name, the job and level, the Common enamel. The portrait is the
 	  Survivor's outfit until A3 brings the resident kit.
 	* The resident card (zone D): job, stats, needs (health, rest, morale), experience to the next
@@ -119,6 +118,7 @@ local function showResident(id: string)
 	local body = ui:Clear(detail.Body)
 	local job, stat = jobOf(resident)
 	section(body, 1, "Job", if resident.State == "Down" then "Down: revive them with a Medkit before it's too late."
+		elseif resident.State == "Away" then "Away on an expedition (the Expeditions screen's ACTIVE tab)."
 		elseif job then `{job}, on {stat} {resident.Stats[stat or ""] or 0}.`
 		else `Idle. Best at {best(resident)} ({resident.Stats[best(resident)]}).`)
 	local stats = {}
@@ -136,7 +136,7 @@ local function showResident(id: string)
 	end
 	section(body, 5, "Run log", if #lines > 0 then table.concat(lines, "\n") else "Nothing yet.")
 	if resident.State ~= "Alive" then
-		ui:SetMainAction({ Label = "Down", Enabled = false })
+		ui:SetMainAction({ Label = if resident.State == "Away" then "Away" else "Down", Enabled = false })
 	elseif resident.Job then
 		ui:SetMainAction({
 			Label = "Take off the job",
@@ -169,6 +169,8 @@ local function wanted(resident: any): boolean
 		return resident.Job == nil and resident.State == "Alive"
 	elseif tab == "Hurt" then
 		return resident.State == "Down" or resident.Health < resident.MaxHealth
+	elseif tab == "Away" then
+		return resident.State == "Away"
 	end
 	return true
 end
@@ -208,7 +210,8 @@ local function fill()
 		end
 		card:FindFirstChild("Name").Text = string.upper(resident.Name)
 		local job = jobOf(resident)
-		card.Sub.Text = (if resident.State == "Down" then "DOWN" elseif job then job else "Idle") .. `  ·  L{resident.Level}`
+		card.Sub.Text = (if resident.State == "Down" then "DOWN" elseif resident.State == "Away" then "AWAY" elseif job then job else "Idle")
+			.. `  ·  L{resident.Level}`
 		card.Price.Visible = false
 		card.Stamp.Visible = false
 		ui:SetSprite(card.Lamp, if entry.Id == selected then "Lamp_Orange" else "Lamp_Off")
@@ -262,6 +265,7 @@ function ResidentsController:Start()
 			{ Id = "Working", Label = "WORKING", Icon = "Icon_Scrap" },
 			{ Id = "Idle", Label = "IDLE", Icon = "Icon_Grid" },
 			{ Id = "Hurt", Label = "HURT", Icon = "Icon_Shield" },
+			{ Id = "Away", Label = "AWAY", Icon = "Icon_Route" },
 		},
 		Layout = "Grid",
 		Hint = "",

@@ -27,7 +27,7 @@
 local Config = require(script.Parent.Parent.Config)
 
 export type Stats = { [string]: number }
-export type State = "Alive" | "Down" | "Dead"
+export type State = "Alive" | "Down" | "Dead" | "Away" -- Away: on an expedition, off the map (Prompt 18)
 export type Resident = {
 	Id: string,
 	First: string,

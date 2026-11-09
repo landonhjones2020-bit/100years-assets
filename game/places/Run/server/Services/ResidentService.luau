@@ -22,6 +22,11 @@
 	  one is gone, the run is lost (RunDirector, "ResidentsLost").
 	* Trapped (Prompt 13): cave-in rubble cuts a resident off from where they need to be
 	  (ResidentBrain says so). A trapped resident isn't in their room's crew until they are free.
+	* Away (Prompt 18; Section 12: expeditions leave the map): ExpeditionService sends residents
+	  out (SetAway). Away, they have no job, don't eat from the stockpile, don't work, rest or
+	  lose morale in the bunker, and can't be hurt by anything in it; their expedition can wound
+	  them (Wound: never below 1 health), teach them (GainXP), write in their log (Note) or lose
+	  them (Lose: gone at once, no revive). Home again (SetAway off) they are Alive with no job.
 	* Replication: the Residents collection, id -> { Name, First, Last, Age, Tier, Level, XP,
 	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, Trapped, DownUntil }.
 
@@ -32,6 +37,9 @@
 		ResidentService:Hurt(id, amount, how), :Revive(id, player?): (boolean, string?)
 		ResidentService:SetTrapped(id, on)              -- ResidentBrain (Prompt 13)
 		ResidentService:Add(tier?, level?): string    -- a new resident (recruits, rescues; DevTools)
+		ResidentService:Count(): number                -- residents in the run (not dead; the away too)
+		ResidentService:SetAway(id, on, health?): (boolean, string?) -- an expedition sets out / comes home (Prompt 18)
+		ResidentService:Wound(id, amount): number, :GainXP(id, xp), :Note(id, text), :Lose(id, how)
 		ResidentService.Changed: Signal<string>         -- a resident's data changed
 		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
 		ResidentService.Died: Signal<string, string>    -- resident, how
@@ -181,6 +189,9 @@ function ResidentService:Assign(id: string, roomId: string?): (boolean, string?)
 	if not resident or resident.State == "Dead" then
 		return false, "That resident isn't in the bunker."
 	end
+	if resident.State == "Away" then
+		return false, `{Residents.Name(resident)} is away on an expedition.`
+	end
 	if roomId == nil then
 		if resident.Job then
 			setJob(resident, nil)
@@ -291,7 +302,7 @@ local function checkLost()
 	end
 end
 
-local function die(resident: Resident)
+local function die(resident: Resident, quiet: boolean?)
 	local how = downHow[resident.Id] or "unknown"
 	resident.State = "Dead"
 	downUntil[resident.Id] = nil
@@ -301,7 +312,9 @@ local function die(resident: Resident)
 	publish(resident)
 	economy:RefreshCrew()
 	log:Warn("%s died (%s)", Residents.Name(resident), how)
-	announce("Danger", `{string.upper(Residents.Name(resident))} DIED`)
+	if not quiet then
+		announce("Danger", `{string.upper(Residents.Name(resident))} DIED`)
+	end
 	ResidentService.Died:Fire(resident.Id, how)
 	checkLost()
 end
@@ -362,6 +375,105 @@ function ResidentService:Add(tier: string?, level: number?): string
 	logLine(resident, "came into the bunker")
 	publish(resident)
 	return resident.Id
+end
+
+-- Residents in the run: everyone not dead, the away included (the cap, Constants.CAPS.Residents).
+function ResidentService:Count(): number
+	local n = 0
+	for _, resident in residents do
+		if resident.State ~= "Dead" then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- Expeditions (Prompt 18) ----------------------------------------------------------------------------
+
+--[[
+	Sets out (on): an Alive resident in the bunker leaves their job and goes Away (ResidentBrain walks
+	them out through the Blast Door). Comes home (off): an Away resident is Alive again with no job,
+	at `health` if given (what an escort home left them).
+]]
+function ResidentService:SetAway(id: string, on: boolean, health: number?): (boolean, string?)
+	local resident = residents[id]
+	if not resident then
+		return false, "Nobody by that id."
+	end
+	if on then
+		if resident.State ~= "Alive" then
+			return false, `{Residents.Name(resident)} can't go: they're {string.lower(resident.State)}.`
+		end
+		if resident.Trapped then
+			return false, `{Residents.Name(resident)} is cut off by rubble.`
+		end
+		local hadJob = resident.Job ~= nil
+		resident.Job = nil
+		resident.State = "Away"
+		resident.Hungry = false
+		publish(resident)
+		if hadJob then
+			ResidentService.Assigned:Fire(resident.Id, nil)
+		end
+	else
+		if resident.State ~= "Away" then
+			return false, `{Residents.Name(resident)} isn't away.`
+		end
+		resident.State = "Alive"
+		if health then
+			resident.Health = math.clamp(math.floor(health + 0.5), 1, resident.MaxHealth)
+		end
+		publish(resident)
+	end
+	economy:RefreshCrew()
+	return true, nil
+end
+
+-- Harm on an expedition: never below 1 health (they come back hurt; Lose is for the lost). Returns the harm done.
+function ResidentService:Wound(id: string, amount: number): number
+	local resident = residents[id]
+	if not resident or resident.State ~= "Away" or amount <= 0 then
+		return 0
+	end
+	local before = resident.Health
+	resident.Health = math.max(1, resident.Health - amount)
+	publish(resident)
+	return before - resident.Health
+end
+
+-- Experience away (Section 11: residents gain experience from expeditions). With no job, a level goes into their best stat.
+function ResidentService:GainXP(id: string, xp: number)
+	local resident = residents[id]
+	if not resident or resident.State == "Dead" or xp <= 0 then
+		return
+	end
+	local room = if resident.Job then grid:Room(resident.Job) else nil
+	local levels = Residents.AddXP(resident, xp, if room then Residents.JobStat(room.Type) else nil)
+	if levels > 0 then
+		logLine(resident, `reached level {resident.Level}`)
+		announce("Info", `{string.upper(Residents.Name(resident))} REACHED LEVEL {resident.Level}`)
+	end
+	publish(resident)
+end
+
+-- A line in a resident's run log (Section 11).
+function ResidentService:Note(id: string, text: string)
+	local resident = residents[id]
+	if not resident then
+		return
+	end
+	logLine(resident, text)
+	publish(resident)
+end
+
+-- Lost for good, at once (an expedition member who didn't come back): no revive. Quiet: the caller tells the team.
+function ResidentService:Lose(id: string, how: string)
+	local resident = residents[id]
+	if not resident or resident.State == "Dead" then
+		return
+	end
+	downHow[id] = how
+	die(resident, true)
 end
 
 -- Once a cycle, after the meal ---------------------------------------------------------------------
@@ -457,7 +569,7 @@ local function describe(resident: Resident): string
 		resident.Id, Residents.Name(resident), resident.Age, resident.Level, resident.XP, Residents.XPToLevel(resident.Level),
 		table.concat(stats, ", "), if room then `{room.Id} {room.Type}` else "none", resident.Health, resident.MaxHealth,
 		resident.Rest, resident.Morale, (Residents.MoraleState(resident.Morale)),
-		if resident.Hungry then ", HUNGRY" else "", if resident.State ~= "Alive" then `, {resident.State}` else "")
+		if resident.Hungry then ", HUNGRY" else "", if resident.State ~= "Alive" then `, {string.upper(resident.State)}` else "")
 end
 
 local function describeAll(): string

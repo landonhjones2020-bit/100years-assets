@@ -42,7 +42,8 @@
 	  (MonsterService guards), and go back in after CampSleepSeconds with nobody near; the ones
 	  killed stay dead. CrewWhere() says where the camp is for the radio logs.
 
-	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map(), CrewWhere().
+	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map(), CrewWhere(),
+	DistressSpot() (Prompt 18: where an expedition radioing for help is pinned down, and the place's name).
 	Signals: ZoneChanged(player, zone), Searched(player, location, given).
 	Dev: surface, surface.up [player], surface.down [player], rad <n>, storm <on|off>, loot.refill,
 	surface.spawn <type> [n], survivor, surface.find.
@@ -534,6 +535,23 @@ local function trapSurvivor(): string?
 	end
 	local spot = free[rng:NextInteger(1, #free)]
 	return rescue:Trap(spot.CFrame, { Kind = "Survivor", Where = string.lower(locationName(spot.Location)), Tag = SURFACE_TAG })
+end
+
+-- Where an expedition radioing for help is pinned down (Prompt 18): a free survivor spot, and its place.
+function SurfaceService:DistressSpot(): (CFrame?, string?)
+	local taken = rescue:Spots()
+	local free = {}
+	for _, spot in survivorSpots do
+		if not locked(spot.Location) and not near(taken, spot.CFrame.Position, 8) then
+			table.insert(free, spot)
+		end
+	end
+	if #free == 0 then
+		return nil, nil
+	end
+	local spot = free[rng:NextInteger(1, #free)]
+	local location = spot.Location and Config.Find("SurfaceLocations", spot.Location)
+	return spot.CFrame, if location then location.Name else nil
 end
 
 local function placeFind(): string?

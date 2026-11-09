@@ -20,6 +20,11 @@
 	  joins it through ResidentService:Add(tier, level), their new body stepping out where they
 	  stood. Joined(residentId, player?, kind, where) fires; SetArrival(kind, fn) adds what a kind
 	  does after joining (Prompt 17: a Lost Crew home completes its objective).
+	* Residents already in the run (Prompt 18: an expedition pinned down, Kind Expedition, Options
+	  Resident): their prompt says what Options Action and Label give (HELP, their name), they follow
+	  with their own health (Options Health), and home they don't join again: the kind's arrival
+	  (SetArrival) brings that resident back, with the health the way home left them (HealthLeft)
+	  where they stood (HomeAt). Joined doesn't fire for them.
 
 	Dev: rescues, rescue.free <id>.
 ]]
@@ -58,6 +63,10 @@ export type Options = {
 	Level: number?,
 	Where: string?, -- "the motel": for the alerts and the run's story
 	Tag: string?,
+	Resident: string?, -- a resident already in the run (Prompt 18: an expedition member), not a newcomer
+	Health: number?, -- their health while following (default SurvivorHealth over the leader's RescuedDamageTaken)
+	Label: string?, -- the prompt's object text (default the kind's)
+	Action: string?, -- the prompt's action (default FREE)
 }
 
 type Rescue = {
@@ -81,6 +90,10 @@ type Rescue = {
 	PlannedAt: number,
 	Pathing: boolean,
 	Path: Path?,
+	Resident: string?, -- Prompt 18
+	Health: number?,
+	HealthLeft: number?, -- home: what the way home left them
+	HomeAt: CFrame?, -- home: where they stood
 }
 
 local combat: any = nil
@@ -95,6 +108,7 @@ local KIND_TEXT: { [string]: { Trapped: string, Freed: string, Lost: string } } 
 	Survivor = { Trapped = "Trapped survivor", Freed = "YOU FREED A SURVIVOR: BRING THEM HOME TO THE BLAST DOOR", Lost = "A SURVIVOR DIDN'T MAKE IT" },
 	Miner = { Trapped = "Trapped miner", Freed = "YOU FREED A TRAPPED MINER: BRING THEM BACK INTO THE BUNKER", Lost = "A RESCUED MINER DIDN'T MAKE IT" },
 	Crew = { Trapped = "Steadfast work crew", Freed = "YOU FREED ONE OF THE LOST CREW: BRING THEM HOME", Lost = "WE LOST ONE OF THE LOST CREW" },
+	Expedition = { Trapped = "Expedition", Freed = "YOU REACHED THEM: BRING THEM HOME TO THE BUNKER", Lost = "AN EXPEDITION MEMBER DIDN'T MAKE IT HOME" },
 }
 
 local function kindText(kind: string): { Trapped: string, Freed: string, Lost: string }
@@ -213,7 +227,7 @@ local function free(r: Rescue, player: Player)
 	r.State = "Following"
 	r.Leader = player
 	r.BehindSince = 0
-	local health = Surface.Tuning().SurvivorHealth / math.max(classValue(player, "RescuedDamageTaken"), 0.1)
+	local health = (r.Health or Surface.Tuning().SurvivorHealth) / math.max(classValue(player, "RescuedDamageTaken"), 0.1)
 	r.CombatId = combat:Register(r.Model, { Kind = "Survivor", Team = "Survivors", Root = r.Root, Health = health, Id = r.Id })
 	r.Model:SetAttribute("State", "Following")
 	r.Model:SetAttribute("Leader", player.UserId)
@@ -245,9 +259,9 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 	model.Parent = folder()
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "FreePrompt"
-	prompt.ActionText = "FREE"
-	local label = kindText(o.Kind or "Survivor").Trapped
-	prompt.ObjectText = if tier == "Common" then label else `{label} ({tier})`
+	prompt.ActionText = o.Action or "FREE"
+	local label = o.Label or kindText(o.Kind or "Survivor").Trapped
+	prompt.ObjectText = if tier == "Common" or o.Label then label else `{label} ({tier})`
 	prompt.HoldDuration = t.FreeSeconds
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
@@ -277,6 +291,10 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 		PlannedAt = 0,
 		Pathing = false,
 		Path = nil,
+		Resident = o.Resident,
+		Health = o.Health,
+		HealthLeft = nil,
+		HomeAt = nil,
 	}
 	prompt.Triggered:Connect(function(player: Player)
 		free(r, player)
@@ -367,10 +385,26 @@ end
 local function arrive(r: Rescue)
 	rescues[r.Id] = nil
 	if r.CombatId then
+		local c = combat:Get(r.CombatId)
+		r.HealthLeft = if c then c.Health else nil
 		combat:Unregister(r.CombatId)
 	end
 	local where = r.Root.CFrame
 	local leader = r.Leader
+	if r.Resident then
+		-- someone already in the run (Prompt 18): their kind brings them back
+		r.HomeAt = where
+		r.Model:Destroy()
+		log:Info("%s (%s) is home (%s)", r.Id, r.Resident, r.Where)
+		local back = arrivals[r.Kind]
+		if back then
+			local ok, err = pcall(back, r, leader, r.Resident)
+			if not ok then
+				log:Warn("%s arrival: %s", r.Kind, tostring(err))
+			end
+		end
+		return
+	end
 	local residentId = residents:Add(r.Tier, r.Level)
 	local record = residents:Get(residentId)
 	local name = if record then Residents.Name(record) else residentId

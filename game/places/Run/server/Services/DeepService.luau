@@ -52,7 +52,8 @@
 	  times LightRadius, the Spelunker's double); a fall past FallDamageFrom studs hurts
 	  (NoFallDamage). The Deep's lighting is the client's (SurfaceController).
 
-	API: Caves(): number, CaveAt(position): string?, Pods(): number.
+	API: Caves(): number, CaveAt(position): string?, Pods(): number; Prompt 18: DistressSpot(): (CFrame?, string?),
+	CrewCall(): (logId?, where?) and PlayLog(player, logId, hint?) for the Radio Room.
 	Signals: CaveOpened(cellKey, band, pieces), CrewHome(objectiveId, leader?), Thawed(residentId, tier),
 	ChestOpened(player, glowshards).
 	Dev: deep, deep.cave <floor> <column>, deep.find <kind>, deep.tp <floor> <column>, cryo.add [n],
@@ -967,6 +968,69 @@ function DeepService:Caves(): number
 end
 
 -- The cave (its dug cell's key) a position is in, if any.
+--[[
+	Where a Deep expedition radioing for help is cut off (Prompt 18), and how to say where: a piece of
+	an open cave (not its mouth, a drop or a crew's pocket), on its floor; with no cave open, at the
+	rock face of the bunker's deepest floor.
+]]
+function DeepService:DistressSpot(): (CFrame?, string?)
+	local options = {}
+	for _, c in caves do
+		for _, piece in c.Pieces do
+			local kind = piece.Spec.Kind
+			if kind ~= "Entry" and kind ~= "Drop" and kind ~= "CrewPocket" then
+				table.insert(options, { Cave = c, Piece = piece })
+			end
+		end
+	end
+	if #options > 0 then
+		local pick = options[rng:NextInteger(1, #options)]
+		local box = pick.Piece.Spec.Box
+		local at = pick.Piece.CFrame * CFrame.new(0, 0, (box.Min[3] + box.Max[3]) / 2)
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Include
+		params.FilterDescendantsInstances = { pick.Cave.Folder }
+		local hit = workspace:Raycast(at.Position + Vector3.new(0, 8, 0), Vector3.new(0, -20, 0), params)
+		if hit then
+			at = CFrame.new(hit.Position) * at.Rotation
+		end
+		return at, `a cave off {Deep.Hint(pick.Cave.Floor, pick.Cave.Column)}`
+	end
+	local floor = grid:DeepestFloor()
+	local t = Grid.Tuning()
+	for column = 0, math.max(math.abs(t.ColumnMin), t.ColumnMax) do
+		for _, c in (if column == 0 then { 0 } else { -column, column }) do
+			if Grid.OnGrid(floor, c) and grid:State(floor, c) ~= "Rock" then
+				local at = Grid.CellPosition(floor, c) + Vector3.new(0, 0, -t.CellDepth / 2 + 4)
+				return CFrame.new(at), `the rock below the bunker ({Deep.Hint(floor, c)})`
+			end
+		end
+	end
+	return nil, nil
+end
+
+-- A Lost Crew's own call and where they were last heard from, for the Radio Room (Prompt 18), or nil when none is out.
+function DeepService:CrewCall(): (string?, string?)
+	local lost = {}
+	for _, crew in lostCrews() do
+		if crewLog(crew.Objective) then
+			table.insert(lost, crew)
+		end
+	end
+	if #lost == 0 then
+		return nil, nil
+	end
+	local crew = lost[rng:NextInteger(1, #lost)]
+	local id = crewLog(crew.Objective) :: string
+	heard[id] = true
+	return id, crew.Where
+end
+
+-- Plays a radio log (Config.RadioLogs) for a player, with a hint.
+function DeepService:PlayLog(player: Player, id: string, hint: string?)
+	playLog(player, id, hint)
+end
+
 function DeepService:CaveAt(position: Vector3): string?
 	for key, c in caves do
 		for _, piece in c.Pieces do

@@ -17,6 +17,9 @@
 	* idle during the day: a seat in the Lounge when there is one (Section 11: socialise in the
 	  Lounge; Landon, Nov 8, 2026), or by their bed.
 	* Down: lying where they fell with a Revive prompt (a Medkit from the stockpile); dead: gone.
+	* Away (Prompt 18; Section 12: expeditions leave the map): they walk to the Blast Door and are
+	  gone (after Tuning.Expeditions.LeaveSeconds at the latest); no body while they are away.
+	  Home again, a body steps in wherever ExpeditionService puts it.
 	* Danger (Prompt 12; Section 11: in danger the unarmed flee to the nearest safe room, and
 	  they handle a single Burrow Tick themselves): a monster in their room, or within
 	  ResidentFleeRadius on their floor, sends them to the nearest room with no monster in or
@@ -83,6 +86,7 @@ type Body = {
 	Prompt: ProximityPrompt?,
 	Trapped: boolean, -- rubble cuts them off from their goal (Prompt 13)
 	HazardVersion: number, -- Lib.Hazards' version when the goal was planned
+	LeaveSince: number?, -- when they set out through the Blast Door (Prompt 18)
 }
 
 local residents: any = nil
@@ -204,7 +208,7 @@ local function spawnBody(id: string): Body?
 	local body: Body = {
 		Id = id, Model = model, Humanoid = humanoid, Root = root, Goal = nil, GoalActivity = "Idle",
 		Points = {}, Index = 1, Best = math.huge, Since = os.clock(), Lying = false, Prompt = nil,
-		Trapped = false, HazardVersion = 0,
+		Trapped = false, HazardVersion = 0, LeaveSince = nil,
 	}
 	bodies[id] = body
 	return body
@@ -387,6 +391,16 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 	if resident.State == "Down" then
 		return "Down", nil, nil, "Down"
 	end
+	if resident.State == "Away" then
+		-- an expedition sets out (Prompt 18): to the Blast Door, then off the map
+		local door = grid:RoomsOfType("BlastDoor")[1]
+		local model = door and grid:RoomModel(door.Id)
+		local socket = model and BunkerKit.Socket(model, "Door")
+		if door and socket then
+			return "Leave", door.Id, CFrame.new(socket.Position), "Walk"
+		end
+		return "Leave", nil, nil, "Walk"
+	end
 	local threatGoal, threatRoom, threatSpot, threatActivity = danger(id)
 	if threatGoal then
 		return threatGoal, threatRoom, threatSpot, threatActivity :: string
@@ -532,7 +546,24 @@ local function step(body: Body, order: number)
 		standUp(body)
 	end
 	if goal ~= body.Goal or body.HazardVersion ~= Hazards.Version() then
+		if goal == "Leave" and body.Goal ~= "Leave" then
+			body.LeaveSince = os.clock()
+		end
 		setGoal(body, goal, roomId, spot, activity)
+	end
+	if goal == "Leave" then
+		-- off the map once they reach the door, or after LeaveSeconds whatever is in their way
+		local arrived = body.Points[body.Index] == nil
+		if arrived or os.clock() - (body.LeaveSince or os.clock()) > Config.Get("Tuning", "Expeditions").LeaveSeconds then
+			bodies[body.Id] = nil
+			local model = body.Model
+			body.Humanoid:MoveTo(body.Root.Position)
+			setActivity(body, "Idle")
+			task.delay(0.4, function()
+				model:Destroy()
+			end)
+			return
+		end
 	end
 	local speed = slowedSpeed(body)
 	if math.abs(body.Humanoid.WalkSpeed - speed) > 0.05 then
@@ -619,7 +650,9 @@ local function sync()
 				end)
 			end
 		elseif not body then
-			spawnBody(resident.Id)
+			if resident.State ~= "Away" then -- the away have no body (Prompt 18)
+				spawnBody(resident.Id)
+			end
 		elseif body.Model.Parent == nil then
 			bodies[resident.Id] = nil
 		end
