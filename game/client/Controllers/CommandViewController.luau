@@ -59,13 +59,15 @@ local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
 local log = Log.new("CommandViewController")
 
 export type Choice = {
-	Action: string, -- "Build", "Upgrade", "Merge", "TearDown"
+	Action: string, -- "Build", "Upgrade", "Merge", "TearDown"; "Assign", "Unassign", "AutoAssign" (no vote)
 	Floor: number,
 	Column: number,
 	RoomType: string?, -- Build
-	RoomId: string?, -- Upgrade, Merge, TearDown
+	RoomId: string?, -- Upgrade, Merge, TearDown, Assign
 	Other: string?, -- Merge: the room it joins
 	Level: number?, -- Upgrade: the new level
+	ResidentId: string?, -- Assign, Unassign
+	Label: string?, -- Assign, Unassign: the main action's words
 }
 export type Overlay = (roomId: string, room: any) -> (string?, string?) -- lamp sprite, legend text
 
@@ -86,7 +88,7 @@ local TABS = {
 }
 local OVERLAY_TEXT: { [string]: string } = { -- bible Section 7's overlays
 	Power = "Green: lit. Red: dark for want of power. Rooms go dark farthest from the Reactor Core or a Generator first.",
-	Morale = "Rooms by their workers' morale.",
+	Morale = "Each room's workers' average morale. Green: Happy or better. Amber: Settled. Red: Unhappy or worse.",
 	Threat = "Likely breach points.",
 	Production = "What each room makes a cycle. Amber: no one works there. Red: dark or wrecked.",
 }
@@ -441,7 +443,7 @@ local function optionRow(order: number, name: string, value: string, enabled: bo
 	row.ImageTransparency = if enabled then 0 else 0.35
 	local lamp = row:FindFirstChild("Lamp")
 	local isChosen = pick ~= nil and choice ~= nil and choice.Action == pick.Action and choice.RoomType == pick.RoomType
-		and choice.Other == pick.Other and choice.RoomId == pick.RoomId
+		and choice.Other == pick.Other and choice.RoomId == pick.RoomId and choice.ResidentId == pick.ResidentId
 	KitRuntime.SetSprite(lamp, if isChosen then "Lamp_Orange" else "Lamp_Off")
 	lamp.Visible = pick ~= nil
 	if pick and enabled then
@@ -457,6 +459,23 @@ local function setMainAction()
 	local current = choice
 	if not current then
 		ui:SetMainAction(nil)
+		return
+	end
+	-- jobs are never voted on (Section 8): the choice applies at once
+	if current.Action == "Assign" or current.Action == "Unassign" or current.Action == "AutoAssign" then
+		ui:SetMainAction({
+			Label = current.Label or "Assign",
+			Enabled = true,
+			OnPress = function()
+				if current.Action == "AutoAssign" then
+					Remotes.FireServer("AutoAssign")
+				else
+					Remotes.FireServer("AssignResident", current.ResidentId or "", if current.Action == "Assign" then current.RoomId or "" else "")
+				end
+				choice = nil
+				refreshDetail()
+			end,
+		})
 		return
 	end
 	-- solo runs have no votes (Section 8, rule 6): the choice applies at once
@@ -584,6 +603,59 @@ local function showRoom(roomId: string)
 	local gives = if next(refund) then `{Construction.CostText(refund)} BACK` else "Its cells become open cells again"
 	optionRow(order, "Tear down", if canRemove then gives else sentence(why or ""), can,
 		if can then { Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId } else nil)
+	order += 1
+	-- jobs (Prompt 10): who works here, and who could
+	local stat = info.WorkerStat
+	if stat then
+		local slots = Config.Get("Tuning", "Rooms").WorkerSlotsPerCell[room.Level] * room.Span
+		local workers, idle = {}, {}
+		for id, resident in replica:All("Residents") do
+			if type(resident) == "table" and resident.State == "Alive" then
+				if resident.Job == roomId then
+					table.insert(workers, { Id = id, R = resident })
+				elseif resident.Job == nil then
+					table.insert(idle, { Id = id, R = resident })
+				end
+			end
+		end
+		local function byStat(a: any, b: any): boolean
+			local sa, sb = a.R.Stats[stat] or 0, b.R.Stats[stat] or 0
+			if sa ~= sb then
+				return sa > sb
+			end
+			return a.Id < b.Id
+		end
+		table.sort(workers, byStat)
+		table.sort(idle, byStat)
+		local names = {}
+		for _, w in workers do
+			table.insert(names, `{w.R.Name} ({stat} {w.R.Stats[stat]}, {w.R.Mood})`)
+		end
+		section(7, `Workers  ·  {#workers} of {slots}`, if #names > 0 then table.concat(names, "; ") .. "."
+			else `Nobody works here yet. The job uses {stat}.`)
+		local full = #workers >= slots
+		for i, entry in idle do
+			if i > 6 then
+				break
+			end
+			local first = entry.R.First or entry.R.Name
+			optionRow(order, `Assign {entry.R.Name}`, if full then "The room is full" else `{stat} {entry.R.Stats[stat]}  ·  {entry.R.Mood}`,
+				not full, if not full then { Action = "Assign", Floor = room.Floor, Column = room.Column, RoomId = roomId,
+					ResidentId = entry.Id, Label = `Assign {first}` } else nil)
+			order += 1
+		end
+		for _, w in workers do
+			local first = w.R.First or w.R.Name
+			optionRow(order, `Take {w.R.Name} off the job`, "They go idle until you assign them again", true,
+				{ Action = "Unassign", Floor = room.Floor, Column = room.Column, RoomId = roomId, ResidentId = w.Id,
+					Label = `Take {first} off` })
+			order += 1
+		end
+		if #idle > 0 then
+			optionRow(order, "Auto-Assign", `{#idle} idle: fill empty jobs by best stat`, true,
+				{ Action = "AutoAssign", Floor = room.Floor, Column = room.Column, RoomId = roomId, Label = "Auto-Assign" })
+		end
+	end
 end
 
 local function showOpenCell(floor: number, column: number)
@@ -1035,7 +1107,15 @@ local function onOpen(_page: Frame)
 	selectionMark.Visible = false
 	selectionMark.Parent = part("Cabinet.Pages.CommandView.View.Marks")
 	part("Cabinet.Pages.CommandView.View.Help.Text").Text = helpText()
-	ui:SetFooterActions({ { Label = "Ping", OnPress = pingSelected } })
+	ui:SetFooterActions({
+		{ Label = "Ping", OnPress = pingSelected },
+		{ Label = "Residents", OnPress = function()
+			-- the roster (ResidentsController, Prompt 10); closing it comes back here
+			if ui:IsRegistered("Residents") then
+				ui:Open("Residents")
+			end
+		end },
+	})
 	bindKeys(true)
 	GuiService.SelectedObject = nil
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -1279,9 +1359,24 @@ function CommandViewController:Start()
 			end)
 		end
 	end
-	for _, name in { "Sites", "Votes", "Unlocked", "Power", "Production" } do
+	for _, name in { "Sites", "Votes", "Unlocked", "Power", "Production", "Residents" } do
 		replica:Changed(name):Connect(soon)
 	end
+	-- Prompt 10's Morale overlay: a room's workers' average morale
+	CommandViewController:SetOverlay("Morale", function(roomId: string, _room: any): (string?, string?)
+		local sum, n = 0, 0
+		for _, resident in replica:All("Residents") do
+			if type(resident) == "table" and resident.Job == roomId and resident.State == "Alive" then
+				sum += resident.Morale or 0
+				n += 1
+			end
+		end
+		if n == 0 then
+			return nil, nil
+		end
+		local average = math.floor(sum / n + 0.5)
+		return if average >= 75 then "Lamp_Green" elseif average >= 40 then "Lamp_Amber" else "Lamp_Red", `MORALE {average}`
+	end)
 	-- Prompt 9's overlays: power (PowerService) and production (EconomyService)
 	CommandViewController:SetOverlay("Power", function(roomId: string, room: any): (string?, string?)
 		local power = replica:Get("Power", roomId)

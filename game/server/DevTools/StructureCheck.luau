@@ -65,6 +65,7 @@ local SKELETON: { { string } } = {
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.VoteController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator", "ModuleScript" },
+	{ "StarterPlayer.StarterPlayerScripts.Controllers.ResidentsController", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib", "Folder" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.Fade", "ModuleScript" },
 	{ "StarterPlayer.StarterPlayerScripts.Lib.KitRuntime", "ModuleScript" },
