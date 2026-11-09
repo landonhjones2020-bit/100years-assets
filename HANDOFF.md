@@ -58,7 +58,6 @@ it) wins over everything here.
   `cryo.add [n]`, `rescues`, `rescue.free <id>`. Falls: a part under the player in the Deep
   (z < -17.5) and a teleport 30 studs up; move the player off before removing the part (a downed
   body on it falls out of the world).
-
 * Surface: `surface.up`/`surface.down` (from the server Invoke they take the first player),
   `pack.add <resource> <n>` and `class <Id>` from the client's `DevInvoke` (they need the invoking
   player), `god <s> <player>` from the server. `god` can't be shortened: `kill <player>` and the
@@ -93,6 +92,6 @@ it) wins over everything here.
 * The A0 sample scripts print a line on every monster swing; remove them once Landon approves
   the monsters.
 * The HUD's class plate still says SURVIVOR after the `class` dev command.
+* The Pump Shotgun and Frag Grenade show placeholder icons in the hotbar.
 * A monster after a target on another floor can stand in a room or under the Shaft stair (its
   stuck check restarts with every re-plan); seen in the Prompt 17 playtest.
-* The Pump Shotgun and Frag Grenade show placeholder icons in the hotbar.
