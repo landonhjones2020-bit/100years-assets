@@ -2,10 +2,10 @@
 --[[
 	RadioLogs: recordings found in the Deep and on the surface (bible Sections 3 and 12; Prompt 17).
 	"The company's cover-up comes out piece by piece": the story is the bible's (the Brightwater
-	mine, the glowing mass, Steadfast building anyway, the century, Digby). A log with Hint = "Crew"
-	ends with where an unfound Lost Crew was last heard from ("Radio logs and the Radio Room give
-	hints about where each crew is"). The Codex keeps them later (Prompt 29). Draft text: Landon's
-	to change.
+	mine, the glowing mass, Steadfast building anyway, the century, Digby). A log with a Crew is that
+	Lost Crew's own call, and ends with where they were last heard from while they are still lost
+	("Radio logs and the Radio Room give hints about where each crew is"). The Codex keeps them
+	later (Prompt 29). Draft text: Landon's to change.
 ]]
 
 local Check = require(script.Parent.Parent.Utilities.Check)
@@ -16,7 +16,7 @@ return {
 		Title = F.Name,
 		From = F.Short,
 		Text = F.Text,
-		Hint = Check.optional(Check.enum({ "Crew" })),
+		Crew = Check.optional(Check.ref("Objectives")), -- a Lost Crew's own log (Kind LostCrew)
 		MinEra = Check.optional(Check.integer(1, 4)),
 	}),
 	Order = {
@@ -31,7 +31,7 @@ return {
 		CrewSeven = {
 			Title = "Foreman's log, work crew 7", From = "A Steadfast foreman",
 			Text = "Lost the lift cable at noon. We're dug in behind the rock fall with water, two lamps and the radio. Whoever hears this: we're Steadfast men, and Steadfast doesn't leave its own.",
-			Hint = "Crew",
+			Crew = "CrewMines",
 		},
 		DigbyMemo = {
 			Title = "Memo: the Digby campaign", From = "Steadfast advertising",
@@ -48,7 +48,7 @@ return {
 		FloodedGalleries = {
 			Title = "Survey crew, channel 2", From = "A Steadfast survey crew",
 			Text = "Water's up to our knees in the lower galleries. The pumps quit when the power did. Something big is moving in the flooded cuts, and it's patient.",
-			Hint = "Crew",
+			Crew = "CrewFlooded",
 		},
 		ChairmansCable = {
 			Title = "The chairman's cable", From = "Steadfast head office",
@@ -58,12 +58,11 @@ return {
 		ShiftChange = {
 			Title = "Transcript: shift change", From = "Mine office, night shift",
 			Text = "That's the third man this month who says he dreams about the glow. Pull him off the deep crew and put him topside. And don't write any of this down.",
-			Hint = "Crew",
 		},
 		RaiderBroadcast = {
 			Title = "On the open band", From = "The Ash Raiders",
 			Text = "Steadfast! We've got three of yours in the pen. Bring us Scrap and maybe they walk home. Or come and take them.",
-			Hint = "Crew",
+			Crew = "CrewSurface",
 		},
 		TrainingFilm = {
 			Title = "Training film 12, sound reel", From = "Digby the Gopher",

@@ -86,7 +86,7 @@ local function makeCard(gui: ScreenGui): ImageButton
 	paper.ZIndex = 40
 	UIKit.apply(paper, "Paper")
 	local ratio = Instance.new("UIAspectRatioConstraint")
-	ratio.AspectRatio = 3.1
+	ratio.AspectRatio = 2.8
 	ratio.Parent = paper
 	local icon = Instance.new("ImageLabel")
 	icon.Name = "Icon"
@@ -100,9 +100,9 @@ local function makeCard(gui: ScreenGui): ImageButton
 	title.ZIndex = 41
 	local from = label(paper, "From", FONT.small, COLOR.teal, UDim2.fromScale(0.14, 0.25), UDim2.fromScale(0.8, 0.1))
 	from.ZIndex = 41
-	local body = label(paper, "Body", FONT.typed, COLOR.ink, UDim2.fromScale(0.05, 0.4), UDim2.fromScale(0.9, 0.38))
+	local body = label(paper, "Body", FONT.typed, COLOR.ink, UDim2.fromScale(0.05, 0.38), UDim2.fromScale(0.9, 0.36))
 	body.ZIndex = 41
-	local hint = label(paper, "Hint", FONT.typed, COLOR.signal, UDim2.fromScale(0.05, 0.8), UDim2.fromScale(0.9, 0.13))
+	local hint = label(paper, "Hint", FONT.typed, COLOR.signal, UDim2.fromScale(0.05, 0.76), UDim2.fromScale(0.9, 0.17))
 	hint.ZIndex = 41
 	paper.Visible = false
 	paper.Parent = gui

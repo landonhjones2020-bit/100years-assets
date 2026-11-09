@@ -468,8 +468,10 @@ return {
 			CavePieces = { Min = 3, Max = 6 }, PlannerTries = 6, Margin = 1, GridBack = -17.5, LowestY = -300,
 			-- what a Find spot holds (weights; cryo pods from Era II, as in DigResults)
 			FindOdds = { OreVein = 30, Cache = 18, RadioLog = 10, TrappedMiner = 8, CryoPod = 4, GlowshardChest = 2, Nothing = 28 },
-			-- a cavern holds a nest (else a cache); guards wake when a player comes near, then stay near their post
-			NestChance = 0.5, GuardChance = 0.6, GuardBudget = 6, WakeRange = 60, GuardRange = 45, DeepAggro = 60,
+			-- a cavern holds a nest (else a cache); guards come out when a player is WakeRange from their piece,
+			-- asleep at their posts until one is GuardRange from them, then stay near their post (playtest: 6 of
+			-- budget woken at 45 studs downed a lone Survivor in 3 s)
+			NestChance = 0.5, GuardChance = 0.6, GuardBudget = 4, WakeRange = 60, GuardRange = 30, DeepAggro = 60,
 			MineSeconds = 3, OpenSeconds = 1.5, ListenSeconds = 1, ChestSeconds = 2,
 			-- drops (Section 12): a fall past FallDamageFrom studs hurts (the Spelunker's NoFallDamage)
 			FallDamageFrom = 14, FallDamagePerStud = 4, FallDamageMax = 80,

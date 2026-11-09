@@ -2280,15 +2280,20 @@ test("Deep: finds, cryo pods, crews, hints, drops and guards (Sections 6, 12 and
 	expectEqual(Dig.Roll(9, 3, -2, 1, { Empty = true }, overrides), "Empty", "not while caves can't open")
 	expectEqual(Dig.DecodeOverrides(nil), {}, "none")
 	-- radio logs
-	local hints = 0
+	local calls: { [string]: number } = {}
 	for _, id in Config.Ids("RadioLogs") do
 		local entry = Config.Get("RadioLogs", id)
 		expect(#entry.Text > 40, `{id} says something`)
-		if entry.Hint == "Crew" then
-			hints += 1
+		if entry.Crew then
+			expectEqual(Config.Get("Objectives", entry.Crew).Kind, "LostCrew", `{id}: a Lost Crew's call`)
+			calls[entry.Crew] = (calls[entry.Crew] or 0) + 1
 		end
 	end
-	expect(hints >= 3, "enough crew logs to point at every crew")
+	for _, objective in Config.All("Objectives") do
+		if objective.Kind == "LostCrew" and (objective.Where == "Surface" or d.CrewFloors[objective.Where]) then
+			expectEqual(calls[objective.Id], 1, `{objective.Id} has its own radio log (Section 12: radio logs give hints)`)
+		end
+	end
 	expect(d.HintChance > 0 and d.HintChance < 1, "crew logs and story logs both turn up")
 	expect(Config.Get("Rooms", "CryoBay").Unlock.Kind == "CryoPod", "the Cryo Bay unlocks with a cryo pod (Section 6)")
 	expectEqual(Config.Get("Rooms", "CryoBay").Output.Kind, "Thawing", "the Cryo Bay thaws")

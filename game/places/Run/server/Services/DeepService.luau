@@ -62,6 +62,7 @@
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
@@ -308,8 +309,8 @@ end
 
 -- Radio logs --------------------------------------------------------------------------------------
 
--- Where the crews still lost were last heard from.
-local function lostCrewHints(): { string }
+-- The crews still lost, and where each was last heard from.
+local function lostCrews(): { { Objective: string, Where: string } }
 	local list = {}
 	for _, crew in crews do
 		if crew.State == "Hidden" or crew.State == "Found" then
@@ -320,47 +321,63 @@ local function lostCrewHints(): { string }
 				end
 			end
 			if trapped then
-				table.insert(list, Deep.Hint(crew.Floor, crew.Column))
+				table.insert(list, { Objective = crew.Objective, Where = Deep.Hint(crew.Floor, crew.Column) })
 			end
 		end
 	end
 	local up = surface:CrewWhere()
 	if up then
-		table.insert(list, up)
+		table.insert(list, { Objective = "CrewSurface", Where = up })
 	end
-	table.sort(list)
+	table.sort(list, function(a, b)
+		return a.Objective < b.Objective
+	end)
 	return list
 end
 
--- The next log to play, and the hint it carries (or nil).
+local function crewLog(objectiveId: string): string?
+	for _, id in Config.Ids("RadioLogs") do
+		if Config.Get("RadioLogs", id).Crew == objectiveId then
+			return id
+		end
+	end
+	return nil
+end
+
+-- The next log to play, and where its crew was last heard from (or nil). While a crew is still
+-- lost, HintChance of the time it is that crew's own call; else the story goes on in order.
 local function chooseLog(): (string?, string?)
 	local era = eraNumber()
-	local hints = lostCrewHints()
-	local wantHint = #hints > 0 and rng:NextNumber() < t().HintChance
-	local function pool(hint: boolean, fresh: boolean): { string }
-		local list = {}
-		for _, id in Config.Ids("RadioLogs") do
-			local entry = Config.Get("RadioLogs", id)
-			if (entry.MinEra or 1) <= era and (entry.Hint == "Crew") == hint and (not fresh or not heard[id]) then
-				table.insert(list, id)
-			end
+	local lost = {}
+	for _, crew in lostCrews() do
+		if crewLog(crew.Objective) then
+			table.insert(lost, crew)
 		end
-		return list
 	end
-	local list = pool(wantHint, true)
-	if #list == 0 then
-		list = pool(not wantHint, true)
+	if #lost > 0 and rng:NextNumber() < t().HintChance then
+		local crew = lost[rng:NextInteger(1, #lost)]
+		local id = crewLog(crew.Objective) :: string
+		heard[id] = true
+		return id, crew.Where
 	end
-	if #list == 0 then
-		list = pool(wantHint, false) -- every log heard: they repeat
+	local story = {}
+	for _, id in Config.Ids("RadioLogs") do
+		local entry = Config.Get("RadioLogs", id)
+		if (entry.MinEra or 1) <= era and not entry.Crew then
+			table.insert(story, id)
+		end
 	end
-	local id = list[1]
-	if not id then
-		return nil, nil
+	for _, id in story do
+		if not heard[id] then
+			heard[id] = true
+			return id, nil
+		end
 	end
-	heard[id] = true
-	local hint = if Config.Get("RadioLogs", id).Hint == "Crew" and #hints > 0 then hints[rng:NextInteger(1, #hints)] else nil
-	return id, hint
+	if #lost > 0 then
+		local crew = lost[rng:NextInteger(1, #lost)]
+		return crewLog(crew.Objective), crew.Where
+	end
+	return story[rng:NextInteger(1, math.max(#story, 1))], nil -- every log heard: they repeat
 end
 
 local function playLog(player: Player, id: string, hint: string?)
@@ -1061,33 +1078,39 @@ local function lightTick()
 	end
 end
 
-local function watchFalls(player: Player, character: Model)
-	local humanoid = character:WaitForChild("Humanoid", 10)
-	local root = character:WaitForChild("HumanoidRootPart", 10)
-	if not humanoid or not humanoid:IsA("Humanoid") or not root or not root:IsA("BasePart") then
-		return
-	end
-	local fromY: number? = nil
-	local fromAt = Vector3.zero
-	humanoid.StateChanged:Connect(function(_old: Enum.HumanoidStateType, new: Enum.HumanoidStateType)
-		if new == Enum.HumanoidStateType.Freefall then
-			fromY = root.Position.Y
-			fromAt = root.Position
-		elseif fromY and (new == Enum.HumanoidStateType.Landed or new == Enum.HumanoidStateType.Running) then
-			local drop = (fromY :: number) - root.Position.Y
-			local flat = Vector3.new(root.Position.X - fromAt.X, 0, root.Position.Z - fromAt.Z).Magnitude
-			fromY = nil
-			-- only in the Deep, and not a teleport (the elevator, a respawn, DevTools)
-			if drop > 0 and drop < 120 and flat < 80 and Surface.Zone(root.Position) == "Deep" then
-				local damage = Deep.FallDamage(drop, (classValue(player, "NoFallDamage") or 0) ~= 0)
-				local c = combat:PlayerCombatant(player)
-				if damage > 0 and c then
-					combat:Damage(c.Id, damage, nil, "fell")
-					log:Info("%s fell %.1f studs in the Deep: %d damage", player.Name, drop, damage)
+-- Falls (Section 12: drops): the server watches characters fall (a Humanoid's states are its
+-- client's, so it reads the root's speed) and land; a drop in the Deep past FallDamageFrom hurts.
+local FALLING = -8 -- studs a second down: falling, not walking down a slope
+local falls: { [Player]: { Top: number, At: Vector3 } } = {}
+
+local function fallStep()
+	for _, player in Players:GetPlayers() do
+		local root = rootOf(player)
+		local f = falls[player]
+		if not root then
+			falls[player] = nil
+		else
+			local vy = root.AssemblyLinearVelocity.Y
+			if vy < FALLING then
+				if not f then
+					falls[player] = { Top = root.Position.Y, At = root.Position }
+				end
+			elseif f and math.abs(vy) < 2 then
+				falls[player] = nil
+				local drop = f.Top - root.Position.Y
+				local flat = Vector3.new(root.Position.X - f.At.X, 0, root.Position.Z - f.At.Z).Magnitude
+				-- only in the Deep, and not a teleport (DevTools, a respawn)
+				if drop > 0 and drop < 120 and flat < 80 and Surface.Zone(root.Position) == "Deep" then
+					local damage = Deep.FallDamage(drop, (classValue(player, "NoFallDamage") or 0) ~= 0)
+					local c = combat:PlayerCombatant(player)
+					if damage > 0 and c and alive(player) then
+						local done = combat:Damage(c.Id, damage, nil, "fell")
+						log:Info("%s fell %.1f studs in the Deep: %d damage", player.Name, drop, done)
+					end
 				end
 			end
 		end
-	end)
+	end
 end
 
 -- Loop --------------------------------------------------------------------------------------------
@@ -1099,7 +1122,10 @@ local function loop()
 		local dt = math.min(os.clock() - last, 3)
 		last = os.clock()
 		for name, fn in { wake = wakeTick, light = lightTick, thaw = function()
-			thawTick(dt)
+			-- the Cryo Bay works like any room: while the clock runs, at its speed (EconomyService)
+			if clock:IsRunning() then
+				thawTick(dt * clock:TimeScale())
+			end
 		end } do
 			local ok, err = pcall(fn)
 			if not ok then
@@ -1256,9 +1282,13 @@ local function registerCommands(dev: any)
 			if not Config.Find("RadioLogs", id) then
 				local chosen, h = chooseLog()
 				id, hint = chosen or "", h
-			elseif Config.Get("RadioLogs", id).Hint == "Crew" then
-				local hints = lostCrewHints()
-				hint = hints[1]
+			else
+				local objective = Config.Get("RadioLogs", id).Crew
+				for _, crew in lostCrews() do
+					if crew.Objective == objective then
+						hint = crew.Where
+					end
+				end
 			end
 			if id == "" then
 				return "no radio logs"
@@ -1367,18 +1397,15 @@ function DeepService:Start()
 		end
 	end)
 	grid.Changed:Connect(onGridChanged)
-	local function joined(player: Player)
-		player.CharacterAdded:Connect(function(character: Model)
-			watchFalls(player, character)
-		end)
-		if player.Character then
-			task.spawn(watchFalls, player, player.Character)
+	RunService.Heartbeat:Connect(function()
+		local ok, err = pcall(fallStep)
+		if not ok then
+			log:Warn("falls: %s", tostring(err))
 		end
-	end
-	for _, player in Players:GetPlayers() do
-		joined(player)
-	end
-	Players.PlayerAdded:Connect(joined)
+	end)
+	Players.PlayerRemoving:Connect(function(player: Player)
+		falls[player] = nil
+	end)
 	director.RunEnded:Connect(clear)
 	local ok, err = pcall(setupCrews)
 	if not ok then
