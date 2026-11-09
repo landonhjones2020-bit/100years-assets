@@ -250,3 +250,26 @@ in the Run place.
 * New weapons are data: an entry in `Config.Items` with `Gun` or `Melee` numbers and a model with
   Grip and Muzzle (or Tip) sockets.
 * Throwables and Medkits need only their use: the slots, icons and counts are there.
+
+---
+
+## Addendum: Landon's answers to the Prompt 11 questions (2026-11-08)
+
+| # | Question | Landon | Built |
+|---|---|---|---|
+| 1 | Ammo carried per player? | Yes | `CarriedAmmo` per player, restocked from the team's Ammo (unchanged) |
+| 2 | Throwables and Medkits on the hotbar? | Yes | slots 4 and 5 show the item, its count (`x3`) and its key |
+| 3 | A Heal button for Medkits; Fire throws throwables? | Yes | `UseMedkit`: 1.5 s, walking at 0.6×, cancelled by a hit or a swap; H on keyboard, hold D-pad up on a controller (a tap still pings), a Heal touch button; the Medkits chip on the HUD (count, key, fill). Medkits restock at the Medbay from the team's Medkits. Fire with a throwable selected throws it (`ThrowItem`): Frag Grenade, Flare, Foam Grenade, Shock Mine |
+| 4 | No regeneration; a revive gives 30%? | Yes | unchanged |
+| 5 | Classes without a melee weapon? | "Give every kit a melee weapon that matches their kits" | five new melee items (data in `Config.Items`, models with A2): Defib Paddles (Medic: 12/22, stuns 0.8 s), Antenna Whip (Radio Operator: 11/20, fast), Hazard Hook (Hazmat Tech: 18/32, shoves), Hunting Knife (Marksman: 13/24, quick), Power Wrench (Tinkerer: 22/40, shoves). A data test checks every kit has one |
+| 6 | The numbers? | Fine for now; he will judge them in play | unchanged |
+
+**The crooked aim (Landon, mid-turn).** The barrel pointed 27° left and a little up. The gun
+clips now solve the wrist so the barrel lies along the aim (`generators/Clips/R15_PlayerCombat.py`,
+v3: GunAim 79362406154244, GunHold 137332197362680), and the waist follows the camera's pitch
+while aiming (`CombatController.aimPitch`; Landon's avatar uses AnimationConstraint joints, so
+it moves `Attachment0.CFrame` there and `C0` on Motor6Ds). Measured in Studio: about 3.5° off at
+the hip once settled.
+
+Built in `p11-6d59dcb` (code revision 36); verified in a Run playtest: a Medkit heal (30 → 90,
+the chip filling), a Frag throw (x3 → x2, the dummy −72), the Medbay's Take Medkits (1 → 3).

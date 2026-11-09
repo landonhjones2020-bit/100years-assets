@@ -24,8 +24,11 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 10: residents, phase 1 (Run) | ✅ done 2026-11-08 | Run playtests: founders at work, the routine (meal, work, Shaft stairs to bed), assigning with real clicks, the Residents screen, revive and death, defeat; `game/reports/P10_Residents.md`, `previews/Game/P10_Studio_sheet.jpg` |
 | Landon's answers to the Prompt 9 and 10 questions | ✅ built 2026-11-08 | Data tests (dark ties by draw, wrecked rooms) in both places; a Run playtest (founders idle, the jobs alert on the real client, idle residents to a Lounge); addenda in `P09_EconomyPower.md` and `P10_Residents.md` |
 | Prompt 11: combat core (Run) | ✅ done 2026-11-08 | Run playtests with real clicks and keys: server-checked shots, reload, the combo and heavy swings, the roll, sprint, aim, restock, downed, out and respawn, a resident revive; all 11 clips seen playing; the guns held, checked from the side; two real players, a real controller and touch still need a person; `game/reports/P11_Combat.md`, `previews/Game/P11_Studio_sheet.jpg`, `previews/Game/P11_Handles_sheet.jpg` |
+| Landon's answers to the Prompt 11 questions; the crooked aim | ✅ built 2026-11-08 | A Run playtest (a Medkit heal, a Frag throw, the Medbay's Medkits), the aim measured in Studio (about 3.5° at the hip); addendum in `game/reports/P11_Combat.md` |
+| Prompt 12: threats and monsters (Run) | ✅ done 2026-11-08 | Run playtests: breach warnings, monsters from vents and the rock edge, rooms smashed, ticks latching, residents fleeing, a cleared Tutorial Surge ending early, a player killing a monster; Lobby start check; `game/reports/P12_Threats.md`, `previews/Game/P12_*.jpg` |
+| A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
 | A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the rest of the class kits to come |
-| A3 to A11 | not started | |
+| A3, A5 to A11 | not started | |
 
 ## Ids
 
@@ -44,7 +47,56 @@ Newest first. Every "verified" line says how it was checked.
 | Weapon_Wrench | model 73400938739387 |
 | UI atlas: items | decal 77379333015803, image 99859624879456 |
 | Player combat clips (11) | `manifest.csv`, rows `R15_GunHold` to `R15_Revive` |
+| Mines monsters (rigs, revision 2 after the detail pass) | Burrow Tick 90784985441642, Tunnel Hound 111045663637462, Spitter Grub 70536165729662, Hollow Miner 83503998043819; their clips in `manifest.csv` and `Config.Animations` |
+| Boss_BroodMother | model 132844909378352; clips Idle 116082078619476, Walk 105510410741576, Attack 87449889032585, Roar 104063099850529, LayEggs 125795678354746, Stagger 121846906504911, Death 115302160037147 |
+| Boss_BroodMother_EggSac | model 98283751054755 |
+| Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (night): Prompt 12, threats and monsters; the A4 detail pass and the Brood Mother
+
+Game code builds `p12-fc9aed6` to `p12-25453ec` (final): code asset 95026446991297 revision 42,
+installed in Run and Lobby: StructureCheck 0 errors (Run 372 checks, Lobby 232), 81 data tests
+passed in each. The Lobby starts cleanly with it. `ServerStorage.Documentation.ARCHITECTURE` in
+Studio picks up the new "Threats and monsters" section with the next code build. The bible
+(live doc rev 119 and both project parts) has Landon's Prompt 11 answers (kits, Heal, throwing,
+the five new melee weapons) and the monster and boss look rule in Section 19.
+
+**Done**
+* Landon's Prompt 11 answers (build `p11-6d59dcb`): a melee weapon in every kit (five new
+  items), Medkits with a Heal button (H, hold D-pad up, a touch button) and Medbay restocks,
+  throwables thrown with Fire. His crooked-aim note: the gun clips' wrists solved (v3 clips) and
+  the waist follows the aim (his avatar uses AnimationConstraint joints). Addendum in
+  `game/reports/P11_Combat.md`.
+* Prompt 12: Rules.Threat, ThreatDirector (budgets, waves, the trickle, a cleared Surge ends),
+  BreachService (vents and rock-edge cells, 10 s warnings), MonsterService (spawning, the cap of
+  25, the AI, room damage, goo, latching, stuns), residents fleeing and swatting,
+  ThreatController (alerts, the Threat overlay). Report: `game/reports/P12_Threats.md`.
+* Art A4 (first pass, then Landon's note "make the monsters more detailed and the bosses need
+  to really stand out, they should be scary"): the Burrow Tick, Tunnel Hound (new Jaw bone) and
+  Spitter Grub (four mouth petals) rebuilt, the Hollow Miner's detail pass (it needs Landon's
+  look again), the Brood Mother (9,924 tris, 23 Motor6Ds, a `Belly` weak point, seven clips)
+  and her egg sac. Rules for monsters and bosses are in `STYLE.md` section 1.
+* Tooling: `setup_batch.py` writes the generator's scalar meta as model attributes (`HitTime`,
+  `LayTime`), so re-imports keep them. A 39 KB setup chunk went to Studio as a ModuleScript
+  Model asset (`InsertService:LoadAsset` + `require`) instead of being pasted.
+
+**Verified in Studio**: see the testing checklist in `game/reports/P12_Threats.md`. Captures:
+`previews/Game/P12_Studio_ShootHound.jpg`, `A4_Studio_BroodMother.jpg`, `A4_Studio_Lineup.jpg`,
+`A4_Studio_InBunker.jpg`.
+
+**Open**
+* Landon's look at the rebuilt monsters and the Brood Mother; his answers to the six Prompt 12
+  Bible Questions.
+* Not seen yet: the Spitter's goo slowing a real player, the Brood Mother's clips on her model
+  (Prompt 15), phones with 25 monsters, two real players.
+* Seen in playtests, for later prompts: the out telegram says "BACK AT THE MEDBAY" even when the
+  respawn is at the Blast Door hall; the roll leaves the floor for a moment; a melee weapon held
+  with an empty hotbar hangs into the floor; the A0 sample scripts still print "reached the Hit
+  marker" every swing (remove them once Landon is happy with the monsters).
+
+**Next**: Prompt 13, disasters (fire, blackout, cave-in) and repairs; then Prompt 14 (digging,
+depth bands, Disturbance, Push Deeper) and Prompt 15 (the Brood Mother and the results screen).
 
 ## 2026-11-08 (night): Prompt 11, combat core; the gun handles
 

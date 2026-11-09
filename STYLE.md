@@ -32,6 +32,25 @@ finish: real materials, lighting that sells the room, UI that is ours and not a 
   The four A0 classes in `generators/Residents/outfits.py` set the bar for each tier;
   check a new look with `python3 generators/UI/UI_Portraits.py --check <Class>`.
 
+* **Monsters are detailed and bosses are scary (Landon, 2026-11-08).** "Make the monsters
+  more detailed; the bosses need to really stand out, they should be scary." Never gory: no
+  blood, wounds or guts; horror comes from shape, eyes, teeth and light.
+  * **Every monster**: a face that reads at phone size (burning eyes, slits or a glowing maw in
+    a dark socket), pale `cream` teeth and claws against a dark body, a Source-green accent that
+    shows what it does (the Spitter's goo sacs, the Tick's leaking abdomen), secondary forms
+    (plates, spines, ribs, bristles, veins) and a silhouette that differs from every other
+    monster in its era. Use most of the 4,000-triangle budget (swarmers that come in packs stay
+    near 2,000). Rig a jaw or mouth when the attack is a bite or a spit, so it opens.
+  * **Every boss**: the biggest, scariest thing in its era. Two to three times a resident's
+    height with a silhouette nothing else has; a crown or crest that glows; a cluster of burning
+    eyes; the bible's weak point glowing and readable from across a room, as its own part with
+    Role `WeakPoint`; an entrance clip (Roar) plus Idle, Walk, Attack, Stagger and Death, and a
+    clip for each of its fight's moves. Check it from a resident's eye height (the generator's
+    `_hero` preview and a Studio capture) before calling it done. The Brood Mother
+    (`generators/Bosses/Boss_BroodMother.py`) sets the bar.
+  * Helpers for both live in `generators/Monsters/_beast.py` (spike, claw, limb, blob, shell,
+    eye, teeth, vein).
+
 ## 2. Palette
 
 * Colour comes **only** from the 32 swatches in `palette/` (`palette_sheet.png` shows them).

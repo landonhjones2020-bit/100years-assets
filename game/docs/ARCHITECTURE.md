@@ -453,7 +453,12 @@ The client predicts with it and the server checks with it.
   * the remotes `SelectSlot`, `FireWeapon` (checked hits, then `HitConfirmed`), `ReloadWeapon`,
     `MeleeSwing`, `Dodge`, `Sprint`;
   * magazines, carried ammo and restocking at Workshop and Armory restock points (from the
-    team's Ammo);
+    team's Ammo); Medkits restocked at the Medbay from the team's Medkits;
+  * Landon's Prompt 11 answers: `UseMedkit` heals over `MedkitSeconds` (1.5 s, walking at
+    `HealWalkMultiplier`; H, hold D-pad up, the Heal touch button), cancelled by being hit or
+    swapping; `ThrowItem` throws the slot's throwable along an arc (Frag Grenade explodes, Flare
+    lights, Foam Grenade puts out fire through `WeaponService.Foamed`, Shock Mine arms and stuns
+    monsters through `StunnedUntil`); every class kit has a melee weapon;
   * stamina (sprint, dodge, heavy swings);
   * the Player attributes `Class`, `Slot`, `Item1` to `Item5`, `Mag1`, `Mag2`, `MeleeItem`,
     `CarriedAmmo`, `Stamina`, `ReloadEndsAt`, `ShotSalt`, `ShotNext`, `SwingEndsAt`.
@@ -466,6 +471,52 @@ The client predicts with it and the server checks with it.
   button). Holding a revive prompt plays the kneel clip.
 * `Lib.Movement` (client) works out one walk speed from several reasons (aiming, sprinting,
   crawling) on top of `StarterPlayer.CharacterWalkSpeed`.
+
+## Threats and monsters (Run place)
+
+Bible Section 10 (Prompt 12). `Shared.Rules.Threat` is pure: the threat level (year, deepest
+floor, Disturbance, rooms and players, `Tuning.Threat`), Surge and trickle budgets (the
+Tutorial Surge has its own; Boss and Final Surges spend nothing here; an account's first run in
+Era I spends 70%), the era's roster (each era's new monsters up to now, never Surface-only),
+groups bought from a budget (variety, group sizes), weighted breach picks and target order.
+
+* `ThreatDirector` spends the budgets:
+  * at each Surge: groups split into up to 4 waves `WaveSpacingSeconds` apart, at up to
+    `MaxBreachPointsPerSurge` breach points, tagged `Surge:<cycle>`;
+  * between Surges (the day, from cycle 2): single monsters when the trickle budget allows;
+  * ends the Surge early (`CycleClock:EndSurge()`) once every wave is out, none of its monsters
+    is left and no disaster runs (`SetDisasterCheck`, for Prompt 13);
+  * `ExtraBreach` and `Tremor` for Disturbance (Prompt 14); `RunState.Threat` and
+    `RunState.Monsters` every second.
+* `BreachService` owns breach points: room vents `V:<roomId>` (not the Shaft or the Blast Door;
+  dark rooms weigh `DarkRoomWeight`, barricaded ones `BarricadeWeight`) and dug cells at the rock
+  edge of the deepest band `D:f,c`. `Open(point, groups, tag)` shows 10 s of dust and a pulsing
+  red light, adds to the `Breaches` collection, sends `BreachWarning` to ready players, then
+  spawns `SpawnSpacingSeconds` apart. Signal `Opened`.
+* `MonsterService` owns monsters:
+  * `Spawn(type, cframe, tag)` clones `ServerStorage.Assets.Monsters.<Asset>` (a graybox when
+    missing), registers it with CombatService (team Monsters) and sets `Rig`, `MonsterType`,
+    `Activity` and `AttackAt`; the server owns its physics; collision group Monsters. At most
+    `MaxMonsters` (25) on the map, the rest queue; `Count(tag)` includes the queue.
+  * The AI ticks every `MonsterAI.TickSeconds`: targets in the type's order (residents,
+    machines, players who hit it, any player within `ProximityAggro` except Runners), walks the
+    PathGraph (a stuck monster is moved on), attacks after a windup (the model's `HitTime`
+    attribute, written from the generator's meta), damages rooms through `BunkerGrid:SetHP`
+    (`RoomDamageMultiplier`, Brutes `SmashMultiplier`; the Reactor Core at 0 HP ends the run),
+    spits goo (`SlowedUntil`), latches ticks (a weld, bites every `AttackSeconds` ×
+    `LatchIntervalMultiplier`), and obeys `StunnedUntil`.
+  * Signals `Spawned` and `Died`; dev commands `monster`, `monsters`, `monsters.clear`.
+* `ResidentBrain` (Prompt 12): residents near a monster flee to a safe room (no monster in or
+  next to it) until `ResidentCalmSeconds` pass, swat a lone Burrow Tick, and walk slower while
+  `SlowedUntil` lasts.
+* `ThreatController` (client): the breach alert and mini-map blink, the Command View's Threat
+  overlay (monsters, breach countdowns, likely dark rooms, vents) and the Slowed movement reason.
+* `NPCAnimator` plays monsters' clips by `Rig:Activity` too (Attack replays on each
+  `AttackAt`; Flee and Run fall back to Walk, Fight to Attack).
+* Bosses are art and config so far (Prompt 15 fights the first): `Boss_BroodMother` in
+  `ServerStorage.Assets.Bosses` has a `Belly` part with Role `WeakPoint` (raycasts hit it),
+  sockets `Ovipositor`, `Maw` and `Slam`, `HitTime` 0.8 and `LayTime` 1.4, and seven clips in
+  `Config.Animations` (Rig `BroodMother`); `Boss_BroodMother_EggSac` is what she lays.
 
 ## Saved data
 
@@ -590,6 +641,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks |
 | Run | CombatService | service | SessionService, BunkerGrid, PowerService, ResidentService, DevService | everyone who can be hurt: combatants, history, damage, down, revive, death, respawn |
 | Run | WeaponService | service | CombatService, EconomyService, BunkerGrid, SessionService, DevService | loadouts, the hotbar, held items, shots and their checks, reloads, melee, dodge, sprint, stamina, restocking |
+| Run | MonsterService | service | CombatService, BunkerGrid, ResidentService, RunDirector, DevService | monsters: spawning, the cap and queue, the AI, attacks, room damage, goo, latching, stuns |
+| Run | BreachService | service | BunkerGrid, PowerService, MonsterService, SessionService, ReplicationService, DevService | breach points, warnings, the Breaches collection, spawning at a breach |
+| Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DevService | the threat level, Surge waves, the trickle, ending a cleared Surge, RunState Threat and Monsters |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -598,10 +652,11 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
 | both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
-| both | NPCAnimator | controller | | residents' clips from their Activity attribute (Run) |
+| both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run) |
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
+| Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -662,3 +717,14 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   11 clips, the Pocket Pistol (v2: the grip rakes back) and the Wrench. Before it, Landon's
   answers to the Prompt 9 and 10 questions: the biggest draw goes dark first, wrecked rooms draw
   nothing, the founders start idle, idle residents use the Lounge.
+* **Landon's Prompt 11 answers (2026-11-08)**: carried ammo per player, the hotbar, a Heal
+  button (Medkits over 1.5 s; H, hold D-pad up, a touch button) with Medkits restocked at the
+  Medbay, throwables thrown with Fire (`ThrowItem`: Frag, Flare, Foam, Shock Mine), no
+  regeneration, and a melee weapon in every kit (new: Defib Paddles, Antenna Whip, Hazard Hook,
+  Hunting Knife, Power Wrench). The aim fixed: the clips' wrists, and the waist follows the aim.
+* **Prompt 12 (2026-11-08)**: threats and monsters (Run). Rules.Threat, ThreatDirector,
+  BreachService, MonsterService, the residents' flee and swat, ThreatController, monsters in
+  NPCAnimator, the A4 Mines monsters and their clips. Then the A4 detail pass (Landon: more
+  detailed monsters, scary bosses): the four monsters rebuilt (the Tunnel Hound gained a Jaw
+  bone, the Spitter Grub four mouth petals), the Brood Mother with seven clips and her egg sac,
+  generator meta written as model attributes.

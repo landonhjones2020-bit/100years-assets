@@ -30,6 +30,12 @@ Start the install in the background and do other work while it downloads.
 2. Run it, look at `previews/<Category>/<Asset>.png`, fix and repeat until it reads at phone size, sits on the palette and fits its budget.
 3. `SF_EXPORT=1 python3 generators/<Category>/<Asset>.py`, then commit and push. Nothing waits for approval (bible Section 19, step 6).
 
+Monsters and bosses: `generators/Monsters/_beast.py` (a `Beast` rig plus detail helpers: spike,
+claw, limb, blob, shell, eye, teeth, vein); bosses live in `generators/Bosses/` (the Brood
+Mother also renders `<Asset>_hero.png`, a resident's-eye view). `SF_NOSHEETS=1` skips the clip
+contact sheets while iterating. Re-exporting a model that is already in `manifest.csv` resets
+its `status` to `exported`: put the real status back before committing.
+
 ## 4. Importing into Studio (bible Section 19, steps 7 and 8)
 
 1. `python3 tools/stage_import.py exports/<Category>/<Asset>.fbx` prints `stagedPath` / `devicePath` pairs.
@@ -47,6 +53,11 @@ Start the install in the background and do other work while it downloads.
 7. Put the id and `status` (`uploaded`, `in_studio`, `verified`, `approved`) in `manifest.csv`, commit, push, add a line to `BUILD_LOG.md`.
 
 Batches: `python3 tools/setup_batch.py Asset=<id> Rig=<id>:rig:face=<imageId>:Walk=<animId> ...`
+(monsters: `Monster_X=<id>:rig:Walk=<anim>:Attack=<anim>`; the generator's scalar meta, such as
+`hitTime`, becomes a model attribute, `HitTime`). A chunk too big to paste (over about 20 KB):
+wrap it as `return function() <chunk> end` in a ModuleScript `.rbxmx`, upload it as a Model,
+then `require(InsertService:LoadAsset(id):FindFirstChildWhichIsA("ModuleScript", true))()`
+(2026-11-08, `ArtSetupBatch_A4detail`).
 prints one chunk that finishes several inserted models at once (static and rigs). It uses
 `ServerStorage.ArtPipeline.AssetSetup`; add `--install` in a new place or after editing
 `studio/AssetSetup.lua`.
@@ -87,6 +98,12 @@ Design Notes and Delivery Reports: `game/reports/`.
    `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands.
 5. Profiles in Studio use the `PlayerProfiles_Studio` DataStore; `/dev profile`, `profile.raw`,
    `profile.add`, `profile.receipt`, `profile.locktest` test them.
+6. Captures: `screen_capture` saves to `/tmp/claude-tool-results/<id>/...jpg`; copy the good ones
+   to `previews/Game/`. To point the camera (and the aim, which is the screen centre) at
+   something, bind a `ShotCam` render step on the client that sets `workspace.CurrentCamera`;
+   unbind it after. Landon's avatar uses AnimationConstraint joints (`Waist`), not Motor6Ds. A
+   controller is plugged in on his PC, so the input type is often Gamepad (D-pad up: a tap
+   pings, a hold heals). Review clones in `workspace` must be removed after the capture.
 
 ## 5. Rules
 
