@@ -121,9 +121,6 @@ type Monster = {
 	Post: Vector3?, -- a guard's post (Prompt 17)
 	Guard: number?, -- a guard's wake range
 	Asleep: boolean,
-	MovedFrom: Vector3, -- where it last moved from, and when (a stuck check re-planning can't reset)
-	MovedAt: number,
-	WalkedAt: number, -- the last tick it walked
 	Pathing: boolean, -- a PathfindingService plan is being worked out (the surface)
 	Path: Path?,
 	CircleUntil: number, -- a PackRunner circles its target until then (os.clock)
@@ -328,9 +325,6 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?, options: 
 		Post = if options and options.Guard then at.Position else nil,
 		Guard = if options then options.Guard else nil,
 		Asleep = options ~= nil and options.Guard ~= nil,
-		MovedFrom = at.Position,
-		MovedAt = os.clock(),
-		WalkedAt = 0,
 		Pathing = false,
 		Path = nil,
 		CircleUntil = 0,
@@ -784,18 +778,6 @@ local function walk(m: Monster, goal: Vector3)
 		m.Best = math.huge
 		m.Since = os.clock()
 	end
-	-- re-planning every REPLAN_SECONDS restarts the check above, so a monster can stand at a wall for
-	-- good (playtest, Prompt 17: a Tunnel Hound in a room under its target): not moving for twice
-	-- StuckSeconds steps it to the waypoint too
-	if (root.Position - m.MovedFrom).Magnitude > 1 or os.clock() - m.WalkedAt > 1 then
-		m.MovedFrom = root.Position -- it moved, or it has only just started walking again
-		m.MovedAt = os.clock()
-	elseif os.clock() - m.MovedAt > ai().StuckSeconds * 2 then
-		root.CFrame = CFrame.new(point + Vector3.new(0, m.Humanoid.HipHeight + root.Size.Y / 2, 0)) * root.CFrame.Rotation
-		m.MovedFrom = root.Position
-		m.MovedAt = os.clock()
-	end
-	m.WalkedAt = os.clock()
 	m.Humanoid:MoveTo(point)
 	setActivity(m, "Walk")
 end
