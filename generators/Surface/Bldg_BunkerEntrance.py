@@ -15,11 +15,11 @@ def build():
     for i in range(6):
         bx("Decor", "hazard" if i % 2 == 0 else "navy", (2.5, 0.1, 0.06), (-6.25 + i * 2.5, -1.4, 0.43))
     # the portal: a headwall into the hill and wing walls angling out
-    bx("Headwall", "sandstone", (44, 6, 22), (0, 3, 11), collision="box")
+    bx("Headwall", "sandstone", (44, 6, 25), (0, 3, 12.5), collision="box")
     for sx in (-1, 1):
         bx(T.uid("Wing"), "sandstone", (3, 14, 16), (sx * 23.5, -4, 8), rot=(0, 0, sx * 18), collision="box")
         bx("Decor", "stone", (3.4, 14.4, 0.8), (sx * 23.5, -4, 16.2), rot=(0, 0, sx * 18))
-    bx("Decor", "stone", (46, 7, 1.4), (0, 3, 22.4))
+    bx("Decor", "stone", (46, 7, 1.4), (0, 3, 25.4))
     # the round door: a hazard-striped ring, the door itself, its hinge and wheel
     T.t(T.sf.ring(8.0, 10.0, 1.6, loc=(0, -0.2, 10.5), rot=(90, 0, 0), verts=24), "Ring", "steel", collision="box")
     for a in range(0, 360, 30):
@@ -33,8 +33,9 @@ def build():
         bx("Decor", "brass", (0.5, 0.5, 2.6), (2.0 * math.cos(r), -0.8, 10.5 + 2.0 * math.sin(r)), rot=(0, -a, 0))
     cy("Decor", "brass", 0.8, 0.8, (0, -0.9, 10.5), rot=(90, 0, 0), verts=10)
     bx("Decor", "gunmetal", (2.4, 2.0, 8), (9.6, -0.5, 10.5))                                           # the hinge
-    # the sign over the door, lamps either side
-    T.sign(0, -0.4, 19.6, 22, 3.4, swatch="cream", rim="teal")
+    # the sign over the door, clear of the ring (playtest: the ring hid the middle of the name),
+    # lamps either side
+    T.sign(0, -0.4, 22.7, 22, 3.4, swatch="cream", rim="teal")
     for sx in (-1, 1):
         bx("Decor", "steel", (0.6, 1.6, 0.6), (sx * 13, -0.6, 15))
         cy("Decor", "hazard", 0.9, 1.2, (sx * 13, -1.6, 14.5), verts=10, mat="Neon")

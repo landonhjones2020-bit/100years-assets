@@ -73,9 +73,11 @@ local DECOR = {
 	{ "Prop_Debris", 12, 30, 210 }, { "Prop_Debris", 168, 30, 280 }, { "Prop_Debris", -30, -150, 30 },
 	{ "Prop_Debris", 70, 120, 100 }, { "Prop_Debris", -150, 140, 170 },
 }
+-- Creature spawn points round the edge, all on open ground (the north hill's face is at Z = -212:
+-- points behind it were buried in the hill, and creatures spawned there fell out of the town)
 local SPAWNS = {
-	{ -285, -220 }, { -285, -60 }, { -285, 80 }, { -285, 205 }, { -120, 212 }, { 60, 212 }, { 220, 208 },
-	{ 288, 120 }, { 288, -100 }, { 252, -225 }, { 100, -232 }, { -90, -232 }, { -200, -60 }, { 110, -125 },
+	{ -285, -196 }, { -285, -60 }, { -285, 80 }, { -285, 205 }, { -120, 212 }, { 60, 212 }, { 220, 208 },
+	{ 288, 120 }, { 288, -100 }, { 252, -196 }, { 100, -196 }, { -90, -196 }, { -200, -60 }, { 110, -125 },
 	{ -70, 112 }, { 170, 112 }, { -250, -165 }, { 240, -40 },
 }
 

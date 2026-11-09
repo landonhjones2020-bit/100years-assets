@@ -71,6 +71,7 @@ local SurfaceService = {
 
 local SKIP: { [string]: boolean } = { Gear = true, RadioLog = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
 local SURFACE_TAG = "Surface"
+local FALL_GUARD = 30 -- studs under the elevator exit: below this a surface creature has fallen out of the town
 local HALL_ARRIVAL = Vector3.new(0, 0, 6) -- from the Blast Door's Door socket, into the hall
 local ELEVATOR_PROMPT = Vector3.new(0, 2.5, 0.5)
 
@@ -641,6 +642,17 @@ local function creaturesTick()
 		nextAt.AshRaider = math.max(nextAt.AshRaider, os.clock() + tuning.RaiderEverySeconds.Min / 2)
 	end
 	emptySince = 0
+	-- a creature that fell out of the town (through a wall or a seam) is gone, not walking under it
+	local floorY = if exitAt then (exitAt :: CFrame).Position.Y - FALL_GUARD else nil
+	if floorY then
+		for _, m in monsterService:All() do
+			if creatures[m.Id] and m.Position.Y < floorY then
+				log:Warn("%s fell out of the town at %s: removed", m.Id, tostring(m.Position))
+				creatures[m.Id] = nil
+				monsterService:Despawn(m.Id)
+			end
+		end
+	end
 	local count = 0
 	for id in creatures do
 		if monsterService:ZoneOf(id) then
