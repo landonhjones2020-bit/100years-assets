@@ -1,0 +1,77 @@
+{
+ "asset": "Prop_BurntTree",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  6.552,
+  14.303,
+  4.843
+ ],
+ "tris": 152,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Trunk",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -0.059,
+    7.034,
+    -0.192
+   ],
+   "size": [
+    2.295,
+    14.067,
+    1.672
+   ],
+   "tris": 80
+  },
+  {
+   "name": "Limbs",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    7.175,
+    0.0
+   ],
+   "size": [
+    6.552,
+    14.256,
+    4.843
+   ],
+   "tris": 72
+  }
+ ],
+ "meta": {
+  "decor": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "78ba3484c988b026"
+}

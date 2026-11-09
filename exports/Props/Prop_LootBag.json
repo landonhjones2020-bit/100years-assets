@@ -1,0 +1,78 @@
+{
+ "asset": "Prop_LootBag",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  1.902,
+  1.687,
+  2.249
+ ],
+ "tris": 512,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Sack",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    0.0,
+    0.75,
+    -0.064
+   ],
+   "size": [
+    1.902,
+    1.5,
+    1.6
+   ],
+   "tris": 100
+  },
+  {
+   "name": "Pocket",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "leather",
+    "olive"
+   ],
+   "offset": [
+    -0.032,
+    0.875,
+    -0.005
+   ],
+   "size": [
+    1.465,
+    1.589,
+    2.238
+   ],
+   "tris": 412
+  }
+ ],
+ "meta": {
+  "bag": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "bffcb2e02e4feb3f"
+}

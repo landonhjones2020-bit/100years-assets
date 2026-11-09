@@ -1,0 +1,79 @@
+{
+ "asset": "Prop_Locker",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  2.637,
+  6.0,
+  3.46
+ ],
+ "tris": 704,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Locker",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    0.019,
+    3.0,
+    0.63
+   ],
+   "size": [
+    2.6,
+    6.0,
+    2.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Door",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "gunmetal",
+    "olive",
+    "pine"
+   ],
+   "offset": [
+    -0.075,
+    3.0,
+    -0.05
+   ],
+   "size": [
+    2.487,
+    5.5,
+    3.36
+   ],
+   "tris": 660
+  }
+ ],
+ "meta": {
+  "container": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "27881dd6931cca39"
+}

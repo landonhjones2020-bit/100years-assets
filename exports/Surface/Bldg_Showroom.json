@@ -1,0 +1,402 @@
+{
+ "asset": "Bldg_Showroom",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  55.808,
+  22.79,
+  40.55
+ ],
+ "tris": 1988,
+ "pivot": [
+  0.404,
+  0.79,
+  0.775
+ ],
+ "parts": [
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "size": [
+    54.0,
+    0.5,
+    38.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    7.5,
+    -19.0
+   ],
+   "size": [
+    54.0,
+    15.0,
+    1.0
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "hazard",
+    "navy",
+    "rubber",
+    "sandstone",
+    "signal",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -0.554,
+    10.03,
+    -0.9
+   ],
+   "size": [
+    55.508,
+    21.64,
+    40.3
+   ],
+   "tris": 1356
+  },
+  {
+   "name": "FalseFront",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    2.0,
+    18.5,
+    -19.0
+   ],
+   "size": [
+    50.0,
+    7.0,
+    1.0
+   ],
+   "tris": 68
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    27.0,
+    7.5,
+    0.0
+   ],
+   "size": [
+    1.0,
+    15.0,
+    38.0
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -27.0,
+    7.5,
+    0.0
+   ],
+   "size": [
+    1.0,
+    15.0,
+    38.0
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    7.5,
+    19.0
+   ],
+   "size": [
+    54.0,
+    15.0,
+    1.0
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Roof",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    15.3,
+    0.0
+   ],
+   "size": [
+    54.0,
+    0.6,
+    38.0
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Sign1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    2.0,
+    18.5,
+    -19.3
+   ],
+   "size": [
+    22.0,
+    4.2,
+    0.3
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Plinth",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "navy"
+   ],
+   "offset": [
+    12.0,
+    0.6,
+    6.0
+   ],
+   "size": [
+    11.0,
+    1.2,
+    11.0
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Hatch",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    12.0,
+    4.8,
+    6.0
+   ],
+   "size": [
+    8.4,
+    8.4,
+    0.8
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Desk1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -6.0,
+    1.4,
+    6.0
+   ],
+   "size": [
+    6.0,
+    2.8,
+    2.6
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Desk2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -16.0,
+    1.4,
+    6.0
+   ],
+   "size": [
+    6.0,
+    2.8,
+    2.6
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "place": "Showroom",
+  "w": 54.0,
+  "d": 38.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "BigFind": {
+   "p": [
+    21.0,
+    0.5,
+    -12.0
+   ],
+   "yaw": 0.0
+  },
+  "Container1": {
+   "p": [
+    21.0,
+    0.5,
+    16.4
+   ],
+   "yaw": 0.0
+  },
+  "Container2": {
+   "p": [
+    7.0,
+    0.5,
+    16.4
+   ],
+   "yaw": 0.0
+  },
+  "Container3": {
+   "p": [
+    -7.0,
+    0.5,
+    16.4
+   ],
+   "yaw": 0.0
+  },
+  "Container4": {
+   "p": [
+    -21.0,
+    0.5,
+    16.4
+   ],
+   "yaw": 0.0
+  },
+  "Survivor1": {
+   "p": [
+    -22.0,
+    0.5,
+    -13.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "a99a77172af40702"
+}

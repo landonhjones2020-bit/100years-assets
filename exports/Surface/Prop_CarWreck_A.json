@@ -1,0 +1,80 @@
+{
+ "asset": "Prop_CarWreck_A",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  7.0,
+  5.246,
+  14.3
+ ],
+ "tris": 520,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    3.046,
+    0.0
+   ],
+   "size": [
+    6.6,
+    4.4,
+    13.5
+   ],
+   "tris": 216
+  },
+  {
+   "name": "Bonnet",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "gunmetal",
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    2.519,
+    0.0
+   ],
+   "size": [
+    7.0,
+    5.039,
+    14.3
+   ],
+   "tris": 304
+  }
+ ],
+ "meta": {
+  "decor": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "14d5e5c01db1febb"
+}

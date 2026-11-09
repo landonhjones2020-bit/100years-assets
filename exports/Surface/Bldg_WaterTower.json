@@ -1,0 +1,303 @@
+{
+ "asset": "Bldg_WaterTower",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  21.288,
+  58.165,
+  32.276
+ ],
+ "tris": 1006,
+ "pivot": [
+  0.044,
+  0.165,
+  -5.362
+ ],
+ "parts": [
+  {
+   "name": "Pad",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "size": [
+    18.0,
+    0.5,
+    18.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Leg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    6.298,
+    20.248,
+    -6.298
+   ],
+   "size": [
+    2.465,
+    39.546,
+    2.465
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    6.298,
+    20.248,
+    6.298
+   ],
+   "size": [
+    2.465,
+    39.546,
+    2.465
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    -6.298,
+    20.248,
+    -6.298
+   ],
+   "size": [
+    2.465,
+    39.546,
+    2.465
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    -6.298,
+    20.248,
+    6.298
+   ],
+   "size": [
+    2.465,
+    39.546,
+    2.465
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "gunmetal",
+    "rust",
+    "sandstone",
+    "skyblue",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -0.044,
+    28.917,
+    2.412
+   ],
+   "size": [
+    21.288,
+    58.165,
+    26.376
+   ],
+   "tris": 726
+  },
+  {
+   "name": "Tank",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    46.5,
+    0.0
+   ],
+   "size": [
+    20.0,
+    13.0,
+    20.0
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Sign1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    46.5,
+    -10.25
+   ],
+   "size": [
+    9.0,
+    3.0,
+    0.3
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Shed",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    4.0,
+    16.0
+   ],
+   "size": [
+    15.0,
+    8.0,
+    11.0
+   ],
+   "tris": 72
+  },
+  {
+   "name": "Roof",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    8.3,
+    16.0
+   ],
+   "size": [
+    15.0,
+    0.6,
+    11.0
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "place": "WaterTower",
+  "legs": 40.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Container1": {
+   "p": [
+    3.0,
+    0.5,
+    19.2
+   ],
+   "yaw": 0.0
+  },
+  "Container2": {
+   "p": [
+    -3.0,
+    0.5,
+    19.2
+   ],
+   "yaw": 0.0
+  },
+  "Survivor1": {
+   "p": [
+    0.0,
+    0.5,
+    1.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "f0ced742555d5d9f"
+}

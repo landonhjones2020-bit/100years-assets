@@ -1,0 +1,81 @@
+{
+ "asset": "Prop_Cabinet",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  4.32,
+  4.425,
+  4.089
+ ],
+ "tris": 488,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Cabinet",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint",
+    "navy"
+   ],
+   "offset": [
+    0.06,
+    2.1,
+    0.745
+   ],
+   "size": [
+    4.0,
+    4.2,
+    2.4
+   ],
+   "tris": 56
+  },
+  {
+   "name": "Top",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "hazard",
+    "signal",
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    2.463,
+    0.01
+   ],
+   "size": [
+    4.32,
+    3.925,
+    4.069
+   ],
+   "tris": 432
+  }
+ ],
+ "meta": {
+  "container": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "fcfa0cbd8fec0659"
+}

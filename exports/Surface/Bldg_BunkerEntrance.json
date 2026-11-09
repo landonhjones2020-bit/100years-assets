@@ -1,0 +1,293 @@
+{
+ "asset": "Bldg_BunkerEntrance",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  54.683,
+  23.1,
+  23.5
+ ],
+ "tris": 1040,
+ "pivot": [
+  0.0,
+  0.0,
+  5.25
+ ],
+ "parts": [
+  {
+   "name": "Pad",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.2,
+    -8.0
+   ],
+   "size": [
+    32.0,
+    0.4,
+    18.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "navy",
+    "steel",
+    "stone",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    11.75,
+    -2.436
+   ],
+   "size": [
+    54.683,
+    22.7,
+    17.873
+   ],
+   "tris": 548
+  },
+  {
+   "name": "Headwall",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    11.0,
+    3.0
+   ],
+   "size": [
+    44.0,
+    22.0,
+    6.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wing1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    23.5,
+    8.0,
+    -4.0
+   ],
+   "size": [
+    7.179,
+    16.0,
+    14.242
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wing2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    -23.5,
+    8.0,
+    -4.0
+   ],
+   "size": [
+    7.179,
+    16.0,
+    14.242
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ring",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    10.5,
+    -0.2
+   ],
+   "size": [
+    20.0,
+    20.0,
+    1.6
+   ],
+   "tris": 192
+  },
+  {
+   "name": "Door",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "gunmetal"
+   ],
+   "offset": [
+    0.0,
+    10.5,
+    0.6
+   ],
+   "size": [
+    15.8,
+    15.8,
+    1.4
+   ],
+   "tris": 92
+  },
+  {
+   "name": "Sign1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    19.6,
+    -0.4
+   ],
+   "size": [
+    22.0,
+    3.4,
+    0.3
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    0.0,
+    14.5,
+    -1.6
+   ],
+   "size": [
+    27.712,
+    1.2,
+    1.8
+   ],
+   "tris": 72
+  },
+  {
+   "name": "CallBox",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -5.0,
+    2.2,
+    -2.4
+   ],
+   "size": [
+    1.4,
+    4.4,
+    1.0
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "place": "Entrance"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Call": {
+   "p": [
+    -5.0,
+    3.0,
+    -3.0
+   ],
+   "yaw": 0.0
+  },
+  "Exit": {
+   "p": [
+    0.0,
+    0.4,
+    -10.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "15400e251a8b63e6"
+}

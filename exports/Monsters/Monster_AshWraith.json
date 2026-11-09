@@ -1,0 +1,445 @@
+{
+ "asset": "Monster_AshWraith",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  4.711,
+  7.829,
+  4.203
+ ],
+ "tris": 1968,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Chest",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    -0.069,
+    4.121,
+    0.286
+   ],
+   "size": [
+    3.723,
+    4.297,
+    2.835
+   ],
+   "tris": 550
+  },
+  {
+   "name": "CoreGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.01,
+    4.182,
+    -0.871
+   ],
+   "size": [
+    1.76,
+    2.149,
+    0.875
+   ],
+   "tris": 172
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "cream"
+   ],
+   "offset": [
+    0.091,
+    6.496,
+    -0.325
+   ],
+   "size": [
+    2.17,
+    2.665,
+    3.424
+   ],
+   "tris": 356
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.058,
+    6.19,
+    -1.609
+   ],
+   "size": [
+    0.988,
+    0.741,
+    0.312
+   ],
+   "tris": 88
+  },
+  {
+   "name": "Jaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Jaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream"
+   ],
+   "offset": [
+    0.058,
+    5.793,
+    -1.421
+   ],
+   "size": [
+    0.685,
+    0.388,
+    0.462
+   ],
+   "tris": 82
+  },
+  {
+   "name": "LeftArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt"
+   ],
+   "offset": [
+    -1.37,
+    4.511,
+    -0.598
+   ],
+   "size": [
+    1.226,
+    2.584,
+    1.407
+   ],
+   "tris": 120
+  },
+  {
+   "name": "LeftHand",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftHand",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream"
+   ],
+   "offset": [
+    -1.942,
+    2.581,
+    -1.565
+   ],
+   "size": [
+    0.595,
+    1.391,
+    1.073
+   ],
+   "tris": 116
+  },
+  {
+   "name": "RightArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt"
+   ],
+   "offset": [
+    1.486,
+    4.511,
+    -0.598
+   ],
+   "size": [
+    1.226,
+    2.584,
+    1.407
+   ],
+   "tris": 120
+  },
+  {
+   "name": "RightHand",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightHand",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream"
+   ],
+   "offset": [
+    2.058,
+    2.581,
+    -1.565
+   ],
+   "size": [
+    0.595,
+    1.391,
+    1.073
+   ],
+   "tris": 116
+  },
+  {
+   "name": "Pelvis",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Pelvis",
+   "tint": null,
+   "swatches": [
+    "ash"
+   ],
+   "offset": [
+    0.067,
+    2.831,
+    0.007
+   ],
+   "size": [
+    1.533,
+    1.521,
+    1.592
+   ],
+   "tris": 120
+  },
+  {
+   "name": "Tail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt"
+   ],
+   "offset": [
+    0.058,
+    1.284,
+    0.663
+   ],
+   "size": [
+    1.729,
+    2.364,
+    2.217
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TailGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.342,
+    2.029,
+    0.431
+   ],
+   "size": [
+    0.208,
+    0.24,
+    0.24
+   ],
+   "tris": 36
+  }
+ ],
+ "meta": {
+  "role": "Stalker",
+  "band": "Surface",
+  "hitTime": 0.55
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Rake": {
+   "p": [
+    0.058,
+    2.829,
+    -1.769
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Pelvis",
+    "parent": null,
+    "jointName": "PelvisJoint",
+    "joint": [
+     0.058,
+     2.429,
+     0.031
+    ]
+   },
+   {
+    "name": "Chest",
+    "parent": "Pelvis",
+    "jointName": "ChestJoint",
+    "joint": [
+     0.058,
+     3.429,
+     -0.069
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Chest",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.058,
+     6.029,
+     -0.869
+    ]
+   },
+   {
+    "name": "Jaw",
+    "parent": "Head",
+    "jointName": "JawJoint",
+    "joint": [
+     0.058,
+     5.729,
+     -1.269
+    ]
+   },
+   {
+    "name": "LeftArm",
+    "parent": "Chest",
+    "jointName": "LeftArmJoint",
+    "joint": [
+     -1.192,
+     5.429,
+     -0.369
+    ]
+   },
+   {
+    "name": "LeftHand",
+    "parent": "LeftArm",
+    "jointName": "LeftHandJoint",
+    "joint": [
+     -1.842,
+     3.229,
+     -1.169
+    ]
+   },
+   {
+    "name": "RightArm",
+    "parent": "Chest",
+    "jointName": "RightArmJoint",
+    "joint": [
+     1.308,
+     5.429,
+     -0.369
+    ]
+   },
+   {
+    "name": "RightHand",
+    "parent": "RightArm",
+    "jointName": "RightHandJoint",
+    "joint": [
+     1.958,
+     3.229,
+     -1.169
+    ]
+   },
+   {
+    "name": "Tail",
+    "parent": "Pelvis",
+    "jointName": "TailJoint",
+    "joint": [
+     0.058,
+     2.029,
+     0.231
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   2.0,
+   2.0,
+   1.6
+  ],
+  "hrpCenter": [
+   0.058,
+   2.829,
+   -0.069
+  ],
+  "hipHeight": 2.0
+ },
+ "fbx_sha1": "03f8b171f240d05a"
+}

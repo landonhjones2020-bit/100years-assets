@@ -1,0 +1,778 @@
+{
+ "asset": "Bldg_Motel",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  85.75,
+  22.528,
+  36.45
+ ],
+ "tris": 1720,
+ "pivot": [
+  -4.375,
+  0.528,
+  4.725
+ ],
+ "parts": [
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "size": [
+    76.0,
+    0.5,
+    26.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Walkway",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    0.2,
+    -16.0
+   ],
+   "size": [
+    76.0,
+    0.4,
+    6.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    5.5,
+    -13.0
+   ],
+   "size": [
+    76.0,
+    11.0,
+    1.0
+   ],
+   "tris": 348
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "hazard",
+    "mint",
+    "plum",
+    "sandstone",
+    "signal",
+    "skyblue",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    4.525,
+    10.736,
+    -4.625
+   ],
+   "size": [
+    85.45,
+    22.528,
+    35.75
+   ],
+   "tris": 764
+  },
+  {
+   "name": "Bed1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    33.167,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    25.333,
+    5.0,
+    -3.0
+   ],
+   "size": [
+    0.8,
+    10.0,
+    20.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bed2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    20.5,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    12.667,
+    5.0,
+    -3.0
+   ],
+   "size": [
+    0.8,
+    10.0,
+    20.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bed3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    7.833,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    5.0,
+    -3.0
+   ],
+   "size": [
+    0.8,
+    10.0,
+    20.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bed4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -4.833,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -12.667,
+    5.0,
+    -3.0
+   ],
+   "size": [
+    0.8,
+    10.0,
+    20.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bed5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -17.5,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -25.333,
+    5.0,
+    -3.0
+   ],
+   "size": [
+    0.8,
+    10.0,
+    20.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bed6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -30.167,
+    0.8,
+    2.0
+   ],
+   "size": [
+    5.0,
+    1.6,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    38.0,
+    5.5,
+    0.0
+   ],
+   "size": [
+    1.0,
+    11.0,
+    26.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -38.0,
+    4.0,
+    0.0
+   ],
+   "size": [
+    1.0,
+    8.0,
+    26.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    5.5,
+    13.0
+   ],
+   "size": [
+    76.0,
+    11.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Roof",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    11.3,
+    -3.0
+   ],
+   "size": [
+    76.0,
+    0.6,
+    32.0
+   ],
+   "tris": 84
+  },
+  {
+   "name": "Post1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    38.0,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    25.333,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    12.667,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -12.667,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -25.333,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Post7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -38.0,
+    5.5,
+    -18.6
+   ],
+   "size": [
+    0.8,
+    11.0,
+    0.8
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Sign1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    42.0,
+    19.0,
+    -22.4
+   ],
+   "size": [
+    10.0,
+    4.4,
+    0.3
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    42.0,
+    15.4,
+    -22.8
+   ],
+   "size": [
+    6.0,
+    1.2,
+    0.3
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "place": "Motel",
+  "w": 76.0,
+  "d": 26.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Container1": {
+   "p": [
+    29.267,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Container2": {
+   "p": [
+    16.6,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Container3": {
+   "p": [
+    3.933,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Container4": {
+   "p": [
+    -8.733,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Container5": {
+   "p": [
+    -21.4,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Container6": {
+   "p": [
+    -34.067,
+    0.5,
+    10.5
+   ],
+   "yaw": 0.0
+  },
+  "Survivor1": {
+   "p": [
+    20.5,
+    0.5,
+    -6.0
+   ],
+   "yaw": 0.0
+  },
+  "Survivor2": {
+   "p": [
+    -17.5,
+    0.5,
+    -6.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "28a4decf0e39069b"
+}

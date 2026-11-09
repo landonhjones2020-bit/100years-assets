@@ -1,0 +1,479 @@
+{
+ "asset": "Bldg_Checkpoint",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  45.5,
+  21.267,
+  36.0
+ ],
+ "tris": 4352,
+ "pivot": [
+  0.0,
+  0.0,
+  -13.0
+ ],
+ "parts": [
+  {
+   "name": "Slab",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.2,
+    13.0
+   ],
+   "size": [
+    44.0,
+    0.4,
+    36.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "olive",
+    "sandstone",
+    "steel",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    10.633,
+    12.95
+   ],
+   "size": [
+    45.5,
+    21.267,
+    35.6
+   ],
+   "tris": 3540
+  },
+  {
+   "name": "Bags1",
+   "material": "SmoothPlastic",
+   "transparency": 1.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    22.0,
+    2.75,
+    13.0
+   ],
+   "size": [
+    1.5,
+    5.5,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bags2",
+   "material": "SmoothPlastic",
+   "transparency": 1.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    -22.0,
+    2.75,
+    13.0
+   ],
+   "size": [
+    1.5,
+    5.5,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Bags3",
+   "material": "SmoothPlastic",
+   "transparency": 1.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    2.75,
+    30.0
+   ],
+   "size": [
+    44.0,
+    5.5,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "GatePost1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    21.5,
+    5.5,
+    -4.0
+   ],
+   "size": [
+    1.4,
+    11.0,
+    1.4
+   ],
+   "tris": 12
+  },
+  {
+   "name": "GatePost2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    -21.5,
+    5.5,
+    -4.0
+   ],
+   "size": [
+    1.4,
+    11.0,
+    1.4
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Barrier",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": "Barrier",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "navy"
+   ],
+   "offset": [
+    0.0,
+    5.2,
+    -4.0
+   ],
+   "size": [
+    41.6,
+    10.0,
+    0.9
+   ],
+   "tris": 352
+  },
+  {
+   "name": "Sign1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    12.2,
+    -4.8
+   ],
+   "size": [
+    14.0,
+    2.4,
+    0.3
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Booth",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    15.0,
+    4.25,
+    3.0
+   ],
+   "size": [
+    7.0,
+    8.5,
+    7.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Tent",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    -10.0,
+    3.892,
+    16.0
+   ],
+   "size": [
+    15.959,
+    6.985,
+    12.0
+   ],
+   "tris": 80
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -16.0,
+    19.7,
+    20.4
+   ],
+   "size": [
+    2.6,
+    2.595,
+    0.648
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    6.0,
+    1.57,
+    18.0
+   ],
+   "size": [
+    2.6,
+    2.34,
+    2.6
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    3.2,
+    1.57,
+    18.0
+   ],
+   "size": [
+    2.6,
+    2.34,
+    2.6
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    4.6,
+    3.87,
+    18.0
+   ],
+   "size": [
+    2.6,
+    2.34,
+    2.6
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "olive"
+   ],
+   "offset": [
+    -6.0,
+    1.57,
+    8.0
+   ],
+   "size": [
+    2.6,
+    2.34,
+    2.6
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "place": "Checkpoint",
+  "gate": -4.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "BigFind": {
+   "p": [
+    6.0,
+    0.4,
+    12.0
+   ],
+   "yaw": 0.0
+  },
+  "Container1": {
+   "p": [
+    16.0,
+    0.4,
+    27.0
+   ],
+   "yaw": 0.0
+  },
+  "Container2": {
+   "p": [
+    8.0,
+    0.4,
+    27.0
+   ],
+   "yaw": 0.0
+  },
+  "Container3": {
+   "p": [
+    0.0,
+    0.4,
+    27.0
+   ],
+   "yaw": 0.0
+  },
+  "Container4": {
+   "p": [
+    -8.0,
+    0.4,
+    27.0
+   ],
+   "yaw": 0.0
+  },
+  "Container5": {
+   "p": [
+    -16.0,
+    0.4,
+    27.0
+   ],
+   "yaw": 0.0
+  },
+  "Survivor1": {
+   "p": [
+    -16.0,
+    0.4,
+    8.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "e719e412787518db"
+}

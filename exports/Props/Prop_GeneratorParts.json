@@ -1,0 +1,82 @@
+{
+ "asset": "Prop_GeneratorParts",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  3.3,
+  2.73,
+  2.4
+ ],
+ "tris": 648,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Pallet",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    0.18,
+    0.0
+   ],
+   "size": [
+    3.2,
+    0.35,
+    2.4
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Stripe",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "copper",
+    "gunmetal",
+    "hazard",
+    "leather",
+    "signal",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.365,
+    0.0
+   ],
+   "size": [
+    3.3,
+    2.73,
+    2.4
+   ],
+   "tris": 604
+  }
+ ],
+ "meta": {
+  "bigFind": "GeneratorParts"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "c4ecd702cd23fd31"
+}

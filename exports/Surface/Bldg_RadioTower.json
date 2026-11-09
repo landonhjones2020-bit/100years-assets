@@ -1,0 +1,368 @@
+{
+ "asset": "Bldg_RadioTower",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  24.088,
+  86.242,
+  28.046
+ ],
+ "tris": 1232,
+ "pivot": [
+  0.0,
+  0.242,
+  0.023
+ ],
+ "parts": [
+  {
+   "name": "Pad",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.3,
+    -4.0
+   ],
+   "size": [
+    14.0,
+    0.6,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Leg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    2.548,
+    42.298,
+    -6.548
+   ],
+   "size": [
+    3.579,
+    83.426,
+    3.579
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    2.548,
+    42.298,
+    -1.452
+   ],
+   "size": [
+    3.579,
+    83.426,
+    3.579
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    -2.548,
+    42.298,
+    -6.548
+   ],
+   "size": [
+    3.579,
+    83.426,
+    3.579
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Leg4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    -2.548,
+    42.298,
+    -1.452
+   ],
+   "size": [
+    3.579,
+    83.426,
+    3.579
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "gunmetal",
+    "porcelain",
+    "sandstone",
+    "signal",
+    "steel",
+    "stone",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    42.179,
+    -0.323
+   ],
+   "size": [
+    24.088,
+    84.842,
+    27.446
+   ],
+   "tris": 832
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    85.4,
+    -4.0
+   ],
+   "size": [
+    1.2,
+    1.2,
+    1.2
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    4.5,
+    8.0
+   ],
+   "size": [
+    17.0,
+    9.0,
+    12.0
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "size": [
+    16.0,
+    0.5,
+    11.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Roof",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    9.3,
+    8.0
+   ],
+   "size": [
+    17.0,
+    0.6,
+    12.0
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Console1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "navy"
+   ],
+   "offset": [
+    0.0,
+    1.4,
+    12.4
+   ],
+   "size": [
+    6.0,
+    2.8,
+    2.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorNeon_",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "leaf",
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    2.4,
+    11.35
+   ],
+   "size": [
+    1.5,
+    0.3,
+    0.12
+   ],
+   "tris": 84
+  }
+ ],
+ "meta": {
+  "place": "RadioTower",
+  "mast": 84.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "BigFind": {
+   "p": [
+    -10.0,
+    0.5,
+    -6.0
+   ],
+   "yaw": 0.0
+  },
+  "Container1": {
+   "p": [
+    5.0,
+    0.5,
+    11.6
+   ],
+   "yaw": 0.0
+  },
+  "Container2": {
+   "p": [
+    0.0,
+    0.5,
+    11.6
+   ],
+   "yaw": 0.0
+  },
+  "Container3": {
+   "p": [
+    -5.0,
+    0.5,
+    11.6
+   ],
+   "yaw": 0.0
+  },
+  "Survivor1": {
+   "p": [
+    10.0,
+    0.5,
+    -3.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "7001d44e1af4dbb3"
+}

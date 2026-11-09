@@ -1,0 +1,80 @@
+{
+ "asset": "Prop_Debris",
+ "category": "Surface",
+ "format": 1,
+ "size": [
+  7.697,
+  6.57,
+  5.596
+ ],
+ "tris": 524,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Heap",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.349,
+    0.6,
+    -0.298
+   ],
+   "size": [
+    7.0,
+    1.2,
+    5.0
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Chunks",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "sandstone",
+    "steel",
+    "stone",
+    "walnut"
+   ],
+   "offset": [
+    -0.151,
+    3.517,
+    -0.041
+   ],
+   "size": [
+    7.33,
+    6.064,
+    5.435
+   ],
+   "tris": 480
+  }
+ ],
+ "meta": {
+  "decor": true
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "3f61f2a0c8df4bfa"
+}
