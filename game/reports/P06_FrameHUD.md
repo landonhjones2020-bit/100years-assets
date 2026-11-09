@@ -211,3 +211,22 @@ the touch buttons.
   `Cabinet.Pages` with its parts added to `Shared.UIContract`.
 * A new HUD element: add it to `studio/ui/HUD.lua`, build it in place (after the AutoScale
   pass, add it by hand or rebuild and redo the pass), and list its paths in the contract.
+
+# Addendum (2026-11-08, late night): Landon's answers, built in Prompt 8's builds
+
+Landon answered the three Bible Questions. Built in `p8-eacefa6`; the latest install is
+`p8-f9a192c`. The bible's controls table (Section 9) and HUD section (Section 18) now say the
+same.
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Which key presses Ready? | "Give Ready its own key" | Ready is an action: Z on PC, D-pad down on console (`InputController` BINDINGS). The keys are my pick, the free controls nearest each pad. A key chip on the Ready button shows Z, or DOWN with a gamepad. Tested: a real Z press marked the player ready and skipped the day |
+| 2 | Is Left Alt all right as the cursor key? | "Let's use the scroll wheel" | A click of the mouse wheel frees the cursor for HUD buttons and the vote telegram; another click locks it again. Opening a menu takes it back. Left Alt does nothing now. Not tested: Studio's input tool can't press the wheel |
+| 3 | Show the ore chips only from their band? | "Only when you dig down" | The Copper and Crystal chips appear once the team has dug into the Flooded Caverns (floor 4) and the Crystal Hollows (floor 7). Iron shows from the start (the Mines). Tested: Copper and Crystal hidden at the start |
+
+**Files modified**
+- `game/client/Controllers/InputController.luau`: the `Ready` binding.
+- `game/client/Controllers/HUDController.luau`: Ready on its key, its key chip, the wheel
+  cursor, ore chips by depth (now depends on ReplicaController).
+- `studio/ui/HUD.lua`, `studio/ui/HUD_ReadyKey.lua`, `studio/ui/patches/HUD_P08.lua`: the key
+  chip. `game/shared/UIContract.luau`: `Ready.Key`, `Ready.Key.Text`.

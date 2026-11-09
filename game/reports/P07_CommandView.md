@@ -256,3 +256,16 @@ armed but greyed out until votes arrive in Prompt 8.
   system.
 * Anything new drawn over zone C goes in `View.Marks` or `View.Labels` and is placed each frame
   from world positions (`cellRect`, `pointIn`), so it follows pan and zoom.
+
+# Addendum (2026-11-08, late night): Landon's answers
+
+Landon answered both Bible Questions. Neither changes the build; the bible (Sections 7 and 18)
+now records them.
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Tab and Roblox's player list: a team list of our own? | "No, it's fine" | Nothing: Roblox's player list stays off in the run and there is no team list |
+| 2 | The widest view: pan, or the full width with perspective? | "Pan" | Nothing: the widest view stays about 5 columns by 8 floors, panning for the rest |
+
+The Command View's own changes for votes (sites, proposals, costs, Build in solo, ghosts) are in
+`P08_VotesConstruction.md`.

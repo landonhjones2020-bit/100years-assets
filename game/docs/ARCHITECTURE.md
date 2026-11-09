@@ -262,14 +262,20 @@ never builds layout: it clones templates and sets text and images.
   `SetSprite`, `SetRarity`, `Clear`. A screen is a page (a clone of `Templates.Page`, or a page
   built for it under `Cabinet.Pages`) filling zones B, C and D; `Docked = true` is the Command
   View's mode (zone C shows the world). While a screen is open the cursor is free, gameplay
-  input is blocked (`InputController:Block`) and the HUD hides. Backspace or B closes; Enter
-  or Y presses the main action; L1 and R1 switch tabs.
+  input is blocked (`InputController:Block`) and the HUD hides (its alerts then show in the
+  Frame's footer for a few seconds: `UIController:Notice`). Backspace or B closes; Enter or Y
+  presses the main action; L1 and R1 switch tabs.
 * `HUDController` fills the run HUD: the year flip counter, era, cycle dial, phase and time
   left, Ready (the SetReady remote), siren and Surge banners, health, the class and ability,
   stockpile chips, the hotbar's selection, the Command View button and the touch buttons
-  (through `InputController:BindButton`; Roblox's jump button hides while ours shows). On PC,
-  holding Left Alt frees the cursor to click HUD buttons. For later systems: `Alert`,
-  `Banner`, `SetVital`, `SetClass`, `SetResource`, `SetSlot`, `HotbarSelected`.
+  (through `InputController:BindButton`; Roblox's jump button hides while ours shows).
+  Landon's answers (2026-11-08): Ready has its own key, Z on PC and D-pad down on console (a
+  key chip on the button); on PC a click of the mouse wheel frees the cursor for HUD buttons and
+  the vote telegram, and another click locks it again; the stockpile chips show the
+  EconomyService amounts (RunState), and the Copper and Crystal chips appear only once the team
+  has dug into their bands. Server alerts (the `Alert` remote) go to the alert feed. For later
+  systems: `Alert`, `Banner`, `SetVital`, `SetClass`, `SetResource`, `SetSlot`,
+  `HotbarSelected`.
 * `MiniMapController` draws the side-view mini-map around the player from the Cells and Rooms
   collections; `Blink(key, on)` for alerts.
 * Changing a screen after Landon's AutoScale Lite pass: edit the instances in place (and the
@@ -312,6 +318,48 @@ touch thumbstick and jump button hidden (`GuiService.TouchControlsEnabled`), and
   `PingService` checks the session and the cell and fires `CellPinged(floor, column, userId,
   name)` to every ready player. The pin shows in the Command View and on the HUD mini-map for
   `Tuning.Ping.Seconds` (6).
+* Landon (2026-11-08): no team list replaces Roblox's player list (it stays off in the run),
+  and the widest view stays as built: about 5 columns by 8 floors, panning for the rest.
+* With votes (Prompt 8): an open cell under construction shows UNDER CONSTRUCTION and its
+  progress, a cell or room with an open vote shows the proposal and offers nothing else, rows
+  the stockpile can't pay show what's short, the main action says Build (not Propose) in a solo
+  run, and ghosts mark open proposals ("KITCHEN?") and sites ("KITCHEN 45%").
+
+## Votes, construction and the stockpile (Run place)
+
+Bible Sections 6, 8 and 23. Rules are pure modules the data tests hold to the bible:
+`Shared.Rules.Votes` (outcomes, the 40% rule, what a vote needs) and
+`Shared.Rules.Construction` (costs, unlocks, reserved cells, construction time, a plan for
+each proposal).
+
+* `EconomyService` keeps the team's stockpile: every stocked resource in `Config.Resources`
+  from its Start amount; caps are Cap plus CapPerStorageCell for each Storage cell; Lab
+  research (from 0). Amounts replicate as RunState values (one per resource, plus Research).
+  `Spend(costs, reason)`, `Add(id, amount, reason)` (capped), `CanAfford`, `Get`, `Stock`, `Cap`,
+  `AddResearch`. Production, consumption and power are Prompt 9's.
+* `VoteService` runs votes (`Open(spec)`: kind, proposer, title, costs, the ghost's subject, the
+  cells it holds, a re-check, OnPass, OnFail). One vote is live at a time; later ones queue and
+  each gets its full time. The proposer counts as a yes; abstaining is not voting; a vote can be
+  changed until it closes; everyone yes passes at once; ties fail unless a tie-breaker (the
+  Warden, Prompt 20: `SetTieBreaker`) passes them; spending more than 40% of a stock needs a
+  majority of the whole team. One open proposal per player; a failed one means a 20 s cooldown.
+  Solo runs skip the vote (checked again, applied at once). The `Votes` collection carries what
+  the telegram shows; a closed vote stays `Tuning.Votes.ResultSeconds` (3) with its result.
+* `BuildService` takes the `Propose` remote (action, floor, column, room type or the other
+  room), plans it (`Rules.Construction.Plan`: the bunker's rules, unlocks, the stockpile, Lab
+  research for level 3, cells held by open votes and sites) and opens a vote. On a pass it plans
+  again, pays, and: Build starts a construction site (20 s a cell, 25% faster per player standing
+  in it, `Sites` collection, `workspace.Bunker.Sites` drawn by `BunkerKit.Site`), then places the
+  room; Upgrade (costs per cell, so a merged room pays for each cell), Merge and TearDown apply at
+  once (tearing down gives nothing back). `Unlock(roomType)` for drafts and cryo pods
+  (`Unlocked` collection). Signals: `Proposed`, `Built`, `TornDown`.
+* `VoteController` (client) fills the vote telegram, `StarterGui.Votes` (its own ScreenGui at
+  DisplayOrder 6, above The Frame, so a vote can be answered from any screen): what and its cost,
+  then who, the tally and the time, the timer strip, YES and NO (your vote stays pressed in:
+  `KitRuntime.SetLatched`). It draws the Command View's ghosts, sends `Propose` from the Command
+  View's main action, and plays `SoundService.VoteOpen` / `VotePassed` when they exist (Prompt 32).
+* Remotes: `Propose`, `CastVote` (client to server, Run), `Alert` (server to client: a message
+  for the HUD's alert feed).
 
 ## Saved data
 
@@ -389,6 +437,16 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   `clock.resume`, `clock.next`, `clock.clear`, `boss.beat [bossId]`, `year <n>`,
   `ready.all [bool]`, `rest.all [bool]`; `objectives`, `objective <id>`; `cell.ping <floor>
   <column>` (pings as the first player).
+* Votes and construction (Run place): `stock`, `stock.set <resource> <n>`, `stock.add
+  <resource> <n>`, `research [n]`; `votes`, `vote.yes [n]`, `vote.no [n]` (as you, or as pretend
+  voter n), `vote.end` (time is up now), `vote.test [title]` (a vote with no proposer and no
+  effect), `vote.bots <n> [yes|no|abstain]` (Studio: pretend voters join the team); `build
+  <Build|Upgrade|Merge|TearDown> <floor> <column> [roomType|otherRoomId]`, `sites`,
+  `site.finish [id]`, `unlock <roomType>`. From Studio's server tools, `build` and `vote.yes|no`
+  act as the first player in the run. On the client, `vote` prints the telegram and the ghosts.
+* `ServerStorage.NS_Pipeline` (an outside Night Shift importer plugin's empty working folder,
+  which Landon can't remove) is only a StructureCheck warning; scripts inside it would be an
+  error.
 
 ## Conventions
 
@@ -411,14 +469,18 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
 | Run | BunkerGrid | service | ReplicationService, DevService | cells, rooms, levels, merges, the room graph; builds `workspace.Bunker` |
 | Run | PingService | service | SessionService, DevService | cell pings (PingCell in, CellPinged out to every ready player) |
+| Run | EconomyService | service | BunkerGrid, DevService | the stockpile: amounts, caps (Storage), spending, research (production comes with Prompt 9) |
+| Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
+| Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, ReplicationService, DevService | proposals, construction sites, upgrades, merges, teardown, unlocks |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
 | both | UIController | controller | InputController, CameraController | The Frame: screens, pages, tabs, chips, the main action, footer |
-| both | HUDController | controller | InputController, UIController, CameraController | the run HUD (Run; nothing in the Lobby yet) |
+| both | HUDController | controller | InputController, UIController, CameraController, ReplicaController | the run HUD (Run; nothing in the Lobby yet) |
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
-| both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController | `/dev` chat command, Studio DevInvoke |
+| both | VoteController | controller | ReplicaController, CommandViewController | the vote telegram (Run), the Command View's vote and site ghosts, its Propose handlers |
+| both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
 
@@ -453,3 +515,10 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   with unlocks, overlays, vote ghosts, blinking labels, the damage edge), PingService and pings on
   the mini-map, Rules.CommandView, Bunker.FromSnapshot; Tab and the View button reach it
   although Roblox marks them processed; Roblox's player list is off in the run.
+* **Prompt 8 (2026-11-08)**: votes and construction (Run). EconomyService (the stockpile, caps,
+  research), VoteService (Section 8's rules, a queue, solo, cooldowns, pretend voters in Studio),
+  BuildService (proposals, construction sites with helpers, upgrades, merges, teardown,
+  unlocks), Rules.Votes and Rules.Construction, VoteController and the vote telegram in its own
+  ScreenGui, the stockpile on the HUD. Landon's answers to the Prompt 6 and 7 questions: Ready on
+  Z and D-pad down, the mouse wheel frees the cursor, ore chips by depth, no team list, the
+  Command View pans.

@@ -19,6 +19,7 @@ Newest first. Every "verified" line says how it was checked.
 | Landon's answers to the Prompt 3 and 4 questions | ✅ built and in the bible 2026-11-08 | Run playtest (boss and final Surges, resting) and data tests (HP per cell); addenda in `P03_RunLifecycle.md` and `P04_BunkerGrid.md` |
 | Prompt 6: The Frame and HUD skeleton (Frame both places, HUD in Run) | ✅ built 2026-11-08, waiting for Landon's AutoScale Lite pass | Run and Lobby playtests with real clicks and keys; `game/reports/P06_FrameHUD.md`, `previews/Game/P06_Studio_sheet.jpg` |
 | Prompt 7: Command View (Run) | ✅ done 2026-11-08 | Run playtests with real keys, clicks, drags and the wheel, plus graphics level 1; Lobby start check; gamepad and touch still need a person; `game/reports/P07_CommandView.md`, `previews/Game/P07_Studio_sheet.jpg` |
+| Prompt 8: votes and construction (Run), with Landon's answers to the Prompt 6 and 7 questions | ✅ done 2026-11-08 | Run playtests with real clicks and keys, a team of three with pretend voters; two real players, gamepad, touch and the wheel click still need a person; `game/reports/P08_VotesConstruction.md`, `previews/Game/P08_Studio_sheet.jpg` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -35,6 +36,67 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 8, votes and construction; Landon's answers
+
+Game code builds `p8-eacefa6` to `p8-f9a192c`. The last one is code asset 95026446991297
+revision 24, installed in Run and Lobby: StructureCheck 0 errors (Run 307 checks, Lobby 213),
+71 data tests passed.
+
+**Done**
+* Code:
+  * EconomyService (the stockpile, caps from Storage, research);
+  * VoteService (Section 8's rules, a queue, solo, cooldowns, pretend voters for Studio);
+  * BuildService (proposals, construction sites with helpers, upgrades, merges, teardown,
+    unlocks);
+  * Rules.Votes and Rules.Construction;
+  * VoteController, with the vote telegram in its own ScreenGui above The Frame;
+  * the stockpile on the HUD, and alerts in the Frame's footer while the HUD is hidden.
+* Studio (in-place patches):
+  * StarterGui.Votes, the telegram moved out of the HUD with a timer strip;
+  * Ready's key chip (HUD);
+  * ghost labels outlined and low in the cell (Frame, both places).
+* Landon's answers:
+  * Prompt 6: Ready on Z and D-pad down; a mouse-wheel click frees the cursor; Copper and
+    Crystal chips only once the team digs into their bands.
+  * Prompt 7: no team list, and the Command View pans.
+* The Night Shift plugin: Landon can't remove it (not in Manage Plugins, its file deleted). Its
+  `ServerStorage.NS_Pipeline` folder holds only an empty Jobs folder and MeshCache, so it is
+  now a StructureCheck warning, as Landon said ("just ignore it"). A full Studio restart may
+  clear it.
+
+**Verified in Studio**
+* Solo, with real clicks: a Workshop built (150 Scrap, a 20 s site, 1.25x with a helper), a
+  merge into a 2-cell Workshop, a Kitchen torn down, a Storage raising every cap.
+* A team of three (pretend voters):
+  * a vote passing on time;
+  * a tie failing, then the cooldown;
+  * the 40% rule ("2 OF 3 MUST SAY YES") failing, and passing at once when everyone said yes;
+  * the cost re-check failing a passed vote;
+  * the queue;
+  * real clicks on YES and NO, with a vote changed.
+* Ready on a real Z press; the HUD's stock; a construction site in the world.
+* Screenshots: `previews/Game/P08_Studio_*.jpg`, sheet `P08_Studio_sheet.jpg`.
+
+**Findings**
+1. **The telegram's first layout put everything on one line**, which shrank to 12 px. It now
+   reads what and its cost, then who, the tally and the time.
+2. **A ghost's label sat under the room's label chip**, and cream on cream. It is now outlined
+   in navy and sits low in the cell.
+3. **The HUD hides under every Frame screen**, so the telegram moved to its own ScreenGui. Alerts
+   show in the Frame's footer while the HUD is hidden.
+4. **The device reads as a gamepad at the start of a playtest on Landon's PC** (the HUD shows LB
+   and DOWN until the first key press). Is a controller plugged in? If not, InputController's
+   first guess needs a look.
+
+**Landon to do**
+* Answer the four Bible Questions in `game/reports/P08_VotesConstruction.md`:
+  1. tear-down refunds;
+  2. upgrade time;
+  3. vote keys;
+  4. the proposer's yes.
+* Try a vote with a friend (two real players), and the mouse-wheel click to free the cursor.
+* The AutoScale Lite pass now includes StarterGui.Votes (Run).
 
 ## 2026-11-08 (late night): Prompt 7, the Command View
 

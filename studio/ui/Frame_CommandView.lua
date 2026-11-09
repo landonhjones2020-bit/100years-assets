@@ -55,7 +55,8 @@ new("ImageLabel", rl, "Lamp", { pos = { 0.9, 0.5 }, anchor = { 0.5, 0.5 }, size 
 	sprite = "Lamp_Off", z = 2, visible = false })
 local mark = new("Frame", templates, "CellMark", { bg = COL.signal, bgT = 0.82, visible = false })
 stroke(mark, 3, COL.signal, 0)
-local markLabel = text(mark, "Label", "", { pos = { 0.05, 0.06 }, size = { 0.9, 0.22 }, font = F.label, color = COL.cream,
+-- the label sits low in the cell: a room's own label chip hangs from the top
+local markLabel = text(mark, "Label", "", { pos = { 0.05, 0.72 }, size = { 0.9, 0.22 }, font = F.label, color = COL.cream,
 	alignX = CENTER, z = 2, visible = false })
 -- a navy outline, so a ghost's label reads over cream rooms and dark rock alike (Prompt 8)
 markLabel.TextStrokeColor3 = COL.navy

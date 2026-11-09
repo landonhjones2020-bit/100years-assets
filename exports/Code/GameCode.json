@@ -1,7 +1,7 @@
 {
- "built": "2026-11-08T23:47:36Z",
- "commit": "f3a4c476969967281ae2959ae875fd845f09b613",
- "label": "p8-f3a4c47",
+ "built": "2026-11-08T23:56:23Z",
+ "commit": "f9a192cd1d9af70760fe786e71a5818bccfb2093",
+ "label": "p8-f9a192c",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -367,7 +367,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "0a1af2ab"
+    "Hash": "28803237"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
@@ -387,12 +387,12 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "37e3f00d"
+    "Hash": "8ef57401"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "a608d100"
+    "Hash": "0f61b7f3"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
@@ -739,7 +739,7 @@
    "ServerScriptService.Services.BuildService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/BuildService.luau",
-    "Hash": "f72e21bf"
+    "Hash": "87a461d3"
    },
    "ServerScriptService.Services.BunkerGrid": {
     "Class": "ModuleScript",
@@ -794,7 +794,7 @@
    "ServerScriptService.Services.VoteService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/VoteService.luau",
-    "Hash": "8132155b"
+    "Hash": "3b90f154"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
@@ -824,7 +824,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "0a1af2ab"
+    "Hash": "28803237"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
@@ -844,12 +844,12 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "37e3f00d"
+    "Hash": "8ef57401"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "a608d100"
+    "Hash": "0f61b7f3"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
