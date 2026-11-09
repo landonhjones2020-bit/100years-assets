@@ -30,7 +30,10 @@
 
 	Replication: the Boss collection, "Fight" -> { Id, Name, Health, Max, Phase, Phases, State,
 	At = { X, Y, Z } (where she breaks in), ArriveAt (server time), Sacs } while a fight is on.
-	The model is in workspace.Monsters with Rig, Activity and AttackAt attributes for NPCAnimator.
+	The model is in workspace.Monsters with Rig, Activity and AttackAt attributes. Unlike other
+	monsters (Section 23: clips play on clients), her clips play here on the server and replicate
+	(ServerAnimated, which NPCAnimator skips): one model, and the server must see her belly where
+	players see it when it judges a hit.
 
 	API:
 		BossService:BeginFight(bossId): (boolean, string?) -- a fight now (CycleClock's boss Surge; DevTools)
@@ -99,6 +102,8 @@ type Fight = {
 	PublishedAt: number,
 	Sent: string,
 	Effects: { Instance },
+	Tracks: { [string]: AnimationTrack },
+	Playing: AnimationTrack?,
 }
 
 local clock: any = nil
@@ -147,10 +152,56 @@ local function socket(model: Model, name: string): CFrame
 	return model:GetPivot() * (if typeof(value) == "CFrame" then value else CFrame.identity)
 end
 
-local function setActivity(activity: string)
+-- Her clips, played here (see the header); Config.Animations' clips for her Rig.
+local function track(f: Fight, activity: string): AnimationTrack?
+	local cached = f.Tracks[activity]
+	if cached then
+		return cached
+	end
+	local model = f.Model
+	local humanoid = model and model:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return nil
+	end
+	for _, clip in Config.All("Animations") do
+		if clip.Rig == f.BossId and clip.Activity == activity then
+			local animation = Instance.new("Animation")
+			animation.AnimationId = clip.AssetId
+			local ok, loaded = pcall(function()
+				return (animator :: Animator):LoadAnimation(animation)
+			end)
+			if ok and loaded then
+				loaded.Looped = clip.Looped
+				f.Tracks[activity] = loaded
+				return loaded
+			end
+			log:Warn("couldn't load her %s clip: %s", activity, tostring(loaded))
+		end
+	end
+	return nil
+end
+
+local function play(f: Fight, activity: string, restart: boolean?)
+	local wanted = track(f, activity)
+	if f.Playing and f.Playing ~= wanted then
+		f.Playing:Stop(0.2)
+		f.Playing = nil
+	end
+	if wanted and (restart or not wanted.IsPlaying) then
+		wanted:Play(0.15)
+		f.Playing = wanted
+	end
+end
+
+local function setActivity(activity: string, restart: boolean?)
 	local f = fight
-	if f and f.Model and f.Model:GetAttribute("Activity") ~= activity then
+	if not f or not f.Model then
+		return
+	end
+	if f.Model:GetAttribute("Activity") ~= activity or restart then
 		f.Model:SetAttribute("Activity", activity)
+		play(f, activity, restart)
 	end
 end
 
@@ -354,6 +405,7 @@ local function makeModel(f: Fight): (Model, BasePart)
 	model:SetAttribute("MonsterType", f.BossId)
 	model:SetAttribute("Boss", f.BossId)
 	model:SetAttribute("Activity", "Roar")
+	model:SetAttribute("ServerAnimated", true) -- NPCAnimator leaves her to the server
 	return model, root
 end
 
@@ -502,9 +554,9 @@ end
 local function attack(f: Fight)
 	local model = f.Model :: Model
 	local hitTime = (model:GetAttribute("HitTime") :: number?) or 0.8
-	setActivity("Idle")
+	setActivity("Attack", true)
 	model:SetAttribute("AttackAt", now())
-	f.Busy = os.clock() + hitTime + 0.5
+	f.Busy = os.clock() + hitTime + 0.8
 	f.NextAttack = os.clock() + Boss.ByPhase(f.T.AttackSeconds, f.Phase)
 	task.delay(hitTime, function()
 		if fight ~= f or f.State ~= "Fighting" or not f.CombatId then
@@ -626,6 +678,9 @@ local function tick(dt: number)
 end
 
 local function cleanup(f: Fight)
+	for _, t in f.Tracks do
+		t:Stop(0)
+	end
 	for id in table.clone(f.Sacs) do
 		removeSac(f, id, "Gone")
 	end
@@ -664,6 +719,10 @@ local function rise(f: Fight)
 	end
 	f.CombatId = id
 	model.Name = `{f.BossId}_{id}`
+	play(f, "Roar", true)
+	for _, activity in { "Idle", "Walk", "Attack", "LayEggs", "Stagger", "Death" } do
+		track(f, activity) -- loaded now, so each is ready (and its length known) when she needs it
+	end
 	rockBurst(Vector3.new(f.X, f.Y, f.Z), 40)
 	publish(true)
 	announce("Danger", `THE {string.upper(f.Name)} BREAKS THROUGH! HIT HER GLOWING BELLY, BREAK HER EGG SACS`)
@@ -731,6 +790,8 @@ function BossService:BeginFight(bossId: string): (boolean, string?)
 		PublishedAt = 0,
 		Sent = "",
 		Effects = {},
+		Tracks = {},
+		Playing = nil,
 	}
 	fight = f
 	warning(f, warningSeconds)
@@ -773,6 +834,19 @@ local function onDied(id: string)
 	f.State = "Dying"
 	f.CombatId = nil -- CombatService unregistered her
 	setActivity("Death")
+	local death = f.Tracks.Death
+	if death then
+		-- hold the last frame until she dissolves
+		task.spawn(function()
+			while death.IsPlaying and fight == f do
+				if death.Length > 0 and death.TimePosition >= death.Length - 0.1 then
+					death:AdjustSpeed(0)
+					break
+				end
+				task.wait()
+			end
+		end)
+	end
 	for sacId in table.clone(f.Sacs) do
 		removeSac(f, sacId, "Withered")
 	end

@@ -10,6 +10,7 @@
 	stops it. Fleeing and running use the walk when there is no clip of their own. A monster's
 	attack replays each time its AttackAt attribute changes. Today there are the residents' walk
 	(A0) and the monsters' A4 clips; A3 adds working, eating and sleeping with no code change.
+	A model with the ServerAnimated attribute (a boss, Prompt 15) is left alone: the server plays it.
 ]]
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -98,6 +99,9 @@ end
 local function watch(model: Instance)
 	if not model:IsA("Model") or watched[model] then
 		return
+	end
+	if model:GetAttribute("ServerAnimated") == true then
+		return -- a boss: the server plays its clips (BossService, Prompt 15)
 	end
 	local state: Watched = { Tracks = {}, Playing = nil, Connections = {} }
 	watched[model] = state
