@@ -505,6 +505,21 @@ def ic_command():
     K.box(100, 5, 0, 5, cr, cy=-50)
 
 
+@icon("Icon_Medkit", "Medkits: carried by players, used with the Heal button (Landon, 2026-11-08)", tilt=16)
+def ic_medkit():
+    # a teal first-aid tin with a brass handle and a cream plus (never a red cross on white)
+    brass = mat("metal", C["brass"], rough=0.22)
+    K.box(30, 6, 0, 9, brass, cy=37, bevel=1.6, seg=2)
+    for x in (-13, 13):
+        K.box(6, 12, 0, 9, brass, cx=x, cy=30, bevel=1.4, seg=2)
+    K.box(86, 66, 0, 24, mat("enamel", C["teal"], rough=0.24), cy=-6, bevel=7, seg=4)
+    K.box(90, 7, 9, 15, brass, cy=-6, bevel=1.2, seg=2)
+    cream = mat("enamel", C["cream"], rough=0.3)
+    a, b, cy = 18, 6, -6  # one cross outline (two overlapping boxes leave a dark seam)
+    K.poly([(-b, a + cy), (b, a + cy), (b, b + cy), (a, b + cy), (a, -b + cy), (b, -b + cy), (b, -a + cy), (-b, -a + cy),
+            (-b, -b + cy), (-a, -b + cy), (-a, b + cy), (-b, b + cy)], 24, 28.5, cream, bevel=1.8, seg=2)
+
+
 @icon("Icon_Shield", "Security ability: Hold the Line", tilt=0)
 def ic_shield():
     def shield(s):

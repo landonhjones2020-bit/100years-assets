@@ -60,7 +60,7 @@ local Schemas: { [string]: Check.Checker } = {
 		StaminaRegenPerSecond = N, RadiationMax = I, RadiationHealthDrainPerSecond = N,
 		Loadout = shape({ Guns = I, Melee = I, Tool = I, Throwables = I, Medkits = I }),
 		BackpackSlots = I, AimFieldOfView = list(N, 2), DownedSeconds = S, ReviveSeconds = S,
-		RespawnSeconds = S, AimAssistDegrees = N, MedkitHeal = N,
+		RespawnSeconds = S, AimAssistDegrees = N, MedkitHeal = N, MedkitSeconds = S, HealWalkMultiplier = Fr,
 	}),
 	Combat = shape({
 		LagSeconds = S, HistorySeconds = S, HistoryHz = N, HitTolerance = N, RayTolerance = N,
@@ -73,6 +73,8 @@ local Schemas: { [string]: Check.Checker } = {
 		CarriedAmmo = shape({ Start = I, Max = I }), RestockSeconds = S,
 		ProjectileSpeed = N, ProjectileGravity = N, AssistPullPerSecond = N,
 		Unarmed = shape({ Damage = N, HeavyDamage = N, SwingSeconds = S }),
+		ThrowSpeed = N, ThrowGravity = N, ThrowCooldownSeconds = S, ThrowableStack = I, MineArmSeconds = S,
+		MineLifetimeSeconds = S, TapHoldSeconds = S,
 	}),
 	Camera = shape({
 		FieldOfView = N, PivotHeight = N, ShoulderOffset = N, ShoulderRaise = F.Number,
@@ -191,6 +193,7 @@ return {
 			Loadout = { Guns = 2, Melee = 1, Tool = 1, Throwables = 2, Medkits = 3 },
 			BackpackSlots = 10, AimFieldOfView = { 70, 50 }, DownedSeconds = 20, ReviveSeconds = 3,
 			RespawnSeconds = 15, AimAssistDegrees = 6, MedkitHeal = 60,
+			MedkitSeconds = 1.5, HealWalkMultiplier = 0.6, -- Landon, 2026-11-08: the Heal button uses one Medkit over 1.5 s
 		},
 		Combat = { -- Section 23 (the server checks shots against where targets were over the last 250 ms); the rest prov.
 			LagSeconds = 0.25, HistorySeconds = 1, HistoryHz = 20, HitTolerance = 2.5, RayTolerance = 1.5,
@@ -202,7 +205,11 @@ return {
 			CrawlSpeed = 3, ReviveHealthFraction = 0.3,
 			CarriedAmmo = { Start = 60, Max = 150 }, RestockSeconds = 1.5,
 			ProjectileSpeed = 90, ProjectileGravity = 30, AssistPullPerSecond = 4,
-			Unarmed = { Damage = 8, HeavyDamage = 14, SwingSeconds = 0.4 }, -- kits with no melee weapon (Engineer, Medic...)
+			Unarmed = { Damage = 8, HeavyDamage = 14, SwingSeconds = 0.4 }, -- a fallback: every kit has a melee weapon (Landon, 2026-11-08)
+			-- Landon, 2026-11-08: a throwable is thrown with Fire while its slot is held; the gamepad's
+			-- D-pad up pings on a tap and heals on a hold (TapHoldSeconds). Numbers provisional.
+			ThrowSpeed = 55, ThrowGravity = 60, ThrowCooldownSeconds = 0.8, ThrowableStack = 3, MineArmSeconds = 0.8,
+			MineLifetimeSeconds = 120, TapHoldSeconds = 0.35,
 		},
 		Camera = { -- Section 9 (right shoulder, aim narrows Player.AimFieldOfView, wall fade, zoom capped indoors); numbers prov.
 			FieldOfView = 70, PivotHeight = 1.6, ShoulderOffset = 2.2, ShoulderRaise = 0.3,

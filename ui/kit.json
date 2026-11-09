@@ -41,10 +41,10 @@
    ]
   },
   "kit_b": {
-   "decalId": "125432561809946",
+   "decalId": "79301426293939",
    "file": "ui/atlas_kit_b.png",
-   "imageId": "102495471404574",
-   "sha1": "4f636d6eb325d137ae2c933bc5b13b9991a46d88",
+   "imageId": "108416061266181",
+   "sha1": "a51bd8c39589ee2a471eb9f681ca44a68800cf4e",
    "size": [
     1024,
     960
@@ -426,7 +426,7 @@
    "atlas": "kit_b",
    "note": "cycle dial pointer: slides along the face, tip at the bottom",
    "offset": [
-    380,
+    516,
     276
    ],
    "size": [
@@ -439,7 +439,7 @@
    "atlas": "kit_b",
    "note": "flip-counter tile (year): digit drawn live on top",
    "offset": [
-    276,
+    412,
     276
    ],
    "size": [
@@ -747,6 +747,19 @@
    ],
    "slice": null
   },
+  "Icon_Medkit": {
+   "atlas": "kit_b",
+   "note": "Medkits: carried by players, used with the Heal button (Landon, 2026-11-08)",
+   "offset": [
+    548,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Melee": {
    "atlas": "hud",
    "note": "touch: melee (a wrench; white, tint with ImageColor3)",
@@ -790,7 +803,7 @@
    "atlas": "kit_b",
    "note": "Power",
    "offset": [
-    548,
+    684,
     140
    ],
    "size": [
@@ -803,7 +816,7 @@
    "atlas": "kit_b",
    "note": "Scrap",
    "offset": [
-    684,
+    820,
     140
    ],
    "size": [
@@ -829,8 +842,8 @@
    "atlas": "kit_b",
    "note": "Security ability: Hold the Line",
    "offset": [
-    820,
-    140
+    4,
+    276
    ],
    "size": [
     128,
@@ -868,7 +881,7 @@
    "atlas": "kit_b",
    "note": "tab: today's shop (white, tint with ImageColor3)",
    "offset": [
-    4,
+    140,
     276
    ],
    "size": [
@@ -881,7 +894,7 @@
    "atlas": "kit_b",
    "note": "Water",
    "offset": [
-    140,
+    276,
     276
    ],
    "size": [

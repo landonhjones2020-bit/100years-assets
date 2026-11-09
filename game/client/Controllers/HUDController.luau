@@ -79,6 +79,7 @@ local TOUCH_ACTIONS = {
 	Dodge = "Dodge",
 	Ping = "Ping",
 	Shoulder = "SwapShoulder",
+	Heal = "Heal", -- Landon, 2026-11-08
 }
 local ABILITY_ICONS: { [string]: string } = { Security = "Icon_Shield" } -- more with the class icons (A11)
 local MAX_ALERTS = 3
@@ -521,6 +522,10 @@ local function refreshDevice()
 	for i = 1, 5 do
 		part(`Hotbar.Slot{i}.Key`).Visible = device == "Keyboard"
 	end
+	-- the Heal key on the Medkits chip (Landon, 2026-11-08): H, or a hold of D-pad up
+	local healKey = if device == "Gamepad" then "UP" elseif device == "Keyboard" then "H" else ""
+	part("Medkits.Key").Visible = healKey ~= ""
+	part("Medkits.Key.Text").Text = healKey
 end
 
 local function setSprintToggle(on: boolean)

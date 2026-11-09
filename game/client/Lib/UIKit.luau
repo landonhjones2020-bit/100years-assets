@@ -11,72 +11,73 @@ UIKit.Sprites["Ability_Button"] = {image = "rbxassetid://85214114089895", offset
 UIKit.Sprites["Alert_Danger"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(532, 868), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Alert_Info"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(668, 868), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Alert_Warning"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(804, 868), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Button_Leaf_Down"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(236, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Leaf_Up"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(436, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Rust_Down"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(636, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Rust_Up"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Signal_Disabled"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(204, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Signal_Down"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(404, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Signal_Hover"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(604, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Signal_Up"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(804, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Teal_Down"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 772), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
-UIKit.Sprites["Button_Teal_Up"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(204, 772), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Leaf_Down"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(236, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Leaf_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(436, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Rust_Down"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(636, 532), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Rust_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Signal_Disabled"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(204, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Signal_Down"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(404, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Signal_Hover"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(604, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Signal_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(804, 652), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Teal_Down"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 772), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
+UIKit.Sprites["Button_Teal_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(204, 772), size = Vector2.new(192, 112), slice = Rect.new(50, 50, 142, 62)}
 UIKit.Sprites["Card_Common"] = {image = "rbxassetid://75110860144472", offset = Vector2.new(4, 4), size = Vector2.new(400, 500), slice = nil}
 UIKit.Sprites["Card_Epic"] = {image = "rbxassetid://75110860144472", offset = Vector2.new(412, 4), size = Vector2.new(400, 500), slice = nil}
 UIKit.Sprites["Card_Legendary"] = {image = "rbxassetid://75110860144472", offset = Vector2.new(4, 512), size = Vector2.new(400, 500), slice = nil}
 UIKit.Sprites["Card_Rare"] = {image = "rbxassetid://75110860144472", offset = Vector2.new(412, 512), size = Vector2.new(400, 500), slice = nil}
-UIKit.Sprites["Chip_Cream"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(668, 772), size = Vector2.new(160, 80), slice = Rect.new(40, 36, 120, 44)}
-UIKit.Sprites["Chip_Navy"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(836, 772), size = Vector2.new(160, 80), slice = Rect.new(40, 36, 120, 44)}
-UIKit.Sprites["Close_Down"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 4), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Close_Up"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(140, 4), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Dial_Cycle"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 412), size = Vector2.new(768, 112), slice = nil}
-UIKit.Sprites["Dial_Pointer"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(380, 276), size = Vector2.new(48, 128), slice = nil}
-UIKit.Sprites["Flip_Tile"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(276, 276), size = Vector2.new(96, 128), slice = nil}
+UIKit.Sprites["Chip_Cream"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(668, 772), size = Vector2.new(160, 80), slice = Rect.new(40, 36, 120, 44)}
+UIKit.Sprites["Chip_Navy"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(836, 772), size = Vector2.new(160, 80), slice = Rect.new(40, 36, 120, 44)}
+UIKit.Sprites["Close_Down"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Close_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Dial_Cycle"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 412), size = Vector2.new(768, 112), slice = nil}
+UIKit.Sprites["Dial_Pointer"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(516, 276), size = Vector2.new(48, 128), slice = nil}
+UIKit.Sprites["Flip_Tile"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(412, 276), size = Vector2.new(96, 128), slice = nil}
 UIKit.Sprites["Gauge_Glass"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Gauge_Health"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Gauge_Needle"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(532, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Gauge_Rad"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 268), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Gauge_Stamina"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(268, 268), size = Vector2.new(256, 256), slice = nil}
-UIKit.Sprites["Grid_Blueprint"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 892), size = Vector2.new(64, 64), slice = nil}
-UIKit.Sprites["Hotbar_Selected"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(276, 4), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Hotbar_Slot"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(412, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Grid_Blueprint"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 892), size = Vector2.new(64, 64), slice = nil}
+UIKit.Sprites["Hotbar_Selected"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(276, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Hotbar_Slot"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(412, 4), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Aim"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(4, 268), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Ammo"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(548, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Ammo"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(548, 4), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Arrow"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(140, 268), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Check"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(684, 4), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Command"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(820, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Check"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(684, 4), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Command"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(820, 4), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Copper"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(276, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Crystal"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(412, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Dodge"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(548, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Fire"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(684, 268), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Food"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 140), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Glowshard"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(140, 140), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Grid"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(276, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Food"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Glowshard"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Grid"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(276, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Interact"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(820, 268), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Iron"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(412, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Iron"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(412, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Jump"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(4, 404), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Medkit"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(548, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Melee"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(140, 404), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Ping"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(276, 404), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_PocketPistol"] = {image = "rbxassetid://99859624879456", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
-UIKit.Sprites["Icon_Power"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(548, 140), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Scrap"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(684, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Power"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(684, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Scrap"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(820, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_ServiceRevolver"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(532, 268), size = Vector2.new(256, 256), slice = nil}
-UIKit.Sprites["Icon_Shield"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(820, 140), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Shield"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 276), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Shoulder"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(412, 404), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Sprint"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(548, 404), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Tag"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 276), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Water"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(140, 276), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Tag"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 276), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Water"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(276, 276), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Wrench"] = {image = "rbxassetid://99859624879456", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}
-UIKit.Sprites["Lamp_Amber"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(76, 892), size = Vector2.new(48, 48), slice = nil}
-UIKit.Sprites["Lamp_Green"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(132, 892), size = Vector2.new(48, 48), slice = nil}
-UIKit.Sprites["Lamp_Off"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(188, 892), size = Vector2.new(48, 48), slice = nil}
-UIKit.Sprites["Lamp_Orange"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(244, 892), size = Vector2.new(48, 48), slice = nil}
-UIKit.Sprites["Lamp_Red"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(300, 892), size = Vector2.new(48, 48), slice = nil}
+UIKit.Sprites["Lamp_Amber"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(76, 892), size = Vector2.new(48, 48), slice = nil}
+UIKit.Sprites["Lamp_Green"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(132, 892), size = Vector2.new(48, 48), slice = nil}
+UIKit.Sprites["Lamp_Off"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(188, 892), size = Vector2.new(48, 48), slice = nil}
+UIKit.Sprites["Lamp_Orange"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(244, 892), size = Vector2.new(48, 48), slice = nil}
+UIKit.Sprites["Lamp_Red"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(300, 892), size = Vector2.new(48, 48), slice = nil}
 UIKit.Sprites["Panel_Cream"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(796, 268), size = Vector2.new(192, 192), slice = Rect.new(60, 60, 132, 132)}
 UIKit.Sprites["Panel_Navy"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 532), size = Vector2.new(192, 192), slice = Rect.new(60, 60, 132, 132)}
 UIKit.Sprites["Panel_Teal"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(204, 532), size = Vector2.new(192, 192), slice = Rect.new(60, 60, 132, 132)}
 UIKit.Sprites["Paper"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(572, 532), size = Vector2.new(160, 160), slice = Rect.new(44, 44, 116, 116)}
-UIKit.Sprites["Plate_Cream"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(404, 772), size = Vector2.new(256, 96), slice = Rect.new(56, 40, 200, 56)}
+UIKit.Sprites["Plate_Cream"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(404, 772), size = Vector2.new(256, 96), slice = Rect.new(56, 40, 200, 56)}
 UIKit.Sprites["Portrait_MadScientist"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(492, 4), size = Vector2.new(340, 290), slice = nil}
 UIKit.Sprites["Portrait_Quartermaster"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 420), size = Vector2.new(340, 290), slice = nil}
 UIKit.Sprites["Portrait_Security"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(352, 420), size = Vector2.new(340, 290), slice = nil}
@@ -86,8 +87,8 @@ UIKit.Sprites["Seismograph"] = {image = "rbxassetid://85214114089895", offset = 
 UIKit.Sprites["Stamp_FreeTrial"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(396, 732), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_Owned"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(660, 732), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_Wishlist"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 868), size = Vector2.new(256, 128), slice = nil}
-UIKit.Sprites["Tab_Off"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(780, 412), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
-UIKit.Sprites["Tab_On"] = {image = "rbxassetid://102495471404574", offset = Vector2.new(4, 532), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
+UIKit.Sprites["Tab_Off"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(780, 412), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
+UIKit.Sprites["Tab_On"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 532), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
 UIKit.Sprites["Telegram"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(268, 868), size = Vector2.new(256, 128), slice = Rect.new(72, 40, 184, 88)}
 UIKit.Sprites["Touch_Down"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(532, 4), size = Vector2.new(192, 192), slice = nil}
 UIKit.Sprites["Touch_Fire_Down"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}

@@ -50,10 +50,16 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 	Hotbar3 = { Enum.KeyCode.Three },
 	Hotbar4 = { Enum.KeyCode.Four },
 	Hotbar5 = { Enum.KeyCode.Five },
-	Ping = { Enum.KeyCode.G, Enum.KeyCode.DPadUp },
+	Ping = { Enum.KeyCode.G }, -- and a tap of D-pad up (TAP_HOLD)
+	Heal = { Enum.KeyCode.H }, -- Landon, 2026-11-08: and a hold of D-pad up (TAP_HOLD)
 	CommandView = { Enum.KeyCode.Tab, Enum.KeyCode.ButtonSelect },
 	Ready = { Enum.KeyCode.Z, Enum.KeyCode.DPadDown }, -- Landon, 2026-11-08: Ready gets its own key
 	Vote = { Enum.KeyCode.ButtonY }, -- Landon, 2026-11-08: votes on a controller (tap yes, hold no)
+}
+-- One gamepad button, two actions: a tap does one, a hold past TapHoldSeconds the other.
+-- D-pad up pings on a tap (Section 9's controls) and heals on a hold (Landon, 2026-11-08).
+local TAP_HOLD: { [Enum.KeyCode]: { Tap: string, Hold: string } } = {
+	[Enum.KeyCode.DPadUp] = { Tap = "Ping", Hold = "Heal" },
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
 local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true, Vote = true } -- a vote can be answered from any screen
@@ -140,10 +146,64 @@ local function press(action: string, source: any, down: boolean)
 	end
 end
 
+local tapHoldBound: { [Enum.KeyCode]: boolean } = {}
+local function bindTapHold(key: Enum.KeyCode)
+	local pair = TAP_HOLD[key]
+	if tapHoldBound[key] or not pair then
+		return
+	end
+	tapHoldBound[key] = true
+	local downAt: number? = nil
+	local holding = false
+	local source = "TapHold" .. key.Name
+	ContextActionService:BindActionAtPriority(
+		"100Y_TapHold_" .. key.Name,
+		function(_name: string, state: Enum.UserInputState, _input: InputObject): Enum.ContextActionResult
+			if state == Enum.UserInputState.Begin then
+				local at = os.clock()
+				downAt = at
+				holding = false
+				local seconds = 0.35
+				local ok, tuning = pcall(function()
+					return require(Shared.Config).Get("Tuning", "Combat")
+				end)
+				if ok and tuning and tuning.TapHoldSeconds then
+					seconds = tuning.TapHoldSeconds
+				end
+				task.delay(seconds, function()
+					if downAt == at then
+						holding = true
+						press(pair.Hold, source, true)
+					end
+				end)
+			elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+				local wasDown = downAt ~= nil
+				downAt = nil
+				if holding then
+					holding = false
+					press(pair.Hold, source, false)
+				elseif wasDown and state == Enum.UserInputState.End then
+					press(pair.Tap, source, true)
+					press(pair.Tap, source, false)
+				end
+			end
+			return Enum.ContextActionResult.Pass
+		end,
+		false,
+		PRIORITY,
+		key
+	)
+end
+
 local function bind(action: string)
 	local inputs = BINDINGS[action]
 	if bound[action] or not inputs then
 		return
+	end
+	for key, pair in TAP_HOLD do
+		if pair.Tap == action or pair.Hold == action then
+			bindTapHold(key)
+		end
 	end
 	bound[action] = true
 	ContextActionService:BindActionAtPriority(

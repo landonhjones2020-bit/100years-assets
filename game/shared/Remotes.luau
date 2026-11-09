@@ -159,6 +159,24 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 8, PerSecond = 4 },
 		Doc = "Sprinting on or off, for the stamina it drains (Section 9).",
 	},
+	ThrowItem = {
+		To = "Server",
+		Place = "Run",
+		Args = {
+			Check.integer(4, 5), -- the throwable's hotbar slot
+			Check.vector3(20000), -- where it leaves the hand
+			Check.vector3(1.01), -- the aim
+		},
+		Rate = { Burst = 3, PerSecond = 2 },
+		Doc = "Throw one of the held slot's throwables toward the aim (Landon, 2026-11-08: Fire throws).",
+	},
+	UseMedkit = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 3, PerSecond = 2 },
+		Doc = "Use a carried Medkit: it heals over Tuning.Player.MedkitSeconds (Landon, 2026-11-08: the Heal button).",
+	},
 
 	-- server -> client
 	Delta = {

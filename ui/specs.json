@@ -451,6 +451,14 @@
   ],
   "slice": null
  },
+ "Icon_Medkit": {
+  "note": "Medkits: carried by players, used with the Heal button (Landon, 2026-11-08)",
+  "size": [
+   128,
+   128
+  ],
+  "slice": null
+ },
  "Icon_Melee": {
   "group": "hud",
   "note": "touch: melee (a wrench; white, tint with ImageColor3)",

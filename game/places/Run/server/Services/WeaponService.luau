@@ -40,15 +40,28 @@
 	* Sprint(on): drains SprintStaminaPerSecond while moving; stamina grows back after
 	  StaminaRegenDelay.
 
+	Medkits and throwables (Landon, 2026-11-08)
+	* Players carry up to Tuning.Player.Loadout.Medkits Medkits (the Medic's kit starts with 5
+	  and may carry 5). UseMedkit heals MedkitHeal over MedkitSeconds; going down cancels it and
+	  keeps the Medkit. A Medbay's restock point fills carried Medkits from the team's stockpile
+	  (Section 13: Medkits come from the Medbay).
+	* A throwable slot (4 or 5) holds a stack (Count). With it selected, Fire throws one
+	  (ThrowItem): it flies under ThrowGravity and acts where it lands: a Frag Grenade bursts
+	  (Radius, Damage, monsters only), a Flare lights the spot for LightSeconds, a Foam Grenade
+	  sprays foam (Foamed fires for Prompt 13's fires) and a Shock Mine arms and stuns the
+	  monsters that come near it.
+
 	Attributes on the Player (all replicate): Class, Slot, Item1 to Item5, Mag1 and Mag2,
-	MeleeItem, CarriedAmmo, Stamina, ReloadEndsAt, ShotSalt, ShotNext, SwingEndsAt.
-	Dev: class, give, ammo, loadout, stamina.
+	Count4 and Count5, MeleeItem, CarriedAmmo, Medkits, HealEndsAt, Stamina, ReloadEndsAt,
+	ShotSalt, ShotNext, SwingEndsAt.
+	Dev: class, give, ammo, medkits, loadout, stamina.
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local Debris = game:GetService("Debris")
 
 local Shared = ReplicatedStorage.Shared
 local Combat = require(Shared.Rules.Combat)
@@ -56,6 +69,7 @@ local Config = require(Shared.Config)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
+local Signal = require(Shared.Utilities.Signal)
 
 local log = Log.new("WeaponService")
 
@@ -64,7 +78,7 @@ local GUN_SLOTS = 2
 local MOVING_SPEED = 2 -- studs/s: below this a sprinting player isn't moving
 local STAMINA_HZ = 10
 
-type Held = { Item: string, Rarity: string, Magazine: number? }
+type Held = { Item: string, Rarity: string, Magazine: number?, Count: number? }
 type Loadout = {
 	Class: string,
 	Slots: { [number]: Held? },
@@ -83,11 +97,18 @@ type Loadout = {
 	ComboStep: number,
 	LastSwingAt: number,
 	DodgeReadyAt: number,
+	Medkits: number,
+	MedkitCap: number,
+	HealEndsAt: number,
+	HealToken: number,
+	LastThrowAt: number,
 }
 
 local WeaponService = {
 	Name = "WeaponService",
 	Dependencies = { "CombatService", "EconomyService", "BunkerGrid", "SessionService", "DevService" },
+	-- A Foam Grenade burst: position, radius, the thrower (Prompt 13's fires listen).
+	Foamed = Signal.new() :: Signal.Signal<Vector3, number, Player>,
 }
 
 local combat: any = nil
@@ -106,12 +127,14 @@ end
 
 local function kitOf(classId: string): (
 	{ [number]: Held? },
-	Held
+	Held,
+	number
 )
 	local class = Config.Find("Classes", classId) or Config.Get("Classes", "Survivor")
-	local guns, throwables = {}, {}
+	local guns, throwables, counts = {}, {}, {}
 	local tool: string? = nil
 	local melee: string? = nil
+	local medkits = 0
 	for _, stack in class.Kit do
 		local item = Config.Find("Items", stack.Item)
 		if item then
@@ -123,6 +146,9 @@ local function kitOf(classId: string): (
 				tool = tool or stack.Item
 			elseif item.Kind == "Throwable" then
 				table.insert(throwables, stack.Item)
+				table.insert(counts, stack.Count or 1)
+			elseif stack.Item == "Medkit" then
+				medkits += stack.Count or 1
 			end
 		end
 	end
@@ -139,10 +165,10 @@ local function kitOf(classId: string): (
 	end
 	for i = 1, 2 do
 		if throwables[i] then
-			slots[3 + i] = { Item = throwables[i], Rarity = "Standard" }
+			slots[3 + i] = { Item = throwables[i], Rarity = "Standard", Count = counts[i] }
 		end
 	end
-	return slots, { Item = melee or Combat.UNARMED, Rarity = "Standard" }
+	return slots, { Item = melee or Combat.UNARMED, Rarity = "Standard" }, medkits
 end
 
 local function publish(player: Player, state: Loadout)
@@ -155,8 +181,14 @@ local function publish(player: Player, state: Loadout)
 			player:SetAttribute(`Mag{i}`, if held then held.Magazine else nil)
 		end
 	end
+	for i = 4, SLOTS do
+		local held = state.Slots[i]
+		player:SetAttribute(`Count{i}`, if held then held.Count else nil)
+	end
 	player:SetAttribute("MeleeItem", state.Melee.Item)
 	player:SetAttribute("CarriedAmmo", state.Carried)
+	player:SetAttribute("Medkits", state.Medkits)
+	player:SetAttribute("HealEndsAt", if state.HealEndsAt > now() then state.HealEndsAt else nil)
 	player:SetAttribute("ShotSalt", state.Salt)
 	player:SetAttribute("ShotNext", state.NextShot)
 	player:SetAttribute("ReloadEndsAt", if state.ReloadEndsAt > now() then state.ReloadEndsAt else nil)
@@ -172,7 +204,7 @@ local function firstSlot(state: Loadout): number
 end
 
 local function newLoadout(player: Player, classId: string, carried: number?): Loadout
-	local slots, melee = kitOf(classId)
+	local slots, melee, medkits = kitOf(classId)
 	local p = Config.Get("Tuning", "Player")
 	local state: Loadout = {
 		Class = classId,
@@ -192,6 +224,11 @@ local function newLoadout(player: Player, classId: string, carried: number?): Lo
 		ComboStep = 0,
 		LastSwingAt = -math.huge,
 		DodgeReadyAt = 0,
+		Medkits = medkits,
+		MedkitCap = math.max(p.Loadout.Medkits, medkits),
+		HealEndsAt = 0,
+		HealToken = 0,
+		LastThrowAt = -math.huge,
 	}
 	state.Selected = firstSlot(state)
 	loadouts[player] = state
@@ -416,6 +453,205 @@ local function launch(player: Player, origin: Vector3, direction: Vector3, gun: 
 		position += step
 		round.CFrame = CFrame.new(position)
 	end)
+end
+
+-- Throwables (Landon, 2026-11-08: Fire throws the held one) ------------------------------------
+
+local THROWN_COLOURS: { [string]: Color3 } = {
+	FragGrenade = Color3.fromRGB(96, 104, 66),
+	Flare = Color3.fromRGB(232, 92, 59),
+	FoamGrenade = Color3.fromRGB(236, 232, 218),
+	ShockMine = Color3.fromRGB(230, 182, 46),
+}
+
+local function thrownPart(itemId: string): BasePart
+	local assets = ServerStorage:FindFirstChild("Assets")
+	local folder = assets and assets:FindFirstChild("Weapons")
+	local item = Config.Find("Items", itemId)
+	local template = folder and item and item.Asset and folder:FindFirstChild(item.Asset)
+	local primary = template and template:IsA("Model") and template:FindFirstChildWhichIsA("BasePart", true)
+	local part: BasePart
+	if primary then
+		part = (primary :: BasePart):Clone()
+		for _, child in part:GetChildren() do
+			if not child:IsA("SurfaceAppearance") then
+				child:Destroy()
+			end
+		end
+	else -- graybox until A2 brings the model
+		local ball = Instance.new("Part")
+		ball.Shape = Enum.PartType.Ball
+		ball.Size = Vector3.new(0.7, 0.7, 0.7)
+		ball.Color = THROWN_COLOURS[itemId] or Color3.fromRGB(200, 200, 200)
+		ball.Material = if itemId == "Flare" then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part = ball
+	end
+	part.Name = `Thrown_{itemId}`
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	return part
+end
+
+local function burst(at: Vector3, colour: Color3, count: number, speed: number)
+	local holder = Instance.new("Part")
+	holder.Name = "Burst"
+	holder.Anchored = true
+	holder.CanCollide = false
+	holder.CanQuery = false
+	holder.CanTouch = false
+	holder.Transparency = 1
+	holder.Size = Vector3.new(0.2, 0.2, 0.2)
+	holder.Position = at
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Color = ColorSequence.new(colour)
+	emitter.LightEmission = 0.4
+	emitter.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 1.6) })
+	emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
+	emitter.Lifetime = NumberRange.new(0.5, 1.1)
+	emitter.Speed = NumberRange.new(speed * 0.5, speed)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Drag = 4
+	emitter.Rate = 0
+	emitter.Parent = holder
+	holder.Parent = workspace
+	emitter:Emit(count)
+	Debris:AddItem(holder, 2)
+end
+
+local function placeMine(player: Player, at: Vector3, throwable: { [string]: any })
+	local t = Combat.Tuning()
+	local mine = thrownPart("ShockMine")
+	mine.Name = "ShockMine"
+	mine.Position = at + Vector3.new(0, 0.3, 0)
+	mine:SetAttribute("Owner", player.UserId)
+	mine.Parent = workspace
+	local armedAt = os.clock() + t.MineArmSeconds
+	local endsAt = os.clock() + t.MineLifetimeSeconds
+	task.spawn(function()
+		while mine.Parent and os.clock() < endsAt do
+			task.wait(0.2)
+			if os.clock() >= armedAt then
+				local hit = {}
+				for _, c in combat:All("Monsters") do
+					if (c.Root.Position - mine.Position).Magnitude - c.Reach <= throwable.Radius then
+						table.insert(hit, c)
+					end
+				end
+				if #hit > 0 then
+					for _, c in hit do
+						c.Model:SetAttribute("StunnedUntil", now() + (throwable.StunSeconds or 2))
+					end
+					burst(mine.Position, Color3.fromRGB(120, 200, 255), 40, 18)
+					break
+				end
+			end
+		end
+		mine:Destroy()
+	end)
+end
+
+local function landed(player: Player, itemId: string, throwable: { [string]: any }, at: Vector3)
+	local attacker = combat:PlayerCombatant(player)
+	local shooterId = if attacker then attacker.Id else `P{player.UserId}`
+	if itemId == "ShockMine" or throwable.Trap then
+		placeMine(player, at, throwable)
+	elseif throwable.Damage and throwable.Damage > 0 then
+		explode(player, at, throwable.Radius, throwable.Damage, shooterId)
+	elseif throwable.LightSeconds then
+		local flare = thrownPart("Flare")
+		flare.Name = "Flare"
+		flare.Position = at + Vector3.new(0, 0.35, 0)
+		flare:SetAttribute("Radius", throwable.Radius)
+		flare:SetAttribute("RevealsHidden", throwable.RevealsHidden == true)
+		local light = Instance.new("PointLight")
+		light.Range = math.min(throwable.Radius, 60)
+		light.Brightness = 4
+		light.Color = Color3.fromRGB(255, 128, 84)
+		light.Shadows = true
+		light.Parent = flare
+		local sparks = Instance.new("ParticleEmitter")
+		sparks.Color = ColorSequence.new(Color3.fromRGB(255, 150, 90))
+		sparks.LightEmission = 1
+		sparks.Size = NumberSequence.new(0.25, 0)
+		sparks.Lifetime = NumberRange.new(0.3, 0.7)
+		sparks.Speed = NumberRange.new(4, 9)
+		sparks.SpreadAngle = Vector2.new(30, 30)
+		sparks.Rate = 40
+		sparks.Parent = flare
+		flare.Parent = workspace
+		Debris:AddItem(flare, throwable.LightSeconds)
+	elseif throwable.Extinguishes then
+		burst(at, Color3.fromRGB(240, 240, 232), 90, 22)
+		WeaponService.Foamed:Fire(at, throwable.Radius, player)
+	end
+end
+
+local function throwObject(player: Player, origin: Vector3, direction: Vector3, itemId: string, throwable: { [string]: any })
+	local t = Combat.Tuning()
+	local thrown = thrownPart(itemId)
+	thrown.CFrame = CFrame.new(origin)
+	thrown.Parent = workspace
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = bodies()
+	local velocity = direction.Unit * t.ThrowSpeed
+	local position = origin
+	local flown = 0
+	local connection: RBXScriptConnection? = nil
+	connection = RunService.Heartbeat:Connect(function(dt)
+		local step = velocity * dt
+		local hit = workspace:Raycast(position, step, params)
+		velocity -= Vector3.new(0, t.ThrowGravity * dt, 0)
+		flown += dt
+		if hit or flown > 6 then
+			if connection then
+				connection:Disconnect()
+			end
+			thrown:Destroy()
+			local at = if hit then hit.Position + hit.Normal * 0.2 else position
+			local ok, err = pcall(landed, player, itemId, throwable, at)
+			if not ok then
+				log:Warn("%s landed badly: %s", itemId, tostring(err))
+			end
+			return
+		end
+		position += step
+		thrown.CFrame = CFrame.new(position) * CFrame.Angles(flown * 9, flown * 5, 0)
+	end)
+end
+
+local function onThrow(player: Player, slot: number, origin: Vector3, aim: Vector3)
+	local state = loadouts[player]
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not state or not root or not alive(player) or state.Selected ~= slot or now() < state.SwingEndsAt then
+		return
+	end
+	local held = state.Slots[slot]
+	local item = held and Config.Find("Items", held.Item)
+	if not held or not item or item.Kind ~= "Throwable" or not item.Throwable or (held.Count or 0) <= 0 then
+		return
+	end
+	local t = Combat.Tuning()
+	if os.clock() - state.LastThrowAt < t.ThrowCooldownSeconds * (1 - t.RateTolerance) then
+		return
+	end
+	if (origin - root.Position).Magnitude > t.OriginTolerance or aim.Magnitude < 0.5 then
+		return
+	end
+	state.LastThrowAt = os.clock()
+	held.Count = (held.Count or 1) - 1
+	local itemId = held.Item
+	if held.Count <= 0 then
+		state.Slots[slot] = nil
+	end
+	publish(player, state)
+	if not state.Slots[slot] then
+		refreshHeld(player, state)
+	end
+	throwObject(player, origin, aim, itemId, item.Throwable)
 end
 
 local function onFire(player: Player, slot: number, shot: number, origin: Vector3, aim: Vector3, time: number, claims: { any })
@@ -696,6 +932,74 @@ local function restock(player: Player): (number, string?)
 	return take, nil
 end
 
+-- Medkits (Landon, 2026-11-08: the Heal button uses one over MedkitSeconds) -------------------
+
+local function cancelHeal(player: Player, state: Loadout)
+	if state.HealEndsAt > 0 then
+		state.HealEndsAt = 0
+		state.HealToken += 1
+		player:SetAttribute("HealEndsAt", nil)
+	end
+end
+
+local function onMedkit(player: Player)
+	local state = loadouts[player]
+	local c = combat:PlayerCombatant(player)
+	if not state or not c or not alive(player) or now() < state.HealEndsAt then
+		return
+	end
+	if state.Medkits <= 0 then
+		Remotes.FireClient("Alert", player, "Warning", "NO MEDKITS: TAKE SOME AT THE MEDBAY")
+		return
+	end
+	local health, max = combat:HealthOf(c.Id)
+	if health >= max then
+		Remotes.FireClient("Alert", player, "Info", "ALREADY AT FULL HEALTH")
+		return
+	end
+	local p = Config.Get("Tuning", "Player")
+	state.HealToken += 1
+	local token = state.HealToken
+	state.HealEndsAt = now() + p.MedkitSeconds
+	player:SetAttribute("HealEndsAt", state.HealEndsAt)
+	task.delay(p.MedkitSeconds, function()
+		if loadouts[player] ~= state or state.HealToken ~= token then
+			return
+		end
+		state.HealEndsAt = 0
+		player:SetAttribute("HealEndsAt", nil)
+		local me = combat:PlayerCombatant(player)
+		if not me or not alive(player) or state.Medkits <= 0 then
+			return
+		end
+		state.Medkits -= 1
+		player:SetAttribute("Medkits", state.Medkits)
+		combat:Heal(me.Id, p.MedkitHeal)
+	end)
+end
+
+local function restockMedkits(player: Player): (number, string?)
+	local state = loadouts[player]
+	if not state or not alive(player) then
+		return 0, "not now"
+	end
+	local want = state.MedkitCap - state.Medkits
+	if want <= 0 then
+		return 0, "you're full"
+	end
+	local take = math.min(want, economy:Get("Medkits"))
+	if take <= 0 then
+		return 0, "the stockpile has no Medkits"
+	end
+	local ok, why = economy:Spend({ Medkits = take }, `Medkits for {player.Name}`)
+	if not ok then
+		return 0, why
+	end
+	state.Medkits += take
+	player:SetAttribute("Medkits", state.Medkits)
+	return take, nil
+end
+
 local function syncRestockPoints()
 	local root = grid:Root()
 	if not root then
@@ -709,18 +1013,21 @@ local function syncRestockPoints()
 		restockFolder = folder
 	end
 	local wanted: { [string]: Vector3 } = {}
-	for _, roomType in { "Workshop", "Armory" } do
+	local kinds: { [string]: string } = {}
+	for _, roomType in { "Workshop", "Armory", "Medbay" } do
 		for _, room in grid:RoomsOfType(roomType) do
 			local model = grid:RoomModel(room.Id)
-			local socket = model and model:FindFirstChild("Restock", true)
+			local medbay = roomType == "Medbay"
+			local socket = model and model:FindFirstChild(if medbay then "MedkitCabinet" else "Restock", true)
 			wanted[room.Id] = if socket and socket:IsA("Attachment")
 				then socket.WorldPosition
-				else Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 3, 2)
+				else Grid.CellPosition(room.Floor, room.Column) + (if medbay then Vector3.new(-5, 3, 2) else Vector3.new(0, 3, 2))
+			kinds[room.Id] = if medbay then "RestockMedkits" else "Restock"
 		end
 	end
 	for _, point in (folder :: Folder):GetChildren() do
 		local roomId = point:GetAttribute("RoomId")
-		if type(roomId) ~= "string" or not wanted[roomId] then
+		if type(roomId) ~= "string" or not wanted[roomId] or point:GetAttribute("Kind") ~= kinds[roomId] then
 			point:Destroy()
 		end
 	end
@@ -736,20 +1043,24 @@ local function syncRestockPoints()
 			part.Transparency = 1
 			part.Size = Vector3.new(1, 1, 1)
 			part:SetAttribute("RoomId", roomId)
+			local kind = kinds[roomId]
+			part:SetAttribute("Kind", kind)
+			local medkits = kind == "RestockMedkits"
 			local prompt = Instance.new("ProximityPrompt")
 			prompt.Name = "RestockPrompt"
-			prompt.ActionText = "Restock ammo"
+			prompt.ActionText = if medkits then "Take Medkits" else "Restock ammo"
 			local room = grid:Room(roomId)
 			prompt.ObjectText = if room then Config.Get("Rooms", room.Type).Name else "Ammo"
 			prompt.HoldDuration = Combat.Tuning().RestockSeconds
 			prompt.MaxActivationDistance = 10
 			prompt.RequiresLineOfSight = false
 			prompt.Style = Enum.ProximityPromptStyle.Custom
-			prompt:SetAttribute("Kind", "Restock")
+			prompt:SetAttribute("Kind", kind)
 			prompt.Triggered:Connect(function(player: Player)
-				local took, why = restock(player)
+				local took, why = (if medkits then restockMedkits else restock)(player)
+				local what = if medkits then (if took == 1 then "MEDKIT" else "MEDKITS") else "AMMO"
 				Remotes.FireClient("Alert", player, if took > 0 then "Info" else "Warning",
-					if took > 0 then `RESTOCKED {took} AMMO FROM THE STOCKPILE` else `CAN'T RESTOCK: {string.upper(why or "")}`)
+					if took > 0 then `TOOK {took} {what} FROM THE STOCKPILE` else `CAN'T RESTOCK: {string.upper(why or "")}`)
 			end)
 			prompt.Parent = part
 			part.Parent = folder
@@ -766,11 +1077,11 @@ local function describe(player: Player): string
 	if not state then
 		return "no loadout"
 	end
-	local lines = { `{player.Name}: {state.Class}, slot {state.Selected}, carried {state.Carried}, stamina {math.floor(state.Stamina)}` }
+	local lines = { `{player.Name}: {state.Class}, slot {state.Selected}, carried {state.Carried}, Medkits {state.Medkits}/{state.MedkitCap}, stamina {math.floor(state.Stamina)}` }
 	for i = 1, SLOTS do
 		local held = state.Slots[i]
 		if held then
-			table.insert(lines, `  {i}: {held.Item} ({held.Rarity}){if held.Magazine then ` {held.Magazine} loaded` else ""}`)
+			table.insert(lines, `  {i}: {held.Item} ({held.Rarity}){if held.Magazine then ` {held.Magazine} loaded` else ""}{if held.Count then ` x{held.Count}` else ""}`)
 		end
 	end
 	table.insert(lines, `  melee: {state.Melee.Item}`)
@@ -813,7 +1124,7 @@ function WeaponService:Init(registry)
 	})
 	dev:Register("give", {
 		Description = "Put an item in a hotbar slot (guns 1-2, tool 3, throwables 4-5) or as the melee weapon.",
-		Usage = "give <ItemId> [slot|melee] [rarity]",
+		Usage = "give <ItemId> [slot|melee] [rarity] [count]",
 		Run = function(player, args): string?
 			local state = player and loadouts[player]
 			if not player or not state then
@@ -830,7 +1141,10 @@ function WeaponService:Init(registry)
 			else
 				local slot = tonumber(args[2]) or (if item.Kind == "Gun" then 1 elseif item.Kind == "Tool" then 3 else 4)
 				local gun = Combat.Gun(itemId)
-				state.Slots[slot] = { Item = itemId, Rarity = rarity, Magazine = if gun then gun.Magazine else nil }
+				local count = if item.Kind == "Throwable"
+					then math.clamp(math.floor(tonumber(args[4]) or Combat.Tuning().ThrowableStack), 1, 99)
+					else nil
+				state.Slots[slot] = { Item = itemId, Rarity = rarity, Magazine = if gun then gun.Magazine else nil, Count = count }
 			end
 			publish(player, state)
 			refreshHeld(player, state)
@@ -847,6 +1161,19 @@ function WeaponService:Init(registry)
 			end
 			state.Carried = math.max(0, math.floor(tonumber(args[1]) or Combat.Tuning().CarriedAmmo.Max))
 			player:SetAttribute("CarriedAmmo", state.Carried)
+			return describe(player)
+		end,
+	})
+	dev:Register("medkits", {
+		Description = "Set your carried Medkits.",
+		Usage = "medkits [count]",
+		Run = function(player, args): string?
+			local state = player and loadouts[player]
+			if not player or not state then
+				return "players only"
+			end
+			state.Medkits = math.clamp(math.floor(tonumber(args[1]) or state.MedkitCap), 0, 99)
+			player:SetAttribute("Medkits", state.Medkits)
 			return describe(player)
 		end,
 	})
@@ -872,6 +1199,7 @@ function WeaponService:Start()
 			state.SwingEndsAt = 0
 			state.Sprinting = false
 			cancelReload(player, state)
+			cancelHeal(player, state)
 			task.defer(function()
 				if player.Character then
 					player.Character:WaitForChild("RightHand", 10)
@@ -898,6 +1226,8 @@ function WeaponService:Start()
 	Remotes.OnServer("MeleeSwing", onSwing)
 	Remotes.OnServer("Dodge", onDodge)
 	Remotes.OnServer("Sprint", onSprint)
+	Remotes.OnServer("ThrowItem", onThrow)
+	Remotes.OnServer("UseMedkit", onMedkit)
 
 	combat.Downed:Connect(function(id: string)
 		local c = combat:Get(id)
@@ -906,6 +1236,7 @@ function WeaponService:Start()
 		if player and state then
 			state.Sprinting = false
 			cancelReload(player, state)
+			cancelHeal(player, state)
 		end
 	end)
 

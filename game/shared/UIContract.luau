@@ -156,6 +156,10 @@ local UIContract: { [string]: Screen } = {
 			"Touch.Sprint",
 			"Touch.Ping",
 			"Touch.Shoulder",
+			"Touch.Heal", -- Landon, 2026-11-08: the Heal button (CombatController)
+			"Medkits.Count", -- carried Medkits and the heal in progress
+			"Medkits.Fill",
+			"Medkits.Key.Text",
 			"Templates.ResourceChip.Icon",
 			"Templates.ResourceChip.Value",
 			"Templates.ResourceChip.Lamp",

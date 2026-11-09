@@ -62,7 +62,7 @@ return {
 		},
 		Engineer = {
 			Name = "Engineer", Tier = "Common", Price = 40,
-			Kit = { { Item = "Welder" }, { Item = "RivetSMG" } },
+			Kit = { { Item = "Welder" }, { Item = "RivetSMG" }, { Item = "Wrench" } },
 			Passive = { Text = "Repairs twice as fast.", Modifiers = { mod("RepairSpeed", 2) } },
 			Ability = { Name = "Deploy Turret", Text = "An auto-turret for 45 s.", CooldownSeconds = 90, DurationSeconds = 45 },
 			Level2 = { Text = "Barricades cost half.", Modifiers = { mod("BarricadeCost", 0.5) } },
@@ -71,7 +71,7 @@ return {
 		},
 		Medic = {
 			Name = "Medic", Tier = "Common", Price = 40,
-			Kit = { { Item = "Medkit", Count = 5 }, { Item = "PocketPistol" } },
+			Kit = { { Item = "Medkit", Count = 5 }, { Item = "PocketPistol" }, { Item = "DefibPaddles" } },
 			Passive = { Text = "Revives in 1 s; heals residents by touch.", Modifiers = { mod("ReviveSeconds", 1), mod("TouchHeal", 1) } },
 			Ability = { Name = "Triage Pulse", Text = "Heals 40 to everyone nearby.", CooldownSeconds = 60 },
 			Level2 = { Text = "Medbay +25%.", Modifiers = { mod("RoomOutput", 1.25, { Room = "Medbay" }) } },
@@ -151,7 +151,7 @@ return {
 		},
 		RadioOperator = {
 			Name = "Radio Operator", Tier = "Rare", Price = 120,
-			Kit = { { Item = "PocketPistol" }, { Item = "RadioHeadset" } },
+			Kit = { { Item = "PocketPistol" }, { Item = "RadioHeadset" }, { Item = "AntennaWhip" } },
 			Passive = {
 				Text = "Recruits +30%; distress calls arrive 30 seconds sooner.",
 				Modifiers = { mod("RecruitRate", 1.3), mod("DistressCallLeadSeconds", 30) },
@@ -164,7 +164,7 @@ return {
 		},
 		HazmatTech = {
 			Name = "Hazmat Tech", Tier = "Rare", Price = 120,
-			Kit = { { Item = "RivetSMG" }, { Item = "GeigerCounter" }, { Item = "HazmatSuit" } },
+			Kit = { { Item = "RivetSMG" }, { Item = "GeigerCounter" }, { Item = "HazmatSuit" }, { Item = "HazardHook" } },
 			Passive = { Text = "Immune to gas; radiation -70%.", Modifiers = { mod("GasImmune", 1), mod("RadiationGain", 0.3) } },
 			Ability = { Name = "Decon Field", Text = "Clears radiation and gas from a room and everyone in it.", CooldownSeconds = 60 },
 			Level2 = { Text = "Decon Room +50%.", Modifiers = { mod("RoomOutput", 1.5, { Room = "DeconRoom" }) } },
@@ -185,7 +185,7 @@ return {
 		},
 		Marksman = {
 			Name = "Marksman", Tier = "Rare", Price = 120,
-			Kit = { { Item = "LeverRifle" }, { Item = "PocketPistol" } },
+			Kit = { { Item = "LeverRifle" }, { Item = "PocketPistol" }, { Item = "HuntingKnife" } },
 			Passive = { Text = "Weak-point hits deal 2.5x.", Modifiers = { mod("WeakPointMultiplier", 2.5) } },
 			Ability = { Name = "Steady Shot", Text = "The next 3 shots pierce and crit.", CooldownSeconds = 30 },
 			Level2 = { Text = "Longer aim zoom.", Modifiers = { mod("AimZoom", 1.3) } },
@@ -279,7 +279,7 @@ return {
 		},
 		Tinkerer = {
 			Name = "Tinkerer", Tier = "Legendary", Price = 500,
-			Kit = { { Item = "Welder" }, { Item = "RivetSMG" } },
+			Kit = { { Item = "Welder" }, { Item = "RivetSMG" }, { Item = "PowerWrench" } },
 			Companion = "Combat Drone",
 			Passive = { Text = "A drone companion that shoots and picks up loot." },
 			Ability = {

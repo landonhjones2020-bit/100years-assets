@@ -177,6 +177,7 @@ text(mc, "Label", "", { pos = { 0.06, 0.25 }, size = { 0.88, 0.5 }, font = F.lab
 
 --@include HUD_MapPing.lua
 --@include HUD_Combat.lua
+--@include HUD_Medkits.lua
 
 sg.Parent = game:GetService("StarterGui")
 return "HUD built: " .. #sg:GetDescendants() .. " instances"

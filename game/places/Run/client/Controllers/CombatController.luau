@@ -16,6 +16,11 @@
 	* Aim assist (Section 9): on a gamepad or touch, while aiming or firing, the camera is pulled
 	  softly toward the monster nearest the aim, within AimAssistDegrees.
 	* Reload (R, a tap of X): from carried ammo, over the gun's ReloadSeconds.
+	* Throw (Landon, 2026-11-08): with a throwable's slot held, Fire throws one toward the
+	  reticle, lofted so it lands there (ThrowSpeed, ThrowGravity). The slot shows "x2".
+	* Heal (H, a hold of D-pad up, the Heal button; Landon, 2026-11-08): uses a carried Medkit
+	  over MedkitSeconds, walking slower meanwhile. The HUD's Medkits chip shows the count and
+	  fills while healing.
 	* Melee (F, the right bumper, the Melee button): a tap swings light, and three light swings
 	  chain into a combo; held past HeavyChargeSeconds it swings heavy (HeavySwingStamina).
 	* Dodge (Ctrl, B, the Dodge button): a roll the way the player moves (backward when
@@ -121,6 +126,11 @@ local function itemIn(slot: number): string?
 	end
 	local value = player:GetAttribute(`Item{slot}`)
 	return if type(value) == "string" then value else nil
+end
+
+local function countOf(slot: number): number
+	local value = player:GetAttribute(`Count{slot}`)
+	return if type(value) == "number" then value else 0
 end
 
 local function stamina(): number
@@ -540,12 +550,41 @@ local function fire(slot: number, item: string, gun: { [string]: any })
 	camera:Face("Fire", true)
 end
 
+-- Throwables: lofted toward what the reticle covers.
+local lastThrowAt = -math.huge
+local function throw(slot: number)
+	local root = rootRef
+	local ray = camera:AimRay()
+	if not root or not ray or countOf(slot) <= 0 or os.clock() - lastThrowAt < t.ThrowCooldownSeconds then
+		return
+	end
+	lastThrowAt = os.clock()
+	local origin = root.Position + Vector3.new(0, 1.6, 0) + root.CFrame.RightVector * 0.8
+	local hit = workspace:Raycast(ray.Origin, ray.Direction * 200, shotFilter())
+	local target = if hit then hit.Position else ray.Origin + ray.Direction * 60
+	local flat = Vector3.new(target.X - origin.X, 0, target.Z - origin.Z).Magnitude
+	local need = math.clamp(t.ThrowGravity * flat / (t.ThrowSpeed * t.ThrowSpeed), 0, 1)
+	local loft = 0.5 * math.asin(need)
+	local direction = (CFrame.lookAt(origin, target) * CFrame.Angles(loft, 0, 0)).LookVector
+	camera:Face("Fire", true)
+	faceUntil = os.clock() + 0.6
+	play("Melee3", 0.35, 0.05) -- the overhead swing reads as a throw until A2's own clip
+	Remotes.FireServer("ThrowItem", slot, origin, direction)
+end
+
 local function tryFire()
 	local slot = selected()
 	local item = itemIn(slot)
 	local gun = Combat.Gun(item)
 	local pressed = firePressed
 	firePressed = false
+	local entry = if item and not gun then Config.Find("Items", item) else nil
+	if entry and entry.Kind == "Throwable" then
+		if pressed and alive() and now() >= swingEndsAt and os.clock() >= dodgeUntil then
+			throw(slot)
+		end
+		return
+	end
 	if not gun or not item or not alive() or reloading() or now() < swingEndsAt or os.clock() < dodgeUntil then
 		return
 	end
@@ -771,6 +810,8 @@ local function refreshHotbar()
 		local ammo: string? = nil
 		if gun then
 			ammo = if reloading() and selected() == i then "RELOAD" else `{magazineOf(i)}/{carried()}`
+		elseif item and i >= 4 then
+			ammo = `x{countOf(i)}`
 		end
 		hud:SetSlot(i, iconFor(item), ammo)
 	end
@@ -779,6 +820,46 @@ local function refreshHotbar()
 		syncingSlot = true
 		hud:SelectSlot(slot)
 		syncingSlot = false
+	end
+end
+
+-- Medkits -----------------------------------------------------------------------------------------
+
+local function healEndsAt(): number?
+	local value = player:GetAttribute("HealEndsAt")
+	return if type(value) == "number" and value > now() then value else nil
+end
+
+local function heal()
+	if not alive() or healEndsAt() then
+		return
+	end
+	Remotes.FireServer("UseMedkit")
+end
+
+local function refreshMedkits()
+	local label = hudPart("HUD.Medkits.Count") :: TextLabel?
+	if label then
+		local value = player:GetAttribute("Medkits")
+		label.Text = `x{if type(value) == "number" then value else 0}`
+	end
+end
+
+local healing = false
+local function updateHeal()
+	local ends = healEndsAt()
+	local on = ends ~= nil and alive()
+	if on ~= healing then
+		healing = on
+		Movement.Set("Heal", if on then p.HealWalkMultiplier else nil)
+	end
+	local fill = hudPart("HUD.Medkits.Fill") :: GuiObject?
+	if fill then
+		fill.Visible = on
+		if on and ends then
+			local done = 1 - math.clamp((ends - now()) / p.MedkitSeconds, 0, 1)
+			fill.Size = UDim2.fromScale(0.88 * done, fill.Size.Y.Scale) -- the chip's inner width
+		end
 	end
 end
 
@@ -860,6 +941,7 @@ function CombatController:Start()
 		end
 	end)
 	input:On("Dodge", dodge)
+	input:On("Heal", heal)
 	input:On("Sprint", function()
 		if input:Device() == "Gamepad" then
 			sprintToggle = not sprintToggle
@@ -879,9 +961,10 @@ function CombatController:Start()
 	end)
 
 	-- server state
-	for _, name in { "Slot", "Item1", "Item2", "Item3", "Item4", "Item5", "CarriedAmmo", "ReloadEndsAt" } do
+	for _, name in { "Slot", "Item1", "Item2", "Item3", "Item4", "Item5", "Count4", "Count5", "CarriedAmmo", "ReloadEndsAt" } do
 		player:GetAttributeChangedSignal(name):Connect(refreshHotbar)
 	end
+	player:GetAttributeChangedSignal("Medkits"):Connect(refreshMedkits)
 	for slot = 1, 2 do
 		player:GetAttributeChangedSignal(`Mag{slot}`):Connect(function()
 			magazines[slot] = nil -- the server's count wins
@@ -926,6 +1009,7 @@ function CombatController:Start()
 			task.wait(0.2)
 		end
 		refreshHotbar()
+		refreshMedkits()
 		hud:SetVital("Stamina", math.clamp(stamina() / p.Stamina, 0, 1))
 	end)
 
@@ -939,6 +1023,7 @@ function CombatController:Start()
 		end
 		assist(dt)
 		updateHold()
+		updateHeal()
 		-- sprint
 		local h = humanoidRef
 		local moving = h ~= nil and h.MoveDirection.Magnitude > 0.1

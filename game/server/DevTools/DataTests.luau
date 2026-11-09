@@ -1494,6 +1494,30 @@ test("Combat: melee arcs, combos, cones, stamina and respawn (Section 9)", funct
 	expect(tuning.DownedSeconds == 20 and tuning.ReviveSeconds == 3 and tuning.RespawnSeconds == 15, "Section 9's timings")
 end)
 
+test("Combat: every kit has a melee weapon; Medkits and throwables (Landon, 2026-11-08)", function()
+	for _, class in Config.All("Classes") do
+		local id = class.Id
+		local melee = 0
+		for _, stack in class.Kit do
+			local item = Config.Find("Items", stack.Item)
+			expect(item ~= nil, `{id}'s kit item {stack.Item} exists`)
+			if item and item.Kind == "Melee" then
+				melee += 1
+			end
+		end
+		expectEqual(melee, 1, `{id}'s kit has one melee weapon`)
+	end
+	for _, item in Config.All("Items") do
+		if item.Kind == "Throwable" then
+			expect(item.Throwable ~= nil and item.Throwable.Radius > 0, `{item.Id} has its throw numbers`)
+		end
+	end
+	local p = Config.Get("Tuning", "Player")
+	expect(p.MedkitHeal == 60 and p.MedkitSeconds == 1.5 and p.Loadout.Medkits == 3, "a Medkit heals 60 over 1.5 s; carry 3")
+	local medic = Config.Get("Classes", "Medic")
+	expect(medic.Kit[1].Item == "Medkit" and medic.Kit[1].Count == 5, "the Medic starts with 5 Medkits (Section 14)")
+end)
+
 -- Remotes and constants ------------------------------------------------------------------
 
 test("Remotes: every definition is complete", function()

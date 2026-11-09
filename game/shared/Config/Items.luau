@@ -111,6 +111,48 @@ return {
 			HasRarity = true,
 			Asset = "Weapon_Pickaxe",
 		},
+		-- Landon, 2026-11-08: every class kit has a melee weapon that matches it. These five are
+		-- the kits that had none (the Engineer takes the Wrench). Numbers provisional.
+		DefibPaddles = {
+			Name = "Defib Paddles",
+			Kind = "Melee",
+			Text = "Zaps and stuns briefly.",
+			Melee = { Damage = 12, HeavyDamage = 22, SwingSeconds = 0.45, StunSeconds = 0.8 },
+			HasRarity = true,
+			Asset = "Weapon_DefibPaddles",
+		},
+		AntennaWhip = {
+			Name = "Antenna Whip",
+			Kind = "Melee",
+			Text = "Very fast and light.",
+			Melee = { Damage = 11, HeavyDamage = 20, SwingSeconds = 0.3 },
+			HasRarity = true,
+			Asset = "Weapon_AntennaWhip",
+		},
+		HazardHook = {
+			Name = "Hazard Hook",
+			Kind = "Melee",
+			Text = "Balanced, with a shove.",
+			Melee = { Damage = 18, HeavyDamage = 32, SwingSeconds = 0.5, Knockback = 12 },
+			HasRarity = true,
+			Asset = "Weapon_HazardHook",
+		},
+		HuntingKnife = {
+			Name = "Hunting Knife",
+			Kind = "Melee",
+			Text = "Quick and light.",
+			Melee = { Damage = 13, HeavyDamage = 24, SwingSeconds = 0.3 },
+			HasRarity = true,
+			Asset = "Weapon_HuntingKnife",
+		},
+		PowerWrench = {
+			Name = "Power Wrench",
+			Kind = "Melee",
+			Text = "Motorised; heavy hits.",
+			Melee = { Damage = 22, HeavyDamage = 40, SwingSeconds = 0.55, Knockback = 15 },
+			HasRarity = true,
+			Asset = "Weapon_PowerWrench",
+		},
 
 		-- Guns
 		PocketPistol = {
