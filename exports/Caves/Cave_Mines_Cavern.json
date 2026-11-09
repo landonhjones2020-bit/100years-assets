@@ -1,0 +1,589 @@
+{
+ "asset": "Cave_Mines_Cavern",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  70.949,
+  34.898,
+  69.079
+ ],
+ "tris": 7142,
+ "pivot": [
+  0.121,
+  3.05,
+  27.271
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -2.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    22.5,
+    -2.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Floor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -28.0
+   ],
+   "size": [
+    52.0,
+    1.0,
+    48.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    22.5,
+    -28.0
+   ],
+   "size": [
+    52.0,
+    1.0,
+    48.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    16.5,
+    11.0,
+    -3.5
+   ],
+   "size": [
+    19.0,
+    22.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -16.5,
+    11.0,
+    -3.5
+   ],
+   "size": [
+    19.0,
+    22.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    11.0,
+    -52.5
+   ],
+   "size": [
+    52.0,
+    22.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -26.5,
+    11.0,
+    -28.0
+   ],
+   "size": [
+    1.0,
+    22.0,
+    48.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    11.0,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    22.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    26.5,
+    11.0,
+    -28.0
+   ],
+   "size": [
+    1.0,
+    22.0,
+    48.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    11.0,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    22.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    17.0,
+    0.5
+   ],
+   "size": [
+    14.0,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "gunmetal",
+    "pine",
+    "sandstone",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.046,
+    14.269,
+    -26.935
+   ],
+   "size": [
+    66.977,
+    31.12,
+    64.952
+   ],
+   "tris": 6742
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    0.0,
+    18.5,
+    -27.0
+   ],
+   "size": [
+    34.533,
+    3.75,
+    22.56
+   ],
+   "tris": 144
+  },
+  {
+   "name": "Cart1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    -11.0,
+    1.5,
+    -22.0
+   ],
+   "size": [
+    4.2,
+    4.699,
+    4.443
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Cart2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    9.0,
+    1.9,
+    -47.5
+   ],
+   "size": [
+    4.2,
+    2.2,
+    3.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Crate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    -21.962,
+    1.08,
+    -27.952
+   ],
+   "size": [
+    2.4,
+    2.16,
+    2.4
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    -22.339,
+    3.24,
+    -28.027
+   ],
+   "size": [
+    2.4,
+    2.16,
+    2.4
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "band": "Mines",
+  "kind": "Cavern",
+  "weight": 2,
+  "box": {
+   "min": [
+    -30.0,
+    -1.5,
+    -56.0
+   ],
+   "max": [
+    30.0,
+    26.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Find1": {
+   "p": [
+    18.0,
+    0.0,
+    -14.0
+   ],
+   "yaw": 180.0
+  },
+  "Find2": {
+   "p": [
+    -18.0,
+    0.0,
+    -14.0
+   ],
+   "yaw": 180.0
+  },
+  "Find3": {
+   "p": [
+    19.0,
+    0.0,
+    -42.0
+   ],
+   "yaw": 180.0
+  },
+  "Find4": {
+   "p": [
+    -19.0,
+    0.0,
+    -42.0
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    20.0,
+    -16.0
+   ],
+   "yaw": 0.0
+  },
+  "Light2": {
+   "p": [
+    0.0,
+    20.0,
+    -38.0
+   ],
+   "yaw": 0.0
+  },
+  "Light3": {
+   "p": [
+    17.0,
+    17.0,
+    -28.0
+   ],
+   "yaw": 0.0
+  },
+  "Light4": {
+   "p": [
+    -17.0,
+    17.0,
+    -28.0
+   ],
+   "yaw": 0.0
+  },
+  "Nest": {
+   "p": [
+    0.0,
+    0.0,
+    -42.0
+   ],
+   "yaw": 180.0
+  },
+  "Spawn1": {
+   "p": [
+    0.0,
+    0.0,
+    -22.0
+   ],
+   "yaw": 0.0
+  },
+  "Spawn2": {
+   "p": [
+    10.0,
+    0.0,
+    -30.0
+   ],
+   "yaw": 0.0
+  },
+  "Spawn3": {
+   "p": [
+    -10.0,
+    0.0,
+    -30.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "466e4118fefc4891"
+}

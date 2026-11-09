@@ -105,23 +105,46 @@
    "bone": null,
    "tint": null,
    "swatches": [
-    "gunmetal",
+    "gunmetal"
+   ],
+   "offset": [
+    8.0,
+    2.6,
+    0.0
+   ],
+   "size": [
+    34.0,
+    1.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
     "rust"
    ],
    "offset": [
     8.0,
-    7.611,
-    0.174
+    8.1,
+    4.5
    ],
    "size": [
-    35.0,
-    11.023,
-    10.348
+    34.0,
+    10.045,
+    1.695
    ],
-   "tris": 72
+   "tris": 12
   },
   {
-   "name": "Roof",
+   "name": "Car3",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -130,26 +153,121 @@
    "bone": null,
    "tint": null,
    "swatches": [
-    "rust",
-    "teal"
+    "rust"
    ],
    "offset": [
-    54.1,
-    11.946,
-    -13.496
+    18.2,
+    8.1,
+    -4.5
    ],
    "size": [
-    210.8,
-    3.892,
-    38.007
+    13.6,
+    10.0,
+    1.0
    ],
-   "tris": 72
+   "tris": 12
+  },
+  {
+   "name": "Car4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    -4.75,
+    8.1,
+    -4.5
+   ],
+   "size": [
+    8.5,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    25.0,
+    8.1,
+    0.0
+   ],
+   "size": [
+    1.0,
+    10.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    -9.0,
+    8.1,
+    0.0
+   ],
+   "size": [
+    1.0,
+    10.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Roof1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    8.0,
+    13.4,
+    0.0
+   ],
+   "size": [
+    34.6,
+    0.984,
+    11.014
+   ],
+   "tris": 12
   },
   {
    "name": "Ramp1",
    "material": "SmoothPlastic",
    "transparency": 0.0,
-   "collision": "box",
+   "collision": "hull",
    "castShadow": true,
    "role": null,
    "bone": null,
@@ -170,7 +288,7 @@
    "tris": 12
   },
   {
-   "name": "Car2",
+   "name": "Car7",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -179,26 +297,169 @@
    "bone": null,
    "tint": null,
    "swatches": [
-    "gunmetal",
+    "gunmetal"
+   ],
+   "offset": [
+    -34.0,
+    2.6,
+    0.0
+   ],
+   "size": [
+    34.0,
+    1.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
     "teal"
    ],
    "offset": [
     -34.0,
-    7.61,
-    0.13
+    8.1,
+    4.5
    ],
    "size": [
-    35.0,
-    11.019,
-    10.261
+    34.0,
+    10.039,
+    1.522
    ],
-   "tris": 72
+   "tris": 12
+  },
+  {
+   "name": "Car9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -23.8,
+    8.1,
+    -4.5
+   ],
+   "size": [
+    13.6,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car10",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -46.75,
+    8.1,
+    -4.5
+   ],
+   "size": [
+    8.5,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car11",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -17.0,
+    8.1,
+    0.0
+   ],
+   "size": [
+    1.0,
+    10.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Car12",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -51.0,
+    8.1,
+    0.0
+   ],
+   "size": [
+    1.0,
+    10.0,
+    10.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Roof2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    -34.0,
+    13.4,
+    0.0
+   ],
+   "size": [
+    34.6,
+    0.888,
+    11.012
+   ],
+   "tris": 12
   },
   {
    "name": "Ramp2",
    "material": "SmoothPlastic",
    "transparency": 0.0,
-   "collision": "box",
+   "collision": "hull",
    "castShadow": true,
    "role": null,
    "bone": null,
@@ -219,7 +480,79 @@
    "tris": 12
   },
   {
-   "name": "Depot",
+   "name": "Depot1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    156.0,
+    5.0,
+    -32.0
+   ],
+   "size": [
+    6.0,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Depot2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    150.0,
+    8.75,
+    -32.0
+   ],
+   "size": [
+    6.0,
+    2.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Depot3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    144.0,
+    5.0,
+    -32.0
+   ],
+   "size": [
+    6.0,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Depot4",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -233,14 +566,62 @@
    "offset": [
     150.0,
     5.0,
+    -20.0
+   ],
+   "size": [
+    18.0,
+    10.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Depot5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    159.0,
+    5.0,
     -26.0
    ],
    "size": [
-    19.0,
+    1.0,
     10.0,
-    13.0
+    12.0
    ],
-   "tris": 72
+   "tris": 12
+  },
+  {
+   "name": "Depot6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    141.0,
+    5.0,
+    -26.0
+   ],
+   "size": [
+    1.0,
+    10.0,
+    12.0
+   ],
+   "tris": 12
   },
   {
    "name": "DepotFloor",
@@ -265,6 +646,30 @@
     12.0
    ],
    "tris": 12
+  },
+  {
+   "name": "Roof",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    150.0,
+    10.3,
+    -26.0
+   ],
+   "size": [
+    19.0,
+    0.6,
+    13.0
+   ],
+   "tris": 48
   },
   {
    "name": "Sign1",
@@ -328,15 +733,15 @@
  "sockets": {
   "BigFind": {
    "p": [
-    8.0,
-    3.1,
-    -1.5
+    -14.0,
+    0.4,
+    -12.0
    ],
    "yaw": 0.0
   },
   "Container1": {
    "p": [
-    56.0,
+    18.0,
     3.1,
     2.4
    ],
@@ -344,7 +749,7 @@
   },
   "Container2": {
    "p": [
-    40.0,
+    8.0,
     3.1,
     2.4
    ],
@@ -352,7 +757,7 @@
   },
   "Container3": {
    "p": [
-    16.0,
+    -2.0,
     3.1,
     2.4
    ],
@@ -360,7 +765,7 @@
   },
   "Container4": {
    "p": [
-    0.0,
+    -24.0,
     3.1,
     2.4
    ],
@@ -368,7 +773,7 @@
   },
   "Container5": {
    "p": [
-    -26.0,
+    -34.0,
     3.1,
     2.4
    ],
@@ -376,7 +781,7 @@
   },
   "Container6": {
    "p": [
-    -42.0,
+    -44.0,
     3.1,
     2.4
    ],
@@ -391,5 +796,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "661b64dab4d17359"
+ "fbx_sha1": "0640a8ab12123dfe"
 }

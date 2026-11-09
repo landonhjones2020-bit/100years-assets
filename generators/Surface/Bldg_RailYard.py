@@ -19,20 +19,22 @@ def bogies(x, length):
 
 
 def boxcar(x, length, colour, tilt):
+    """A boxcar players climb into: every wall its own collision box (merged, one box would fill
+    the car: the A5 playtest's solid boxcars), the roof per car, the ramp a hull (a box would be a
+    3-stud step)."""
     bogies(x, length)
-    part = T.uid("Car")
-    bx(part, "gunmetal", (length, 10, 1.0), (x, 0, FLOOR - 0.5), collision="box")
-    bx(part, colour, (length, 1.0, 10), (x, 4.5, FLOOR + 5), collision="box", rot=(tilt, 0, 0))      # back wall
-    bx(part, colour, (length * 0.4, 1.0, 10), (x - length * 0.3, -4.5, FLOOR + 5), collision="box")
-    bx(part, colour, (length * 0.25, 1.0, 10), (x + length * 0.375, -4.5, FLOOR + 5), collision="box")
+    bx(T.uid("Car"), "gunmetal", (length, 10, 1.0), (x, 0, FLOOR - 0.5), collision="box")
+    bx(T.uid("Car"), colour, (length, 1.0, 10), (x, 4.5, FLOOR + 5), collision="hull", rot=(tilt, 0, 0))      # back wall
+    bx(T.uid("Car"), colour, (length * 0.4, 1.0, 10), (x - length * 0.3, -4.5, FLOOR + 5), collision="box")
+    bx(T.uid("Car"), colour, (length * 0.25, 1.0, 10), (x + length * 0.375, -4.5, FLOOR + 5), collision="box")
     for sx in (-1, 1):
-        bx(part, colour, (1.0, 10, 10), (x + sx * length / 2, 0, FLOOR + 5), collision="box")
-    bx("Roof", colour, (length + 0.6, 11, 0.6), (x, 0, FLOOR + 10.3), collision="box", rot=(tilt * 0.5, 0, 0))
+        bx(T.uid("Car"), colour, (1.0, 10, 10), (x + sx * length / 2, 0, FLOOR + 5), collision="box")
+    bx(T.uid("Roof"), colour, (length + 0.6, 11, 0.6), (x, 0, FLOOR + 10.3), collision="hull", rot=(tilt * 0.5, 0, 0))
     for i in range(int(length // 4)):
         bx("Decor", "steel", (0.25, 10.4, 0.25), (x - length / 2 + 2 + i * 4, 0, FLOOR + 10.7))
     bx("Decor", colour, (length * 0.32, 0.4, 9.4), (x + length * 0.07, -6.2, FLOOR + 4.7), rot=(0, 0, 8))  # the door, slid off
     T.t(T.sf.profile_slab([(0, 0), (6, 0), (6, 0.6)], 5, loc=(x + 4 - 2.5, -5.0, 0), rot=(0, 0, 0)), "Decor", "walnut")
-    bx(T.uid("Ramp"), "walnut", (5, 7, 0.6), (x + 4, -7.2, 1.5), rot=(-24, 0, 0), collision="box")
+    bx(T.uid("Ramp"), "walnut", (5, 7, 0.6), (x + 4, -7.2, 1.5), rot=(-24, 0, 0), collision="hull")
 
 
 def loco(x, length):
@@ -69,14 +71,18 @@ def build():
     T.sign(-150, -32.6, 11.6, 9, 2.4, swatch="cream", rim="walnut")
     T.R.crate(-156, -22, size=2.6)
 
+    # three containers against the back of each boxcar (the locomotive is shut), 10 studs apart;
+    # the big find out on the ground, clear of them
     sockets = {}
     i = 0
     for kind, cx, length, colour in CARS:
-        for dx in (-8, 8):
+        if kind != "Boxcar":
+            continue
+        for dx in (-10, 0, 10):
             i += 1
             sockets[f"Container{i}"] = ((cx + dx, 2.4, FLOOR), 0.0)
     sockets["Survivor1"] = ((-150, -24, 0.5), 0)
-    sockets["BigFind"] = ((-8, -1.5, FLOOR), 0)
+    sockets["BigFind"] = ((14, -12, 0.4), 0)
     return {"export": {"sockets": sockets, "pivot": (0, 0, 0), "meta": {"place": "RailYard", "floor": FLOOR}}}
 
 

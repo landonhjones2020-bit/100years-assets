@@ -1,0 +1,550 @@
+{
+ "asset": "Cave_Flooded_CrewPocket",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  42.861,
+  22.627,
+  44.607
+ ],
+ "tris": 7348,
+ "pivot": [
+  0.157,
+  2.255,
+  16.449
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -2.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    14.5,
+    -2.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Floor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -18.0
+   ],
+   "size": [
+    30.0,
+    1.0,
+    28.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    14.5,
+    -18.0
+   ],
+   "size": [
+    30.0,
+    1.0,
+    28.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    11.0,
+    7.0,
+    -3.5
+   ],
+   "size": [
+    8.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -11.0,
+    7.0,
+    -3.5
+   ],
+   "size": [
+    8.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    7.0,
+    -32.5
+   ],
+   "size": [
+    30.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -15.5,
+    7.0,
+    -18.0
+   ],
+   "size": [
+    1.0,
+    14.0,
+    28.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    7.0,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    14.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    15.5,
+    7.0,
+    -18.0
+   ],
+   "size": [
+    1.0,
+    14.0,
+    28.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    7.0,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    14.0,
+    4.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    13.0,
+    0.5
+   ],
+   "size": [
+    14.0,
+    2.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "murk",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -0.092,
+    8.918,
+    -16.132
+   ],
+   "size": [
+    40.434,
+    19.864,
+    41.765
+   ],
+   "tris": 6952
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "hazard"
+   ],
+   "offset": [
+    -1.081,
+    7.912,
+    -14.54
+   ],
+   "size": [
+    20.694,
+    9.725,
+    13.48
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Crate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    12.693,
+    1.08,
+    -12.352
+   ],
+   "size": [
+    2.4,
+    2.16,
+    2.4
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    12.353,
+    3.24,
+    -12.221
+   ],
+   "size": [
+    2.4,
+    2.16,
+    2.4
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    -12.185,
+    1.08,
+    -21.838
+   ],
+   "size": [
+    2.4,
+    2.16,
+    2.4
+   ],
+   "tris": 44
+  },
+  {
+   "name": "DecorGlass",
+   "material": "Glass",
+   "transparency": 0.55,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    9.0,
+    0.2,
+    -16.0
+   ],
+   "size": [
+    7.4,
+    0.1,
+    7.4
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "band": "FloodedCaverns",
+  "kind": "CrewPocket",
+  "weight": 0,
+  "box": {
+   "min": [
+    -19.0,
+    -1.5,
+    -36.0
+   ],
+   "max": [
+    19.0,
+    18.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Crew1": {
+   "p": [
+    8.0,
+    0.0,
+    -26.0
+   ],
+   "yaw": 180.0
+  },
+  "Crew2": {
+   "p": [
+    0.0,
+    0.0,
+    -28.5
+   ],
+   "yaw": 180.0
+  },
+  "Crew3": {
+   "p": [
+    -8.0,
+    0.0,
+    -26.0
+   ],
+   "yaw": 180.0
+  },
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Find1": {
+   "p": [
+    -11.5,
+    0.0,
+    -13.0
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    12.4,
+    -21.0
+   ],
+   "yaw": 0.0
+  },
+  "Light2": {
+   "p": [
+    9.0,
+    12.4,
+    -9.0
+   ],
+   "yaw": 0.0
+  },
+  "Nest": {
+   "p": [
+    0.0,
+    0.0,
+    -11.0
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "2a4b11ab649df23f"
+}

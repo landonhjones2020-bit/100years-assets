@@ -34,7 +34,7 @@ def reset():
 def wall_x(swatch, x0, x1, y, z0, z1, holes=(), thick=1.0, collision="box", part=None, jag=None, trim=None):
     """A wall along X (its face centred on y) from x0 to x1, z0 to z1, with rectangular holes
     [(xa, xb, za, zb)]. jag: a list of (x, height) points for a broken top instead of z1."""
-    part = part or uid("Wall")
+    base = _base(part)
     xs = sorted({x0, x1} | {h[0] for h in holes} | {h[1] for h in holes})
     for a, b in zip(xs, xs[1:]):
         mid = (a + b) / 2
@@ -43,7 +43,8 @@ def wall_x(swatch, x0, x1, y, z0, z1, holes=(), thick=1.0, collision="box", part
         z = z0
         for za, zb in cuts + [(top, top)]:
             if za > z + 0.01:
-                bx(part, swatch, (b - a, thick, min(za, top) - z), ((a + b) / 2, y, (z + min(za, top)) / 2), collision=collision)
+                bx(_segment(base, collision), swatch, (b - a, thick, min(za, top) - z), ((a + b) / 2, y, (z + min(za, top)) / 2),
+                   collision=collision)
             z = max(z, zb)
     if trim:
         bx("Decor", trim, (x1 - x0 + 0.2, thick + 0.3, 0.6), ((x0 + x1) / 2, y, z0 + 0.3))
@@ -51,7 +52,7 @@ def wall_x(swatch, x0, x1, y, z0, z1, holes=(), thick=1.0, collision="box", part
 
 def wall_y(swatch, y0, y1, x, z0, z1, holes=(), thick=1.0, collision="box", part=None, jag=None):
     """The same along Y at x (holes [(ya, yb, za, zb)])."""
-    part = part or uid("Wall")
+    base = _base(part)
     ys = sorted({y0, y1} | {h[0] for h in holes} | {h[1] for h in holes})
     for a, b in zip(ys, ys[1:]):
         mid = (a + b) / 2
@@ -60,8 +61,20 @@ def wall_y(swatch, y0, y1, x, z0, z1, holes=(), thick=1.0, collision="box", part
         z = z0
         for za, zb in cuts + [(top, top)]:
             if za > z + 0.01:
-                bx(part, swatch, (thick, b - a, min(za, top) - z), (x, (a + b) / 2, (z + min(za, top)) / 2), collision=collision)
+                bx(_segment(base, collision), swatch, (thick, b - a, min(za, top) - z), (x, (a + b) / 2, (z + min(za, top)) / 2),
+                   collision=collision)
             z = max(z, zb)
+
+
+def _base(part):
+    """A wall's part name without its number: every colliding segment gets its own (Wall3, Wall4...)."""
+    return (part or "Wall").rstrip("0123456789") or "Wall"
+
+
+def _segment(base, collision):
+    """Each colliding segment is its own MeshPart: merged, their Box collision would be the whole
+    wall's bounding box and fill every door and window (A5 playtest: the diner's door was solid)."""
+    return uid(base) if collision != "none" else "Decor"
 
 
 def _jag_height(jag, at, default):

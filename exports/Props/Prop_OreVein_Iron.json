@@ -1,0 +1,81 @@
+{
+ "asset": "Prop_OreVein_Iron",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  6.097,
+  4.669,
+  5.308
+ ],
+ "tris": 360,
+ "pivot": [
+  -0.057,
+  1.334,
+  0.184
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "copper",
+    "rust",
+    "stone"
+   ],
+   "offset": [
+    -0.033,
+    1.209,
+    -0.168
+   ],
+   "size": [
+    5.194,
+    3.501,
+    3.77
+   ],
+   "tris": 348
+  },
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 1.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    1.4,
+    0.0
+   ],
+   "size": [
+    3.6,
+    2.8,
+    2.4
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "find": "OreVein",
+  "ore": "Iron"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "bf62ebc7d0901212"
+}

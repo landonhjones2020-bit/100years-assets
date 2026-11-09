@@ -1,0 +1,129 @@
+{
+ "asset": "Prop_CryoPod",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  4.599,
+  2.092,
+  2.2
+ ],
+ "tris": 420,
+ "pivot": [
+  0.0,
+  0.046,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Shell",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "size": [
+    3.171,
+    1.997,
+    2.1
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Caps",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "gunmetal",
+    "navy",
+    "porcelain",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "size": [
+    4.599,
+    2.092,
+    2.2
+   ],
+   "tris": 324
+  },
+  {
+   "name": "Window",
+   "material": "Glass",
+   "transparency": 0.25,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.0,
+    1.102,
+    -1.03
+   ],
+   "size": [
+    2.4,
+    0.9,
+    0.08
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Lamp",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -1.6,
+    1.14,
+    -0.93
+   ],
+   "size": [
+    0.24,
+    0.24,
+    0.24
+   ],
+   "tris": 48
+  }
+ ],
+ "meta": {
+  "bigFind": "CryoPod"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "ddcde196ff55cc6f"
+}

@@ -1,0 +1,81 @@
+{
+ "asset": "Prop_OreVein_Copper",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  6.467,
+  3.773,
+  4.747
+ ],
+ "tris": 360,
+ "pivot": [
+  -0.057,
+  0.886,
+  -0.093
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "copper",
+    "mint",
+    "stone"
+   ],
+   "offset": [
+    -0.069,
+    1.126,
+    0.036
+   ],
+   "size": [
+    5.56,
+    3.105,
+    3.76
+   ],
+   "tris": 348
+  },
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 1.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    1.4,
+    0.0
+   ],
+   "size": [
+    3.6,
+    2.8,
+    2.4
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "find": "OreVein",
+  "ore": "Copper"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "9a7cc9f0d302414d"
+}

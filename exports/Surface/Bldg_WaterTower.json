@@ -215,7 +215,79 @@
    "tris": 44
   },
   {
-   "name": "Shed",
+   "name": "Shed1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    4.75,
+    4.0,
+    11.0
+   ],
+   "size": [
+    4.5,
+    8.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shed2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    7.25,
+    11.0
+   ],
+   "size": [
+    5.0,
+    1.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shed3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -4.75,
+    4.0,
+    11.0
+   ],
+   "size": [
+    4.5,
+    8.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shed4",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -229,14 +301,62 @@
    "offset": [
     0.0,
     4.0,
+    21.0
+   ],
+   "size": [
+    14.0,
+    8.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shed5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    7.0,
+    4.0,
     16.0
    ],
    "size": [
-    15.0,
+    1.0,
     8.0,
-    11.0
+    10.0
    ],
-   "tris": 72
+   "tris": 12
+  },
+  {
+   "name": "Shed6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -7.0,
+    4.0,
+    16.0
+   ],
+   "size": [
+    1.0,
+    8.0,
+    10.0
+   ],
+   "tris": 12
   },
   {
    "name": "Roof",
@@ -299,5 +419,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "f0ced742555d5d9f"
+ "fbx_sha1": "ae8ada598ee3f0fa"
 }

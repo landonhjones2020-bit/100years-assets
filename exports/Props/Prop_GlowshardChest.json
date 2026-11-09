@@ -1,0 +1,104 @@
+{
+ "asset": "Prop_GlowshardChest",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  2.52,
+  2.329,
+  2.202
+ ],
+ "tris": 188,
+ "pivot": [
+  0.0,
+  -0.025,
+  -0.281
+ ],
+ "parts": [
+  {
+   "name": "Box",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.6,
+    0.0
+   ],
+   "size": [
+    2.4,
+    1.1,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Base",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.19,
+    0.281
+   ],
+   "size": [
+    2.52,
+    2.329,
+    2.202
+   ],
+   "tris": 96
+  },
+  {
+   "name": "Shards",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.235,
+    1.425,
+    0.064
+   ],
+   "size": [
+    1.273,
+    0.88,
+    0.789
+   ],
+   "tris": 80
+  }
+ ],
+ "meta": {
+  "find": "GlowshardChest"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "39be430f64a11693"
+}

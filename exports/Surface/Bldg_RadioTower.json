@@ -190,7 +190,55 @@
    "tris": 12
   },
   {
-   "name": "Shack",
+   "name": "Shack1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    7.0,
+    4.5,
+    2.5
+   ],
+   "size": [
+    2.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    4.0,
+    8.0,
+    2.5
+   ],
+   "size": [
+    4.0,
+    2.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack3",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -204,14 +252,158 @@
    "offset": [
     0.0,
     4.5,
+    2.5
+   ],
+   "size": [
+    4.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -4.0,
+    1.75,
+    2.5
+   ],
+   "size": [
+    4.0,
+    3.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -4.0,
+    8.0,
+    2.5
+   ],
+   "size": [
+    4.0,
+    2.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -7.0,
+    4.5,
+    2.5
+   ],
+   "size": [
+    2.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    4.5,
+    13.5
+   ],
+   "size": [
+    16.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Shack8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    8.0,
+    4.5,
     8.0
    ],
    "size": [
-    17.0,
+    1.0,
     9.0,
-    12.0
+    11.0
    ],
-   "tris": 108
+   "tris": 12
+  },
+  {
+   "name": "Shack9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "walnut"
+   ],
+   "offset": [
+    -8.0,
+    4.5,
+    8.0
+   ],
+   "size": [
+    1.0,
+    9.0,
+    11.0
+   ],
+   "tris": 12
   },
   {
    "name": "Floor",
@@ -364,5 +556,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "7001d44e1af4dbb3"
+ "fbx_sha1": "fd9b84c88ea90ec1"
 }

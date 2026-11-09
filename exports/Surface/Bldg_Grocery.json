@@ -51,16 +51,208 @@
     "cream"
    ],
    "offset": [
-    0.0,
+    23.5,
     7.0,
     -18.0
    ],
    "size": [
-    50.0,
+    3.0,
     14.0,
     1.0
    ],
-   "tris": 108
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    15.0,
+    1.2,
+    -18.0
+   ],
+   "size": [
+    14.0,
+    2.4,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    15.0,
+    12.0,
+    -18.0
+   ],
+   "size": [
+    14.0,
+    4.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    6.5,
+    7.0,
+    -18.0
+   ],
+   "size": [
+    3.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    11.75,
+    -18.0
+   ],
+   "size": [
+    10.0,
+    4.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -6.5,
+    7.0,
+    -18.0
+   ],
+   "size": [
+    3.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -15.0,
+    1.2,
+    -18.0
+   ],
+   "size": [
+    14.0,
+    2.4,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -15.0,
+    12.0,
+    -18.0
+   ],
+   "size": [
+    14.0,
+    4.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -23.5,
+    4.0,
+    -18.0
+   ],
+   "size": [
+    3.0,
+    8.0,
+    1.0
+   ],
+   "tris": 12
   },
   {
    "name": "Decor",
@@ -122,7 +314,7 @@
    "tris": 92
   },
   {
-   "name": "Wall2",
+   "name": "Wall10",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -136,17 +328,161 @@
    "offset": [
     25.0,
     7.0,
-    0.0
+    -12.0
    ],
    "size": [
     1.0,
     14.0,
-    36.0
+    12.0
    ],
-   "tris": 48
+   "tris": 12
   },
   {
-   "name": "Wall3",
+   "name": "Wall11",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    25.0,
+    1.75,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    3.5,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall12",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    25.0,
+    11.5,
+    -2.0
+   ],
+   "size": [
+    1.0,
+    5.0,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall13",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    25.0,
+    7.0,
+    10.0
+   ],
+   "size": [
+    1.0,
+    14.0,
+    16.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall14",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -25.0,
+    4.0,
+    -11.0
+   ],
+   "size": [
+    1.0,
+    8.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall15",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -25.0,
+    1.75,
+    0.0
+   ],
+   "size": [
+    1.0,
+    3.5,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall16",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -25.0,
+    9.5,
+    0.0
+   ],
+   "size": [
+    1.0,
+    1.0,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall17",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -160,17 +496,41 @@
    "offset": [
     -25.0,
     7.0,
-    0.0
+    11.0
    ],
    "size": [
     1.0,
     14.0,
-    36.0
+    14.0
    ],
-   "tris": 48
+   "tris": 12
   },
   {
-   "name": "Wall4",
+   "name": "Wall18",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    14.0,
+    7.0,
+    18.0
+   ],
+   "size": [
+    22.0,
+    14.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall19",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -183,15 +543,39 @@
    ],
    "offset": [
     0.0,
+    11.0,
+    18.0
+   ],
+   "size": [
+    6.0,
+    6.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall20",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -14.0,
     7.0,
     18.0
    ],
    "size": [
-    50.0,
+    22.0,
     14.0,
     1.0
    ],
-   "tris": 36
+   "tris": 12
   },
   {
    "name": "Roof",
@@ -434,5 +818,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "e6a828d9797946b4"
+ "fbx_sha1": "81fdd3a303504c31"
 }

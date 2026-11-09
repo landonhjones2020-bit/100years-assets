@@ -215,7 +215,151 @@
    "tris": 44
   },
   {
-   "name": "Kiosk",
+   "name": "Kiosk1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -4.0,
+    6.0,
+    4.0
+   ],
+   "size": [
+    2.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -7.0,
+    10.25,
+    4.0
+   ],
+   "size": [
+    4.0,
+    3.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -10.5,
+    6.0,
+    4.0
+   ],
+   "size": [
+    3.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -17.0,
+    1.75,
+    4.0
+   ],
+   "size": [
+    10.0,
+    3.5,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -17.0,
+    10.5,
+    4.0
+   ],
+   "size": [
+    10.0,
+    3.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -23.5,
+    6.0,
+    4.0
+   ],
+   "size": [
+    3.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk7",
    "material": "SmoothPlastic",
    "transparency": 0.0,
    "collision": "box",
@@ -229,14 +373,62 @@
    "offset": [
     -14.0,
     6.0,
+    20.0
+   ],
+   "size": [
+    22.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Kiosk8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -3.0,
+    6.0,
     12.0
    ],
    "size": [
-    23.0,
+    1.0,
     12.0,
-    17.0
+    16.0
    ],
-   "tris": 108
+   "tris": 12
+  },
+  {
+   "name": "Kiosk9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -25.0,
+    6.0,
+    12.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    16.0
+   ],
+   "tris": 12
   },
   {
    "name": "Roof",
@@ -436,5 +628,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "2387c0b8ead3efef"
+ "fbx_sha1": "6a73a9933b0da427"
 }
