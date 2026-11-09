@@ -306,11 +306,13 @@ return {
 			-- behind her (MaxSacs at once). A sac has SacHealth (fire does BurnMultiplier) and hatches
 			-- HatchCount Burrow Ticks after HatchSeconds. StaggerFraction of her health dealt to her belly
 			-- within StaggerWindowSeconds staggers her for StaggerSeconds. She roars RoarSeconds as she
-			-- arrives and as her second phase starts. She stays ArenaMargin from her arena's ends.
-			MoveSpeed = { 5, 7 }, AttackSeconds = { 3.2, 2.4 }, SlamDamage = 30, SlamRadius = 9, SlamReach = 14,
+			-- arrives and as her second phase starts. She stays ArenaMargin from her arena's ends and
+			-- turns TurnDegreesPerSecond, slower than a player circling her (so her flanks and belly
+			-- can be reached); SlamReach covers her whole cell, so nowhere in front of her is safe.
+			MoveSpeed = { 5, 7 }, AttackSeconds = { 3.2, 2.4 }, SlamDamage = 30, SlamRadius = 9, SlamReach = 18,
 			LaySeconds = { 16, 10 }, SacsPerLay = { 1, 2 }, MaxSacs = 6, SacHealth = 90, HatchSeconds = 14, HatchCount = 3,
 			BurnMultiplier = 2, StaggerFraction = 0.05, StaggerWindowSeconds = 3, StaggerSeconds = 2.5, RoarSeconds = 2.5,
-			ArenaMargin = 10, TurnDegreesPerSecond = 120,
+			ArenaMargin = 10, TurnDegreesPerSecond = 60,
 		},
 		Results = { -- Prompt 15, prov. (Section 18: Results; Section 16's payouts are Config.GlowshardRewards)
 			-- The screen opens OpenDelaySeconds after the run ends; StoriesMax lines of the run's story.

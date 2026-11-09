@@ -42,7 +42,7 @@
 		BossService:IsEggSac(combatId): boolean         -- one of its egg sacs (a broken sac isn't a kill)
 		BossService.Started: Signal<string>             -- bossId
 		BossService.Defeated: Signal<string, Player?>   -- bossId, who struck the last blow
-	Dev: boss, boss.start, boss.hurt, boss.lay, boss.end.
+	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end.
 ]]
 
 local Players = game:GetService("Players")
@@ -977,6 +977,20 @@ local function registerCommands(dev: any)
 			f.Busy = 0
 			f.NextLay = 0
 			return describe()
+		end,
+	})
+	dev:Register("boss.freeze", {
+		Description = "The boss stands still (no turning, walking, slams or eggs; sacs still hatch) for a while (Studio testing).",
+		Usage = "boss.freeze [seconds]",
+		Run = function(_player, args): string?
+			local f = fight
+			if not f or f.State ~= "Fighting" then
+				return "no boss fighting"
+			end
+			local seconds = tonumber(args[1]) or 20
+			f.Busy = os.clock() + seconds
+			setActivity("Idle")
+			return `frozen for {seconds} s\n{describe()}`
 		end,
 	})
 	dev:Register("boss.end", {

@@ -72,6 +72,12 @@ local function commas(n: number): string
 	return (out:gsub("^,", ""))
 end
 
+-- "1 cycle", "3 cycles" (plural adds "s" unless given).
+local function count(n: number, one: string, many: string?): string
+	local whole = math.floor(n + 0.5)
+	return `{commas(whole)} {if whole == 1 then one else many or one .. "s"}`
+end
+
 local function addRow(list: Instance, order: number, icon: string?, name: string, value: string, wide: boolean?): any
 	local row = ui:Clone("Row")
 	row.LayoutOrder = order
@@ -112,14 +118,14 @@ local function fillSummary(list: Instance, r: any)
 		order += 1
 		addRow(list, order, icon, name, value, wide)
 	end
-	add(if r.Victory then "Icon_Check" else "Alert_Danger", title, why)
+	add(if r.Outcome == "Defeat" then "Alert_Danger" else "Icon_Check", title, why)
 	local era = Config.Find("Eras", r.Era or "")
 	add("Icon_Grid", "Year reached", `Year {r.Year} · {if era then era.Name else ""}`)
-	add("Icon_Drill", "Deepest floor", `Floor {r.DeepestFloor} · {r.Band}`)
-	add("Icon_Command", "Time in the bunker", `{clock(r.Seconds or 0)} · {r.Cycle} cycles`)
+	add("Icon_Pickaxe", "Deepest floor", `Floor {r.DeepestFloor} · {r.Band}`)
+	add("Icon_Command", "Time in the bunker", `{clock(r.Seconds or 0)} · {count(r.Cycle or 0, "cycle")}`)
 	local team = r.Team or {}
-	add("Icon_Melee", "Monsters killed", commas(team.MonstersKilled or 0))
-	add("Icon_Pickaxe", "Cells dug", commas(team.CellsDug or 0))
+	add("Icon_Aim", "Monsters killed", commas(team.MonstersKilled or 0))
+	add("Icon_Drill", "Cells dug", commas(team.CellsDug or 0))
 	add("Icon_Scrap", "Rooms built", commas(team.RoomsBuilt or 0))
 	add("Icon_Medkit", "Residents", `{team.ResidentsAlive or 0} alive · {team.ResidentsLost or 0} lost`)
 	add("Icon_Fire", "Disasters", commas(team.Disasters or 0))
@@ -232,8 +238,8 @@ local function showMVP(r: any)
 	detail:FindFirstChild("Name").Text = string.upper(mvp.Name)
 	detail.Sub.Text = string.upper(mvp.Class or "")
 	section(body, 1, "MVP · score", commas(mvp.Score or 0))
-	section(body, 2, "Fighting", `{commas(mvp.Damage or 0)} damage · {commas(mvp.Kills or 0)} kills · {commas(mvp.BossDamage or 0)} to bosses`)
-	section(body, 3, "Helping", `{commas(mvp.Revives or 0)} revives · {commas(mvp.CellsDug or 0)} cells dug · {commas(mvp.Repairs or 0)} repaired`)
+	section(body, 2, "Fighting", `{commas(mvp.Damage or 0)} damage · {count(mvp.Kills or 0, "kill")} · {commas(mvp.BossDamage or 0)} to bosses`)
+	section(body, 3, "Helping", `{count(mvp.Revives or 0, "revive")} · {count(mvp.CellsDug or 0, "cell")} dug · {commas(mvp.Repairs or 0)} repaired`)
 end
 
 local function fill()
