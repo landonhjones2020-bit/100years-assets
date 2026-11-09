@@ -54,7 +54,7 @@
 		DigService:SetModifier(source, key, value?)      -- DigSpeed, DigDisturbance (team-wide)
 		DigService:Feature(floor, column): string?
 		DigService.Dug: Signal<number, number, string, string> -- floor, column, result, cause
-	Dev: digs, dig, dig.roll, dig.mark, disturbance, tremor, pushdeeper, nest, cache, cave.
+	Dev: digs, dig, dig.roll, dig.mark, disturbance, disturbance.add, tremor, pushdeeper, nest, cache, cave.
 ]]
 
 local CollectionService = game:GetService("CollectionService")
@@ -1116,19 +1116,26 @@ local function registerCommands(dev: any)
 		end,
 	})
 	dev:Register("disturbance", {
-		Description = "Set Disturbance, or add to it with +n or -n (thresholds fire as in play).",
-		Usage = "disturbance <value|+n|-n>",
+		Description = "Set Disturbance (thresholds fire as in play).",
+		Usage = "disturbance <value>",
 		Run = function(_player, args): string?
-			local text = tostring(args[1] or "")
-			local n = tonumber(text)
+			local n = tonumber(args[1])
 			if not n then
-				return "usage: disturbance <value|+n|-n>"
+				return "usage: disturbance <value>"
 			end
-			if string.sub(text, 1, 1) == "+" or string.sub(text, 1, 1) == "-" then
-				DigService:AddDisturbance(n, "DevTools")
-			else
-				setDisturbance(n, "DevTools")
+			setDisturbance(n, "DevTools")
+			return describe()
+		end,
+	})
+	dev:Register("disturbance.add", {
+		Description = "Add to Disturbance (or take away with a negative number), as digging would.",
+		Usage = "disturbance.add <n>",
+		Run = function(_player, args): string?
+			local n = tonumber(args[1])
+			if not n then
+				return "usage: disturbance.add <n>"
 			end
+			DigService:AddDisturbance(n, "DevTools")
 			return describe()
 		end,
 	})

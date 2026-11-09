@@ -269,7 +269,7 @@ return {
 			-- (Section 10: nests left alive raise it). A cache opens after CacheOpenSeconds of holding
 			-- Interact. A failed Push Deeper vote can be asked again after VoteRetrySeconds.
 			Tools = { "Drill", "Pickaxe" }, PromptReach = 8, TickSeconds = 0.25, CaveInChance = 0.05,
-			NestHealth = 600, NestBudget = 0.5, NestPerCycle = 10, CacheOpenSeconds = 1, VoteRetrySeconds = 30,
+			NestHealth = 600, NestBudget = 0.35, NestPerCycle = 10, CacheOpenSeconds = 1, VoteRetrySeconds = 30,
 		},
 		Disturbance = { -- Section 10
 			Max = 100, DecayPerCycle = 10, NestDestroyed = 20, Explosive = 10, ExtraBreachAt = 50, TremorAt = 100, AfterTremor = 40,

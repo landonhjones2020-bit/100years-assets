@@ -833,7 +833,12 @@ refreshDetail = function()
 		elseif state == "Dug" then
 			showOpenCell(cell[1], cell[2])
 		else
-			choice = nil
+			-- a rock cell's only choices are the dig queue's (Prompt 14); keep one picked for this cell
+			local keep = choice ~= nil and (choice.Action == "MarkDig" or choice.Action == "UnmarkDig")
+				and choice.Floor == cell[1] and choice.Column == cell[2]
+			if not keep then
+				choice = nil
+			end
 			showRock(cell[1], cell[2])
 		end
 	end
