@@ -31,12 +31,14 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 14: digging, depth bands, Disturbance, Push Deeper (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, clicks and throws: digging with the Drill (the Driller, dust at the face), a Push Deeper vote with a pretend voter, a cache opened, a nest destroyed by grenades and shotgun, the Drill Bay digging a cell queued with real Command View clicks, the extra breach at 50, a Tremor (cave-in, wave, camera shake), the cycle's decay, the Driller's eye; Lobby start check; `game/reports/P14_Digging.md`, `previews/Game/P14_*.jpg` |
 | Prompt 15: the Brood Mother and the results screen (Run) | ✅ done 2026-11-09 | Run playtests with real shots, clicks and a real boss Surge: her warning, rise and roar, slams, egg sacs laid and hatching, a sac broken by Revolver shots and one burned by the Flamethrower, belly hits for double, a stagger, phase 2, her death ending the Surge (Year 25 to 27, Era II); the Run Report with payouts saved to the profile, Play Again, Keep Going and Return to Lobby clicked; Lobby start check; `game/reports/P15_BroodMother_Results.md`, `previews/Game/P15_*.jpg` |
 | Prompt 16: the surface (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, presses and clicks: the elevator both ways, searching, a survivor freed, followed home and joined, generator parts carried and delivered, unloading at the hall, a jackal shot dead into the pack, raider rifle hits, a dropped bag picked up, radiation death and a clean respawn, a Decon Room, the checkpoint opening in Era III, the Scout's outline and storm warning; Lobby start check; `game/reports/P16_Surface.md`, `previews/Game/P16_*.jpg` |
+| Prompt 17: the Deep (Run) | ✅ done 2026-11-09 | Run playtests with real W, E holds and presses and shotgun clicks: walking into a cave through the opened back wall, the Deep's lighting and the player's light, a radio log and its crew hint, an ore vein mined, a cache and a Glowshard chest opened (the profile and the results), the Mines' crew freed and led out of its cave (Lost Crew done), the raider camp's guards waking and going back to sleep and the surface crew riding home (Lost Crew done), a cryo pod found, carried, delivered and thawed into a Rare resident, a fall's damage and the Spelunker's none, the Spelunker's eye, a cave nest destroyed into the pack, a monster's drop in a cave, a monster walking out of a cave; Lobby start check; `game/reports/P17_Deep.md`, `previews/Game/P17_*.jpg` |
+| A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
 | A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
 | A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the Drill held and digging (Prompt 14); the Pickaxe in Studio, not yet swung; the rest of the class kits to come |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
-| A3, A6 to A11 | not started (A6 comes with Prompt 17) | |
+| A3, A7 to A11 | not started | |
 
 ## Ids
 
@@ -67,8 +69,53 @@ Newest first. Every "verified" line says how it was checked.
 | A5 props | Prop_BurntTree 109228472383503, Prop_Cabinet 103949699846399, Prop_CarWreck_A 75526591155472, Prop_CarWreck_B 105808061470942, Prop_Debris 83482976617480, Prop_Locker 118990684990389, Prop_GeneratorParts 92467000818852, Prop_LootBag 72177580542444 |
 | A5 monsters (rigs) | Monster_AshJackal 121226055816229 (Walk 84332717499460, Attack 119698905968735), Monster_AshWraith 86571623522715 (Walk 101978077102714, Attack 95768211145275), Monster_AshRaider 89393935264400 (Walk 92909841950988, Attack 71659501687501) |
 | UI atlas: surface | decal 134611993314949, image 83031843710701 (eight surface icons) |
-| Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
+| A6 cave pieces (Mines) | Entry 140717306990902, Tunnel 125627570956077, Junction 110936005050325, Pocket 126495354568524, Chamber 118404370996473, Cavern 104525632291205, Drop 76505454786857, CrewPocket 133491070274137 |
+| A6 cave pieces (Flooded Caverns) | Entry 88005799323610, Tunnel 105408170372431, Junction 75060404030395, Pocket 75206193324335, Chamber 114211170875518, Cavern 119297962809184, Drop 130513581479117, CrewPocket 95172140422209 |
+| A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
+| Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 17, the Deep; A6 cave pieces
+
+Game code builds `p16-eca3ce9` to `p17-5901951` (final): code asset 95026446991297 revision 70,
+installed in Run and Lobby: StructureCheck 0 errors (Run 448 checks, Lobby 251), 105 data tests
+passed in each.
+
+**Done**
+* Prompt 17: Rules.Deep (the cave planner, finds, crews, hints, falls, light, guards),
+  DeepService (caves, finds, guards and cave nests, the Lost Crews, radio logs, Glowshard chests,
+  cryo pods and the Cryo Bay's thawing, the Deep's light and falls), DeepController (the radio log
+  sheet, the Spelunker's eye), `Config.CavePieces` (from `tools/cave_config.py`) and
+  `Config.RadioLogs`. Realms (Surface, or underground: the bunker and the Deep) in monsters and
+  rescues; monsters walk in and out of caves, guards sleep at their posts; the raider camp and the
+  surface's crew (SurfaceService, four `CampSpot`s on the map, rebuilt in Studio); DigService's
+  fixed rolls (the crews' caves), result handlers (cryo pods) and FeatureAdded; InventoryService's
+  loot specials (radio logs, Glowshards). Report: `game/reports/P17_Deep.md` (eight Bible
+  Questions).
+* A6: 16 cave pieces (8 a band), the cryo pod, the radio log recorder, iron and copper ore veins,
+  the Glowshard chest and the raider camp, uploaded and set up in Run with one tooling batch
+  (`ArtSetupBatch_A6`, through the new `tools/chunk_module.py`).
+* A5's walls: walls with a door or window cut in them were one solid box each (the diner's door
+  was shut). Each colliding wall segment now has its own name, and the rail yard's cars, kiosk and
+  sheds collide per part; nine buildings re-uploaded at their next revision and the town rebuilt
+  (`ArtSetupBatch_A5walls`), the doors checked clear by raycast.
+* Fixes from the playtests: falls are read from the root's speed (a client's Humanoid states never
+  reached the server); a crew's own log carries its hint (the Mines' foreman pointed at the raider
+  camp); thawing runs with the clock; guards 4 of budget waking at 30 studs (6 at 45 downed a
+  Survivor in 3 s); a cave keeps going on its last way on (one cave ended after its first piece);
+  a crew without room for its pocket is still guarded by a nest; pieces share the 4 studs of wall
+  round their openings (every piece clashed with its parent at first).
+
+**Verified in Studio**: see the testing checklist in `game/reports/P17_Deep.md`. Captures:
+`previews/Game/P17_*.jpg`.
+
+**Open**
+* Landon's answers to the eight Prompt 17 Bible Questions, and the earlier open ones (Prompts 13,
+  14 and 16).
+* Not seen: four players, gamepad and touch, a run's Flooded Caverns caves, a crew member killed on
+  the way, a cave mouth blocked by another cave.
+* Seen, not changed (Prompt 12's walking): a monster after a target on another floor can stand in
+  a room or under the Shaft stair.
 
 ## 2026-11-09 (night): Prompt 16, the surface; the A5 surface kit
 

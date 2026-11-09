@@ -1,6 +1,6 @@
 # 100 Years Of Fallout: handoff for the next chat
 
-Written 2026-11-09 (night), at the end of Prompt 16. The game bible (live doc
+Written 2026-11-09 (night), at the end of Prompt 17. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 133, and the two project parts, which match
 it) wins over everything here.
 
@@ -14,8 +14,14 @@ it) wins over everything here.
 
 ## Where things stand
 
-* Prompts 0 to 16 are built and tested in Studio. Code build `p16-2e4b703` (code asset
-  95026446991297, revision 64) is installed in both places; 102 data tests pass.
+* Prompts 0 to 17 are built and tested in Studio. Code build `p17-5901951` (code asset
+  95026446991297, revision 70) is installed in both places; 105 data tests pass.
+* Prompt 17 (the Deep): a dug cave opening breaks into a cave put together behind the bunker from
+  the band's A6 pieces (`workspace.Deep`): ore veins, caches, radio logs, trapped miners, cryo
+  pods, Glowshard chests, guards and cave nests. The Lost Crews: one in a cave in the Mines and one
+  in the Flooded Caverns (their cells' rolls fixed each run), and one in a raider camp on the
+  surface. Cryo pods thaw in a Cryo Bay. The Deep's darkness, the players' own light, falls, the
+  Spelunker's eye. Report: `game/reports/P17_Deep.md`.
 * Prompt 16 (the surface): the elevator behind the Blast Door goes up to Brightwater Ruins
   (`workspace.Surface`, Y 200, built in Studio by `Lib.BrightwaterMap.Build()` from the A5 art).
   Search containers into a 10-slot backpack, unload at the Blast Door hall or a Storage room, carry
@@ -23,7 +29,8 @@ it) wins over everything here.
   radiation (Decon Room, Clear-Rad pills), a storm every Surge, Ash Jackals, Raiders (Era II) and
   Wraiths (storms). Report: `game/reports/P16_Surface.md`.
 * A5 surface kit in Studio: 11 buildings, props, the loot bag, generator parts, three monsters
-  with clips (`previews/Game/P16_A5_*.jpg`).
+  with clips (`previews/Game/P16_A5_*.jpg`). A6 in Studio: 16 cave pieces, five props and the
+  raider camp (`previews/Caves/`, `previews/Game/P17_*.jpg`).
 
 ## Landon's latest decisions (all in the bible)
 
@@ -33,16 +40,24 @@ it) wins over everything here.
 
 ## Next, in order
 
-1. Prompt 17: the Deep (Mines and Flooded cave pieces, cryo pods, Lost Crews) with A6.
-2. Prompt 18: resident expeditions and distress calls.
+1. Prompt 18: resident expeditions and distress calls.
+2. Prompt 19: the blueprint draft.
 
 ## Waiting on Landon
 
-* His answers to the eight Prompt 16, eight Prompt 14 and six Prompt 13 Bible Questions (in the
-  reports). The six Prompt 15 answers are approved and in the bible.
-* His look at the town and the surface monsters (`previews/Game/P16_*.jpg`).
+* His answers to the eight Prompt 17, eight Prompt 16, eight Prompt 14 and six Prompt 13 Bible
+  Questions (in the reports). The six Prompt 15 answers are approved and in the bible.
+* His look at the town, the surface monsters and the caves (`previews/Game/P16_*.jpg`,
+  `P17_*.jpg`).
 
 ## Testing tips
+
+* The Deep: `crews` (where each Lost Crew is), `deep.cave <floor> <column>` (dig a rock cell into
+  a cave; dig a path to a crew's cell first with `dig`), `deep` (caves, + guards asleep, * woken),
+  `deep.tp <floor> <column> [piece]`, `deep.find <kind>` (in front of you), `radiolog [id]`,
+  `cryo.add [n]`, `rescues`, `rescue.free <id>`. Falls: a part under the player in the Deep
+  (z < -17.5) and a teleport 30 studs up; move the player off before removing the part (a downed
+  body on it falls out of the world).
 
 * Surface: `surface.up`/`surface.down` (from the server Invoke they take the first player),
   `pack.add <resource> <n>` and `class <Id>` from the client's `DevInvoke` (they need the invoking
@@ -78,4 +93,6 @@ it) wins over everything here.
 * The A0 sample scripts print a line on every monster swing; remove them once Landon approves
   the monsters.
 * The HUD's class plate still says SURVIVOR after the `class` dev command.
+* A monster after a target on another floor can stand in a room or under the Shaft stair (its
+  stuck check restarts with every re-plan); seen in the Prompt 17 playtest.
 * The Pump Shotgun and Frag Grenade show placeholder icons in the hotbar.

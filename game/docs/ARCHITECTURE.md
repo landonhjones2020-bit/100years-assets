@@ -725,7 +725,9 @@ facts)` (lines, total and the new ledger, so a run that ends twice pays only wha
 ## The surface (Run place)
 
 Bible Sections 9, 12 and 13 (Prompt 16). `Shared.Rules.Surface` is pure: `Zone(position)` (Surface
-above `Tuning.Surface.ZoneY`), `RadiationRate(zone, storm, gain)`, backpacks as lists of stacks
+above `Tuning.Surface.ZoneY`; Prompt 17: Deep behind `Tuning.Deep.GridBack`, else Bunker),
+`Realm(zone)` and `SameRealm(a, b)` (the bunker and the Deep are one realm, Underground),
+`RadiationRate(zone, storm, gain)`, backpacks as lists of stacks
 (`Stack`, `Slots(extra)`, `Used`, `Fit(pack, slots, id, count)`, `Merge`, `Unload(pack, room)`,
 `Totals`, `Summary`, `Encode`/`Decode` for the `Pack` attribute), `CarrySpeed(carriers)`,
 `SpawnSpot(points, players, range, rng)`, `SurvivorTier(roll)`. The numbers are `Tuning.Surface`
@@ -747,24 +749,31 @@ and `Tuning.MonsterAI`'s surface values (provisional).
   attribute, Decon Rooms, Clear-Rad pills at `PillUseAt`, health drain at the max, Wraith hits),
   and the creatures (jackals by day, raiders from `RaiderMinEra`, wraiths in storms, at
   `SpawnPoint`s, `MaxMonsters`, despawned when the surface empties, a fall guard). Each day may
-  trap a survivor and place generator parts. API `Zone`, `Storm`, `Radiation`, `AddRadiation`,
-  `Map`; signals `ZoneChanged`, `Searched`.
+  trap a survivor and place generator parts. Prompt 17: the raider camp holding the surface's
+  Lost Crew (`workspace.SurfaceCamp`, at one of the map's `CampSpot`s, guards tagged `Camp`).
+  API `Zone`, `Storm`, `Radiation`, `AddRadiation`, `Map`, `CrewWhere`; signals `ZoneChanged`,
+  `Searched`.
 * `InventoryService`: backpacks (`Give`, the `Pack`, `PackUsed`, `PackSlots`, `ClearRad`
   attributes), unloading (`workspace.Bunker.Hauling`: the hall's point 15 studs from the
   elevator and one per Storage room; `Unload(player)` within the stockpile's caps), big finds
   (`PlaceFind(kind, at, tag)` in `workspace.Finds`, CARRY, HELP CARRY, PUT DOWN, the `Carrying`
   and `Carriers` attributes, `SetDelivery(kind, fn)`, else the loot table of that name), dropped
-  bags (`Prop_LootBag`, PICK UP), Clear-Rad pills (`TakePill`) and monster drops (a surface kill
-  into the last hitter's pack, a bunker kill into the stockpile). Signals `Unloaded`,
-  `Delivered`.
+  bags (`Prop_LootBag`, PICK UP), Clear-Rad pills (`TakePill`) and monster drops (a kill on the
+  surface or in the Deep into the last hitter's pack, a bunker kill into the stockpile). Loot
+  specials go to their owner's handler (`SetSpecial`, `GiveSpecial`; Prompt 17: radio logs,
+  Glowshards). Signals `Unloaded`, `Delivered`.
 * `RescueService`: `Trap(at, options)` (a `Resident_Common` clone in `workspace.Rescues`, rubble, a
   FREE prompt), freed people as CombatService combatants (Kind `Survivor`, team `Survivors`)
-  following a leader with PathfindingService, a catch-up teleport, leader hand-overs, the
-  elevator (`Followers`), and joining (`ResidentService:Add`; `SetArrival(kind, fn)`). Signals
+  following a leader with PathfindingService, a catch-up teleport, leader hand-overs within a
+  realm, the elevator (`Followers`), and joining (`ResidentService:Add`; `SetArrival(kind, fn)`
+  runs after joining). Kinds Survivor, Miner and Crew (Prompt 17); `Tagged(tag)`. Signals
   `Freed`, `Joined`, `Lost`.
-* `MonsterService` knows zones: monsters only target things in their own zone (survivors count
-  as residents on the surface, machines are bunker-only), surface monsters path with
+* `MonsterService` knows realms: monsters only target things in their own realm (survivors count
+  as residents, machines are bunker-only), surface and cave monsters path with
   PathfindingService, jackals circle, raiders shoot (trait `Shoots`), `Despawn(id)`, `ZoneOf(id)`.
+  Prompt 17: a monster in a cave reaches the bunker through the cave's mouth and the other way
+  round (`SetCaveExit`); guards (`Spawn(type, at, tag, { Guard = range })`) sleep at their post,
+  wake to a player within range or a hit, keep within 1.6 times that of their post, and go back.
 * `WeaponService` and `CombatController` refuse gun, melee, throws, tools, rolls and Medkits while
   a player's hands are busy (`Carrying`).
 * `SurfaceController` (client): the surface's Lighting (Surface and Storm presets, the bunker's
@@ -772,6 +781,51 @@ and `Tuning.MonsterAI`'s surface values (provisional).
   lightning, the elevator fade and the camera turn, the HUD's radiation gauge and `Backpack` chip,
   prompt gating (carry, help, put down and unload by attributes; PUT DOWN hides near a station),
   the carry and Scout speeds, the Scout's `LootOutline` highlights.
+
+## The Deep (Run place)
+
+Bible Sections 6, 11, 12 and 14 (Prompt 17). `Shared.Rules.Deep` is pure: `MouthCFrame(floor,
+column)` (the dug cell's back wall, facing -Z into the rock) and `MouthPoint` (in front, in the
+cell), `ExitCFrame`, `WorldBox`, `Overlaps`, `Inside`, `Pieces(band, kind?)`, `Plan(band, mouth,
+rng, occupied, { Crew, Pieces })` (the cave planner: the Entry, then pieces grown from exits, each
+clear of `occupied` but for the 4 studs of wall it shares with the piece it hangs off; plugs; the
+crew's pocket; no plan when another cave fills the rock), `RollFind(roll, era, findChance)`,
+`CryoTier`, `CrewCell(seed, band, isOpen)`, `Hint(floor, column)`, `FallDamage(drop, immune)`,
+`LightRange(multiplier)`, `Roster(band, usable)`. The numbers are `Tuning.Deep`, the pieces
+`Config.CavePieces` (generated from the A6 sidecars by `tools/cave_config.py`: don't edit by hand),
+the logs `Config.RadioLogs`.
+
+* `DeepService` builds a cave on `DigService.FeatureAdded("CaveOpening", floor, column)` in
+  `workspace.Deep` ("Cave <key>", one model per piece from `ServerStorage.Assets.Caves`, a graybox
+  floor otherwise): the dug cell's `BackRock` hidden and anything solid in the opening made
+  non-colliding (again on `BunkerGrid.Changed`), `DigService:OpenCave` (the stand-in mouth goes),
+  rubble plugs (`Kit_Rubble_Doorway` x1.45 and an invisible block), lantern lights at `Light`
+  sockets, finds at `Find` sockets (models with a `Find` attribute and a Custom prompt: MINE, OPEN,
+  LISTEN; trapped miners through RescueService; cryo pods through InventoryService), cave nests at
+  `Nest` sockets (combatants with breach points `CN:<id>` at the mouth), guards at `Spawn` sockets
+  (spawned when a player comes within `WakeRange`, tag `Cave:<key>`).
+* The Lost Crews: `DigService:SetRoll` makes each band's crew cell a cave opening (RunState
+  `DigOverrides`); its cave's crew pocket holds the three (Kind Crew, Tag the objective) and a
+  nest. `RescueService:SetArrival("Crew")` completes the objective (any Lost Crew, the surface's
+  too) when the first is home; `Lost` with none left loses the crew.
+* Radio logs: `InventoryService:SetSpecial("RadioLog")` and the recorders play the next unheard
+  story log, or (HintChance, while a crew is lost) that crew's own log with its hint; the
+  `RadioLog` remote. Glowshard chests: `SetSpecial("Glowshards")` pays every ready player through
+  `ProfileService:Update`; `ChestOpened` tells ResultsService.
+* Cryo pods: `DigService:SetResultHandler("CryoPod")` and cave finds place them
+  (`PlacePod`; the first unlocks the Cryo Bay); `InventoryService:SetDelivery("CryoPod")` adds
+  one to RunState `CryoPods`; Cryo Bays' `EconomyService:Rate` thaws them (`ThawPoints` each, while
+  the clock runs) into Rare or Legendary residents.
+* Players in the Deep: a `DeepLight` PointLight on the root (`LightRange` x `LightRadius`); falls
+  read from the root's vertical speed on Heartbeat (`FallDamage`, `NoFallDamage`).
+* `MonsterService:SetCaveExit` is DeepService's: a cave position's mouth point.
+* `DeepController` (client): the `RadioLog` sheet (UIKit `Paper`, Special Elite, typed out) and the
+  Spelunker's eye (`SpelunkerEye` Highlights on finds, nests, cryo pods and the trapped within
+  `RevealRange`). `SurfaceController` has the Deep's lighting preset; `DigController` reads the
+  overrides for the Driller's eye.
+* API `Caves()`, `CaveAt(position)`, `Pods()`, `PlacePod(at, tag)`. Signals `CaveOpened`,
+  `CrewHome`, `Thawed`, `ChestOpened`. Dev: `deep`, `deep.cave`, `deep.find`, `deep.tp`,
+  `cryo.add`, `radiolog`, `crews`.
 
 ## Saved data
 
@@ -810,7 +864,8 @@ Content types (Prompt 1): Badges, Bosses, Classes, Conditions, DepthBands, DigRe
 Difficulties, Disasters, DraftCards, Eras, GamePasses, GlowshardPacks, GlowshardRewards,
 ItemRarities, Items, Leaderboards, Legends, LootTables, Modifiers, MoraleStates, Monsters,
 Objectives, Quests, Recipes, ResidentNames, Resources, Rooms, Stats, SurfaceLocations,
-TalentSlots, TeamBoosts, Tiers, Traits, Tuning, Votes, WandererOutcomes.
+TalentSlots, TeamBoosts, Tiers, Traits, Tuning, Votes, WandererOutcomes; Prompt 17: CavePieces
+(generated by `tools/cave_config.py`) and RadioLogs.
 
 **Effects are data.** Classes, traits, Legends, draft cards and passes describe what they do
 as modifiers: `{ Key = "RoomOutput", Value = 1.25, Room = "Medbay", Scope = "Bunker" }`.
@@ -820,7 +875,7 @@ effect is a new key plus the code that honours it.
 
 **Rule numbers** live in `Config.Tuning`, one entry per system (Clock, Grid, StartingBunker,
 Rooms, Votes, Player, Digging, Disturbance, Bosses and one per boss fight (BroodMother),
-Results, Threat, Residents, Aging, Morale, Trader, Wanderers, Expeditions, Surface, Legends,
+Results, Threat, Residents, Aging, Morale, Trader, Wanderers, Expeditions, Surface, Deep, Legends,
 ClassShop, Account, Lobby).
 
 ## DevTools
@@ -901,12 +956,13 @@ ClassShop, Account, Lobby).
 | Run | BreachService | service | BunkerGrid, PowerService, MonsterService, SessionService, ReplicationService, DevService | breach points, warnings, the Breaches collection, spawning at a breach |
 | Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
-| Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
+| Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, InventoryService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests; cells with a fixed roll), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
 | Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
-| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
+| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
 | Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
-| Run | SurfaceService | service | SessionService, CycleClock, RunDirector, BunkerGrid, PowerService, CombatService, MonsterService, InventoryService, RescueService, DevService | the surface map, zones, the elevator, containers, storms, radiation, surface creatures |
+| Run | SurfaceService | service | SessionService, CycleClock, RunDirector, BunkerGrid, PowerService, CombatService, MonsterService, InventoryService, RescueService, DevService | the surface map, zones, the elevator, containers, storms, radiation, surface creatures, the raider camp and the surface's Lost Crew |
+| Run | DeepService | service | BunkerGrid, CycleClock, RunDirector, SessionService, DigService, InventoryService, RescueService, MonsterService, CombatService, ResidentService, ResidentBrain, EconomyService, BuildService, ObjectiveService, BreachService, ProfileService, SurfaceService, DevService | caves from the A6 pieces, finds, guards and cave nests, the Lost Crews, radio logs, Glowshard chests, cryo pods and thawing, the Deep's light and falls |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -924,7 +980,8 @@ ClassShop, Account, Lobby).
 | Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
 | Run | BossController | controller | ReplicaController, HUDController, CameraController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
 | Run | ResultsController | controller | UIController, ReplicaController | the Run Report (results screen) and its buttons |
-| Run | SurfaceController | controller | HUDController, CameraController | the surface's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
+| Run | SurfaceController | controller | HUDController, CameraController | the surface's and the Deep's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
+| Run | DeepController | controller | HUDController | the radio log sheet, the Spelunker's eye |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -1021,3 +1078,11 @@ ClassShop, Account, Lobby).
   MonsterService zones, pathing, circling and shooting; busy hands; hauls and rescues in the
   results; art: the A5 surface kit (11 buildings, props, the loot bag, generator parts, the Ash
   Jackal, Wraith and Raider with clips) and eight surface icons.
+* **Prompt 17 (2026-11-09)**: the Deep (Run). Rules.Deep (the cave planner, finds, crews, hints,
+  falls, light, guards), DeepService (caves, finds, guards, cave nests, the Lost Crews, radio
+  logs, Glowshard chests, cryo pods and thawing, light and falls), DeepController (the radio log
+  sheet, the Spelunker's eye), Config.CavePieces and RadioLogs; realms (the Deep zone) in
+  Rules.Surface, MonsterService (cave walking, guards) and RescueService (miners, crews); the raider
+  camp and the surface crew in SurfaceService; DigService's fixed rolls and FeatureAdded;
+  InventoryService's loot specials; the Deep's lighting; art: A6 (16 cave pieces, the cryo pod,
+  the radio log recorder, two ore veins, the Glowshard chest, the raider camp).
