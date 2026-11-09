@@ -5,7 +5,7 @@
 
 	* The map is workspace.Surface, a static part of the Run place high above the bunker (Section 23:
 	  the surface map high above, the bunker grid in the middle), built in Studio by
-	  studio/map/Surface.lua (Landon can dress it there). This service never rebuilds it: it reads
+	  Lib.BrightwaterMap.Build() (Landon can dress it there). This service never rebuilds it: it reads
 	  its markers (parts named ElevatorExit, ElevatorCall, SurvivorSpot, BigFindSpot, SpawnPoint),
 	  its containers (models with Container and Location attributes) and its gates (models with a
 	  MinEra attribute: the military checkpoint opens in Era III). Without a map the elevator says
@@ -30,7 +30,7 @@
 	  of Ash Jackals by day, Ash Raiders from RaiderMinEra and Ash Wraiths only in storms, at
 	  SpawnPoint markers SpawnDistance from the players, at most MaxMonsters at once (within the
 	  map's cap of 25); wraiths fade when the storm passes and everything fades DespawnSeconds after
-	  the last player leaves.
+	  the last player leaves. A creature that falls FALL_GUARD studs below the exit is removed.
 	* Survivors and big finds (Section 12): at the start of each day a survivor may be trapped at a
 	  SurvivorSpot (RescueService:Trap) and generator parts may turn up at a BigFindSpot
 	  (InventoryService:PlaceFind).

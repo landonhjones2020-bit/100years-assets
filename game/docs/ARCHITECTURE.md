@@ -722,6 +722,57 @@ facts)` (lines, total and the new ledger, so a run that ends twice pays only wha
   body parts use the `queryhull` collision kind (Hull raycast shapes), so shots reach the weak
   point.
 
+## The surface (Run place)
+
+Bible Sections 9, 12 and 13 (Prompt 16). `Shared.Rules.Surface` is pure: `Zone(position)` (Surface
+above `Tuning.Surface.ZoneY`), `RadiationRate(zone, storm, gain)`, backpacks as lists of stacks
+(`Stack`, `Slots(extra)`, `Used`, `Fit(pack, slots, id, count)`, `Merge`, `Unload(pack, room)`,
+`Totals`, `Summary`, `Encode`/`Decode` for the `Pack` attribute), `CarrySpeed(carriers)`,
+`SpawnSpot(points, players, range, rng)`, `SurvivorTier(roll)`. The numbers are `Tuning.Surface`
+and `Tuning.MonsterAI`'s surface values (provisional).
+
+* The map is `workspace.Surface`, static in the place at Y = `BrightwaterMap.GROUND` (200), built in
+  Studio by `ServerScriptService.Lib.BrightwaterMap.Build()` from `ServerStorage.Assets.Surface`
+  (A5; graybox stand-ins otherwise). Each place is a model with `PlaceId` (and `Location`) holding
+  its containers (models with `Container`, `Location`) and a `Markers` folder (`SurvivorSpot`,
+  `BigFindSpot`, `ElevatorExit`, `ElevatorCall`); `Spawns` holds `SpawnPoint`s; gates carry
+  `MinEra` and parts with `Barrier`. Signs (art parts with Role `Sign`) get a `Lettering`
+  SurfaceGui. A rebuild keeps moved places and `workspace.Surface.Decor` (Landon's dressing).
+* `SurfaceService` reads the map (never builds it): zones (`Zone` attribute, `ZoneChanged`), the
+  elevator (`workspace.Bunker.Elevator` RIDE UP at the Blast Door's `Door` socket, RIDE DOWN at
+  `ElevatorCall`; the `Elevator` remote fades the client, the server moves the rider and their
+  followers), containers (SEARCH, `Loot.Roll` with `ExtraLootRolls`, leftovers, refills on
+  `EraChanged`, locks below `MinEra`), storms (`SurgeStarted`/`SurgeEnded`, RunState `Storm` and
+  `StormAt`, the siren alert and the Scout's `StormWarningSeconds`), radiation (the `Radiation`
+  attribute, Decon Rooms, Clear-Rad pills at `PillUseAt`, health drain at the max, Wraith hits),
+  and the creatures (jackals by day, raiders from `RaiderMinEra`, wraiths in storms, at
+  `SpawnPoint`s, `MaxMonsters`, despawned when the surface empties, a fall guard). Each day may
+  trap a survivor and place generator parts. API `Zone`, `Storm`, `Radiation`, `AddRadiation`,
+  `Map`; signals `ZoneChanged`, `Searched`.
+* `InventoryService`: backpacks (`Give`, the `Pack`, `PackUsed`, `PackSlots`, `ClearRad`
+  attributes), unloading (`workspace.Bunker.Hauling`: the hall's point 15 studs from the
+  elevator and one per Storage room; `Unload(player)` within the stockpile's caps), big finds
+  (`PlaceFind(kind, at, tag)` in `workspace.Finds`, CARRY, HELP CARRY, PUT DOWN, the `Carrying`
+  and `Carriers` attributes, `SetDelivery(kind, fn)`, else the loot table of that name), dropped
+  bags (`Prop_LootBag`, PICK UP), Clear-Rad pills (`TakePill`) and monster drops (a surface kill
+  into the last hitter's pack, a bunker kill into the stockpile). Signals `Unloaded`,
+  `Delivered`.
+* `RescueService`: `Trap(at, options)` (a `Resident_Common` clone in `workspace.Rescues`, rubble, a
+  FREE prompt), freed people as CombatService combatants (Kind `Survivor`, team `Survivors`)
+  following a leader with PathfindingService, a catch-up teleport, leader hand-overs, the
+  elevator (`Followers`), and joining (`ResidentService:Add`; `SetArrival(kind, fn)`). Signals
+  `Freed`, `Joined`, `Lost`.
+* `MonsterService` knows zones: monsters only target things in their own zone (survivors count
+  as residents on the surface, machines are bunker-only), surface monsters path with
+  PathfindingService, jackals circle, raiders shoot (trait `Shoots`), `Despawn(id)`, `ZoneOf(id)`.
+* `WeaponService` and `CombatController` refuse gun, melee, throws, tools, rolls and Medkits while
+  a player's hands are busy (`Carrying`).
+* `SurfaceController` (client): the surface's Lighting (Surface and Storm presets, the bunker's
+  captured at start), the `SurfaceGrade` colour correction, ash and gusts round the camera,
+  lightning, the elevator fade and the camera turn, the HUD's radiation gauge and `Backpack` chip,
+  prompt gating (carry, help, put down and unload by attributes; PUT DOWN hides near a station),
+  the carry and Scout speeds, the Scout's `LootOutline` highlights.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -853,6 +904,9 @@ ClassShop, Account, Lobby).
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
 | Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
 | Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
+| Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
+| Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
+| Run | SurfaceService | service | SessionService, CycleClock, RunDirector, BunkerGrid, PowerService, CombatService, MonsterService, InventoryService, RescueService, DevService | the surface map, zones, the elevator, containers, storms, radiation, surface creatures |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -870,6 +924,7 @@ ClassShop, Account, Lobby).
 | Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
 | Run | BossController | controller | ReplicaController, HUDController, CameraController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
 | Run | ResultsController | controller | UIController, ReplicaController | the Run Report (results screen) and its buttons |
+| Run | SurfaceController | controller | HUDController, CameraController | the surface's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -959,3 +1014,10 @@ ClassShop, Account, Lobby).
   experience, profile stats, the MVP, Play Again, Keep Going, Return to Lobby), BossController
   (the HUD's boss bar, shakes), ResultsController (the Run Report); WeaponService hit modifiers,
   CombatService `KeepModel`; the `queryhull` collision kind for bosses' bodies.
+* **Prompt 16 (2026-11-09)**: the surface (Run). Rules.Surface, SurfaceService (the map, zones,
+  the elevator, containers, storms, radiation, surface creatures), InventoryService (backpacks,
+  unloading, big finds, bags, pills, monster drops), RescueService (trapped survivors, the escort,
+  joining), SurfaceController, Lib.BrightwaterMap (the town, built in Studio at Y 200);
+  MonsterService zones, pathing, circling and shooting; busy hands; hauls and rescues in the
+  results; art: the A5 surface kit (11 buildings, props, the loot bag, generator parts, the Ash
+  Jackal, Wraith and Raider with clips) and eight surface icons.

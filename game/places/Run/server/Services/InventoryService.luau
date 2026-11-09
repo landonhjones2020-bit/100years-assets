@@ -10,7 +10,7 @@
 	  (WeaponService:GiveThrowable), Clear-Rad pills into the player's pills. The Player attributes
 	  PackUsed, PackSlots, Pack ("Scrap:50,Food:8") and ClearRad carry it to the HUD.
 	* Hauling (Section 12): loot only counts once dropped at the Blast Door hall or a Storage room.
-	  An Unload prompt stands by the hall's crates and in every Storage room: the stockpile takes
+	  An Unload prompt stands in the hall, 15 studs from the elevator, and in every Storage room: the stockpile takes
 	  what it has room for (EconomyService caps) and the rest stays in the pack.
 	* A player downed on the surface drops their pack where they fell (Section 9) unless their class
 	  keeps it (KeepBackpackWhenDowned): a bag anyone can pick up (what doesn't fit stays in it).

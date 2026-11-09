@@ -435,7 +435,7 @@ return {
 		},
 		Surface = { -- Section 12; rates prov. The rest is Prompt 16, prov.
 			StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era",
-			-- the surface is everything above ZoneY (the bunker's floor 1 is at -120, the town's ground at 0)
+			-- the surface is everything above ZoneY (the bunker's floor 1 is at -120, the town's ground at 200)
 			ZoneY = -60, TickSeconds = 0.5, RadiationWarnAt = 0.75, WraithRadiationPerHit = 8, DeconPerSecond = 10,
 			-- Clear-Rad pills are taken by themselves when radiation reaches PillUseAt (a Bible Question)
 			PillUseAt = 100, PillsMax = 3, ElevatorHoldSeconds = 1, FadeSeconds = 0.35, EscortRange = 30,
