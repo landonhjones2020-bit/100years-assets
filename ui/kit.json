@@ -20,6 +20,16 @@
     536
    ]
   },
+  "items": {
+   "decalId": "77379333015803",
+   "file": "ui/atlas_items.png",
+   "imageId": "99859624879456",
+   "sha1": "7f2af1446987630255195f72c4089515a408be5f",
+   "size": [
+    1024,
+    198
+   ]
+  },
   "kit_a": {
    "decalId": "128192097302269",
    "file": "ui/atlas_kit_a.png",
@@ -763,6 +773,19 @@
    ],
    "slice": null
   },
+  "Icon_PocketPistol": {
+   "atlas": "items",
+   "note": "Pocket Pistol icon from the model (hotbar)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
   "Icon_Power": {
    "atlas": "kit_b",
    "note": "Power",
@@ -864,6 +887,19 @@
    "size": [
     128,
     128
+   ],
+   "slice": null
+  },
+  "Icon_Wrench": {
+   "atlas": "items",
+   "note": "Wrench icon from the model (hotbar)",
+   "offset": [
+    268,
+    4
+   ],
+   "size": [
+    256,
+    256
    ],
    "slice": null
   },

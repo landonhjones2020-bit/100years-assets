@@ -176,6 +176,7 @@ stroke(mc, 2, COL.cream, 0.15)
 text(mc, "Label", "", { pos = { 0.06, 0.25 }, size = { 0.88, 0.5 }, font = F.label, color = COL.cream, alignX = CENTER, z = 2 })
 
 --@include HUD_MapPing.lua
+--@include HUD_Combat.lua
 
 sg.Parent = game:GetService("StarterGui")
 return "HUD built: " .. #sg:GetDescendants() .. " instances"

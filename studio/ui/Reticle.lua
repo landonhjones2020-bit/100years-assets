@@ -78,6 +78,7 @@ local function ticks(name: string, gap: number, length: number, thickness: numbe
 end
 ticks("Hip", 0.15, 0.2, 0.055, true) -- walking: an open sight
 ticks("Aim", 0.08, 0.15, 0.045, false) -- aiming: tight around the dot
+--@include Reticle_Hit.lua
 
 gui.Parent = StarterGui
 return "StarterGui.Reticle built"

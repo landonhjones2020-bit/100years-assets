@@ -1,0 +1,83 @@
+{
+ "asset": "Weapon_PocketPistol",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.32,
+  1.326,
+  1.559
+ ],
+ "tris": 1200,
+ "pivot": [
+  0.0,
+  0.656,
+  0.461
+ ],
+ "parts": [
+  {
+   "name": "Pistol",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "rubber",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.007,
+    -0.461
+   ],
+   "size": [
+    0.32,
+    1.326,
+    1.559
+   ],
+   "tris": 1200
+  }
+ ],
+ "meta": {
+  "kind": "Gun",
+  "ammoPerShot": 1,
+  "class": [
+   "Survivor",
+   "Medic",
+   "Cook",
+   "RadioOperator",
+   "Marksman"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.43,
+    -1.26
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "46ef0f5a7f3e3a13"
+}

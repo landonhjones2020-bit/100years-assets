@@ -303,6 +303,8 @@ local function revivePrompt(body: Body, on: boolean)
 		prompt.HoldDuration = 1
 		prompt.MaxActivationDistance = 8
 		prompt.RequiresLineOfSight = false
+		prompt.Style = Enum.ProximityPromptStyle.Custom -- drawn by PromptController (Prompt 11)
+		prompt:SetAttribute("Kind", "ReviveResident")
 		prompt.Triggered:Connect(function(player: Player)
 			local ok, why = residents:Revive(body.Id, player)
 			if not ok and why then

@@ -1,0 +1,920 @@
+--!strict
+--[[
+	WeaponService: what players carry and how they use it (bible Section 9; Section 23: firing,
+	reloads, ammo and the server's hit checks). Run place only; Prompt 11.
+
+	Loadouts
+	* Each player carries their class kit (Config.Classes): the Survivor until the Lobby sends a
+	  loadout (Prompt 21); /dev class switches it. Kit items are Standard rarity.
+	* Section 9's loadout is two guns, one melee weapon, one tool and two throwables. The hotbar
+	  holds the guns (slots 1 and 2), the tool (3) and the throwables (4 and 5); the melee weapon
+	  has its own button. A kit with no melee weapon punches (Tuning.Combat.Unarmed).
+	* The selected slot's item is held: a clone of its model (ServerStorage.Assets.Weapons)
+	  welded to the right hand at its Grip socket. Slot 0 holds the melee weapon. A swing holds
+	  the melee weapon until it ends.
+	* Ammo: each gun's magazine, and the player's carried ammo (Tuning.Combat.CarriedAmmo.Start
+	  the first time they spawn in a run, up to .Max). A reload moves whole shots from carried
+	  ammo into the magazine over the gun's ReloadSeconds; changing slots cancels it. At a
+	  Workshop or an Armory, holding Interact for RestockSeconds fills carried ammo from the
+	  team's Ammo stockpile (Section 9: players restock at the Armory or Workshop).
+
+	Guns (Section 23: the client fires for instant feedback; the server checks)
+	* FireWeapon(slot, shot, origin, aim, time, claims). The shot's number must be the next one,
+	  the gun held, loaded, not reloading and past its fire interval (RateTolerance early at
+	  most), and the origin near the player. Every pellet's direction comes from the shot's
+	  seed (Rules.Combat.Spread), so the client can't choose its spread. Each claimed hit must
+	  lie on its pellet's ray, within range, in the line of sight (the server's own raycast)
+	  and near where the target was over the last LagSeconds. Only monsters can be hit.
+	* A flame gun (Cone) burns every monster in its cone each tick; a Projectile gun's round
+	  flies under gravity, run by the server, and bursts on what it touches (BlastRadius;
+	  players' explosives never damage the bunker).
+	* HitConfirmed tells the shooter what each hit did (hit markers, damage numbers).
+
+	Melee, dodge, sprint, stamina (Section 9)
+	* MeleeSwing(heavy, facing): light swings chain into ComboSteps hits; a heavy swing costs
+	  HeavySwingStamina and takes HeavySwingMultiplier as long. The hit lands at the windup's
+	  end and is checked then (reach and arc in front, Monster Lab's rule), with the weapon's
+	  knockback and stun (StunnedUntil on the monster, for Prompt 12's AI).
+	* Dodge(direction): DodgeStamina, then DodgeInvulnerableSeconds of invulnerability
+	  (CombatService); the client moves the character.
+	* Sprint(on): drains SprintStaminaPerSecond while moving; stamina grows back after
+	  StaminaRegenDelay.
+
+	Attributes on the Player (all replicate): Class, Slot, Item1 to Item5, Mag1 and Mag2,
+	MeleeItem, CarriedAmmo, Stamina, ReloadEndsAt, ShotSalt, ShotNext, SwingEndsAt.
+	Dev: class, give, ammo, loadout, stamina.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
+
+local Shared = ReplicatedStorage.Shared
+local Combat = require(Shared.Rules.Combat)
+local Config = require(Shared.Config)
+local Grid = require(Shared.Rules.Grid)
+local Log = require(Shared.Utilities.Log)
+local Remotes = require(Shared.Remotes)
+
+local log = Log.new("WeaponService")
+
+local SLOTS = 5
+local GUN_SLOTS = 2
+local MOVING_SPEED = 2 -- studs/s: below this a sprinting player isn't moving
+local STAMINA_HZ = 10
+
+type Held = { Item: string, Rarity: string, Magazine: number? }
+type Loadout = {
+	Class: string,
+	Slots: { [number]: Held? },
+	Melee: Held,
+	Selected: number,
+	Carried: number,
+	Stamina: number,
+	SpentAt: number, -- os.clock() of the last stamina spend
+	Sprinting: boolean,
+	Salt: number,
+	NextShot: number,
+	LastShotAt: number,
+	ReloadEndsAt: number,
+	ReloadToken: number,
+	SwingEndsAt: number,
+	ComboStep: number,
+	LastSwingAt: number,
+	DodgeReadyAt: number,
+}
+
+local WeaponService = {
+	Name = "WeaponService",
+	Dependencies = { "CombatService", "EconomyService", "BunkerGrid", "SessionService", "DevService" },
+}
+
+local combat: any = nil
+local economy: any = nil
+local grid: any = nil
+local dev: any = nil
+
+local loadouts: { [Player]: Loadout } = {}
+local restockFolder: Folder? = nil
+
+local function now(): number
+	return workspace:GetServerTimeNow()
+end
+
+-- Loadouts --------------------------------------------------------------------------------
+
+local function kitOf(classId: string): (
+	{ [number]: Held? },
+	Held
+)
+	local class = Config.Find("Classes", classId) or Config.Get("Classes", "Survivor")
+	local guns, throwables = {}, {}
+	local tool: string? = nil
+	local melee: string? = nil
+	for _, stack in class.Kit do
+		local item = Config.Find("Items", stack.Item)
+		if item then
+			if item.Kind == "Gun" then
+				table.insert(guns, stack.Item)
+			elseif item.Kind == "Melee" then
+				melee = melee or stack.Item
+			elseif item.Kind == "Tool" then
+				tool = tool or stack.Item
+			elseif item.Kind == "Throwable" then
+				table.insert(throwables, stack.Item)
+			end
+		end
+	end
+	local slots: { [number]: Held? } = {}
+	for i = 1, GUN_SLOTS do
+		local id = guns[i]
+		if id then
+			local gun = Combat.Gun(id)
+			slots[i] = { Item = id, Rarity = "Standard", Magazine = if gun then gun.Magazine else 0 }
+		end
+	end
+	if tool then
+		slots[3] = { Item = tool, Rarity = "Standard" }
+	end
+	for i = 1, 2 do
+		if throwables[i] then
+			slots[3 + i] = { Item = throwables[i], Rarity = "Standard" }
+		end
+	end
+	return slots, { Item = melee or Combat.UNARMED, Rarity = "Standard" }
+end
+
+local function publish(player: Player, state: Loadout)
+	player:SetAttribute("Class", state.Class)
+	player:SetAttribute("Slot", state.Selected)
+	for i = 1, SLOTS do
+		local held = state.Slots[i]
+		player:SetAttribute(`Item{i}`, if held then held.Item else nil)
+		if i <= GUN_SLOTS then
+			player:SetAttribute(`Mag{i}`, if held then held.Magazine else nil)
+		end
+	end
+	player:SetAttribute("MeleeItem", state.Melee.Item)
+	player:SetAttribute("CarriedAmmo", state.Carried)
+	player:SetAttribute("ShotSalt", state.Salt)
+	player:SetAttribute("ShotNext", state.NextShot)
+	player:SetAttribute("ReloadEndsAt", if state.ReloadEndsAt > now() then state.ReloadEndsAt else nil)
+end
+
+local function firstSlot(state: Loadout): number
+	for i = 1, SLOTS do
+		if state.Slots[i] then
+			return i
+		end
+	end
+	return 0
+end
+
+local function newLoadout(player: Player, classId: string, carried: number?): Loadout
+	local slots, melee = kitOf(classId)
+	local p = Config.Get("Tuning", "Player")
+	local state: Loadout = {
+		Class = classId,
+		Slots = slots,
+		Melee = melee,
+		Selected = 0,
+		Carried = carried or Combat.Tuning().CarriedAmmo.Start,
+		Stamina = p.Stamina,
+		SpentAt = 0,
+		Sprinting = false,
+		Salt = Random.new():NextInteger(1, 2 ^ 30),
+		NextShot = 1,
+		LastShotAt = -math.huge,
+		ReloadEndsAt = 0,
+		ReloadToken = 0,
+		SwingEndsAt = 0,
+		ComboStep = 0,
+		LastSwingAt = -math.huge,
+		DodgeReadyAt = 0,
+	}
+	state.Selected = firstSlot(state)
+	loadouts[player] = state
+	player:SetAttribute("Stamina", state.Stamina)
+	publish(player, state)
+	return state
+end
+
+-- Held models ------------------------------------------------------------------------------
+
+local function modelOf(itemId: string): Model?
+	local item = Config.Find("Items", itemId)
+	if not item or not item.Asset then
+		return nil
+	end
+	local assets = ServerStorage:FindFirstChild("Assets")
+	local folder = assets and assets:FindFirstChild("Weapons")
+	local template = folder and folder:FindFirstChild(item.Asset)
+	return if template and template:IsA("Model") then template else nil
+end
+
+local function holdItem(player: Player, itemId: string?)
+	local character = player.Character
+	if not character then
+		return
+	end
+	local old = character:FindFirstChild("HeldItem")
+	if old and old:GetAttribute("Item") == itemId then
+		return
+	end
+	if old then
+		old:Destroy()
+	end
+	if not itemId then
+		return
+	end
+	local hand = character:FindFirstChild("RightHand")
+	local template = modelOf(itemId)
+	if not (hand and hand:IsA("BasePart") and template) then
+		return
+	end
+	local model = template:Clone()
+	model.Name = "HeldItem"
+	model:SetAttribute("Item", itemId)
+	local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	if not primary then
+		model:Destroy()
+		return
+	end
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = false
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.Massless = true
+		end
+	end
+	-- Sockets are the model's Socket_<Name> attributes, relative to its pivot (the art
+	-- pipeline's AssetSetup). The Grip socket sits in the hand's grip with the item's front
+	-- (-Z) along the fingers: forward when the forearm points forward. The Muzzle and Tip
+	-- sockets become attachments, for the client's flashes and tracers.
+	local pivot = model:GetPivot()
+	local function socket(name: string): CFrame?
+		local value = model:GetAttribute(`Socket_{name}`)
+		return if typeof(value) == "CFrame" then pivot * value else nil
+	end
+	local gripWorld = socket("Grip") or pivot
+	local gripInPrimary = primary.CFrame:ToObjectSpace(gripWorld)
+	for _, name in { "Muzzle", "Tip" } do
+		local at = socket(name)
+		if at then
+			local attachment = Instance.new("Attachment")
+			attachment.Name = name
+			attachment.CFrame = primary.CFrame:ToObjectSpace(at)
+			attachment.Parent = primary
+		end
+	end
+	local handGrip = hand:FindFirstChild("RightGripAttachment")
+	local handCFrame = if handGrip and handGrip:IsA("Attachment") then handGrip.CFrame else CFrame.new(0, -0.15, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") and part ~= primary then
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = primary
+			weld.Part1 = part
+			weld.Parent = part
+		end
+	end
+	local weld = Instance.new("Weld")
+	weld.Name = "GripWeld"
+	weld.Part0 = hand
+	weld.Part1 = primary
+	weld.C0 = handCFrame
+	weld.C1 = gripInPrimary
+	weld.Parent = primary
+	model.Parent = character
+end
+
+-- What the player should be holding now.
+local function refreshHeld(player: Player, state: Loadout)
+	if now() < state.SwingEndsAt then
+		holdItem(player, if state.Melee.Item ~= Combat.UNARMED then state.Melee.Item else nil)
+		return
+	end
+	local held = state.Slots[state.Selected]
+	if held then
+		holdItem(player, held.Item)
+	elseif state.Selected == 0 and state.Melee.Item ~= Combat.UNARMED then
+		holdItem(player, state.Melee.Item)
+	else
+		holdItem(player, nil)
+	end
+end
+
+local function alive(player: Player): boolean
+	return player:GetAttribute("Life") == "Alive"
+end
+
+local function spend(state: Loadout, player: Player, amount: number): boolean
+	if state.Stamina < amount then
+		return false
+	end
+	state.Stamina -= amount
+	state.SpentAt = os.clock()
+	player:SetAttribute("Stamina", state.Stamina)
+	return true
+end
+
+-- Line of sight: does the world block the way from `from` to `to`?
+local function blocked(from: Vector3, to: Vector3, ignore: { Instance }): boolean
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = ignore
+	params.IgnoreWater = true
+	local offset = to - from
+	local distance = offset.Magnitude
+	if distance < 0.5 then
+		return false
+	end
+	local hit = workspace:Raycast(from, offset.Unit * (distance - 0.5), params)
+	return hit ~= nil
+end
+
+-- Everything a shot passes through when judging the line of sight: people and monsters.
+local function bodies(): { Instance }
+	local list: { Instance } = {}
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(list, player.Character)
+		end
+	end
+	for _, c in combat:All() do
+		if c.Kind ~= "Player" then
+			table.insert(list, c.Model)
+		end
+	end
+	return list
+end
+
+local function confirm(player: Player, targetId: string, done: number, point: Vector3?)
+	local target = combat:Get(targetId)
+	local killed = target == nil or target.State == "Dead"
+	Remotes.FireClient("HitConfirmed", player, targetId, done, killed, point)
+end
+
+-- Guns ---------------------------------------------------------------------------------------
+
+local function explode(player: Player, at: Vector3, radius: number, damage: number, shooterId: string)
+	local blast = Instance.new("Explosion")
+	blast.BlastPressure = 0 -- visual only: players' explosives never damage the bunker (Section 9)
+	blast.DestroyJointRadiusPercent = 0
+	blast.BlastRadius = radius
+	blast.Position = at
+	blast.Parent = workspace
+	local ignore = bodies()
+	for _, c in combat:All("Monsters") do
+		local distance = (c.Root.Position - at).Magnitude - c.Reach
+		if distance <= radius and not blocked(at, c.Root.Position, ignore) then
+			local scale = 1 - math.clamp(distance / radius, 0, 1) * 0.5
+			local done = combat:Damage(c.Id, damage * scale, shooterId, "blast")
+			if done > 0 then
+				confirm(player, c.Id, done, c.Root.Position)
+			end
+		end
+	end
+end
+
+local function launch(player: Player, origin: Vector3, direction: Vector3, gun: { [string]: any }, damage: number, shooterId: string)
+	local t = Combat.Tuning()
+	local round = Instance.new("Part")
+	round.Name = "Round"
+	round.Shape = Enum.PartType.Ball
+	round.Size = Vector3.new(0.6, 0.6, 0.6)
+	round.Material = Enum.Material.Neon
+	round.Color = Color3.fromRGB(232, 116, 59)
+	round.Anchored = true
+	round.CanCollide = false
+	round.CanQuery = false
+	round.CanTouch = false
+	round.CFrame = CFrame.new(origin)
+	round.Parent = workspace
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { round, player.Character :: Instance }
+	local velocity = direction.Unit * t.ProjectileSpeed
+	local position = origin
+	local travelled = 0
+	local connection: RBXScriptConnection? = nil
+	connection = RunService.Heartbeat:Connect(function(dt)
+		local step = velocity * dt
+		local hit = workspace:Raycast(position, step, params)
+		velocity -= Vector3.new(0, t.ProjectileGravity * dt, 0)
+		travelled += step.Magnitude
+		if hit or travelled > gun.Range then
+			if connection then
+				connection:Disconnect()
+			end
+			round:Destroy()
+			explode(player, if hit then hit.Position else position + step, gun.BlastRadius or 8, damage, shooterId)
+			return
+		end
+		position += step
+		round.CFrame = CFrame.new(position)
+	end)
+end
+
+local function onFire(player: Player, slot: number, shot: number, origin: Vector3, aim: Vector3, time: number, claims: { any })
+	local state = loadouts[player]
+	local shooter = combat:PlayerCombatant(player)
+	if not state or not shooter or not alive(player) then
+		return
+	end
+	local held = state.Slots[slot]
+	local gun = if held then Combat.Gun(held.Item) else nil
+	if not held or not gun or state.Selected ~= slot then
+		return
+	end
+	local t = Combat.Tuning()
+	if shot ~= state.NextShot then
+		player:SetAttribute("ShotNext", state.NextShot) -- the client resyncs from this
+		return
+	end
+	local clock = os.clock()
+	if now() < state.ReloadEndsAt or (held.Magazine or 0) < 1 then
+		return
+	end
+	if clock - state.LastShotAt < Combat.Interval(held.Item) * (1 - t.RateTolerance) then
+		return
+	end
+	if (origin - shooter.Root.Position).Magnitude > t.OriginTolerance or aim.Magnitude < 0.9 then
+		return
+	end
+	held.Magazine = (held.Magazine or 0) - 1
+	state.NextShot += 1
+	state.LastShotAt = clock
+	player:SetAttribute(`Mag{slot}`, held.Magazine)
+	player:SetAttribute("ShotNext", state.NextShot)
+
+	local damage = Combat.Damage(held.Item, held.Rarity)
+	local serverNow = now()
+	local from = math.clamp(time, serverNow - t.LagSeconds, serverNow) - 0.05
+	local ignore = bodies()
+
+	if gun.Projectile then
+		launch(player, origin, aim, gun, damage, shooter.Id)
+		return
+	end
+	if gun.Cone then
+		for _, c in combat:All("Monsters") do
+			if Combat.InCone(origin, aim, c.Root.Position, gun.Range, gun.SpreadDegrees, c.Reach)
+				and not blocked(origin, c.Root.Position, ignore) then
+				local done = combat:Damage(c.Id, damage, shooter.Id, "burned")
+				if done > 0 then
+					confirm(player, c.Id, done, c.Root.Position)
+				end
+			end
+		end
+		return
+	end
+	local pellets = Combat.Spread(Combat.ShotSeed(state.Salt, shot), aim, held.Item)
+	local used: { [number]: boolean } = {}
+	for _, claim in claims do
+		local direction = pellets[claim.Pellet]
+		local target = combat:Get(claim.Id)
+		if direction and not used[claim.Pellet] and target and target.Team == "Monsters" and target.State == "Alive" then
+			used[claim.Pellet] = true
+			local ok, why = Combat.CheckHit(origin, direction, claim.Point, gun.Range, target.History, from, serverNow, target.Reach)
+			if ok and blocked(origin, claim.Point, ignore) then
+				ok, why = false, "the line of sight is blocked"
+			end
+			if ok then
+				local done = combat:Damage(target.Id, damage, shooter.Id, "shot")
+				if done > 0 then
+					confirm(player, target.Id, done, claim.Point)
+				end
+			else
+				log:Debug("%s: a hit on %s refused: %s", player.Name, claim.Id, tostring(why))
+			end
+		end
+	end
+end
+
+local function onReload(player: Player)
+	local state = loadouts[player]
+	if not state or not alive(player) then
+		return
+	end
+	local held = state.Slots[state.Selected]
+	local gun = if held then Combat.Gun(held.Item) else nil
+	if not held or not gun or now() < state.ReloadEndsAt then
+		return
+	end
+	if (held.Magazine or 0) >= gun.Magazine or state.Carried < gun.AmmoPerShot then
+		return
+	end
+	state.ReloadToken += 1
+	local token = state.ReloadToken
+	state.ReloadEndsAt = now() + gun.ReloadSeconds
+	player:SetAttribute("ReloadEndsAt", state.ReloadEndsAt)
+	task.delay(gun.ReloadSeconds, function()
+		if loadouts[player] ~= state or state.ReloadToken ~= token then
+			return
+		end
+		state.ReloadEndsAt = 0
+		player:SetAttribute("ReloadEndsAt", nil)
+		if state.Slots[state.Selected] == held then
+			held.Magazine, state.Carried = Combat.Reload(held.Magazine or 0, state.Carried, held.Item)
+			player:SetAttribute(`Mag{state.Selected}`, held.Magazine)
+			player:SetAttribute("CarriedAmmo", state.Carried)
+		end
+	end)
+end
+
+local function cancelReload(player: Player, state: Loadout)
+	if state.ReloadEndsAt > 0 then
+		state.ReloadToken += 1
+		state.ReloadEndsAt = 0
+		player:SetAttribute("ReloadEndsAt", nil)
+	end
+end
+
+local function onSelect(player: Player, slot: number)
+	local state = loadouts[player]
+	if not state or state.Selected == slot then
+		return
+	end
+	cancelReload(player, state)
+	state.Selected = slot
+	player:SetAttribute("Slot", slot)
+	refreshHeld(player, state)
+end
+
+-- Melee --------------------------------------------------------------------------------------
+
+local function onSwing(player: Player, heavy: boolean, facing: Vector3)
+	local state = loadouts[player]
+	local attacker = combat:PlayerCombatant(player)
+	if not state or not attacker or not alive(player) then
+		return
+	end
+	local clock = now()
+	if clock < state.SwingEndsAt - 0.08 then
+		return -- still swinging (a little early is network jitter)
+	end
+	local item = state.Melee.Item
+	local p = Config.Get("Tuning", "Player")
+	if heavy and not spend(state, player, p.HeavySwingStamina) then
+		return
+	end
+	local step = if heavy then 0 else Combat.NextCombo(state.ComboStep, clock - state.LastSwingAt)
+	local windup, length = Combat.Swing(item, heavy)
+	state.ComboStep = step
+	state.LastSwingAt = clock + length
+	state.SwingEndsAt = clock + length
+	player:SetAttribute("SwingEndsAt", state.SwingEndsAt)
+	cancelReload(player, state)
+	refreshHeld(player, state)
+
+	local t = Combat.Tuning()
+	local melee = Combat.Melee(item) or t.Unarmed
+	local damage = Combat.Damage(item, state.Melee.Rarity, heavy)
+	task.delay(windup, function()
+		if not alive(player) or combat:PlayerCombatant(player) ~= attacker then
+			return
+		end
+		local root = attacker.Root
+		local look = Vector3.new(facing.X, 0, facing.Z)
+		if look.Magnitude < 0.1 then
+			look = root.CFrame.LookVector
+		end
+		local at = CFrame.lookAt(root.Position, root.Position + look)
+		local ignore = bodies()
+		for _, c in combat:All("Monsters") do
+			if Combat.InArc(at, c.Root.Position, t.MeleeReach + t.MeleeReachTolerance, t.MeleeArcDegrees, c.Reach)
+				and not blocked(root.Position, c.Root.Position, ignore) then
+				local done = combat:Damage(c.Id, damage, attacker.Id, if heavy then "smashed" else "struck")
+				if done > 0 then
+					confirm(player, c.Id, done, c.Root.Position)
+					if melee.Knockback and not c.Root.Anchored then
+						local push = (c.Root.Position - root.Position) * Vector3.new(1, 0, 1)
+						if push.Magnitude > 0.1 then
+							c.Root.AssemblyLinearVelocity += push.Unit * melee.Knockback + Vector3.new(0, melee.Knockback * 0.3, 0)
+						end
+					end
+					if melee.StunSeconds then
+						c.Model:SetAttribute("StunnedUntil", now() + melee.StunSeconds)
+					end
+				end
+			end
+		end
+	end)
+	task.delay(length, function()
+		if loadouts[player] == state and now() >= state.SwingEndsAt - 0.01 then
+			player:SetAttribute("SwingEndsAt", nil)
+			refreshHeld(player, state)
+		end
+	end)
+end
+
+-- Dodge, sprint, stamina ------------------------------------------------------------------------
+
+local function onDodge(player: Player, _direction: Vector3)
+	local state = loadouts[player]
+	local me = combat:PlayerCombatant(player)
+	if not state or not me or not alive(player) then
+		return
+	end
+	local clock = now()
+	if clock < state.DodgeReadyAt then
+		return
+	end
+	local t = Combat.Tuning()
+	if not spend(state, player, Config.Get("Tuning", "Player").DodgeStamina) then
+		return
+	end
+	state.DodgeReadyAt = clock + t.DodgeSeconds + t.DodgeCooldownSeconds
+	combat:SetInvulnerable(me.Id, clock + t.DodgeInvulnerableSeconds)
+end
+
+local function onSprint(player: Player, on: boolean)
+	local state = loadouts[player]
+	if state then
+		state.Sprinting = on and alive(player)
+	end
+end
+
+local function staminaLoop()
+	local p = Config.Get("Tuning", "Player")
+	local dt = 1 / STAMINA_HZ
+	while true do
+		task.wait(dt)
+		for player, state in loadouts do
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local moving = false
+			if root then
+				local v = root.AssemblyLinearVelocity
+				moving = Vector3.new(v.X, 0, v.Z).Magnitude > MOVING_SPEED
+			end
+			local sprinting = state.Sprinting and moving and state.Stamina > 0
+			local before = state.Stamina
+			state.Stamina = Combat.Stamina(state.Stamina, p.Stamina, dt, sprinting, os.clock() - state.SpentAt)
+			if sprinting then
+				state.SpentAt = os.clock()
+			end
+			if state.Stamina <= 0 then
+				state.Sprinting = false
+			end
+			if math.abs(state.Stamina - before) > 1e-6 then
+				local shown = player:GetAttribute("Stamina")
+				if type(shown) ~= "number" or math.abs(shown - state.Stamina) >= 1 or state.Stamina == 0 or state.Stamina == p.Stamina then
+					player:SetAttribute("Stamina", math.floor(state.Stamina * 10 + 0.5) / 10)
+				end
+			end
+		end
+	end
+end
+
+-- Restocking at a Workshop or Armory -----------------------------------------------------------
+
+local function restock(player: Player): (number, string?)
+	local state = loadouts[player]
+	if not state or not alive(player) then
+		return 0, "not now"
+	end
+	local max = Combat.Tuning().CarriedAmmo.Max
+	local want = max - state.Carried
+	if want <= 0 then
+		return 0, "you're full"
+	end
+	local have = economy:Get("Ammo")
+	local take = math.min(want, have)
+	if take <= 0 then
+		return 0, "the stockpile has no Ammo"
+	end
+	local ok, why = economy:Spend({ Ammo = take }, `restock for {player.Name}`)
+	if not ok then
+		return 0, why
+	end
+	state.Carried += take
+	player:SetAttribute("CarriedAmmo", state.Carried)
+	return take, nil
+end
+
+local function syncRestockPoints()
+	local root = grid:Root()
+	if not root then
+		return
+	end
+	local folder = restockFolder
+	if not folder or folder.Parent == nil then
+		folder = Instance.new("Folder")
+		folder.Name = "Restock"
+		folder.Parent = root
+		restockFolder = folder
+	end
+	local wanted: { [string]: Vector3 } = {}
+	for _, roomType in { "Workshop", "Armory" } do
+		for _, room in grid:RoomsOfType(roomType) do
+			local model = grid:RoomModel(room.Id)
+			local socket = model and model:FindFirstChild("Restock", true)
+			wanted[room.Id] = if socket and socket:IsA("Attachment")
+				then socket.WorldPosition
+				else Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 3, 2)
+		end
+	end
+	for _, point in (folder :: Folder):GetChildren() do
+		local roomId = point:GetAttribute("RoomId")
+		if type(roomId) ~= "string" or not wanted[roomId] then
+			point:Destroy()
+		end
+	end
+	for roomId, position in wanted do
+		local point = (folder :: Folder):FindFirstChild(roomId)
+		if not point then
+			local part = Instance.new("Part")
+			part.Name = roomId
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.Transparency = 1
+			part.Size = Vector3.new(1, 1, 1)
+			part:SetAttribute("RoomId", roomId)
+			local prompt = Instance.new("ProximityPrompt")
+			prompt.Name = "RestockPrompt"
+			prompt.ActionText = "Restock ammo"
+			local room = grid:Room(roomId)
+			prompt.ObjectText = if room then Config.Get("Rooms", room.Type).Name else "Ammo"
+			prompt.HoldDuration = Combat.Tuning().RestockSeconds
+			prompt.MaxActivationDistance = 10
+			prompt.RequiresLineOfSight = false
+			prompt.Style = Enum.ProximityPromptStyle.Custom
+			prompt:SetAttribute("Kind", "Restock")
+			prompt.Triggered:Connect(function(player: Player)
+				local took, why = restock(player)
+				Remotes.FireClient("Alert", player, if took > 0 then "Info" else "Warning",
+					if took > 0 then `RESTOCKED {took} AMMO FROM THE STOCKPILE` else `CAN'T RESTOCK: {string.upper(why or "")}`)
+			end)
+			prompt.Parent = part
+			part.Parent = folder
+			point = part
+		end
+		(point :: BasePart).Position = position
+	end
+end
+
+-- Lifecycle --------------------------------------------------------------------------------------
+
+local function describe(player: Player): string
+	local state = loadouts[player]
+	if not state then
+		return "no loadout"
+	end
+	local lines = { `{player.Name}: {state.Class}, slot {state.Selected}, carried {state.Carried}, stamina {math.floor(state.Stamina)}` }
+	for i = 1, SLOTS do
+		local held = state.Slots[i]
+		if held then
+			table.insert(lines, `  {i}: {held.Item} ({held.Rarity}){if held.Magazine then ` {held.Magazine} loaded` else ""}`)
+		end
+	end
+	table.insert(lines, `  melee: {state.Melee.Item}`)
+	return table.concat(lines, "\n")
+end
+
+function WeaponService:Loadout(player: Player): Loadout?
+	return loadouts[player]
+end
+
+function WeaponService:Init(registry)
+	combat = registry.CombatService
+	economy = registry.EconomyService
+	grid = registry.BunkerGrid
+	dev = registry.DevService
+
+	dev:Register("loadout", {
+		Description = "Your loadout: class, hotbar, magazines, carried ammo and stamina.",
+		Usage = "loadout",
+		Run = function(player): string?
+			return if player then describe(player) else "players only"
+		end,
+	})
+	dev:Register("class", {
+		Description = "Take a class's kit (until the Lobby's loadouts, Prompt 21).",
+		Usage = "class <ClassId>",
+		Run = function(player, args): string?
+			if not player then
+				return "players only"
+			end
+			local id = tostring(args[1] or "")
+			if not Config.Find("Classes", id) then
+				return `no class {id}`
+			end
+			local old = loadouts[player]
+			local state = newLoadout(player, id, if old then old.Carried else nil)
+			refreshHeld(player, state)
+			return describe(player)
+		end,
+	})
+	dev:Register("give", {
+		Description = "Put an item in a hotbar slot (guns 1-2, tool 3, throwables 4-5) or as the melee weapon.",
+		Usage = "give <ItemId> [slot|melee] [rarity]",
+		Run = function(player, args): string?
+			local state = player and loadouts[player]
+			if not player or not state then
+				return "players only"
+			end
+			local itemId = tostring(args[1] or "")
+			local item = Config.Find("Items", itemId)
+			if not item then
+				return `no item {itemId}`
+			end
+			local rarity = if Config.Find("ItemRarities", args[3]) then tostring(args[3]) else "Standard"
+			if item.Kind == "Melee" or args[2] == "melee" then
+				state.Melee = { Item = itemId, Rarity = rarity }
+			else
+				local slot = tonumber(args[2]) or (if item.Kind == "Gun" then 1 elseif item.Kind == "Tool" then 3 else 4)
+				local gun = Combat.Gun(itemId)
+				state.Slots[slot] = { Item = itemId, Rarity = rarity, Magazine = if gun then gun.Magazine else nil }
+			end
+			publish(player, state)
+			refreshHeld(player, state)
+			return describe(player)
+		end,
+	})
+	dev:Register("ammo", {
+		Description = "Set your carried ammo.",
+		Usage = "ammo [amount]",
+		Run = function(player, args): string?
+			local state = player and loadouts[player]
+			if not player or not state then
+				return "players only"
+			end
+			state.Carried = math.max(0, math.floor(tonumber(args[1]) or Combat.Tuning().CarriedAmmo.Max))
+			player:SetAttribute("CarriedAmmo", state.Carried)
+			return describe(player)
+		end,
+	})
+	dev:Register("stamina", {
+		Description = "Set your stamina.",
+		Usage = "stamina [amount]",
+		Run = function(player, args): string?
+			local state = player and loadouts[player]
+			if not player or not state then
+				return "players only"
+			end
+			state.Stamina = math.clamp(tonumber(args[1]) or 100, 0, Config.Get("Tuning", "Player").Stamina)
+			player:SetAttribute("Stamina", state.Stamina)
+			return describe(player)
+		end,
+	})
+end
+
+function WeaponService:Start()
+	local function joined(player: Player)
+		player.CharacterAdded:Connect(function()
+			local state = loadouts[player] or newLoadout(player, "Survivor")
+			state.SwingEndsAt = 0
+			state.Sprinting = false
+			cancelReload(player, state)
+			task.defer(function()
+				if player.Character then
+					player.Character:WaitForChild("RightHand", 10)
+					refreshHeld(player, state)
+				end
+			end)
+		end)
+		if player.Character then
+			local state = loadouts[player] or newLoadout(player, "Survivor")
+			task.defer(refreshHeld, player, state)
+		end
+	end
+	Players.PlayerAdded:Connect(joined)
+	for _, player in Players:GetPlayers() do
+		joined(player)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		loadouts[player] = nil
+	end)
+
+	Remotes.OnServer("SelectSlot", onSelect)
+	Remotes.OnServer("FireWeapon", onFire)
+	Remotes.OnServer("ReloadWeapon", onReload)
+	Remotes.OnServer("MeleeSwing", onSwing)
+	Remotes.OnServer("Dodge", onDodge)
+	Remotes.OnServer("Sprint", onSprint)
+
+	combat.Downed:Connect(function(id: string)
+		local c = combat:Get(id)
+		local player = c and c.Player
+		local state = player and loadouts[player]
+		if player and state then
+			state.Sprinting = false
+			cancelReload(player, state)
+		end
+	end)
+
+	grid.RoomChanged:Connect(function()
+		task.defer(syncRestockPoints)
+	end)
+	syncRestockPoints()
+	task.spawn(staminaLoop)
+	log:Info("weapons ready: the Survivor's kit by default, carried ammo %d", Combat.Tuning().CarriedAmmo.Start)
+end
+
+return WeaponService

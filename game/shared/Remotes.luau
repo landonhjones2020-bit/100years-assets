@@ -106,6 +106,59 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 3, PerSecond = 1 },
 		Doc = "Revive a downed resident with a Medkit from the stockpile (the resident's prompt; Section 11).",
 	},
+	SelectSlot = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.integer(0, 5) },
+		Rate = { Burst = 10, PerSecond = 8 },
+		Doc = "Hold a hotbar slot's item (1 to 5; 0 = the melee weapon) (WeaponService, Section 9).",
+	},
+	FireWeapon = {
+		To = "Server",
+		Place = "Run",
+		Args = {
+			Check.integer(1, 2), -- the gun's hotbar slot
+			Check.integer(1, 2 ^ 30), -- the shot's number
+			Check.vector3(20000), -- where it left the muzzle
+			Check.vector3(1.01), -- the aim, before spread
+			Check.number({ min = 0 }), -- the client's server time when it fired
+			Check.array(Check.shape({
+				Id = Check.string(12, { pattern = "^M%d+$", min = 2 }), -- monsters only: no friendly fire
+				Point = Check.vector3(20000),
+				Pellet = Check.integer(1, 16),
+			}), 16),
+		},
+		Rate = { Burst = 24, PerSecond = 16 },
+		Doc = "A shot: slot, shot number, origin, aim, time and the hits the client saw; the server checks it all (Section 23).",
+	},
+	ReloadWeapon = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 4, PerSecond = 2 },
+		Doc = "Reload the held gun from carried ammo (Section 9).",
+	},
+	MeleeSwing = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.boolean(), Check.vector3(1.01) },
+		Rate = { Burst = 6, PerSecond = 5 },
+		Doc = "A melee swing: heavy or light, and the way the player faces; the hit is checked when it lands (Section 9).",
+	},
+	Dodge = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.vector3(1.01) },
+		Rate = { Burst = 3, PerSecond = 2 },
+		Doc = "A dodge roll: costs stamina and gives a moment of invulnerability; the client moves the character (Section 9).",
+	},
+	Sprint = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.boolean() },
+		Rate = { Burst = 8, PerSecond = 4 },
+		Doc = "Sprinting on or off, for the stamina it drains (Section 9).",
+	},
 
 	-- server -> client
 	Delta = {
@@ -124,6 +177,11 @@ local DEFINITIONS: { [string]: Definition } = {
 		To = "Client",
 		Place = "Run",
 		Doc = "A player pinged a cell: floor, column, the player's UserId and display name (PingService).",
+	},
+	HitConfirmed = {
+		To = "Client",
+		Place = "Run",
+		Doc = "What the player's shot or swing did: the combatant id, the damage, whether it died, and where (WeaponService).",
 	},
 }
 

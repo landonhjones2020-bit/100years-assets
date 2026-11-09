@@ -164,6 +164,15 @@ local UIContract: { [string]: Screen } = {
 			"Templates.EdgeArrow",
 			"Templates.MapCell.Label",
 			"Templates.MapPing",
+			"Downed.Title", -- Prompt 11: the downed and respawn telegram (CombatController)
+			"Downed.Text",
+			"Downed.Count",
+			"Templates.Prompt.Plate.Key.Text", -- the themed interaction prompt (PromptController)
+			"Templates.Prompt.Plate.Action",
+			"Templates.Prompt.Plate.Object",
+			"Templates.Prompt.Plate.Gauge.Fill",
+			"Templates.DamageNumber.Value",
+			"Templates.HealthBar.Back.Fill",
 		},
 	},
 }

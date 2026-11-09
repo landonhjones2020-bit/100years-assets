@@ -26,6 +26,7 @@ local Bunker = require(Shared.Rules.Bunker)
 local CameraRig = require(Shared.Rules.CameraRig)
 local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
+local Combat = require(Shared.Rules.Combat)
 local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
 local Residents = require(Shared.Rules.Residents)
@@ -1401,6 +1402,96 @@ test("UIContract: the Frame is in both places, the HUD in the Run; paths are uni
 			seen[path] = true
 		end
 	end
+end)
+
+-- Combat ---------------------------------------------------------------------------------
+
+test("Combat: damage, fire rate, spread and reloads (Section 9)", function()
+	expectEqual(Combat.Damage("PocketPistol", "Standard"), 12, "the Pocket Pistol at Standard")
+	expect(math.abs(Combat.Damage("PocketPistol", "Rusty") - 10.2) < 1e-6, "Rusty is 0.85x")
+	expectEqual(Combat.Damage("Wrench", nil), 14, "a light Wrench swing")
+	expectEqual(Combat.Damage("Wrench", "Legendary", true), 39, "a heavy Legendary Wrench swing (26 x 1.5)")
+	expectEqual(Combat.Damage("Medkit", nil), 0, "not a weapon")
+	expect(math.abs(Combat.Interval("PocketPistol") - 0.25) < 1e-9, "4 shots a second")
+	expectEqual(Combat.Pellets("PumpShotgun"), 8, "the shotgun's pellets")
+	local aim = Vector3.new(0, 0, -1)
+	local seed = Combat.ShotSeed(123456, 7)
+	local a = Combat.Spread(seed, aim, "PumpShotgun")
+	local b = Combat.Spread(seed, aim, "PumpShotgun")
+	expect(#a == 8, "eight pellet directions")
+	for i, direction in a do
+		expect(direction:FuzzyEq(b[i], 1e-9), "the same seed gives the same spread on both sides")
+		local off = math.deg(math.acos(math.clamp(direction:Dot(aim), -1, 1)))
+		expect(off <= 7 + 1e-6 and math.abs(direction.Magnitude - 1) < 1e-6, `pellet {i} within 7 degrees ({off})`)
+	end
+	expect(Combat.ShotSeed(123456, 8) ~= seed, "every shot has its own seed")
+	local one = Combat.Spread(Combat.ShotSeed(1, 1), aim, "LeverRifle")
+	expect(#one == 1 and math.deg(math.acos(math.clamp(one[1]:Dot(aim), -1, 1))) <= 0.3 + 1e-6, "one bullet, 0.3 degrees at most")
+	local magazine, carried = Combat.Reload(3, 60, "PocketPistol")
+	expect(magazine == 10 and carried == 53, `reload the Pocket Pistol: 10 and 53 ({magazine}, {carried})`)
+	magazine, carried = Combat.Reload(0, 5, "PumpShotgun")
+	expect(magazine == 2 and carried == 1, `2 ammo a shotgun shot: 2 shots and 1 left ({magazine}, {carried})`)
+	magazine, carried = Combat.Reload(10, 60, "PocketPistol")
+	expect(magazine == 10 and carried == 60, "a full magazine takes nothing")
+end)
+
+test("Combat: hit checks against where the target was (Section 23)", function()
+	local origin = Vector3.new(0, 5, 0)
+	local aim = Vector3.new(0, 0, -1)
+	local history = {
+		{ T = 10.0, P = Vector3.new(0, 5, -40) },
+		{ T = 10.1, P = Vector3.new(2, 5, -40) },
+		{ T = 10.2, P = Vector3.new(4, 5, -40) },
+		{ T = 10.3, P = Vector3.new(6, 5, -40) },
+	}
+	expect(Combat.PositionAt(history, 10.05):FuzzyEq(Vector3.new(1, 5, -40), 1e-6), "positions between samples")
+	expect(Combat.PositionAt(history, 9):FuzzyEq(history[1].P, 1e-6), "before the history: its first sample")
+	local ok, why = Combat.CheckHit(origin, aim, Vector3.new(0, 5, -39), 120, history, 10.05, 10.3, 2)
+	expect(ok, `a hit where the target was 0.25 s ago counts ({why})`)
+	ok, why = Combat.CheckHit(origin, aim, Vector3.new(0, 5, -39), 120, history, 10.25, 10.3, 2)
+	expect(not ok and why == "not where the target was", `the target had moved on by then ({why})`)
+	ok, why = Combat.CheckHit(origin, aim, Vector3.new(4, 5, -40), 120, history, 10.05, 10.3, 2)
+	expect(not ok and why == "off the shot's line", `4 studs off the line ({why})`)
+	ok, why = Combat.CheckHit(origin, aim, Vector3.new(0, 5, -40), 30, history, 10.05, 10.3, 2)
+	expect(not ok and why == "out of range", `past the gun's range ({why})`)
+	ok, why = Combat.CheckHit(origin, aim, Vector3.new(0, 5, 10), 120, {}, 0, 0, 2)
+	expect(not ok and why == "behind the shot", `behind the shooter ({why})`)
+end)
+
+test("Combat: melee arcs, combos, cones, stamina and respawn (Section 9)", function()
+	local attacker = CFrame.lookAt(Vector3.zero, Vector3.new(0, 0, -1))
+	expect(Combat.InArc(attacker, Vector3.new(0, 0, -5), 6, 110, 1), "in front, in reach")
+	expect(Combat.InArc(attacker, Vector3.new(4.5, 0, -4.5), 6, 110, 1), "45 degrees off: inside a 110-degree arc")
+	expect(not Combat.InArc(attacker, Vector3.new(0, 0, 5), 6, 110, 1), "behind")
+	expect(not Combat.InArc(attacker, Vector3.new(0, 0, -9), 6, 110, 1), "out of reach")
+	expect(not Combat.InArc(attacker, Vector3.new(0, 9, -2), 6, 110, 1), "far overhead")
+	expect(Combat.InCone(Vector3.zero, Vector3.new(0, 0, -1), Vector3.new(3, 0, -15), 18, 20, 0), "inside the flame's cone")
+	expect(not Combat.InCone(Vector3.zero, Vector3.new(0, 0, -1), Vector3.new(12, 0, -10), 18, 20, 0), "outside it")
+	expect(not Combat.InCone(Vector3.zero, Vector3.new(0, 0, -1), Vector3.new(0, 0, -25), 18, 20, 0), "past its range")
+	local index, angle = Combat.AssistTarget(Vector3.zero, Vector3.new(0, 0, -1),
+		{ Vector3.new(10, 0, -10), Vector3.new(0.5, 0, -10) }, 6, 100)
+	expect(index == 2 and angle < 6, "aim assist picks the target nearest the aim, within 6 degrees")
+	expect(Combat.AssistTarget(Vector3.zero, Vector3.new(0, 0, -1), { Vector3.new(10, 0, -10) }, 6, 100) == nil,
+		"and nothing outside its cone")
+	expect(Combat.NextCombo(0, 0) == 1 and Combat.NextCombo(1, 0.3) == 2 and Combat.NextCombo(2, 0.3) == 3, "1, 2, 3")
+	expect(Combat.NextCombo(3, 0.3) == 1 and Combat.NextCombo(1, 2) == 1, "after the third hit, or too late: 1 again")
+	local windup, length = Combat.Swing("Wrench", false)
+	expect(math.abs(windup - 0.14) < 1e-9 and math.abs(length - 0.35) < 1e-9, `a Wrench swing ({windup}, {length})`)
+	windup, length = Combat.Swing("Wrench", true)
+	expect(math.abs(length - 0.56) < 1e-9, `a heavy one takes 1.6x ({length})`)
+	expectEqual(Combat.Stamina(100, 100, 1, true, 0), 88, "sprinting drains 12 a second")
+	expectEqual(Combat.Stamina(50, 100, 1, false, 0.2), 50, "no regrowth right after spending")
+	expectEqual(Combat.Stamina(50, 100, 1, false, 2), 68, "then 18 a second")
+	expectEqual(Combat.Stamina(95, 100, 1, false, 2), 100, "up to the maximum")
+	expectEqual(Combat.Stamina(5, 100, 1, true, 0), 0, "never below 0")
+	local nearest = Combat.Nearest(Vector3.zero, {
+		{ Id = "R8", Position = Vector3.new(40, 0, 0) },
+		{ Id = "R12", Position = Vector3.new(0, -20, 0) },
+	})
+	expect(nearest and nearest.Id == "R12", "the closest Medbay")
+	expect(Combat.Nearest(Vector3.zero, {}) == nil, "none to pick")
+	local tuning = Config.Get("Tuning", "Player")
+	expect(tuning.DownedSeconds == 20 and tuning.ReviveSeconds == 3 and tuning.RespawnSeconds == 15, "Section 9's timings")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

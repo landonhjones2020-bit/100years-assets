@@ -62,6 +62,18 @@ local Schemas: { [string]: Check.Checker } = {
 		BackpackSlots = I, AimFieldOfView = list(N, 2), DownedSeconds = S, ReviveSeconds = S,
 		RespawnSeconds = S, AimAssistDegrees = N, MedkitHeal = N,
 	}),
+	Combat = shape({
+		LagSeconds = S, HistorySeconds = S, HistoryHz = N, HitTolerance = N, RayTolerance = N,
+		OriginTolerance = N, RateTolerance = Fr,
+		SprintMultiplier = N, StaminaRegenDelay = S,
+		DodgeSeconds = S, DodgeInvulnerableSeconds = S, DodgeDistance = N, DodgeCooldownSeconds = S,
+		MeleeReach = N, MeleeArcDegrees = N, MeleeReachTolerance = N, MeleeWindupFraction = Fr,
+		ComboWindowSeconds = S, ComboSteps = I, HeavyChargeSeconds = S, HeavySwingMultiplier = N,
+		CrawlSpeed = N, ReviveHealthFraction = Fr,
+		CarriedAmmo = shape({ Start = I, Max = I }), RestockSeconds = S,
+		ProjectileSpeed = N, ProjectileGravity = N, AssistPullPerSecond = N,
+		Unarmed = shape({ Damage = N, HeavyDamage = N, SwingSeconds = S }),
+	}),
 	Camera = shape({
 		FieldOfView = N, PivotHeight = N, ShoulderOffset = N, ShoulderRaise = F.Number,
 		Distance = shape({ Min = N, Max = N, Default = N }), IndoorMax = N, AimDistance = N, AimShoulder = N,
@@ -179,6 +191,18 @@ return {
 			Loadout = { Guns = 2, Melee = 1, Tool = 1, Throwables = 2, Medkits = 3 },
 			BackpackSlots = 10, AimFieldOfView = { 70, 50 }, DownedSeconds = 20, ReviveSeconds = 3,
 			RespawnSeconds = 15, AimAssistDegrees = 6, MedkitHeal = 60,
+		},
+		Combat = { -- Section 23 (the server checks shots against where targets were over the last 250 ms); the rest prov.
+			LagSeconds = 0.25, HistorySeconds = 1, HistoryHz = 20, HitTolerance = 2.5, RayTolerance = 1.5,
+			OriginTolerance = 8, RateTolerance = 0.15,
+			SprintMultiplier = 1.45, StaminaRegenDelay = 0.8,
+			DodgeSeconds = 0.45, DodgeInvulnerableSeconds = 0.35, DodgeDistance = 14, DodgeCooldownSeconds = 0.6,
+			MeleeReach = 6, MeleeArcDegrees = 110, MeleeReachTolerance = 2, MeleeWindupFraction = 0.4,
+			ComboWindowSeconds = 0.6, ComboSteps = 3, HeavyChargeSeconds = 0.35, HeavySwingMultiplier = 1.6,
+			CrawlSpeed = 3, ReviveHealthFraction = 0.3,
+			CarriedAmmo = { Start = 60, Max = 150 }, RestockSeconds = 1.5,
+			ProjectileSpeed = 90, ProjectileGravity = 30, AssistPullPerSecond = 4,
+			Unarmed = { Damage = 8, HeavyDamage = 14, SwingSeconds = 0.4 }, -- kits with no melee weapon (Engineer, Medic...)
 		},
 		Camera = { -- Section 9 (right shoulder, aim narrows Player.AimFieldOfView, wall fade, zoom capped indoors); numbers prov.
 			FieldOfView = 70, PivotHeight = 1.6, ShoulderOffset = 2.2, ShoulderRaise = 0.3,

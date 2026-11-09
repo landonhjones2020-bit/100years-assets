@@ -469,6 +469,15 @@
   ],
   "slice": null
  },
+ "Icon_PocketPistol": {
+  "group": "items",
+  "note": "Pocket Pistol icon from the model (hotbar)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Power": {
   "note": "Power",
   "size": [
@@ -532,6 +541,15 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Wrench": {
+  "group": "items",
+  "note": "Wrench icon from the model (hotbar)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },

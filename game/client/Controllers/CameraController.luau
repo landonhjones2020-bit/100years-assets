@@ -7,8 +7,10 @@
 	  Shoulder button) moves it to the other side in ShoulderSwapSeconds.
 	* Aim (right mouse, the left trigger, the HUD's Aim button; Run place only) narrows the
 	  field of view from 70 to 50 (Tuning.Player.AimFieldOfView), brings the camera in to
-	  AimDistance, slows walking to AimWalkSpeed and turns the character to where the camera
-	  looks.
+	  AimDistance, slows walking to AimWalkSpeed (Lib.Movement) and turns the character to where
+	  the camera looks. Face(reason, on) turns it the same way without aiming (firing from the
+	  hip, a swing; Prompt 11), and Nudge(yaw, pitch) turns the camera a little (recoil, aim
+	  assist).
 	* Zoom (the wheel, a pinch) between Distance.Min and Distance.Max, capped at IndoorMax while
 	  the character is in a bunker cell.
 	* Zoom caps: a spherecast from the shoulder keeps the camera out of walls, slabs and rock: it
@@ -42,6 +44,7 @@ local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Signal = require(Shared.Utilities.Signal)
 local Fade = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("Fade"))
+local Movement = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("Movement"))
 
 local log = Log.new("CameraController")
 
@@ -86,8 +89,9 @@ local faded: { [BasePart]: boolean } = {}
 local characterFade = 0
 local fadedCharacter: Model? = nil
 local walkHumanoid: Humanoid? = nil
-local baseWalkSpeed = 16
 local slowed = false
+local turned = false
+local facers: { [string]: boolean } = {}
 local reticle: { Gui: ScreenGui, Hip: GuiObject?, Aim: GuiObject? }? = nil
 local lastFrame = { Distance = 0, Blocked = false, Indoors = false, Fading = 0, Position = Vector3.zero }
 
@@ -263,30 +267,36 @@ local function updateReticle()
 	end
 end
 
--- Aiming slows walking and turns the character with the camera.
+-- Aiming slows walking (Lib.Movement); aiming and Face() turn the character with the camera.
 local function updateWalking(humanoid: Humanoid, root: BasePart)
 	if humanoid ~= walkHumanoid then
 		walkHumanoid = humanoid
-		baseWalkSpeed = humanoid.WalkSpeed
 		slowed = false
+		turned = false
+		Movement.Apply()
 	end
 	if aiming ~= slowed then
 		slowed = aiming
-		humanoid.WalkSpeed = if aiming then baseWalkSpeed * t.AimWalkSpeed else baseWalkSpeed
-		humanoid.AutoRotate = not aiming
+		Movement.Set("Aim", if aiming then t.AimWalkSpeed else nil)
 	end
-	if aiming then
+	local facing = aiming or next(facers) ~= nil
+	if facing ~= turned then
+		turned = facing
+		humanoid.AutoRotate = not facing
+	end
+	if facing then
 		root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
 	end
 end
 
 local function releaseWalking()
 	local humanoid = walkHumanoid
-	if humanoid and slowed and humanoid.Parent then
-		humanoid.WalkSpeed = baseWalkSpeed
+	if humanoid and turned and humanoid.Parent then
 		humanoid.AutoRotate = true
 	end
+	Movement.Set("Aim", nil)
 	slowed = false
+	turned = false
 end
 
 -- Is the cell at this point a Shaft (open overhead for the stair)?
@@ -478,6 +488,28 @@ end
 
 function CameraController:IsAiming(): boolean
 	return aiming
+end
+
+-- Turn the character to where the camera looks while `reason` holds (firing from the hip, a
+-- melee swing), without aiming's zoom.
+function CameraController:Face(reason: string, on: boolean)
+	facers[reason] = if on then true else nil
+end
+
+-- Turn the camera by a few degrees (recoil kicks it up; aim assist pulls it toward a target).
+function CameraController:Nudge(yawDegrees: number, pitchDegrees: number)
+	yaw += math.rad(yawDegrees)
+	pitch = CameraRig.ClampPitch(pitch + math.rad(pitchDegrees))
+end
+
+-- Where the camera looks, as a ray from the camera (what the reticle covers).
+function CameraController:AimRay(): Ray?
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return nil
+	end
+	local size = camera.ViewportSize
+	return camera:ViewportPointToRay(size.X / 2, size.Y / 2)
 end
 
 -- Point the camera (degrees): yaw 0 looks toward -Z, pitch below 0 looks down.

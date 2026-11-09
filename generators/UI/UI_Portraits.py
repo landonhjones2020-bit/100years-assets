@@ -237,7 +237,22 @@ def check_sheet(cls, samples=48):
 
 
 def revolver_icon(size=256):
-    import Weapon_ServiceRevolver as W
+    return weapon_icon("Weapon_ServiceRevolver", "Icon_ServiceRevolver", size=size)
+
+
+# Hotbar icons rendered from the weapon models (bible Section 18: item icons come from the real
+# models). Each: (generator module, rotation of the model in degrees (x, z), camera ortho scale).
+WEAPON_ICONS = {
+    "Icon_ServiceRevolver": ("Weapon_ServiceRevolver", (-18, 12), 3.0),
+    "Icon_PocketPistol": ("Weapon_PocketPistol", (-18, 12), 2.5),
+    "Icon_Wrench": ("Weapon_Wrench", (-38, 12), 4.4),
+}
+
+
+def weapon_icon(module, sprite, size=256):
+    import importlib
+    W = importlib.import_module(module)
+    _, (rx, rz), ortho = WEAPON_ICONS[sprite]
     sf.reset()
     W.build()
     _export_view()
@@ -250,12 +265,12 @@ def revolver_icon(size=256):
     for o in objs:
         o.parent = root
         o.matrix_parent_inverse = root.matrix_world.inverted()
-    root.rotation_euler = (math.radians(-18), 0, math.radians(12))   # muzzle up and a little toward us
+    root.rotation_euler = (math.radians(rx), 0, math.radians(rz))   # front up and a little toward us
     bpy.context.view_layer.update()
     _render_setup(size, size, samples=96)
     cd = bpy.data.cameras.new("ICam")
     cd.type = "ORTHO"
-    cd.ortho_scale = 3.0
+    cd.ortho_scale = ortho
     co = bpy.data.objects.new("ICam", cd)
     bpy.context.scene.collection.objects.link(co)
     co.location = ctr + Vector((-10, 0, 0.6))
@@ -264,10 +279,10 @@ def revolver_icon(size=256):
     _area("Key", ctr + Vector((-6, -3, 6)), ctr, 500, 4)
     _area("Fill", ctr + Vector((-5, 5, 0)), ctr, 160, 5)
     _area("Rim", ctr + Vector((4, 0, 4)), ctr, 450, 3)
-    p = os.path.join(K.SPRITES, "Icon_ServiceRevolver.png")
+    p = os.path.join(K.SPRITES, f"{sprite}.png")
     bpy.context.scene.render.filepath = p
     bpy.ops.render.render(write_still=True)
-    print("[UI_Portraits] Icon_ServiceRevolver")
+    print(f"[UI_Portraits] {sprite}")
     return p
 
 
@@ -275,6 +290,8 @@ SPECS = {f"Portrait_{c}": {"size": [340, 290], "slice": None, "note": f"{c} clas
          for c in CLASSES}
 SPECS["Portrait_Security_Large"] = {"size": [480, 408], "slice": None, "note": "detail panel portrait"}
 SPECS["Icon_ServiceRevolver"] = {"size": [256, 256], "slice": None, "note": "Service Revolver icon from the model"}
+SPECS["Icon_PocketPistol"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Pocket Pistol icon from the model (hotbar)"}
+SPECS["Icon_Wrench"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Wrench icon from the model (hotbar)"}
 
 if __name__ == "__main__":
     args = sys.argv[1:]
@@ -291,6 +308,9 @@ if __name__ == "__main__":
         portrait("Security", 480, 408, "Portrait_Security_Large", (tz - 0.22, half_h + 0.21))
     if not want or "Icon_ServiceRevolver" in want:
         revolver_icon()
+    for sprite, (module, _rot, _ortho) in WEAPON_ICONS.items():
+        if sprite != "Icon_ServiceRevolver" and (not want or sprite in want):
+            weapon_icon(module, sprite)
     spec_path = os.path.join(K.UI, "specs.json")
     old = json.load(open(spec_path)) if os.path.exists(spec_path) else {}
     old.update(SPECS)
