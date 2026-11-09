@@ -489,8 +489,8 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
   * `ExtraBreach` and `Tremor` for Disturbance (Prompt 14); `RunState.Threat` and
     `RunState.Monsters` every second.
 * `BreachService` owns breach points: room vents `V:<roomId>` (not the Shaft or the Blast Door;
-  dark rooms weigh `DarkRoomWeight`, barricaded ones `BarricadeWeight`) and dug cells at the rock
-  edge of the deepest band `D:f,c`. `Open(point, groups, tag)` shows 10 s of dust and a pulsing
+  dark rooms weigh `DarkRoomWeight`, barricaded ones `BarricadeWeight`) and every dug cell at the
+  rock edge, on any floor, `D:f,c` (Landon's Prompt 12 answer). `Open(point, groups, tag)` shows 10 s of dust and a pulsing
   red light, adds to the `Breaches` collection, sends `BreachWarning` to ready players, then
   spawns `SpawnSpacingSeconds` apart. Signal `Opened`.
 * `MonsterService` owns monsters:
@@ -502,7 +502,8 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
     machines, players who hit it, any player within `ProximityAggro` except Runners), walks the
     PathGraph (a stuck monster is moved on), attacks after a windup (the model's `HitTime`
     attribute, written from the generator's meta), damages rooms through `BunkerGrid:SetHP`
-    (`RoomDamageMultiplier`, Brutes `SmashMultiplier`; the Reactor Core at 0 HP ends the run),
+    (`RoomDamageMultiplier`, Brutes `SmashMultiplier`; the Reactor Core at 0 HP ends the run
+    until Prompt 13 turns that into the 60-second meltdown Landon chose),
     spits goo (`SlowedUntil`), latches ticks (a weld, bites every `AttackSeconds` ×
     `LatchIntervalMultiplier`), and obeys `StunnedUntil`.
   * Signals `Spawned` and `Died`; dev commands `monster`, `monsters`, `monsters.clear`.

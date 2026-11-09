@@ -199,3 +199,19 @@ bunker and the Brood Mother waits in `ServerStorage.Assets.Bosses` for Prompt 15
   `generators/Monsters/` using `_beast.py`, and its Walk and Attack clips in
   `Config.Animations` (the data test asks for them).
 * A new breach point kind is a new id prefix in `BreachService` and a weight.
+
+---
+
+## Addendum: Landon's answers to the Prompt 12 questions (2026-11-08)
+
+| # | Question | Landon | Built |
+|---|---|---|---|
+| 1 | A Reactor Core at 0 HP: lose at once, or start Section 10's 60-second meltdown? | Yes, the meltdown | Not yet: it is the bible's Reactor overload disaster, so Prompt 13 builds it with the other disasters (`DisasterService`): at 0 HP a 60-second countdown starts, three valves in the Reactor Core turned together stop it, otherwise the run is lost. Until then the run is still lost at once. A solo player needs a rule for "together" (a Prompt 13 question) |
+| 2 | Every dug cell at the rock edge a breach point, not only the deepest band's? | Yes | `BreachService`: every floor. Checked in a Run playtest: after digging into floor 4, the rock-edge cells on floors 1 to 3 stayed breach points |
+| 3 | Monsters attack a player who walks right up to them (not Tunnel Hounds)? | Yes, keep | unchanged |
+| 4 | Rooms take half a monster's damage: sturdy enough? | Yes | unchanged |
+| 5 | Residents flee and swat a lone Burrow Tick? | Yes, keep | unchanged |
+| 6 | Where do throwables come from? | Craft them, find them exploring, and buy them as supplies before a run | Crafting: the Workshop recipes were already in `Config.Recipes` (built in Prompt 30). Exploring: Deep caches now hold Frag Grenades and Flares, the hardware store Foam Grenades, the checkpoint Shock Mines (with the gas station's Flares and the checkpoint's Frags; looted from Prompts 16 and 17). A data test checks every throwable has a recipe and a loot source. Pre-run supplies: in the bible; the Lobby's loadout and shop prompts (21, 28) build them. Proposed currency Glowshards, to confirm |
+
+Built in `p12-c202004` (code revision 43), installed in Run and Lobby: StructureCheck 0 errors,
+82 data tests passed. The bible (live doc rev 128) has all six answers.

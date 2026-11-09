@@ -26,6 +26,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 11: combat core (Run) | ✅ done 2026-11-08 | Run playtests with real clicks and keys: server-checked shots, reload, the combo and heavy swings, the roll, sprint, aim, restock, downed, out and respawn, a resident revive; all 11 clips seen playing; the guns held, checked from the side; two real players, a real controller and touch still need a person; `game/reports/P11_Combat.md`, `previews/Game/P11_Studio_sheet.jpg`, `previews/Game/P11_Handles_sheet.jpg` |
 | Landon's answers to the Prompt 11 questions; the crooked aim | ✅ built 2026-11-08 | A Run playtest (a Medkit heal, a Frag throw, the Medbay's Medkits), the aim measured in Studio (about 3.5° at the hip); addendum in `game/reports/P11_Combat.md` |
 | Prompt 12: threats and monsters (Run) | ✅ done 2026-11-08 | Run playtests: breach warnings, monsters from vents and the rock edge, rooms smashed, ticks latching, residents fleeing, a cleared Tutorial Surge ending early, a player killing a monster; Lobby start check; `game/reports/P12_Threats.md`, `previews/Game/P12_*.jpg` |
+| Landon's answers to the Prompt 12 questions | ✅ built 2026-11-08 (the meltdown goes to Prompt 13) | Every rock-edge tunnel a breach point (Run playtest, floors 1 to 4); throwables in loot tables with a data test; the bible updated (live doc rev 128); addendum in `game/reports/P12_Threats.md` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
 | A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the rest of the class kits to come |
 | A3, A5 to A11 | not started | |
@@ -95,8 +96,24 @@ the five new melee weapons) and the monster and boss look rule in Section 19.
   with an empty hotbar hangs into the floor; the A0 sample scripts still print "reached the Hit
   marker" every swing (remove them once Landon is happy with the monsters).
 
-**Next**: Prompt 13, disasters (fire, blackout, cave-in) and repairs; then Prompt 14 (digging,
-depth bands, Disturbance, Push Deeper) and Prompt 15 (the Brood Mother and the results screen).
+**Landon's answers to the Prompt 12 questions (same night)**: all six "yes" (details in the
+addendum of `game/reports/P12_Threats.md`). Built in `p12-c202004` (code revision 43, Run and
+Lobby, 82 data tests): every dug cell at the rock edge on any floor is a breach point; Deep
+caches, the hardware store and the checkpoint now hold throwables. The live doc (rev 128) has
+the answers in Sections 5, 6, 10, 12, 14 and 16.
+
+**Next session, in order**
+1. Refresh the project's bible parts from the live doc (rev 128; the project copies still lack
+   the Prompt 12 answers): Section 5 "Losing" (the meltdown), Section 6's Reactor Core row,
+   Section 10's breach points, monster targets and Reactor overload row, Section 12's loot,
+   Section 14's Loadout (pre-run supplies), Section 16's Glowshard spends.
+2. Prompt 13, disasters (fire, blackout, cave-in) and repairs, and with them the Reactor
+   overload: at 0 HP the Reactor Core starts a 60-second meltdown that three valves turned
+   together stop (Landon's answer 1; ask how a solo player turns three valves "together").
+3. Then Prompt 14 (digging, depth bands, Disturbance, Push Deeper) and Prompt 15 (the Brood
+   Mother's fight, her art is ready, and the results screen).
+* For the Lobby and shop prompts (21, 28): throwables bought before a run as supplies (Landon);
+  the currency is proposed as Glowshards and still to confirm.
 
 ## 2026-11-08 (night): Prompt 11, combat core; the gun handles
 

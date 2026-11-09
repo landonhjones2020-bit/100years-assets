@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T04:35:43Z",
- "commit": "25453ec7de45a8de3f89a32250e8360ab66bff5d",
- "label": "p12-25453ec",
+ "built": "2026-11-09T04:48:58Z",
+ "commit": "c20200448efa503fe2af551c28eb329bab2f24d7",
+ "label": "p12-c202004",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -102,7 +102,7 @@
    "ReplicatedStorage.Shared.Config.LootTables": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/LootTables.luau",
-    "Hash": "720f512c"
+    "Hash": "f542f897"
    },
    "ReplicatedStorage.Shared.Config.Modifiers": {
     "Class": "ModuleScript",
@@ -332,7 +332,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "7883ed5b"
+    "Hash": "7e61f0b0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -367,7 +367,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "ff2e2cbd"
+    "Hash": "71b2126e"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -554,7 +554,7 @@
    "ReplicatedStorage.Shared.Config.LootTables": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/LootTables.luau",
-    "Hash": "720f512c"
+    "Hash": "f542f897"
    },
    "ReplicatedStorage.Shared.Config.Modifiers": {
     "Class": "ModuleScript",
@@ -784,7 +784,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "7883ed5b"
+    "Hash": "7e61f0b0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -809,7 +809,7 @@
    "ServerScriptService.Services.BreachService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/BreachService.luau",
-    "Hash": "418d8da1"
+    "Hash": "dde419c8"
    },
    "ServerScriptService.Services.BuildService": {
     "Class": "ModuleScript",
@@ -909,7 +909,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "ff2e2cbd"
+    "Hash": "71b2126e"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
