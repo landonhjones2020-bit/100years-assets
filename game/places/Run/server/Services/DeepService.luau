@@ -1027,6 +1027,15 @@ local function buildCave(floor: number, column: number)
 	dig:OpenCave(floor, column)
 	if crew then
 		trapCrew(c, crew, pocket)
+		local last = c.Pieces[#c.Pieces]
+		if not pocket and last then
+			-- no room for their pocket: they're at the end of the cave, still guarded (Section 12)
+			local nestAt = last.CFrame * CFrame.new(0, 0, -6)
+			placeNest(c, nestAt)
+			last.Guards = t().NestBudget
+			last.Posts = { nestAt * CFrame.new(-5, 0, 2), nestAt * CFrame.new(5, 0, 2) }
+			last.Woken = false
+		end
 	end
 	set("Caves", DeepService:Caves())
 	log:Info("a cave opened at %s (%s): %d pieces, %d plugs%s", key, band, #c.Pieces, #plan.Plugs, if crew then ", the Lost Crew" else "")

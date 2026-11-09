@@ -2167,7 +2167,7 @@ test("Deep: caves are put together from the band's pieces (Section 12)", functio
 		for seed = 1, 12 do
 			local occupied = {}
 			local plan = Deep.Plan(band, Deep.MouthCFrame(3, (seed % 5) - 2), Random.new(seed * 31), occupied, { Crew = seed % 2 == 0 })
-			expect(#plan.Pieces >= 2, `{band} {seed}: more than the mouth`)
+			expect(#plan.Pieces - 1 >= d.CavePieces.Min, `{band} {seed}: at least {d.CavePieces.Min} pieces after the mouth in an empty Deep (got {#plan.Pieces - 1})`)
 			expect(#plan.Pieces <= d.CavePieces.Max + 2, `{band} {seed}: not too many`)
 			expectEqual(Config.Get("CavePieces", plan.Pieces[1].Piece).Kind, "Entry", `{band} {seed}: the mouth first`)
 			for i, p in plan.Pieces do

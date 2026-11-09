@@ -184,30 +184,33 @@ function Deep.Plan(band: string, mouth: CFrame, rng: Random, occupied: { Box }, 
 	local crewPiece = if o.Crew then Deep.Pieces(band, "CrewPocket")[1] else nil
 	local crewPlaced = false
 	local pieces = Deep.Pieces(band)
-	local deadEnds = {}
+	local deadEnds, through = {}, {}
 	for _, piece in pieces do
-		if #piece.Exits == 0 then
-			table.insert(deadEnds, piece)
-		end
+		table.insert(if #piece.Exits == 0 then deadEnds else through, piece)
 	end
 	local count = 0
 	while #open > 0 do
 		local slot = table.remove(open, 1) :: { CFrame: CFrame, Depth: number, Parent: Box }
 		local at = Deep.PieceAt(slot.CFrame)
 		local left = target - count
+		local lastWay = #open == 0 -- the only way on: a dead end here ends the cave
 		local candidates: { any } = {}
-		if crewPiece and not crewPlaced and (left <= 1 + #open or #open == 0 and left <= 2) then
-			table.insert(candidates, crewPiece)
+		if crewPiece and not crewPlaced and left <= 1 + #open then
+			table.insert(candidates, crewPiece) -- near the end: the crew's pocket first
 		end
 		if left > 0 then
-			-- with as many exits waiting as pieces left, close them off with dead ends
-			local pool = if left <= #open then deadEnds else pieces
+			-- with as many exits waiting as pieces left, close them off with dead ends; on the last way
+			-- on with more to come, keep going
+			local pool = if left <= #open then deadEnds elseif lastWay and left > 1 then through else pieces
 			for _ = 1, t.PlannerTries do
 				local choice = pick(pool, rng)
 				if choice and not table.find(candidates, choice) then
 					table.insert(candidates, choice)
 				end
 			end
+		end
+		if crewPiece and not crewPlaced and lastWay and not table.find(candidates, crewPiece) then
+			table.insert(candidates, crewPiece) -- nothing else fits on the last way on: the crew here
 		end
 		local done = false
 		for _, piece in candidates do
