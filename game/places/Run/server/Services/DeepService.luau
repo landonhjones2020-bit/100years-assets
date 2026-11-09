@@ -729,7 +729,8 @@ local function trapCrew(c: Cave, crew: Crew, piece: Piece?)
 	if #spots == 0 then
 		-- no room met the crew's pocket: they're in the cave's last piece
 		local last = c.Pieces[#c.Pieces]
-		local at = if last then last.CFrame * CFrame.new(0, 0, -10) else Deep.MouthCFrame(c.Floor, c.Column) * CFrame.new(0, 0, -12)
+		local at = if last then last.CFrame * CFrame.new(0, 0, -10)
+			else Deep.MouthCFrame(c.Floor, c.Column) * CFrame.new(0, 0, 4) * CFrame.Angles(0, math.pi, 0) -- in the dug cell
 		spots = { at * CFrame.new(-3, 0, 0), at, at * CFrame.new(3, 0, 0) }
 	end
 	local level = t().CrewLevel
@@ -976,6 +977,16 @@ local function buildCave(floor: number, column: number)
 		crew = nil
 	end
 	local plan = Deep.Plan(band, Deep.MouthCFrame(floor, column), rng, boxes, { Crew = crew ~= nil })
+	if #plan.Pieces == 0 then
+		-- another cave already fills the rock behind: the mouth stays a dark hole (still a breach point)
+		log:Info("the rock behind %s is another cave's: no cave of its own", key)
+		if crew then
+			-- the crew can't be lost to that: they're in the dug cell, against the back wall
+			local fake: Cave = { Key = key, Floor = floor, Column = column, Band = band, Folder = holder() :: any, Pieces = {}, Crew = objectiveId }
+			trapCrew(fake, crew, nil)
+		end
+		return
+	end
 	local folder = Instance.new("Model")
 	folder.Name = `Cave {key}`
 	folder:SetAttribute("Cell", key)

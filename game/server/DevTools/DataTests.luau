@@ -2177,7 +2177,9 @@ test("Deep: caves are put together from the band's pieces (Section 12)", functio
 				end
 				for j, q in plan.Pieces do
 					if j > i then
-						expect(not Deep.Overlaps(p.Box, q.Box, d.Margin), `{band} {seed}: pieces {i} and {j} apart`)
+						-- a piece shares 4 studs of wall with the one it hangs off
+						local margin = if q.Parent == p.Box then d.Margin + 4 else d.Margin
+						expect(not Deep.Overlaps(p.Box, q.Box, margin), `{band} {seed}: pieces {i} and {j} apart`)
 					end
 				end
 			end
@@ -2192,13 +2194,15 @@ test("Deep: caves are put together from the band's pieces (Section 12)", functio
 	local b = Deep.Plan("Mines", Deep.MouthCFrame(3, 1), Random.new(6), occupied, { Pieces = 6 })
 	for _, p in a.Pieces do
 		for i, q in b.Pieces do
-			if i > 1 then
-				expect(not Deep.Overlaps(p.Box, q.Box, d.Margin), "the second cave keeps clear of the first")
-			end
+			expect(not Deep.Overlaps(p.Box, q.Box, if i == 1 then d.Margin + 4 else d.Margin), "the second cave keeps clear of the first")
 		end
 	end
+	-- a mouth where another cave already is: none
+	local blocked = Deep.Plan("Mines", Deep.MouthCFrame(3, 0), Random.new(9), occupied, {})
+	expectEqual(#blocked.Pieces, 0, "no second mouth into the same rock")
 	-- no room at all: the mouth, and its exit plugged
-	local walled = { { Min = Vector3.new(-1e4, -1e4, -1e4), Max = Vector3.new(1e4, 1e4, d.GridBack) } }
+	local mouthZ = Deep.MouthCFrame(2, 0).Position.Z
+	local walled = { { Min = Vector3.new(-1e4, -1e4, -1e4), Max = Vector3.new(1e4, 1e4, mouthZ - 26) } } -- just past the mouth's tunnel
 	local c = Deep.Plan("Mines", Deep.MouthCFrame(2, 0), Random.new(1), walled, {})
 	expectEqual(#c.Pieces, 1, "only the mouth")
 	expectEqual(#c.Plugs, 1, "its exit plugged with rubble")

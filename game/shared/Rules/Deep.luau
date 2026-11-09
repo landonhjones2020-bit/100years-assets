@@ -9,8 +9,10 @@
 	  mouth, the dug cell's back wall (MouthCFrame), into the rock behind the grid (-Z). Plan places
 	  the band's Entry there, then grows piece by piece from open exits (PieceAt: a piece's pivot sits
 	  on the exit, facing on), never into the grid, below LowestY or into another piece (Overlaps,
-	  with the boxes of every cave already open), until it has its pieces; exits left over are
-	  plugged with rubble. A cave with a Lost Crew ends in its band's CrewPocket.
+	  with the boxes of every cave already open; a piece shares RIM studs of wall with the one it
+	  hangs off), until it has its pieces; exits left over are plugged with rubble. A cave with a
+	  Lost Crew ends in its band's CrewPocket. When another cave already fills the rock behind the
+	  cell there is no mouth at all (an empty plan).
 	* Finds (Section 12: ore veins, caches, radio logs, cryo pods, trapped miners, Glowshard chests):
 	  RollFind picks what a Find spot holds (cryo pods from Era II; the Spelunker's FindChance makes
 	  cryo pods and caches likelier).
@@ -30,8 +32,12 @@ local Grid = require(script.Parent.Grid)
 
 local Deep = {}
 
+-- A piece's box takes in its walls, 4 studs past its openings (A6: generators/Caves/cavelib.py's
+-- box_of), so a piece and the one at its exit share that much wall: the planner lets them.
+local RIM = 4
+
 export type Box = { Min: Vector3, Max: Vector3 }
-export type Placement = { Piece: string, CFrame: CFrame, Depth: number, Box: Box }
+export type Placement = { Piece: string, CFrame: CFrame, Depth: number, Box: Box, Parent: Box? } -- Parent: the piece it hangs off
 export type Plan = { Pieces: { Placement }, Plugs: { CFrame }, Crew: boolean }
 
 function Deep.Tuning(): { [string]: any }
@@ -132,13 +138,14 @@ local function pick(list: { any }, rng: Random): any?
 	return list[#list]
 end
 
--- Can a piece stand here: behind the grid, above the lowest floor, clear of every other piece?
-local function fits(box: Box, occupied: { Box }, t: { [string]: any }): boolean
+-- Can a piece stand here: behind the grid, above the lowest floor, clear of every other piece
+-- (but for the wall it shares with the piece whose exit it hangs off, `parent`)?
+local function fits(box: Box, occupied: { Box }, t: { [string]: any }, parent: Box?): boolean
 	if box.Max.Z > t.GridBack or box.Min.Y < t.LowestY then
 		return false
 	end
 	for _, other in occupied do
-		if Deep.Overlaps(box, other, t.Margin) then
+		if Deep.Overlaps(box, other, if other == parent then t.Margin + RIM else t.Margin) then
 			return false
 		end
 	end
@@ -161,11 +168,17 @@ function Deep.Plan(band: string, mouth: CFrame, rng: Random, occupied: { Box }, 
 		return { Pieces = placed, Plugs = plugs, Crew = false }
 	end
 	local entryBox = Deep.WorldBox(mouth, entry.Box)
+	for _, other in occupied do
+		if Deep.Overlaps(entryBox, other, t.Margin + RIM) then
+			-- another cave already fills the rock behind this cell: no room for a mouth
+			return { Pieces = placed, Plugs = plugs, Crew = false }
+		end
+	end
 	table.insert(placed, { Piece = entry.Id, CFrame = mouth, Depth = 0, Box = entryBox })
 	table.insert(occupied, entryBox)
-	local open: { { CFrame: CFrame, Depth: number } } = {}
+	local open: { { CFrame: CFrame, Depth: number, Parent: Box } } = {}
 	for _, exit in entry.Exits do
-		table.insert(open, { CFrame = Deep.ExitCFrame(mouth, exit), Depth = 1 })
+		table.insert(open, { CFrame = Deep.ExitCFrame(mouth, exit), Depth = 1, Parent = entryBox })
 	end
 	local target = o.Pieces or rng:NextInteger(t.CavePieces.Min, t.CavePieces.Max)
 	local crewPiece = if o.Crew then Deep.Pieces(band, "CrewPocket")[1] else nil
@@ -179,7 +192,7 @@ function Deep.Plan(band: string, mouth: CFrame, rng: Random, occupied: { Box }, 
 	end
 	local count = 0
 	while #open > 0 do
-		local slot = table.remove(open, 1) :: { CFrame: CFrame, Depth: number }
+		local slot = table.remove(open, 1) :: { CFrame: CFrame, Depth: number, Parent: Box }
 		local at = Deep.PieceAt(slot.CFrame)
 		local left = target - count
 		local candidates: { any } = {}
@@ -199,15 +212,15 @@ function Deep.Plan(band: string, mouth: CFrame, rng: Random, occupied: { Box }, 
 		local done = false
 		for _, piece in candidates do
 			local box = Deep.WorldBox(at, piece.Box)
-			if fits(box, occupied, t) then
-				table.insert(placed, { Piece = piece.Id, CFrame = at, Depth = slot.Depth, Box = box })
+			if fits(box, occupied, t, slot.Parent) then
+				table.insert(placed, { Piece = piece.Id, CFrame = at, Depth = slot.Depth, Box = box, Parent = slot.Parent })
 				table.insert(occupied, box)
 				count += 1
 				if piece == crewPiece then
 					crewPlaced = true
 				end
 				for _, exit in piece.Exits do
-					table.insert(open, { CFrame = Deep.ExitCFrame(at, exit), Depth = slot.Depth + 1 })
+					table.insert(open, { CFrame = Deep.ExitCFrame(at, exit), Depth = slot.Depth + 1, Parent = box })
 				end
 				done = true
 				break
@@ -228,8 +241,8 @@ function Deep.Plan(band: string, mouth: CFrame, rng: Random, occupied: { Box }, 
 				if index then
 					table.remove(occupied, index)
 				end
-				if fits(box, occupied, t) then
-					placed[i] = { Piece = crewPiece.Id, CFrame = p.CFrame, Depth = p.Depth, Box = box }
+				if fits(box, occupied, t, p.Parent) then
+					placed[i] = { Piece = crewPiece.Id, CFrame = p.CFrame, Depth = p.Depth, Box = box, Parent = p.Parent }
 					table.insert(occupied, box)
 					crewPlaced = true
 					break
