@@ -55,7 +55,7 @@ local PRESETS: { [string]: Preset } = {
 			ExposureCompensation = 0, EnvironmentDiffuseScale = 0.6, EnvironmentSpecularScale = 0.5,
 		},
 		Atmosphere = {
-			Density = 0.36, Offset = 0.12, Color = Color3.fromRGB(206, 172, 142), Decay = Color3.fromRGB(112, 84, 70), Glare = 0.12, Haze = 1.8,
+			Density = 0.42, Offset = 0.16, Color = Color3.fromRGB(204, 166, 134), Decay = Color3.fromRGB(128, 92, 72), Glare = 0.1, Haze = 2.6,
 		},
 	},
 	Storm = {
@@ -70,11 +70,13 @@ local PRESETS: { [string]: Preset } = {
 }
 
 local hud: any = nil
+local cameraController: any = nil
 local bunkerPreset: Preset? = nil
 local applied: string? = nil
 local zone = "Bunker"
 local atmosphere: Atmosphere? = nil
 local flash: ColorCorrectionEffect? = nil
+local grade: ColorCorrectionEffect? = nil
 local dust: Part? = nil
 local ash: ParticleEmitter? = nil
 local gusts: ParticleEmitter? = nil
@@ -154,6 +156,22 @@ end
 
 local function refreshLighting(seconds: number)
 	apply(wanted(), seconds)
+	if grade then
+		-- the Ash's grade (Section 19: an ashy orange-grey surface): warm, washed out; greyer in a storm
+		local name = wanted()
+		local props = if name == "Storm" then { TintColor = Color3.fromRGB(226, 214, 204), Saturation = -0.35, Contrast = 0.08, Brightness = -0.02 }
+			elseif name == "Surface" then { TintColor = Color3.fromRGB(255, 232, 210), Saturation = -0.22, Contrast = 0.05, Brightness = 0 }
+			else { TintColor = Color3.new(1, 1, 1), Saturation = 0, Contrast = 0, Brightness = 0 }
+		local g = grade :: ColorCorrectionEffect
+		g.Enabled = name ~= "Bunker"
+		if seconds > 0 then
+			TweenService:Create(g, TweenInfo.new(seconds), props):Play()
+		else
+			for key, value in props do
+				(g :: any)[key] = value
+			end
+		end
+	end
 end
 
 -- The weather -----------------------------------------------------------------------------------
@@ -266,6 +284,9 @@ local function onElevator(way: string, seconds: number)
 		local r = myRoot()
 		if r then
 			zone = Surface.Zone(r.Position)
+			-- look the way the character faces (out of the elevator)
+			local look = r.CFrame.LookVector
+			cameraController:SetLook(math.deg(math.atan2(-look.X, -look.Z)), -8)
 		end
 		refreshLighting(0)
 		task.wait(0.15)
@@ -423,6 +444,7 @@ end
 
 function SurfaceController:Init(registry)
 	hud = registry.HUDController
+	cameraController = registry.CameraController
 end
 
 function SurfaceController:Start()
@@ -434,6 +456,11 @@ function SurfaceController:Start()
 	cc.Enabled = false
 	cc.Parent = Lighting
 	flash = cc
+	local g = Instance.new("ColorCorrectionEffect")
+	g.Name = "SurfaceGrade"
+	g.Enabled = false
+	g.Parent = Lighting
+	grade = g
 	makeWeather()
 	Remotes.OnClient("Elevator", function(way: any, seconds: any)
 		onElevator(tostring(way), tonumber(seconds) or 0.35)

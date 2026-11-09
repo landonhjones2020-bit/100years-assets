@@ -159,7 +159,7 @@ local function makeBody(id: string): (Model?, Humanoid?, BasePart?)
 	return model, humanoid, root
 end
 
-local function makeRubble(at: CFrame): BasePart
+local function makeRubble(at: CFrame, parent: Instance): BasePart
 	local plank = Instance.new("Part")
 	plank.Name = "Rubble"
 	plank.Size = Vector3.new(5, 0.6, 1.2)
@@ -170,7 +170,7 @@ local function makeRubble(at: CFrame): BasePart
 	plank.CanQuery = false
 	plank.CanTouch = false
 	plank.CFrame = at * CFrame.new(0, 1.1, 0) * CFrame.Angles(0, math.rad(35), math.rad(12))
-	plank.Parent = folder()
+	plank.Parent = parent
 	return plank
 end
 
@@ -217,7 +217,7 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 	local t = Surface.Tuning()
 	local tier = o.Tier or Surface.SurvivorTier(rng:NextNumber())
 	local level = o.Level or rng:NextInteger(t.SurvivorLevel.Min, t.SurvivorLevel.Max)
-	model:PivotTo(at * CFrame.new(0, 3, 0))
+	model:PivotTo(at) -- the resident model's pivot is at its feet
 	root.Anchored = true
 	model:SetAttribute("RescueId", id)
 	model:SetAttribute("RescueKind", o.Kind or "Survivor")
@@ -251,7 +251,7 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 		Leader = nil,
 		CombatId = nil,
 		Prompt = prompt,
-		Rubble = makeRubble(at),
+		Rubble = makeRubble(at, model),
 		BehindSince = 0,
 	}
 	prompt.Triggered:Connect(function(player: Player)
@@ -317,7 +317,7 @@ end
 function RescueService:MoveTo(id: string, at: CFrame)
 	local r = rescues[id]
 	if r then
-		r.Model:PivotTo(at * CFrame.new(0, 3, 0))
+		r.Model:PivotTo(at)
 		r.BehindSince = 0
 	end
 end
@@ -421,7 +421,7 @@ local function follow(r: Rescue)
 			r.BehindSince = os.clock()
 		elseif os.clock() - r.BehindSince > 4 then
 			-- left far behind: brought up to their leader
-			local back = leaderRoot.CFrame * CFrame.new(rng:NextNumber(-2, 2), 0, t.FollowDistance)
+			local back = leaderRoot.CFrame * CFrame.new(rng:NextNumber(-2, 2), -3, t.FollowDistance) -- feet, not the root's height
 			r.Model:PivotTo(back)
 			r.BehindSince = 0
 			return

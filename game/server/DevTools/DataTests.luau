@@ -843,7 +843,7 @@ end)
 
 test("RunState: every value has one owner, a type and its allowed values", function()
 	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true, PowerService = true,
-		ThreatDirector = true, DisasterService = true, DigService = true }
+		ThreatDirector = true, DisasterService = true, DigService = true, SurfaceService = true }
 	for name, field in RunState.Fields do
 		expect(owners[field.By], `{name} to have a known owner`)
 	end
@@ -2085,8 +2085,9 @@ test("Surface: backpacks fill, merge and unload (Sections 9, 12 and 13)", functi
 	local merged, leftover = Surface.Merge(food, { { Id = "Food", Count = Surface.Stack("Food") }, { Id = "Water", Count = 3 } }, 2)
 	expectEqual(#merged, 2, "two slots")
 	expectEqual(merged[1].Count, Surface.Stack("Food"), "the food stack topped up")
-	expectEqual(leftover[1].Id, "Food", "the rest of the food left over")
-	expectEqual(leftover[2].Id, "Water", "no slot for water")
+	expectEqual(merged[2].Id, "Food", "the rest of the food in the second slot")
+	expectEqual(#leftover, 1, "one thing left over")
+	expectEqual(leftover[1].Id, "Water", "no slot for the water")
 	local delivered, kept = Surface.Unload({ { Id = "Scrap", Count = 50 }, { Id = "Scrap", Count = 20 }, { Id = "Food", Count = 8 } }, { Scrap = 60, Food = 0 })
 	expectEqual(delivered.Scrap, 60, "as much scrap as the stockpile has room for")
 	expectEqual(delivered.Food, nil, "no room for food")
