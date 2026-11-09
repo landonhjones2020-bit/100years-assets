@@ -63,7 +63,9 @@ local InventoryService = {
 -- Loot nothing hands out yet: gear (Prompt 26), radio logs (Prompt 17), blueprints (19), recruits
 -- (18), Glowshards (17), the Lamp (placeables).
 local SKIP: { [string]: boolean } = { Gear = true, RadioLog = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
-local HALL_UNLOAD = Vector3.new(-9, 0, 1) -- from the Blast Door's Door socket: by the crates left of the door
+local HALL_UNLOAD = Vector3.new(15, 0, 1) -- from the Blast Door's Door socket, towards the shaft: far enough from
+-- RIDE UP (at the socket) that one prompt never hides the other (playtest: at 9 studs the elevator won the E press)
+local UNLOAD_RANGE = 8
 local CARRY_OFFSET = CFrame.new(0, -0.9, -2.3) -- its foot at the carrier's waist, in front
 local FULL_WARN_SECONDS = 8
 
@@ -592,6 +594,7 @@ local function unloadAnchor(folder: Folder, name: string, at: Vector3, object: s
 		part.CanTouch = false
 		part.Parent = folder
 		local prompt = makePrompt(part, "Unload", "UNLOAD", object, 0)
+		prompt.MaxActivationDistance = UNLOAD_RANGE
 		prompt.Triggered:Connect(function(player: Player)
 			InventoryService:Unload(player)
 		end)

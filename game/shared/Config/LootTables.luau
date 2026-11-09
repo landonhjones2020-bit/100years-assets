@@ -92,7 +92,7 @@ return {
 				i("ClearRadPills", 1, 2, 2) },
 		},
 		-- Big finds (Prompt 16): carried home with both hands (Section 12); what they give is ours (a Bible Question)
-		GeneratorParts = { Text = "Generator parts hauled home", Rolls = 2, Lines = { r("Scrap", 50, 90, 3), r("Iron", 5, 10, 2) } },
+		GeneratorParts = { Text = "Generator parts", Rolls = 2, Lines = { r("Scrap", 50, 90, 3), r("Iron", 5, 10, 2) } },
 
 		-- Expeditions (per cycle away)
 		ExpeditionSurface = {

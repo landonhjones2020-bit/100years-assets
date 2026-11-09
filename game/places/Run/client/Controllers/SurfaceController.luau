@@ -440,7 +440,10 @@ local function updateMovement()
 end
 
 local function updateOutlines()
-	local on = zone == "Surface" and classValue("LootOutline") == true
+	-- a Flag modifier folds to its value (1) when the class has it, else nil (playtest: comparing
+	-- with true never matched, so no Scout saw an outline)
+	local flag = classValue("LootOutline")
+	local on = zone == "Surface" and flag ~= nil and flag ~= 0
 	local root = myRoot()
 	local map = workspace:FindFirstChild("Surface")
 	local keep: { [Model]: boolean } = {}
