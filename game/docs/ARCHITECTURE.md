@@ -155,7 +155,8 @@ Waiting --first player ready--> Intro (30 s) --> Playing --> Ended --Keep Going-
 * Keep Going after any victory, even an early Deep Victory, starts Endless at once (Landon).
 * Defeat: `RunDirector:Lose("ReactorDestroyed" | "ResidentsLost")`; Deep Victory:
   `RunDirector:Win("Deep")`; Keep Going: `RunDirector:KeepGoing()` (no more era bosses or year
-  cap, Endless Surges). The results screen reads `RunDirector:Summary()`.
+  cap, Endless Surges). The results (`ResultsService`, Prompt 15) read `RunDirector:Summary()`
+  and `RunEnded`.
 * Signals for other systems: `CycleClock.CycleStarted` (residents eat and drink), `YearChanged`
   (aging), `EraChanged`, `SirenStarted`, `SurgeStarted`, `SurgeEnded` (the blueprint draft),
   `Skipped`; `RunDirector.PhaseChanged`, `RunEnded`; `ObjectiveService.Changed`.
@@ -517,10 +518,10 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
   overlay (monsters, breach countdowns, likely dark rooms, vents) and the Slowed movement reason.
 * `NPCAnimator` plays monsters' clips by `Rig:Activity` too (Attack replays on each
   `AttackAt`; Flee and Run fall back to Walk, Fight to Attack).
-* Bosses are art and config so far (Prompt 15 fights the first): `Boss_BroodMother` in
-  `ServerStorage.Assets.Bosses` has a `Belly` part with Role `WeakPoint` (raycasts hit it),
-  sockets `Ovipositor`, `Maw` and `Slam`, `HitTime` 0.8 and `LayTime` 1.4, and seven clips in
-  `Config.Animations` (Rig `BroodMother`); `Boss_BroodMother_EggSac` is what she lays.
+* Bosses: `Boss_BroodMother` in `ServerStorage.Assets.Bosses` has a `Belly` part with Role
+  `WeakPoint`, sockets `Ovipositor`, `Maw` and `Slam`, `HitTime` 0.8 and `LayTime` 1.4, and seven
+  clips in `Config.Animations` (Rig `BroodMother`); `Boss_BroodMother_EggSac` is what she lays.
+  Her fight is `BossService` (see "Bosses and results").
 
 ## Disasters and repairs (Run place)
 
@@ -652,6 +653,75 @@ numbers are `Tuning.Digging` and `Tuning.Disturbance` (provisional).
 * Art: `Tool_Drill` and `Weapon_Pickaxe` in `ServerStorage.Assets.Weapons`, `Prop_Nest` in
   `Props`, `Kit_CaveMouth` in `Kit`, their icons in the items atlas.
 
+## Bosses and results (Run place)
+
+Bible Sections 5, 10, 16, 18, 21 and 22 (Prompt 15). `Shared.Rules.Boss` is pure: `Health(bossId,
+players, firstRun)` (`Config.Bosses` Health times `Threat.PlayerScale`, times `FirstRunHealth` for
+an Era I boss on an account's first run), `Phase(bossId, fraction)`, `ByPhase(list, phase)`,
+`Arena(bunker)` (the longest dug run on the deepest floor, else its widest room that isn't the
+Reactor Core or a Shaft, else any open cell), `ArenaMiddle`, `ArenaSpan(arena, margin)`,
+`HitMultiplier(weak, classWeakPoint?)`, `OnPart(point, cframe, size, tolerance)`,
+`Staggers(hits, now, window, threshold)`. `Shared.Rules.Results` is pure: `Payout(run, paid,
+facts)` (lines, total and the new ledger, so a run that ends twice pays only what is new),
+`BandsReached`, `AccountXP`, `XPToNext`, `LevelUp`, `Score`, `MVP` (ties to the lower user id),
+`Day` (UTC). The numbers are `Tuning.Bosses`, `Tuning.<BossId>` (`Tuning.BroodMother`),
+`Tuning.Results`, `Config.GlowshardRewards`, `Config.Difficulties` and `Tuning.Account`
+(provisional).
+
+* `BossService` runs a boss fight. `CycleClock.SurgeStarted("Boss", bossId)` (or `boss.start`)
+  calls `BeginFight(bossId)`:
+  * the warning (`ArrivalWarningSeconds`: dust and a blinking red light at the arena's middle, an
+    alert), then the rise (`RiseSeconds`, a rock burst): a clone of `Config.Bosses` Asset from
+    `ServerStorage.Assets.Bosses` in `workspace.Monsters` (graybox if missing), its root
+    anchored and moved by the server (`PivotTo`), its root neither colliding nor queryable, a
+    green light above it, attributes `Rig`, `MonsterType`, `Boss`, `Activity`, `AttackAt`,
+    `ServerAnimated`; registered with CombatService as a monster with `KeepModel`;
+  * its clips play on the server (`Config.Animations` with its id as Rig) and replicate:
+    `NPCAnimator` skips `ServerAnimated` models, because the server judges weak-point hits
+    against the parts' pose;
+  * the tick (`TickSeconds`): phase changes (roar, alert), sacs hatching
+    (`MonsterService:Spawn` of `Config.Bosses` Minions, tag `Boss:<id>`), turning
+    (`TurnDegreesPerSecond`) and walking along the arena (`ArenaSpan`) towards the nearest
+    standing player, slams (`SlamReach`, damage `SlamDamage` within `SlamRadius` of the `Slam`
+    socket at the clip's `HitTime`), laying sacs at the `Ovipositor` socket (`LayTime`; each a
+    CombatService monster, `MonsterType` EggSac);
+  * hits: `WeaponService:SetHitModifier` scales hits on the boss (`ArmourMultiplier`, or
+    `WeakPointMultiplier`/the class's own on a part with `Role` WeakPoint, within
+    `WeakPointTolerance`, +2 for melee, +3 for blasts; renamed `weakpoint`) and fire on sacs
+    (`BurnMultiplier`); weak-point damage in `StaggerWindowSeconds` reaching `StaggerFraction`
+    of its health staggers it;
+  * death (`CombatService.Died`): the Death clip held, sacs wither, `Defeated(bossId, killer?)`,
+    then `ObjectiveService:BossBeaten` (which ends the boss Surge); `DeathSeconds` later it
+    dissolves (`CombatService:Dissolve`). The run ending clears a fight.
+  * the `Boss` collection, key `Fight`: Id, Name, Health, Max, Phase, Phases, State (Warning,
+    Rising, Fighting, Dying), At, ArriveAt, Sacs. API `BeginFight`, `Active`, `IsBoss(combatId)`,
+    `IsEggSac(combatId)`; dev `boss`, `boss.start [id]`, `boss.hurt <n> [weak]`, `boss.lay`,
+    `boss.freeze [s]`, `boss.end`.
+* `BossController` (client): the HUD's `BossBar` (name, BREAKING THROUGH, PHASE n OF m, DEAD, the
+  fill) and camera shakes when the boss rises and when its slam lands near the player.
+* `ResultsService` counts each player's Damage, Kills, BossDamage (`BossService:IsBoss`; a broken
+  sac isn't a kill), Revives, CellsDug (`DigService.Dug`'s finisher) and Repairs
+  (`BuildService.Repaired`), the team's totals, and the story (`story(text)`: resident deaths,
+  nests, meltdowns, bosses, Push Deeper from `DigLimit`, Tremors from `TremorAt`, the ending).
+  On `RunDirector.RunEnded` it pays every ready player through `ProfileService:Update`
+  (Glowshards, `AccountLevel`/`AccountXP`, `Stats` Runs, Wins, LastWinDay, BestYear, Deepest,
+  BossesKilled, MonstersKilled, `FirstRunDone`), saves (`SaveNow`) and publishes the `Results`
+  collection, key `Run` (Outcome, DefeatReason, Victory, Endless, Year, Cycle, Era, Difficulty,
+  Seconds, DeepestFloor, Band, Team, Stories, MVP, Players[userId] = Name, Class, the stats,
+  Score, Glowshards, Lines, XP, Level, LevelUp, Paid). Remotes `PlayAgain` (a `PlayAgain` vote
+  opened by the game with the asker's yes; a pass reserves a Run server and teleports
+  everyone), `KeepGoing` (after a victory, the `KeepGoing` vote, `RunDirector:KeepGoing`) and
+  `ReturnToLobby` (that player); Studio says teleports don't work. Dev `results`,
+  `results.stat <stat> <n>`.
+* `ResultsController` (client): the `Results` screen (RUN REPORT; tabs Summary, Residents,
+  Rewards; the MVP card on the detail panel; Play Again as the main action; Keep Going and Return
+  to Lobby in the footer), opened `OpenDelaySeconds` after the run ends.
+* `CombatService`: `KeepModel` (a combatant whose model its own service removes), `Dissolve`,
+  dev `god [seconds] [player]`. `ThreatDirector:IsFirstRun()`. `WeaponService:SetHitModifier`.
+* Art: `Boss_BroodMother` and `Boss_BroodMother_EggSac` in `ServerStorage.Assets.Bosses`. Boss
+  body parts use the `queryhull` collision kind (Hull raycast shapes), so shots reach the weak
+  point.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -698,8 +768,9 @@ default scope, and the prompt whose system applies it. A system reads the keys i
 effect is a new key plus the code that honours it.
 
 **Rule numbers** live in `Config.Tuning`, one entry per system (Clock, Grid, StartingBunker,
-Rooms, Votes, Player, Digging, Disturbance, Threat, Residents, Aging, Morale, Trader,
-Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
+Rooms, Votes, Player, Digging, Disturbance, Bosses and one per boss fight (BroodMother),
+Results, Threat, Residents, Aging, Morale, Trader, Wanderers, Expeditions, Surface, Legends,
+ClassShop, Account, Lobby).
 
 ## DevTools
 
@@ -780,6 +851,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
+| Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
+| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -788,13 +861,15 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
 | both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
-| both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run) |
+| both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run); skips `ServerAnimated` models (bosses) |
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
 | Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
+| Run | BossController | controller | ReplicaController, HUDController, CameraController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
+| Run | ResultsController | controller | UIController, ReplicaController | the Run Report (results screen) and its buttons |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -878,3 +953,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   breach and Tremor), DigController, the HUD's seismograph, the camera shake, the Command View's
   dig notes and queue; ThreatDirector bursts; art: the Drill, the Pickaxe, the nest, the cave
   mouth and two hotbar icons.
+* **Prompt 15 (2026-11-09)**: the Brood Mother and the results screen (Run). Rules.Boss,
+  Rules.Results, BossService (the arena, warning and rise, slams, egg sacs, the belly, staggers,
+  phases, death; her clips on the server), ResultsService (stats, the story, payouts, account
+  experience, profile stats, the MVP, Play Again, Keep Going, Return to Lobby), BossController
+  (the HUD's boss bar, shakes), ResultsController (the Run Report); WeaponService hit modifiers,
+  CombatService `KeepModel`; the `queryhull` collision kind for bosses' bodies.

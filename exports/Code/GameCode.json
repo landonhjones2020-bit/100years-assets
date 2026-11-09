@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T07:51:36Z",
- "commit": "4a02aafa25c0f465d91606174edab92a90f6b2be",
- "label": "p15-4a02aaf",
+ "built": "2026-11-09T08:10:05Z",
+ "commit": "c2fc8a4c80e1f39f9cdcdee3af976d48eec006f2",
+ "label": "p15-c2fc8a4",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -182,7 +182,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "c239450b"
+    "Hash": "79b36e92"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -664,7 +664,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "c239450b"
+    "Hash": "79b36e92"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -874,7 +874,7 @@
    "ServerScriptService.Services.BossService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/BossService.luau",
-    "Hash": "dc7d2757"
+    "Hash": "dc8f1bdf"
    },
    "ServerScriptService.Services.BreachService": {
     "Class": "ModuleScript",
@@ -894,7 +894,7 @@
    "ServerScriptService.Services.CombatService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/CombatService.luau",
-    "Hash": "435e73dc"
+    "Hash": "05365dec"
    },
    "ServerScriptService.Services.CycleClock": {
     "Class": "ModuleScript",
@@ -964,7 +964,7 @@
    "ServerScriptService.Services.ResultsService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ResultsService.luau",
-    "Hash": "20f85458"
+    "Hash": "a9f662d0"
    },
    "ServerScriptService.Services.RunDirector": {
     "Class": "ModuleScript",
@@ -1074,7 +1074,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.ResultsController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/ResultsController.luau",
-    "Hash": "cb967e53"
+    "Hash": "9b862c3b"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ThreatController": {
     "Class": "ModuleScript",

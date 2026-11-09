@@ -29,6 +29,7 @@ Newest first. Every "verified" line says how it was checked.
 | Landon's answers to the Prompt 12 questions | ✅ built 2026-11-08 (the meltdown goes to Prompt 13) | Every rock-edge tunnel a breach point (Run playtest, floors 1 to 4); throwables in loot tables with a data test; the bible updated (live doc rev 128); addendum in `game/reports/P12_Threats.md` |
 | Prompt 13: disasters and repairs (Run) | ✅ done 2026-11-09 | Run playtests with real keys, clicks and holds: fires put out by residents, the Extinguisher and a Foam Grenade, spreading; blackouts and the fuse box; cave-ins dug, smashed, trapping a resident, cutting off a monster; the meltdown stopped by three valves and lost when left; the Welder's repairs and an electrical surge welded; a Surge's disaster bought from its budget; Command View statuses; Lobby start check; `game/reports/P13_Disasters.md`, `previews/Game/P13_*.jpg` |
 | Prompt 14: digging, depth bands, Disturbance, Push Deeper (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, clicks and throws: digging with the Drill (the Driller, dust at the face), a Push Deeper vote with a pretend voter, a cache opened, a nest destroyed by grenades and shotgun, the Drill Bay digging a cell queued with real Command View clicks, the extra breach at 50, a Tremor (cave-in, wave, camera shake), the cycle's decay, the Driller's eye; Lobby start check; `game/reports/P14_Digging.md`, `previews/Game/P14_*.jpg` |
+| Prompt 15: the Brood Mother and the results screen (Run) | ✅ done 2026-11-09 | Run playtests with real shots, clicks and a real boss Surge: her warning, rise and roar, slams, egg sacs laid and hatching, a sac broken by Revolver shots and one burned by the Flamethrower, belly hits for double, a stagger, phase 2, her death ending the Surge (Year 25 to 27, Era II); the Run Report with payouts saved to the profile, Play Again, Keep Going and Return to Lobby clicked; Lobby start check; `game/reports/P15_BroodMother_Results.md`, `previews/Game/P15_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
 | A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the Drill held and digging (Prompt 14); the Pickaxe in Studio, not yet swung; the rest of the class kits to come |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
@@ -62,6 +63,43 @@ Newest first. Every "verified" line says how it was checked.
 | Boss_BroodMother_EggSac | model 98283751054755 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 15, the Brood Mother's fight and the results screen
+
+Game code builds `p15-141fd7c` to `p15-c2fc8a4` (final): code asset 95026446991297 revision 57,
+installed in Run and Lobby: StructureCheck 0 errors (Run 422 checks, Lobby 244), 99 data tests
+passed in each. The Run place boots cleanly with it.
+
+**Done**
+* Prompt 15: Rules.Boss and Rules.Results, BossService (the arena, warning and rise, slams, egg
+  sacs, the belly, staggers, phases, death; her clips played on the server), ResultsService
+  (stats, the story, payouts, account experience, profile stats, the MVP, Play Again, Keep Going,
+  Return to Lobby), BossController (the HUD's boss bar, camera shakes), ResultsController (the
+  Run Report). Report: `game/reports/P15_BroodMother_Results.md` (six Bible Questions).
+* The HUD's boss bar (`studio/ui/HUD_Boss.lua`, patched into `StarterGui.HUD` in Run).
+* The Brood Mother in Studio (`ServerStorage.Assets.Bosses.Boss_BroodMother`, Run): her 24
+  queryable MeshParts' `CollisionFidelity` set to Hull (was Box), so shots reach her belly. The
+  pipeline has a new collision kind for this, `queryhull` (steadfast, `STYLE.md`, `AssetSetup`
+  reinstalled in Run, the Beast rig, her generator and sidecar), so a re-export keeps it. Her
+  uploaded model (132844909378352) is unchanged.
+* Fixes from the playtests: her fight's own tuning has no `PublishSeconds` (the tick stopped
+  after her first eggs); her root box caught shots meant for her belly (a colliding part is
+  always hit by raycasts, so it stops colliding too); armour takes half (a quarter made a solo
+  fight hopeless); her slam reaches 18 studs (players at the front of her cell were safe) and she
+  turns 60 degrees a second (a circling player can reach her flanks); the run's story names a
+  dead resident; the story gets the year she fell; a shorter last-blow alert; the results rows'
+  outcome icon, plurals and icons. Dev commands `god` (CombatService) and `boss.freeze`.
+
+**Verified in Studio**: see the testing checklist in `game/reports/P15_BroodMother_Results.md`.
+Captures: `previews/Game/P15_*.jpg`.
+
+**Open**
+* Landon's answers to the six Prompt 15 Bible Questions (results and bosses as services, bosses'
+  clips on the server, her numbers, the arena, payouts, the MVP weights), the eight from Prompt
+  14 and the six from Prompt 13.
+* Not seen: a fight with several players, real teleports (Play Again, Return to Lobby: live
+  servers only), the Run Report coming back after being closed.
+* The test account (`PlayerProfiles_Studio`) now has `FirstRunDone` true and 112 Glowshards.
 
 ## 2026-11-09 (night): Prompt 14, digging, Disturbance and Push Deeper; the Drill, the Pickaxe, the nest and the cave mouth
 

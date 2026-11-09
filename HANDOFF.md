@@ -1,6 +1,6 @@
 # 100 Years Of Fallout: handoff for the next chat
 
-Written 2026-11-09 (night), at the end of Prompt 14. The game bible (live doc
+Written 2026-11-09 (night), at the end of Prompt 15. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 130, and the two project parts, which match
 it) wins over everything here.
 
@@ -14,20 +14,20 @@ it) wins over everything here.
 
 ## Where things stand
 
-* Prompts 0 to 14 are built and tested in Studio. Code build `p14-1803b8e` (code asset
-  95026446991297, revision 50) is installed in both places; 95 data tests pass.
-* Prompt 14 (digging, depth bands, Disturbance, Push Deeper): dig prompts at every rock face
-  for Drill and Pickaxe carriers (the Driller twice as fast, players stack); each dug cell rolls
-  an ore pocket, a cave opening (a breach point), a cache or a nest (a monster with 600 HP that
-  pours out monsters and raises Disturbance); Push Deeper votes at floors 4, 7 and 10; the Drill
-  Bay digs the Command View's queue; Disturbance on the HUD's seismograph, an extra breach at 50
-  and a Tremor at 100 (a wave, a cave-in, the camera shakes). Report:
-  `game/reports/P14_Digging.md`.
-* Prompt 13 (disasters and repairs): fires, blackouts, cave-ins, the Reactor meltdown, electrical
-  surges, the Surge's disaster, repairs. Report: `game/reports/P13_Disasters.md`.
-* Art: the Drill, the Pickaxe, the nest, the cave mouth and the two icons (Prompt 14); the
-  Extinguisher, the Welder and rubble (Prompt 13); all in the Run place's
-  `ServerStorage.Assets`.
+* Prompts 0 to 15 are built and tested in Studio: the First Playable milestone's prompts are all
+  done. Code build `p15-c2fc8a4` (code asset 95026446991297, revision 57) is installed in both
+  places; 99 data tests pass.
+* Prompt 15 (the Brood Mother and the results screen): Year 25's boss Surge brings her up through
+  the deepest tunnel after an 8 s warning; she slams, lays egg sacs that hatch Burrow Ticks (break
+  or burn them), takes double damage on her glowing belly and half on armour, staggers, shrieks
+  into phase 2 at half health, and her death ends the Surge. The HUD has a boss bar. When a run
+  ends, every player is paid (Glowshards, account experience, profile stats, `FirstRunDone`) and
+  the Run Report shows the summary, the story, the residents, the rewards and the MVP, with Play
+  Again (a vote), Keep Going and Return to Lobby. Report: `game/reports/P15_BroodMother_Results.md`.
+* Prompt 14 (digging, depth bands, Disturbance, Push Deeper) and Prompt 13 (disasters and
+  repairs): reports in `game/reports/`.
+* Art: the Brood Mother's body parts now use Hull raycast shapes (the new `queryhull` collision
+  kind), set in Studio; her uploaded model is unchanged.
 
 ## Landon's latest decisions (all in the bible)
 
@@ -37,19 +37,31 @@ it) wins over everything here.
 
 ## Next, in order
 
-1. Prompt 15: the Brood Mother's fight (her art, clips, sockets and weak point are ready) and
-   the results screen.
+1. Prompt 16: the surface (Brightwater Ruins, storms, loot, hauling, rescues). Add hauls and
+   rescues to the run's stats and story (`ResultsService`: `bump`, `story`).
 
 ## Waiting on Landon
 
-* His answers to the eight Prompt 14 and six Prompt 13 Bible Questions (in the reports).
-* His look at the rebuilt monsters and the Brood Mother (`previews/Game/A4_Studio_*.jpg`).
+* His answers to the six Prompt 15, eight Prompt 14 and six Prompt 13 Bible Questions (in the
+  reports).
+* His look at the Brood Mother in action (`previews/Game/P15_*.jpg`) and the rebuilt monsters
+  (`previews/Game/A4_Studio_*.jpg`).
 
 ## Testing tips
 
+* `god [seconds] [player]` keeps a player alive through a boss fight; `boss.freeze [s]` holds her
+  still so a shot can be lined up; `boss.start`, `boss.hurt <n> [weak]`, `boss.lay`, `boss.end`.
+  A real boss Surge: `year 24`, then `clock.next` until cycle 2's Surge.
+* Real shots: the gun fires from its muzzle towards where the reticle points. Put the character
+  in place (the client can move its own character), bind a `ShotCam` render step with the camera
+  just behind the muzzle, then click with `user_mouse_input`. Scan for a clear line first with a
+  raycast from the muzzle.
+* `user_mouse_input` x and y are measured below the top bar (the GUI inset): a button's
+  `AbsolutePosition` plus half its size, with no inset added. Buttons with unique paths can use
+  `instance_path`.
 * Studio's screen captures leave out billboards (prompts, plates), so check those by using them.
 * The simulated mouse doesn't move `GetMouseLocation`: pick Command View cells with the
-  `cv.select <floor> <column>` dev command; click buttons with `instance_path`.
+  `cv.select <floor> <column>` dev command.
 * `execute_luau` requires its own copy of a module, so call services through dev commands
   (`DevTools.Invoke`), not `require`.
 * Two playtests at once (Run and Lobby) share one profile lock: the second is kicked.
