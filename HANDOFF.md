@@ -1,6 +1,6 @@
 # 100 Years Of Fallout: handoff for the next chat
 
-Written 2026-11-09 (night), at the end of Prompt 13. The game bible (live doc
+Written 2026-11-09 (night), at the end of Prompt 14. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 130, and the two project parts, which match
 it) wins over everything here.
 
@@ -14,16 +14,20 @@ it) wins over everything here.
 
 ## Where things stand
 
-* Prompts 0 to 13 are built and tested in Studio. Code build `p13-7d05592` (code asset
-  95026446991297, revision 46) is installed in both places; 90 data tests pass.
-* Prompt 13 (disasters and repairs): fires that spread and are put out by residents, the
-  Extinguisher and Foam Grenades; blackouts and the fuse box; cave-ins that block, trap and are
-  dug or smashed through; the Reactor meltdown (a Reactor Core at 0 HP: 60 s, three valves,
-  solo turns last 10 s, a lost meltdown loses the run); electrical surges; each Normal Surge
-  buys one disaster; wrecked rooms repaired by the Welder and their workers. Report:
-  `game/reports/P13_Disasters.md`.
-* Art: the Extinguisher (v2, 0.8 scale), the Welder, doorway and tunnel rubble, and their hotbar
-  icons, all in the Run place's `ServerStorage.Assets`.
+* Prompts 0 to 14 are built and tested in Studio. Code build `p14-1803b8e` (code asset
+  95026446991297, revision 50) is installed in both places; 95 data tests pass.
+* Prompt 14 (digging, depth bands, Disturbance, Push Deeper): dig prompts at every rock face
+  for Drill and Pickaxe carriers (the Driller twice as fast, players stack); each dug cell rolls
+  an ore pocket, a cave opening (a breach point), a cache or a nest (a monster with 600 HP that
+  pours out monsters and raises Disturbance); Push Deeper votes at floors 4, 7 and 10; the Drill
+  Bay digs the Command View's queue; Disturbance on the HUD's seismograph, an extra breach at 50
+  and a Tremor at 100 (a wave, a cave-in, the camera shakes). Report:
+  `game/reports/P14_Digging.md`.
+* Prompt 13 (disasters and repairs): fires, blackouts, cave-ins, the Reactor meltdown, electrical
+  surges, the Surge's disaster, repairs. Report: `game/reports/P13_Disasters.md`.
+* Art: the Drill, the Pickaxe, the nest, the cave mouth and the two icons (Prompt 14); the
+  Extinguisher, the Welder and rubble (Prompt 13); all in the Run place's
+  `ServerStorage.Assets`.
 
 ## Landon's latest decisions (all in the bible)
 
@@ -33,16 +37,22 @@ it) wins over everything here.
 
 ## Next, in order
 
-1. Prompt 14: digging, depth bands, Disturbance, Push Deeper. Digging and Tremors call
-   `DisasterService:CaveIn`; Disturbance 50 calls `ThreatDirector:ExtraBreach()`, 100
-   `ThreatDirector:Tremor()`. The Drill and Pickaxe need models and icons.
-2. Prompt 15: the Brood Mother's fight (her art, clips, sockets and weak point are ready) and
+1. Prompt 15: the Brood Mother's fight (her art, clips, sockets and weak point are ready) and
    the results screen.
 
 ## Waiting on Landon
 
-* His answers to the six Prompt 13 Bible Questions (in the report).
+* His answers to the eight Prompt 14 and six Prompt 13 Bible Questions (in the reports).
 * His look at the rebuilt monsters and the Brood Mother (`previews/Game/A4_Studio_*.jpg`).
+
+## Testing tips
+
+* Studio's screen captures leave out billboards (prompts, plates), so check those by using them.
+* The simulated mouse doesn't move `GetMouseLocation`: pick Command View cells with the
+  `cv.select <floor> <column>` dev command; click buttons with `instance_path`.
+* `execute_luau` requires its own copy of a module, so call services through dev commands
+  (`DevTools.Invoke`), not `require`.
+* Two playtests at once (Run and Lobby) share one profile lock: the second is kicked.
 
 ## Small bugs seen, for later prompts
 
@@ -52,4 +62,5 @@ it) wins over everything here.
 * A melee weapon held with an empty hotbar hangs into the floor.
 * The A0 sample scripts print a line on every monster swing; remove them once Landon approves
   the monsters.
-* Studio's screen captures leave out billboards (prompts, plates), so check those by using them.
+* The HUD's class plate still says SURVIVOR after the `class` dev command.
+* The Pump Shotgun and Frag Grenade show placeholder icons in the hotbar.

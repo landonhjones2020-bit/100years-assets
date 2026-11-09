@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T07:11:24Z",
- "commit": "f35700e1df13b0a15d997a8c1022e4b602706c27",
- "label": "p14-f35700e",
+ "built": "2026-11-09T07:14:56Z",
+ "commit": "1803b8e6774c4dfb36643a7b241c39a64493aedd",
+ "label": "p14-1803b8e",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -949,7 +949,7 @@
    "ServerScriptService.Services.ThreatDirector": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ThreatDirector.luau",
-    "Hash": "34d4eaa5"
+    "Hash": "87cf3c53"
    },
    "ServerScriptService.Services.VoteService": {
     "Class": "ModuleScript",

@@ -584,6 +584,74 @@ The numbers are `Config.Disasters` and `Tuning.Disasters` / `Tuning.Repairs` (pr
   sockets), `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` in `ServerStorage.Assets.Kit`, their
   icons in the items atlas.
 
+## Digging, Disturbance and Push Deeper (Run place)
+
+Bible Sections 6, 7, 10 and 14 (Prompt 14). `Shared.Rules.Dig` is pure: the faces a rock cell
+is dug from (`Faces`: left, right or from the cell above) and where their prompts stand
+(`FacePoint`), dig seconds by band (`Config.DepthBands`), stacking (`Rate`: the Driller's
+`DigSpeed` 2), the Drill Bay's speed (`DrillBaySpeed`: `ResidentDigMultiplier` of a player per
+unit of crew output), Push Deeper (`StartLimit` 3, `LimitAfter` the band's last floor,
+`NeedsVote`), the roll (`Roll(seed, floor, column, era, available)`: the same for a cell all run,
+results whose systems don't exist yet count as Empty; `Hint` for the Driller's eye; `Depth` into
+rock), and Disturbance (`AddDisturbance`, `Crossed`: the extra breach and the Tremor,
+`AfterTremor`, `Level` CALM, RISING, UNSETTLED, DANGER). `Shared.Rules.Loot` rolls
+`Config.LootTables` (`BandOre` lines, skipped specials, `OreMultiplier`; `Text` for alerts). The
+numbers are `Tuning.Digging` and `Tuning.Disturbance` (provisional).
+
+* `DigService` owns digging and the `Digs` collection (`S:<floor>,<column>` a cell being dug or
+  queued: Progress, Diggers, Queue, Bay, Vote; `F:<floor>,<column>` what a dug cell holds:
+  CaveOpening, Cache or Nest), RunState `Disturbance`, `DigLimit`, `DigSeed`, `TremorAt`,
+  `Nests`, and `workspace.Bunker.Digging` (the dig prompts, the Command View's markers, the
+  features' models). It ticks every `TickSeconds` while the run is playing:
+  * a dig prompt (Kind `DigCell`, attributes `Cell` and `Progress`) at every face of every
+    diggable rock cell; `PromptButtonHoldBegan` adds the player as a digger if they carry a Drill
+    or a Pickaxe (`WeaponService:Items`), `HoldEnded` takes them off; diggers must stay alive,
+    armed and near; progress stays when they let go;
+  * the Drill Bay digs the first diggable queued cell (`Mark(floor, column, on, player)`, the
+    `MarkDig` remote, up to 12) at the summed speed of every working Drill Bay
+    (`EconomyService:Rate`);
+  * past `DigLimit` a hold opens a Push Deeper vote (`VoteService:Open`, Kind `PushDeeper`; solo
+    applies at once); a pass moves `DigLimit` to the band's last floor, a failure waits
+    `VoteRetrySeconds`;
+  * a cell that opens (`BunkerGrid:Dig`) adds `DisturbancePerCell` (the Driller's level 3
+    `DigDisturbance`, `SetModifier(source, "DigDisturbance", x)`), applies its roll, announces it,
+    fires `Dug(floor, column, result, cause)`, and caves in the passage it was dug through
+    `CaveInChance` of the time (`DisasterService:CaveIn`, sideways digs only);
+  * results: an ore pocket pays band ore into the stockpile (`DugOre`); a cave opening shows
+    `Kit_CaveMouth` 2 studs off the back wall and adds a breach point
+    (`BreachService:SetExtraPoint`, Kind `Cave`); a cache shows `Prop_SupplyCrate` with an
+    `OpenCache` prompt (resources to the stockpile, throwables to the opener's hotbar through
+    `WeaponService:GiveThrowable`; gear and radio logs skipped until their prompts); a nest shows
+    `Prop_Nest`, registers it with CombatService as a monster (an ordinary `M<n>` id, so
+    FireWeapon accepts hits), adds a breach point (Kind `Nest`) and pours out
+    `ThreatDirector:Burst(NestBudget)`; destroyed (`CombatService.Died`), it pays Loot `Nest` and
+    drops Disturbance by `NestDestroyed`;
+  * nothing is built on a feature's cell (`BuildService:SetCellCheck`);
+  * Disturbance: explosions (`WeaponService.Exploded`) add `Explosive`; each new cycle living
+    nests add `NestPerCycle` each and it falls `DecayPerCycle`; crossing `ExtraBreachAt` calls
+    `ThreatDirector:ExtraBreach()`, reaching `TremorAt` calls `ThreatDirector:Tremor()`, caves in
+    a doorway near the deepest floor, sets `TremorAt` and drops to `AfterTremor`;
+  * API `Disturbance()`, `AddDisturbance(amount, source)`, `DigNow(floor, column, cause,
+    player?)`, `Mark`, `SetModifier`, `Feature(floor, column)`; dev commands `digs`, `dig`,
+    `dig.roll`, `dig.mark`, `disturbance`, `disturbance.add`, `tremor`, `pushdeeper`, `nest`,
+    `cache`, `cave`.
+* `ThreatDirector`: `Burst(fraction, at, tag)` spawns monsters at once at a spot; `ExtraBreach`
+  and `Tremor` are priced as a quarter and a whole of a normal Surge's budget (the first run's
+  Era I easing applies). `BreachService:SetExtraPoint(id, point?)` adds points other services
+  own. `WeaponService`: `Exploded(position, radius, player)`, `GiveThrowable(player, item,
+  count)`. `BuildService:SetCellCheck(fn)`.
+* `DigController` (client): shows the dig prompts only to Drill and Pickaxe carriers; dust and
+  chips at the faces of cells being dug and a burst when a cell opens; the camera shake at a
+  Tremor (`CameraController:Shake`); the Command View's rock notes (dig time, progress, queue
+  place, Push Deeper, the Driller's eye from `DigSeed` and `OreSightCells`), dug cells' notes
+  (cave opening, cache, nest) and the queue options (`CommandViewController:SetCellNotes`,
+  `SetRockOptions`, choices `MarkDig` and `UnmarkDig`, never voted).
+* `HUDController`: the Disturbance seismograph (the level word and colour, a trace that swings
+  harder as it rises, blinking at DANGER, a jump at a Tremor). `PromptController`: a prompt's
+  `Progress` attribute drives its gauge (shared progress).
+* Art: `Tool_Drill` and `Weapon_Pickaxe` in `ServerStorage.Assets.Weapons`, `Prop_Nest` in
+  `Props`, `Kit_CaveMouth` in `Kit`, their icons in the items atlas.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -710,7 +778,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | MonsterService | service | CombatService, BunkerGrid, ResidentService, RunDirector, DevService | monsters: spawning, the cap and queue, the AI, attacks, room damage, goo, latching, stuns |
 | Run | BreachService | service | BunkerGrid, PowerService, MonsterService, SessionService, ReplicationService, DevService | breach points, warnings, the Breaches collection, spawning at a breach |
 | Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
-| Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, RunState Threat and Monsters |
+| Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
+| Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -725,6 +794,7 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
+| Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -802,3 +872,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   DisasterController, wrecked rooms and repairs (the Welder, residents), trapped residents,
   monsters skipping blocked targets, tools in WeaponService, the HUD's Meltdown telegram; art:
   the Extinguisher, the Welder, doorway and tunnel rubble and two hotbar icons.
+* **Prompt 14 (2026-11-09)**: digging, depth bands, Disturbance and Push Deeper (Run).
+  Rules.Dig, Rules.Loot, DigService (dig prompts, stacking, the roll: ore pockets, cave
+  openings, caches, nests; Push Deeper votes, the Drill Bay's queue, Disturbance and its extra
+  breach and Tremor), DigController, the HUD's seismograph, the camera shake, the Command View's
+  dig notes and queue; ThreatDirector bursts; art: the Drill, the Pickaxe, the nest, the cave
+  mouth and two hotbar icons.

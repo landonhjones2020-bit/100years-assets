@@ -28,9 +28,11 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 12: threats and monsters (Run) | ✅ done 2026-11-08 | Run playtests: breach warnings, monsters from vents and the rock edge, rooms smashed, ticks latching, residents fleeing, a cleared Tutorial Surge ending early, a player killing a monster; Lobby start check; `game/reports/P12_Threats.md`, `previews/Game/P12_*.jpg` |
 | Landon's answers to the Prompt 12 questions | ✅ built 2026-11-08 (the meltdown goes to Prompt 13) | Every rock-edge tunnel a breach point (Run playtest, floors 1 to 4); throwables in loot tables with a data test; the bible updated (live doc rev 128); addendum in `game/reports/P12_Threats.md` |
 | Prompt 13: disasters and repairs (Run) | ✅ done 2026-11-09 | Run playtests with real keys, clicks and holds: fires put out by residents, the Extinguisher and a Foam Grenade, spreading; blackouts and the fuse box; cave-ins dug, smashed, trapping a resident, cutting off a monster; the meltdown stopped by three valves and lost when left; the Welder's repairs and an electrical surge welded; a Surge's disaster bought from its budget; Command View statuses; Lobby start check; `game/reports/P13_Disasters.md`, `previews/Game/P13_*.jpg` |
+| Prompt 14: digging, depth bands, Disturbance, Push Deeper (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, clicks and throws: digging with the Drill (the Driller, dust at the face), a Push Deeper vote with a pretend voter, a cache opened, a nest destroyed by grenades and shotgun, the Drill Bay digging a cell queued with real Command View clicks, the extra breach at 50, a Tremor (cave-in, wave, camera shake), the cycle's decay, the Driller's eye; Lobby start check; `game/reports/P14_Digging.md`, `previews/Game/P14_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
-| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the rest of the class kits to come |
+| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the Drill held and digging (Prompt 14); the Pickaxe in Studio, not yet swung; the rest of the class kits to come |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
+| Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
 | A3, A5 to A11 | not started | |
 
 ## Ids
@@ -48,16 +50,50 @@ Newest first. Every "verified" line says how it was checked.
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Weapon_PocketPistol | model 132352458683098 (revision 2: the v2 grip) |
 | Weapon_Wrench | model 73400938739387 |
-| UI atlas: items | decal 116109976139787, image 99377896545998 (Prompt 13: four icons; before it decal 77379333015803, image 99859624879456) |
+| UI atlas: items | decal 75294353899571, image 111680310007713 (Prompt 14: six icons; Prompt 13's was decal 116109976139787, image 99377896545998) |
 | Tool_Extinguisher | model 76126163117722 (revision 2: 0.8 scale) |
 | Tool_Welder | model 128082564413732 |
 | Kit_Rubble_Doorway, Kit_Rubble_Tunnel | models 122746670882128, 120681518972920 |
+| Tool_Drill, Weapon_Pickaxe | models 112271409940762, 90008781885000 |
+| Prop_Nest, Kit_CaveMouth | models 135960876275147, 104679667911320 |
 | Player combat clips (11) | `manifest.csv`, rows `R15_GunHold` to `R15_Revive` |
 | Mines monsters (rigs, revision 2 after the detail pass) | Burrow Tick 90784985441642, Tunnel Hound 111045663637462, Spitter Grub 70536165729662, Hollow Miner 83503998043819; their clips in `manifest.csv` and `Config.Animations` |
 | Boss_BroodMother | model 132844909378352; clips Idle 116082078619476, Walk 105510410741576, Attack 87449889032585, Roar 104063099850529, LayEggs 125795678354746, Stagger 121846906504911, Death 115302160037147 |
 | Boss_BroodMother_EggSac | model 98283751054755 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 14, digging, Disturbance and Push Deeper; the Drill, the Pickaxe, the nest and the cave mouth
+
+Game code builds `p13-e38e8ce` to `p14-1803b8e` (final): code asset 95026446991297 revision 50,
+installed in Run and Lobby: StructureCheck 0 errors (Run 403 checks, Lobby 240), 95 data tests
+passed in each. The Lobby starts cleanly with it.
+
+**Done**
+* Prompt 14: Rules.Dig and Rules.Loot, DigService (dig prompts at every face, stacking, the
+  roll and what dug cells hold, Push Deeper votes, the Drill Bay's queue, Disturbance with its
+  extra breach and Tremor), DigController (prompt gating, dust, the Tremor's shake, the Command
+  View's notes and queue), the HUD's seismograph, `ThreatDirector:Burst`. Report:
+  `game/reports/P14_Digging.md` (eight Bible Questions).
+* Art: `Tool_Drill`, `Weapon_Pickaxe`, `Prop_Nest`, `Kit_CaveMouth`, and the Drill and Pickaxe
+  icons in a new items atlas.
+* Fixes from the playtests: FireWeapon only takes `M<n>` hits, so a nest takes an ordinary
+  monster id; a nest's burst is 35% of a normal Surge (50% lost a first run's six founders in
+  cycle 1); the extra breach and the Tremor are priced like a normal Surge (the first run's
+  easing); the cache stands clear of the Mines' ore cart; a dig-queue choice survives the rock
+  cell's refresh in the Command View; `disturbance.add` (the dev parser turns "+5" into 5).
+
+**Verified in Studio**: see the testing checklist in `game/reports/P14_Digging.md`. Captures:
+`previews/Game/P14_*.jpg`.
+
+**Open**
+* Landon's answers to the eight Prompt 14 Bible Questions (cave-ins from digging, nests, cache
+  loot, building on finds, hazard pockets and cryo pods as Empty, the Drill Bay's speed, the
+  extra breach and Tremor sizes, nests and DeepService) and the six from Prompt 13.
+* Not seen: two real players on one cell, the dig gauge on screen (captures leave billboards
+  out), the Pickaxe swung in a fight.
+* Studio's simulated mouse doesn't move `GetMouseLocation`, so Command View cells are picked with
+  `cv.select` in tests; buttons take real clicks through `instance_path`.
 
 ## 2026-11-09 (night): Prompt 13, disasters and repairs; the Extinguisher, the Welder and rubble
 
@@ -90,7 +126,7 @@ passed in each. The Lobby starts cleanly with it.
   surges).
 * Not seen: the billboard plates on screen (Studio's captures leave billboards out, even a plain
   test one), two real players on the valves, phones with several fires.
-* The Drill and Pickaxe have no models or icons yet (Prompt 14 is a good time).
+* The Drill and Pickaxe have no models or icons yet (done in Prompt 14).
 
 ## 2026-11-08 (night): Prompt 12, threats and monsters; the A4 detail pass and the Brood Mother
 
