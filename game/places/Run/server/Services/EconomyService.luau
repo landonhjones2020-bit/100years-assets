@@ -153,7 +153,9 @@ function EconomyService:Spend(costs: { [string]: number }, reason: string): (boo
 			publish(id)
 		end
 	end
-	log:Info("spent %s on %s", Construction.CostText(costs), reason)
+	if next(costs) then
+		log:Info("spent %s on %s", Construction.CostText(costs), reason)
+	end
 	return true, nil
 end
 

@@ -581,8 +581,8 @@ local function showRoom(roomId: string)
 	local canRemove, why = b:CanRemove(roomId)
 	local can = canRemove and not openVote
 	local refund = Construction.Refund(room.Type, room.Level, room.Span)
-	local back = if next(refund) then `  ·  {Construction.CostText(refund)} BACK` else ""
-	optionRow(order, "Tear down", if canRemove then `Its cells become open cells again{back}` else sentence(why or ""), can,
+	local gives = if next(refund) then `{Construction.CostText(refund)} BACK` else "Its cells become open cells again"
+	optionRow(order, "Tear down", if canRemove then gives else sentence(why or ""), can,
 		if can then { Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId } else nil)
 end
 

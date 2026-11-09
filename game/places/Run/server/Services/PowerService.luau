@@ -9,8 +9,9 @@
 	.Balance has the rule). The balance is worked out again whenever the bunker, a crew or an
 	output modifier changes, and every second in case.
 
-	Dark rooms stop working (EconomyService.SetPowered), and their lights drop to a dim red
-	emergency glow; the room model carries a Dark attribute. Their morale loss (Prompt 10) and
+	Dark rooms stop working (EconomyService.SetPowered), their lights drop to a dim red emergency
+	glow and their Neon fittings (light strips, pendants) go dull; the room model carries a Dark
+	attribute. Their morale loss (Prompt 10) and
 	doubled monster spawns (Prompt 12) ask IsDark. The team gets an alert when rooms go dark
 	and when the power comes back.
 
@@ -50,6 +51,7 @@ local PowerService = {
 -- A dark room's lights: a dim red emergency glow (art direction, not a rule).
 local EMERGENCY = Color3.fromRGB(255, 72, 48)
 local DARK_BRIGHTNESS = 0.18 -- of the light's own brightness
+local DARK_FITTING = Color3.fromRGB(64, 30, 26) -- a Neon fitting with the power off
 local REFRESH_SECONDS = 1
 
 local grid: any = nil
@@ -101,6 +103,32 @@ local function setLight(light: Instance, isDark: boolean)
 	light:SetAttribute("PowerDark", isDark)
 end
 
+-- A dark room's Neon fittings go dull (SmoothPlastic, dark red); lit again, they come back.
+local function setFittings(model: Model, isDark: boolean)
+	for _, item in model:GetDescendants() do
+		if item:IsA("BasePart") and (item.Material == Enum.Material.Neon or item:GetAttribute("LitMaterial") ~= nil) then
+			if isDark then
+				if item:GetAttribute("LitMaterial") == nil then
+					item:SetAttribute("LitMaterial", item.Material.Name)
+					item:SetAttribute("LitColor", item.Color)
+				end
+				item.Material = Enum.Material.SmoothPlastic
+				item.Color = DARK_FITTING
+			else
+				local material, color = item:GetAttribute("LitMaterial"), item:GetAttribute("LitColor")
+				if type(material) == "string" then
+					item.Material = (Enum.Material :: any)[material]
+				end
+				if typeof(color) == "Color3" then
+					item.Color = color
+				end
+				item:SetAttribute("LitMaterial", nil)
+				item:SetAttribute("LitColor", nil)
+			end
+		end
+	end
+end
+
 local function applyLights()
 	for _, light in CollectionService:GetTagged(BunkerKit.ROOM_LIGHT_TAG) do
 		local unit = light:GetAttribute("Unit")
@@ -114,6 +142,7 @@ local function applyLights()
 			local isDark = balance.Dark[room.Id] == true
 			if (model:GetAttribute("Dark") == true) ~= isDark then
 				model:SetAttribute("Dark", isDark)
+				setFittings(model, isDark)
 			end
 		end
 	end
