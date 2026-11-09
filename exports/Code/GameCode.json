@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T00:49:58Z",
- "commit": "101e3e2c0b5962c187232709237e35b59f40540d",
- "label": "p9-101e3e2",
+ "built": "2026-11-09T00:53:23Z",
+ "commit": "7ef7e8b93fa010dae2f1d96dafd1585685864df7",
+ "label": "p9-7ef7e8b",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -327,7 +327,7 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "7ecdd4ae"
+    "Hash": "bd0077a0"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -372,7 +372,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/CommandViewController.luau",
-    "Hash": "e4c98fbd"
+    "Hash": "39b2de8b"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
@@ -403,6 +403,11 @@
     "Class": "ModuleScript",
     "From": "game/client/Controllers/ReplicaController.luau",
     "Hash": "4d96c4f2"
+   },
+   "StarterPlayer.StarterPlayerScripts.Controllers.ResidentsController": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/ResidentsController.luau",
+    "Hash": "946fbe11"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
@@ -759,7 +764,7 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "7ecdd4ae"
+    "Hash": "bd0077a0"
    },
    "ServerScriptService.Lib.BunkerKit": {
     "Class": "ModuleScript",
@@ -869,7 +874,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/CommandViewController.luau",
-    "Hash": "e4c98fbd"
+    "Hash": "39b2de8b"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
@@ -900,6 +905,11 @@
     "Class": "ModuleScript",
     "From": "game/client/Controllers/ReplicaController.luau",
     "Hash": "4d96c4f2"
+   },
+   "StarterPlayer.StarterPlayerScripts.Controllers.ResidentsController": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/ResidentsController.luau",
+    "Hash": "946fbe11"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",

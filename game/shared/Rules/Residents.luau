@@ -13,8 +13,9 @@
 	  adds 1 to the stat their job uses (Section 11). Founders above level 1 put theirs into
 	  their best stat.
 	* Jobs: one room each, if the room has a worker stat and a free slot
-	  (Tuning.Rooms.WorkerSlotsPerCell x span). AutoAssign fills empty slots by best stat, in
-	  Tuning.Residents.AutoAssignOrder (power first, so the lights stay on).
+	  (Tuning.Rooms.WorkerSlotsPerCell x span). AutoAssign picks the empty slots to fill in
+	  Tuning.Residents.AutoAssignOrder (power first, so the lights stay on), then fills them with
+	  the best matches by stat.
 	* A room's crew for Section 13's formula: workers, the sum of their job stat (an Exhausted
 	  resident counts half), and their average morale effect (Config.MoraleStates).
 	* Needs once a cycle: rest drains with work and refills in a Quarters bed (less without
@@ -217,9 +218,12 @@ end
 export type Room = { Id: string, Type: string, Level: number, Span: number }
 
 --[[
-	Auto-Assign (Section 7: "fills empty slots by best stat"): rooms in AutoAssignOrder, then any
-	other working room; each empty slot takes the free resident with the highest stat for that
-	job. `free` is changed in place: assigned residents leave it. Returns { residentId = roomId }.
+	Auto-Assign (Section 7: "fills empty slots by best stat"). Which slots get filled: the empty
+	ones in Tuning.Residents.AutoAssignOrder (power first, so the lights stay on), then any other
+	working room, as many as there are free residents. Who fills them: the best matches first
+	across all of those slots (the highest stat for a slot's job wins it), so a fast cook ends up
+	in the Kitchen rather than at the reactor. `free` is changed in place: assigned residents leave
+	it. Returns { residentId = roomId }.
 ]]
 function Residents.AutoAssign(rooms: { Room }, taken: { [string]: number }, free: { Resident }): { [string]: string }
 	local order = tuning().AutoAssignOrder
@@ -231,27 +235,54 @@ function Residents.AutoAssign(rooms: { Room }, taken: { [string]: number }, free
 		end
 		return a.Id < b.Id
 	end)
-	local result: { [string]: string } = {}
+	local alive = {}
+	for _, resident in free do
+		if resident.State == "Alive" then
+			table.insert(alive, resident)
+		end
+	end
+	-- the slots to fill, in priority order
+	local slots: { { Room: string, Stat: string, Rank: number } } = {}
 	for _, room in sorted do
 		local stat = Residents.JobStat(room.Type)
 		if stat then
-			local open = Residents.Slots(room.Type, room.Level, room.Span) - (taken[room.Id] or 0)
-			while open > 0 and #free > 0 do
-				local bestIndex, bestValue = 0, -1
-				for i, resident in free do
-					local value = resident.Stats[stat] or 0
-					if resident.State == "Alive" and value > bestValue then
-						bestIndex, bestValue = i, value
-					end
+			for _ = 1, Residents.Slots(room.Type, room.Level, room.Span) - (taken[room.Id] or 0) do
+				if #slots < #alive then
+					table.insert(slots, { Room = room.Id, Stat = stat, Rank = #slots + 1 })
 				end
-				if bestIndex == 0 then
-					break
-				end
-				local resident = table.remove(free, bestIndex) :: Resident
-				result[resident.Id] = room.Id
-				taken[room.Id] = (taken[room.Id] or 0) + 1
-				open -= 1
 			end
+		end
+	end
+	-- the best matches first
+	local pairs_ = {}
+	for i, resident in alive do
+		for j, slot in slots do
+			table.insert(pairs_, { R = i, S = j, Value = resident.Stats[slot.Stat] or 0 })
+		end
+	end
+	table.sort(pairs_, function(a: any, b: any): boolean
+		if a.Value ~= b.Value then
+			return a.Value > b.Value
+		end
+		if a.S ~= b.S then
+			return a.S < b.S
+		end
+		return a.R < b.R
+	end)
+	local result: { [string]: string } = {}
+	local usedResident, usedSlot = {}, {}
+	for _, pair in pairs_ do
+		if not usedResident[pair.R] and not usedSlot[pair.S] then
+			usedResident[pair.R] = true
+			usedSlot[pair.S] = true
+			local resident, slot = alive[pair.R], slots[pair.S]
+			result[resident.Id] = slot.Room
+			taken[slot.Room] = (taken[slot.Room] or 0) + 1
+		end
+	end
+	for i = #free, 1, -1 do
+		if result[free[i].Id] then
+			table.remove(free, i)
 		end
 	end
 	return result

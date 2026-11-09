@@ -1349,6 +1349,15 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 		end
 	end
 	expect(assigned == 6 and onReactor == 2 and #free == 0, `six jobs, two on the Reactor Core ({assigned}, {onReactor})`)
+	-- the best matches: a fast cook goes to the Kitchen, not the reactor
+	local cook = Residents.Roll(rng, "N40", "Common", 1, used)
+	local strong = Residents.Roll(rng, "N41", "Common", 1, used)
+	cook.Stats = { Strength = 7, Smarts = 1, Grit = 1, Speed = 10, Charm = 1 }
+	strong.Stats = { Strength = 6, Smarts = 1, Grit = 1, Speed = 2, Charm = 1 }
+	local kitchen = (bunker:RoomAt(2, -2) :: any).Id
+	plan = Residents.AutoAssign({ { Id = reactor, Type = "ReactorCore", Level = 1, Span = 1 },
+		{ Id = kitchen, Type = "Kitchen", Level = 1, Span = 1 } }, { [reactor] = 1, [kitchen] = 1 }, { cook, strong })
+	expect(plan[cook.Id] == kitchen and plan[strong.Id] == reactor, "the Speed 10 resident cooks; the Strength 6 one runs the reactor")
 	-- needs: a worker with a bed, one without, one who missed the meal
 	local worker = Residents.Roll(rng, "N30", "Common", 1, used)
 	Residents.Cycle(worker, true, nil, true, true, false)
