@@ -354,9 +354,11 @@ drawn, steps along the room graph, the dark order, eating with carry).
   StockpileCaps and FoodUse; `Rate(roomId)`.
 * `PowerService` keeps the live power balance:
   * the Reactor Core and Generators make power from their crews (Landon: they need residents);
-  * every room draws Power[level] per cell;
+  * every room draws Power[level] per cell, except a wrecked one (0 HP), which draws nothing
+    until it is repaired;
   * when the draw passes what is made, rooms go dark farthest first by steps from the nearest
-    power room (dug cells count; unreachable rooms first; ties newest first);
+    power room (dug cells count; unreachable rooms first; at the same distance the biggest
+    draw, then the newest);
   * rooms that draw nothing never go dark.
   * It pushes the dark rooms to EconomyService (`SetPowered`), dims their lights to emergency
     red and dulls their Neon fittings (the room model's `Dark` attribute), alerts the team, and
@@ -398,7 +400,8 @@ Bible Sections 11 and 23, phase 1. `Shared.Rules.Residents` is pure: rolls, max 
 levels, morale states, a room's crew, the Auto-Assign matching, one cycle of needs.
 
 * `ResidentService` owns the records:
-  * the six founders at the start, auto-assigned;
+  * the six founders at the start, idle (Landon: the team, or the first-run tutorial, gives
+    them jobs); when the run starts the alert feed says how many are waiting for jobs;
   * jobs: `Assign(id, roomId?)`, `AutoAssign()`, and the `AssignResident` and `AutoAssign`
     remotes, with no vote;
   * the crew and eater source for EconomyService (`SetResidents`);
@@ -410,7 +413,7 @@ levels, morale states, a room's crew, the Auto-Assign matching, one cycle of nee
 * `ResidentBrain` gives each resident a body (the A0 resident) in `workspace.Bunker.Residents`
   and runs the routine at 5 Hz:
   * the first 20 s of a day at a Kitchen seat, the rest at a work spot, the Surge in bed;
-  * idle residents by their bed;
+  * idle residents at a Lounge seat when there is a Lounge, otherwise by their bed;
   * down: lying with a revive prompt.
   * Bodies walk `Lib.PathGraph` routes (front aisles, doorways, Shaft stairs) with
     Humanoid:MoveTo and carry an `Activity` attribute. Residents don't collide with each other

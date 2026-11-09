@@ -22,6 +22,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 8: votes and construction (Run), with Landon's answers to the Prompt 6 and 7 questions | ✅ done 2026-11-08 | Run playtests with real clicks and keys, a team of three with pretend voters; two real players, gamepad, touch and the wheel click still need a person; `game/reports/P08_VotesConstruction.md`, `previews/Game/P08_Studio_sheet.jpg` |
 | Prompt 9: economy and power (Run), with Landon's answers to the Prompt 8 questions | ✅ done 2026-11-08 | Run playtests with pretend crews and eaters, the dark order, refunds, a Nightmare upgrade site, Y voting sent by the test tool; a real controller, two real players and touch still need a person; `game/reports/P09_EconomyPower.md`, `previews/Game/P09_Studio_sheet.jpg` |
 | Prompt 10: residents, phase 1 (Run) | ✅ done 2026-11-08 | Run playtests: founders at work, the routine (meal, work, Shaft stairs to bed), assigning with real clicks, the Residents screen, revive and death, defeat; `game/reports/P10_Residents.md`, `previews/Game/P10_Studio_sheet.jpg` |
+| Landon's answers to the Prompt 9 and 10 questions | ✅ built 2026-11-08 | Data tests (dark ties by draw, wrecked rooms) in both places; a Run playtest (founders idle, the jobs alert on the real client, idle residents to a Lounge); addenda in `P09_EconomyPower.md` and `P10_Residents.md` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -38,6 +39,33 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Landon's answers to the Prompt 9 and 10 questions
+
+Game code build `p10-0a6f76b`, code asset 95026446991297 revision 33, installed in Run and
+Lobby: StructureCheck 0 errors (Run 332 checks, Lobby 226), 74 data tests passed.
+
+**Done**
+* Dark order: at the same distance from power the room drawing the most goes dark first, then
+  the newest. A wrecked room (0 HP) draws nothing until it is repaired.
+* The founders arrive idle. Two seconds into the run the alert feed says how many residents are
+  waiting for jobs (only at the run start). The first-run tutorial (Prompt 31) will place them.
+* Idle residents go to a Lounge seat when there is a Lounge, else by their bed.
+* No change, as Landon chose: the newest arrivals go hungry first, and the routine keeps its timing.
+
+**Verified in Studio**
+* The data tests in both places, with new checks:
+  * the Quarters at level 3 (draw 4) go dark before the newer Kitchen (draw 2) at the same
+    distance;
+  * a wrecked Kitchen takes "needed" from 10 to 8.
+* Run playtest:
+  * six founders with no job; 0 power made and 10 needed, five rooms dark, the chip "10/0" in red;
+  * the alert slip on the real client (`previews/Game/P10_Answers_IdleStart.jpg`);
+  * after `/dev grid.build Lounge 1 3`, all six walked to the Lounge and stood idle there
+    (`previews/Game/P10_Answers_LoungeIdle.jpg`).
+
+**Not checked by playing**: the new tie-break and wrecked-room power. The starting bunker has no
+ties with different draws, and rooms can't be damaged until Prompt 13. The data tests cover both.
 
 ## 2026-11-08 (late night): Prompt 10, residents phase 1
 
@@ -68,10 +96,8 @@ revision 32, installed in Run and Lobby: StructureCheck 0 errors (Run 332 checks
 2. **Config adds `Id` to every entry**, so the clip's own id field is `AssetId`.
 
 **Landon to do**
-* Answer the three Bible Questions in `game/reports/P10_Residents.md`:
-  1. who goes hungry;
-  2. whether the founders start at work;
-  3. the routine's timing and the Lounge.
+* ~~Answer the three Bible Questions in `game/reports/P10_Residents.md`~~ (answered; see the
+  entry above).
 
 ## 2026-11-08 (late night): Prompt 9, economy and power; Landon's Prompt 8 answers
 

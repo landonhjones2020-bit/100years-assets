@@ -252,3 +252,19 @@ This prompt also built Landon's answers to the Prompt 8 questions (addendum in
 * `Economy.Balance` takes the crew and multiplier functions as arguments, so a forced blackout,
   a damaged reactor (Prompt 13) or Overclock's overload chance (Prompt 19) can be added without
   touching the services' shape.
+
+## Addendum: Landon's answers (2026-11-08), built after Prompt 10
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Ties in the dark order | "One drawing the most" | At the same number of steps from the power, the room drawing the most goes dark first; equal draws still go newest first (`Rules.Economy.Shed`). |
+| 2 | Wrecked rooms and power | "Yes" | A wrecked room (0 HP) draws nothing until it is repaired, so it never goes dark and isn't counted in "needed" (`Rules.Economy.Balance`). |
+| 3 | Who goes hungry | "Keep Newest Arrivals" | No change: the newest arrivals go hungry first (built in Prompt 10). |
+
+Tested (build `p10-0a6f76b`, code asset revision 33): the data tests pass in both places (74),
+with two new checks. With a weak crew (9.6 made) and the Quarters at level 3 (12 needed), the
+Quarters (draw 4) go dark before the newer Kitchen (draw 2) at the same distance. A wrecked
+Kitchen takes "needed" from 10 to 8. Neither case has been played in Studio yet: the
+starting bunker has no ties of different sizes, and rooms can't be damaged until the Surge's
+attacks (Prompt 13).
+

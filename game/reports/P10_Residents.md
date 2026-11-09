@@ -187,3 +187,20 @@ and Lobby. Residents live in the Run place.
 **Future extension notes**
 * Every Activity can get its own clip through `Config.Animations`.
 * PathGraph's routes suit monsters inside the bunker too (Section 23).
+
+## Addendum: Landon's answers (2026-11-08)
+
+| # | Question | Landon's answer | What changed |
+|---|---|---|---|
+| 1 | Who goes hungry | "Keep Newest Arrivals" | No change. |
+| 2 | The founders' start | "Idle and have the first run tutorial put them in the apporiate spots" | The six founders arrive idle: no Auto-Assign at the start. Until someone works the Reactor Core the bunker is dark. Two seconds into the run, the alert feed says "6 RESIDENTS ARE WAITING FOR JOBS: OPEN THE COMMAND VIEW AND ASSIGN THEM" (only when the run starts, not after Keep Going). The first-run tutorial (Prompt 31) will place them. |
+| 3 | The routine | "Sounds right" | The meal, work and bed times stay. Idle residents now go to a Lounge seat when the bunker has a Lounge (Section 11: they socialise in the Lounge), or stand by their bed otherwise. The Lounge has no model yet, so for now they stand in its shell; its seats come with the Lounge art. |
+
+Tested in Studio (build `p10-0a6f76b`, code asset revision 33):
+* All six founders spawned with no job. Power showed 0 made and 10 needed, with five rooms dark. The HUD chip read "10/0" in red.
+* On the real client the alert slip read "6 RESIDENTS ARE WAITING FOR JOBS: OPEN THE COMMAND
+  VIEW AND ASSIGN THEM" (`previews/Game/P10_Answers_IdleStart.jpg`).
+* After the meal, idle residents walked to their beds in the Quarters. When a Lounge was placed
+  (`/dev grid.build Lounge 1 3`), all six re-routed to it within a second and stood idle inside
+  it (`previews/Game/P10_Answers_LoungeIdle.jpg`).
+
