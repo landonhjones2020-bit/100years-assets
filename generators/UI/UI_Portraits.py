@@ -246,7 +246,7 @@ WEAPON_ICONS = {
     "Icon_ServiceRevolver": ("Weapon_ServiceRevolver", (-18, 12), 3.0),
     "Icon_PocketPistol": ("Weapon_PocketPistol", (-18, 12), 2.5),
     "Icon_Wrench": ("Weapon_Wrench", (-38, 12), 4.4),
-    "Icon_Extinguisher": ("Tool_Extinguisher", (-12, 14), 3.6),     # Prompt 13
+    "Icon_Extinguisher": ("Tool_Extinguisher", (-12, 14), 2.9),     # Prompt 13
     "Icon_Welder": ("Tool_Welder", (-14, 12), 3.0),
 }
 

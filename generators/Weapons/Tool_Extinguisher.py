@@ -6,6 +6,9 @@ chrome valve head with a squeeze lever and carry handle, a brass pressure gauge 
 face, a safety pin with a Hazard Yellow tag, and the period's big black horn on a swivel arm,
 pointing forward.
 
+v2 (Prompt 13 playtest, Nov 9): built at 0.8 scale (SCALE), so on a classic avatar the tank
+hangs to mid-shin instead of the floor and clears the right thigh.
+
 How it is held: tools use the gun's hold pose (CombatController, forearm forward at the hip),
 so the fist's grip runs vertically. The hand closes round the brass neck under the valve
 head, the tank hangs below the fist (its bottom near the knee, clear of the legs: the hand is
@@ -22,6 +25,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
+import bpy  # noqa: E402
 import steadfast as sf  # noqa: E402
 
 ASSET, CATEGORY = "Tool_Extinguisher", "Weapons"
@@ -29,7 +33,8 @@ BUDGET = 1500
 GRIP = (0.0, 0.0, 0.0)            # on the brass neck's axis, where the fist closes
 HORN_Z = 0.33                     # the horn's axis, just over the fist
 MOUTH_Y = -1.5
-R = 0.48                          # the tank's radius
+R = 0.48                          # the tank's radius (before SCALE)
+SCALE = 0.8                       # the whole tool, about the grip (v2: the first build was too big in hand)
 
 
 def build():
@@ -71,9 +76,13 @@ def build():
     sf.tag(sf.torus(0.07, 0.016, loc=(0.2, 0.12, HORN_Z + 0.04), rot=(0, 90, 0), major_segs=8, minor_segs=3),
            "Valve", "chrome", collision=q)
     sf.tag(sf.box((0.025, 0.16, 0.2), loc=(0.21, 0.14, HORN_Z - 0.16), rot=(8, 0, 0), bevel=0.0), "Tag", "hazard", collision=q)
+    for o in bpy.context.scene.objects:   # everything about the grip (the origin)
+        if o.get("sf_part"):
+            o.location = o.location * SCALE
+            o.scale = o.scale * SCALE
     return {"export": {
         "budget": BUDGET, "step": "P13", "pivot": GRIP,
-        "sockets": {"Grip": (GRIP, 0.0), "Muzzle": ((0, MOUTH_Y - 0.02, HORN_Z), 0.0)},
+        "sockets": {"Grip": (GRIP, 0.0), "Muzzle": ((0, (MOUTH_Y - 0.02) * SCALE, HORN_Z * SCALE), 0.0)},
         "meta": {"kind": "Tool", "item": "Extinguisher", "class": ["Firefighter"]},
     }}
 

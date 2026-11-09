@@ -658,8 +658,16 @@ local function buildRubble(r: Rubble): Model?
 		if source then
 			local copy = source:Clone()
 			copy.Name = `Pile{i}`
+			-- a filled tunnel: each pile sits inside the tunnel cell, its outer toe at the cell's
+			-- end, so nothing spills into the room or the cell next door (a doorway's pile spills
+			-- into both sides, as rubble through a doorway would)
+			local at = floorAt
+			if r.Shape == "Tunnel" then
+				local inward = math.sign(Grid.CellPosition(r.Floor, r.Column).X - face.Centre.X)
+				at += Vector3.new(inward * source:GetExtentsSize().Z / 2, 0, 0)
+			end
 			-- art faces -Z with its width along X: turn it to lie across the wall line
-			copy:PivotTo(CFrame.new(floorAt) * CFrame.Angles(0, math.pi / 2, 0))
+			copy:PivotTo(CFrame.new(at) * CFrame.Angles(0, math.pi / 2, 0))
 			copy.Parent = pile
 		else
 			local group = Instance.new("Model")
