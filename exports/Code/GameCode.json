@@ -1,13 +1,18 @@
 {
- "built": "2026-11-09T00:44:20Z",
- "commit": "e4d9a533fbfb4cd9141c14611230e01ee4069c90",
- "label": "p9-e4d9a53",
+ "built": "2026-11-09T00:49:30Z",
+ "commit": "9b517ee48697d526fe6b84b04a5b10c9b9ccc07c",
+ "label": "p9-9b517ee",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/init.luau",
     "Hash": "2eadd1e1"
+   },
+   "ReplicatedStorage.Shared.Config.Animations": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Animations.luau",
+    "Hash": "98409f78"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -177,7 +182,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "06ebdd69"
+    "Hash": "83e21838"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -322,7 +327,7 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "5fba5cf5"
+    "Hash": "7ecdd4ae"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -389,6 +394,11 @@
     "From": "game/client/Controllers/MiniMapController.luau",
     "Hash": "27c700d1"
    },
+   "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/NPCAnimator.luau",
+    "Hash": "c3948ca9"
+   },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/ReplicaController.luau",
@@ -430,6 +440,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Config/init.luau",
     "Hash": "2eadd1e1"
+   },
+   "ReplicatedStorage.Shared.Config.Animations": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Animations.luau",
+    "Hash": "98409f78"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -599,7 +614,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "06ebdd69"
+    "Hash": "83e21838"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -744,12 +759,17 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "5fba5cf5"
+    "Hash": "7ecdd4ae"
    },
    "ServerScriptService.Lib.BunkerKit": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Lib/BunkerKit.luau",
     "Hash": "0489a959"
+   },
+   "ServerScriptService.Lib.PathGraph": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Lib/PathGraph.luau",
+    "Hash": "ffa39308"
    },
    "ServerScriptService.Lib.ProfileSchema": {
     "Class": "ModuleScript",
@@ -805,6 +825,11 @@
     "Class": "ModuleScript",
     "From": "game/server/Services/ReplicationService.luau",
     "Hash": "2debe1c4"
+   },
+   "ServerScriptService.Services.ResidentBrain": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Services/ResidentBrain.luau",
+    "Hash": "e9dd401c"
    },
    "ServerScriptService.Services.ResidentService": {
     "Class": "ModuleScript",
@@ -865,6 +890,11 @@
     "Class": "ModuleScript",
     "From": "game/client/Controllers/MiniMapController.luau",
     "Hash": "27c700d1"
+   },
+   "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator": {
+    "Class": "ModuleScript",
+    "From": "game/client/Controllers/NPCAnimator.luau",
+    "Hash": "c3948ca9"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",

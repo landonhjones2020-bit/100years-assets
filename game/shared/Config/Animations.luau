@@ -14,7 +14,7 @@ return {
 	Schema = Check.shape({
 		Rig = Check.enum({ "R15" }),
 		Activity = Check.enum({ "Walk", "Work", "Eat", "Sleep", "Idle", "Down" }),
-		Id = Check.string(40, { pattern = "^rbxassetid://%d+$" }),
+		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
 		Text = F.Short,
 	}),
@@ -22,7 +22,7 @@ return {
 		ResidentWalk = {
 			Rig = "R15",
 			Activity = "Walk",
-			Id = "rbxassetid://125264708961546",
+			AssetId = "rbxassetid://125264708961546",
 			Looped = true,
 			Text = "A resident walking (A0, R15_ResidentWalk)",
 		},

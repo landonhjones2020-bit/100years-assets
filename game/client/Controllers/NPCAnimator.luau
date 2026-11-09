@@ -45,12 +45,12 @@ local function trackFor(model: Model, state: Watched, activity: string): Animati
 		return nil
 	end
 	local animation = Instance.new("Animation")
-	animation.AnimationId = clip.Id
+	animation.AnimationId = clip.AssetId
 	local ok, track = pcall(function()
 		return (animator :: Animator):LoadAnimation(animation)
 	end)
 	if not ok or not track then
-		log:Warn("couldn't load %s for %s: %s", clip.Id, model.Name, tostring(track))
+		log:Warn("couldn't load %s for %s: %s", clip.AssetId, model.Name, tostring(track))
 		return nil
 	end
 	track.Looped = clip.Looped
@@ -106,7 +106,7 @@ function NPCAnimator:Start()
 	for _, clip in Config.All("Animations") do
 		if clip.Rig == "R15" then
 			clips[clip.Activity] = clip
-			table.insert(ids, clip.Id)
+			table.insert(ids, clip.AssetId)
 		end
 	end
 	task.spawn(function()
