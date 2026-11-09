@@ -22,6 +22,14 @@
 	  ResidentFleeRadius on their floor, sends them to the nearest room with no monster in or
 	  next to it, until ResidentCalmSeconds pass with none near. A lone Burrow Tick they swat
 	  (ResidentSwatDamage every ResidentSwatSeconds). Spitter goo slows them (SlowedUntil).
+	* Disasters (Prompt 13; Section 11: residents caught in a disaster fight it if they can, and
+	  handle a small fire in their own room): a resident in a burning room beats the fire down
+	  (Activity Extinguish; DisasterService counts them) until their health falls below
+	  Tuning.Disasters.Fire.ResidentFleeHealth, then flees to a room with no fire and no monster,
+	  and keeps out of burning rooms while that hurt. Cave-in rubble (Lib.Hazards) blocks
+	  passages: routes go around it, and a resident with no way round is Trapped (they wait
+	  where they are; ResidentService takes them off their crew) until it is cleared. When
+	  rubble falls or is cleared, everyone plans their way again.
 	They walk the room graph (Lib.PathGraph: doorways, Shaft stairs) with Humanoid:MoveTo, at a
 	speed from their Speed stat. A resident stuck for STUCK_SECONDS steps to their next waypoint.
 	Residents pass through each other and through players (collision groups).
@@ -45,6 +53,7 @@ local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
 local Residents = require(Shared.Rules.Residents)
 local BunkerKit = require(ServerScriptService.Lib.BunkerKit)
+local Hazards = require(ServerScriptService.Lib.Hazards)
 local PathGraph = require(ServerScriptService.Lib.PathGraph)
 
 local log = Log.new("ResidentBrain")
@@ -72,6 +81,8 @@ type Body = {
 	Since: number, -- when it last got closer
 	Lying: boolean,
 	Prompt: ProximityPrompt?,
+	Trapped: boolean, -- rubble cuts them off from their goal (Prompt 13)
+	HazardVersion: number, -- Lib.Hazards' version when the goal was planned
 }
 
 local residents: any = nil
@@ -193,6 +204,7 @@ local function spawnBody(id: string): Body?
 	local body: Body = {
 		Id = id, Model = model, Humanoid = humanoid, Root = root, Goal = nil, GoalActivity = "Idle",
 		Points = {}, Index = 1, Best = math.huge, Since = os.clock(), Lying = false, Prompt = nil,
+		Trapped = false, HazardVersion = 0,
 	}
 	bodies[id] = body
 	return body
@@ -281,6 +293,9 @@ local function safeRoom(fromUnit: string?): string?
 			danger[unit] = true
 		end
 	end
+	for unit in Hazards.Fires() do
+		danger[unit] = true -- a burning room is no refuge (Prompt 13)
+	end
 	local bunker = grid:Bunker()
 	local seen: { [string]: boolean } = { [fromUnit] = true }
 	local queue = { fromUnit }
@@ -302,7 +317,7 @@ local function safeRoom(fromUnit: string?): string?
 			end
 			fallback = fallback or unit
 		end
-		for _, other in bunker:Neighbors(unit) do
+		for _, other in Hazards.Neighbors(bunker, unit) do
 			if not seen[other] then
 				seen[other] = true
 				table.insert(queue, other)
@@ -333,6 +348,26 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 		flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = room }
 		fleeing[id] = flee
 	end
+	-- fire where they stand (Prompt 13): fight it while they can, else get out
+	local here = unitAt(body.Root.Position)
+	if #near == 0 and here and Hazards.Fire(here) then
+		local resident = residents:Get(id)
+		local f = Config.Get("Tuning", "Disasters").Fire
+		local healthy = resident ~= nil and resident.Health >= resident.MaxHealth * f.ResidentFleeHealth
+		if healthy and not (flee and os.clock() < flee.Until) then
+			local room = grid:Room(here)
+			if room then
+				local n = tonumber(string.match(id, "%d+")) or 0
+				local cell = Grid.CellPosition(room.Floor, room.Column + n % room.Span)
+				local spot = CFrame.new(cell + Vector3.new(((n * 5) % 15) - 7, 0, 3))
+				return `Extinguish:{here}`, here, spot, "Extinguish"
+			end
+		end
+		if not flee or not flee.Room or Hazards.Fire(flee.Room) then
+			flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = safeRoom(here) }
+			fleeing[id] = flee
+		end
+	end
 	if flee and os.clock() < flee.Until and flee.Room and grid:Room(flee.Room) then
 		local room = grid:Room(flee.Room)
 		local spot = CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 0, 4))
@@ -341,6 +376,8 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 	fleeing[id] = nil
 	return nil
 end
+
+local routine: (id: string, order: number, resident: any) -> (string, string?, CFrame?, string)
 
 local function plan(id: string, order: number): (string, string?, CFrame?, string)
 	local resident = residents:Get(id)
@@ -354,6 +391,22 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 	if threatGoal then
 		return threatGoal, threatRoom, threatSpot, threatActivity :: string
 	end
+	local goal, roomId, spot, activity = routine(id, order, resident)
+	-- too hurt to fight a fire (Prompt 13): they keep out of burning rooms and wait where they are
+	if roomId and Hazards.Fire(roomId) then
+		local f = Config.Get("Tuning", "Disasters").Fire
+		if resident.Health < resident.MaxHealth * f.ResidentFleeHealth then
+			local body = bodies[id]
+			local here = if body then unitAt(body.Root.Position) else nil
+			if here ~= roomId then
+				return "Wait:fire", nil, nil, "Idle"
+			end
+		end
+	end
+	return goal, roomId, spot, activity
+end
+
+routine = function(id: string, order: number, resident: any): (string, string?, CFrame?, string)
 	local phase = clock:Phase()
 	local mealSeconds = Config.Get("Tuning", "Residents").MealSeconds / math.max(clock:TimeScale(), 0.01)
 	if phase == "Surge" or not clock:IsRunning() and phase == nil then
@@ -395,6 +448,7 @@ local function unitOf(position: Vector3): string?
 end
 
 local function setGoal(body: Body, goal: string, roomId: string?, spot: CFrame?, activity: string)
+	body.HazardVersion = Hazards.Version()
 	body.Goal = goal
 	body.GoalActivity = activity
 	body.Points = {}
@@ -407,9 +461,28 @@ local function setGoal(body: Body, goal: string, roomId: string?, spot: CFrame?,
 	standUp(body)
 	local from = unitOf(body.Root.Position)
 	local to = unitOf(spot.Position + Vector3.new(0, 1, 0)) or roomId
-	local points = if from then PathGraph.Waypoints(grid:Bunker(), function(unit: string): Model?
-		return grid:RoomModel(unit)
-	end, body.Root.Position, from, to, spot.Position) else nil
+	local points, why = nil, nil
+	if from then
+		points, why = PathGraph.Waypoints(grid:Bunker(), function(unit: string): Model?
+			return grid:RoomModel(unit)
+		end, body.Root.Position, from, to, spot.Position)
+	end
+	if why == "Blocked" then
+		-- cave-in rubble cuts them off (Prompt 13): they wait where they are until it's cleared
+		body.Points = {}
+		body.GoalActivity = "Idle"
+		body.Humanoid:MoveTo(body.Root.Position)
+		setActivity(body, "Idle")
+		if not body.Trapped then
+			body.Trapped = true
+			residents:SetTrapped(body.Id, true)
+		end
+		return
+	end
+	if body.Trapped then
+		body.Trapped = false
+		residents:SetTrapped(body.Id, false)
+	end
 	body.Points = points or { spot.Position }
 	setActivity(body, "Walk")
 end
@@ -458,7 +531,7 @@ local function step(body: Body, order: number)
 		revivePrompt(body, false)
 		standUp(body)
 	end
-	if goal ~= body.Goal then
+	if goal ~= body.Goal or body.HazardVersion ~= Hazards.Version() then
 		setGoal(body, goal, roomId, spot, activity)
 	end
 	local speed = slowedSpeed(body)

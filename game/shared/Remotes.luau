@@ -177,6 +177,13 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 3, PerSecond = 2 },
 		Doc = "Use a carried Medkit: it heals over Tuning.Player.MedkitSeconds (Landon, 2026-11-08: the Heal button).",
 	},
+	UseTool = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.boolean() },
+		Rate = { Burst = 8, PerSecond = 6 },
+		Doc = "Start (true) or stop (false) using the held tool while Fire is held: the Extinguisher sprays, the Welder repairs what the player faces (WeaponService; Prompt 13).",
+	},
 
 	-- server -> client
 	Delta = {

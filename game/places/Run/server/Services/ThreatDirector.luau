@@ -8,12 +8,15 @@
 	  wave, Section 5; a first run's Era I is 30% easier, Section 22) and spends it on monster
 	  groups from the era's roster (Rules.Threat.Groups), opened at weighted breach points
 	  (BreachService), up to MaxBreachPointsPerSurge places, in waves WaveSpacingSeconds apart.
-	  Boss Surges bring their boss instead (Prompt 15). The Surge's one disaster comes with
-	  Prompt 13 (DisasterActive is the hook).
+	  Boss Surges bring their boss instead (Prompt 15). A Normal or Endless Surge first pays for
+	  its one disaster from the budget (Section 5; DisasterService:SurgeDisaster, Prompt 13); the
+	  Tutorial Surge is a small wave with no disaster.
 	* A Surge ends as soon as its last monster dies and its disaster is fixed (Section 5):
 	  CycleClock:EndSurge. Monsters left when a Surge times out stay and keep fighting.
 	* Between Surges it spends TrickleBudget a cycle on single monsters at weighted points (not in
-	  the first cycle, so the tutorial day stays calm).
+	  the first cycle, so the tutorial day stays calm), and minor incidents (Section 10): each day
+	  from the second may bring one electrical surge (Rules.Disasters.ElectricalChance by era, at a
+	  random moment of the day, in a random room).
 	* Disturbance (Prompt 14) calls ExtraBreach at 50 and Tremor at 100.
 	* At most 25 monsters are on the map at once: MonsterService queues the rest.
 
@@ -22,7 +25,7 @@
 		ThreatDirector:SpendSurge(kind?): number      -- the wave now (DevTools; Tremor)
 		ThreatDirector:ExtraBreach(): boolean        -- Disturbance 50 (Section 10)
 		ThreatDirector:Tremor(): number              -- Disturbance 100: a full wave at once
-		ThreatDirector:SetDisasterCheck(fn)          -- Prompt 13: is the Surge's disaster still on?
+		ThreatDirector:SetDisasterCheck(fn)          -- replaces DisasterService:HoldsSurge (tests)
 	Dev: threat, surge.wave.
 ]]
 
@@ -30,6 +33,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
+local Disasters = require(Shared.Rules.Disasters)
 local Log = require(Shared.Utilities.Log)
 local RunState = require(Shared.RunState)
 local Threat = require(Shared.Rules.Threat)
@@ -39,7 +43,8 @@ local log = Log.new("ThreatDirector")
 local ThreatDirector = {
 	Name = "ThreatDirector",
 	Dependencies = {
-		"CycleClock", "RunDirector", "BunkerGrid", "SessionService", "ProfileService", "BreachService", "MonsterService", "DevService",
+		"CycleClock", "RunDirector", "BunkerGrid", "SessionService", "ProfileService", "BreachService", "MonsterService",
+		"DisasterService", "DevService",
 	},
 }
 
@@ -50,6 +55,7 @@ local session: any = nil
 local profiles: any = nil
 local breaches: any = nil
 local monsters: any = nil
+local disasters: any = nil
 local dev: any = nil
 local set: (string, any) -> () = function() end
 
@@ -141,6 +147,12 @@ function ThreatDirector:SpendSurge(kind: string?): number
 	if budget <= 0 then
 		return 0
 	end
+	-- Section 5: a Surge brings a breach wave and one disaster; the disaster is paid for first
+	local disasterCost = 0
+	if surgeKind == "Normal" or surgeKind == "Endless" then
+		disasterCost = disasters:SurgeDisaster(budget, rng)
+		budget -= disasterCost
+	end
 	local groups = Threat.Groups(budget, Threat.Roster(clock:Era()), rng)
 	local tag = `Surge:{clock:Cycle()}`
 	local waves = math.min(#groups, 4)
@@ -150,7 +162,8 @@ function ThreatDirector:SpendSurge(kind: string?): number
 	if surge and surge.Tag == tag then
 		surge.Expected = total
 	end
-	log:Info("%s Surge (threat %.1f, budget %.1f): %d monsters in %d groups", surgeKind, level, budget, total, #groups)
+	log:Info("%s Surge (threat %.1f, budget %.1f after %d for its disaster): %d monsters in %d groups", surgeKind, level,
+		budget, disasterCost, total, #groups)
 	return total
 end
 
@@ -230,6 +243,10 @@ function ThreatDirector:Init(registry)
 	profiles = registry.ProfileService
 	breaches = registry.BreachService
 	monsters = registry.MonsterService
+	disasters = registry.DisasterService
+	disasterActive = function(): boolean
+		return disasters:HoldsSurge()
+	end
 	dev = registry.DevService
 	set = RunState.Writer("ThreatDirector")
 
@@ -272,6 +289,31 @@ function ThreatDirector:Start()
 	end)
 	clock.SurgeEnded:Connect(function()
 		surge = nil
+	end)
+	-- minor incidents (Section 10): an electrical surge on some days, in a random room
+	clock.CycleStarted:Connect(function(cycle: number)
+		if cycle <= 1 or director:Phase() ~= "Playing" then
+			return
+		end
+		local era = Threat.EraNumber(clock:Era())
+		if rng:NextNumber() >= Disasters.ElectricalChance(era) then
+			return
+		end
+		local dayScale = math.max(clock:TimeScale(), 0.01)
+		task.delay(rng:NextNumber(25, 150) / dayScale, function()
+			if clock:Phase() ~= "Day" or director:Phase() ~= "Playing" then
+				return
+			end
+			local options = {}
+			for _, room in grid:Rooms() do
+				if room.Type ~= "Shaft" and not room.Wrecked then
+					table.insert(options, room.Id)
+				end
+			end
+			if #options > 0 then
+				disasters:StartElectricalSurge(options[rng:NextInteger(1, #options)], "Incident")
+			end
+		end)
 	end)
 	monsters.Spawned:Connect(function(_id: string, _type: string, tag: string?)
 		if surge and tag == surge.Tag then

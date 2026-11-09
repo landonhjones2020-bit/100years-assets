@@ -25,9 +25,15 @@
 	  (the PingCell remote); every player sees it here and on the mini-map.
 	* Taking damage while the view is open flashes the screen edge red.
 
+	* Status (Section 7: every room shows status icons: dark, wrecked, burning, flooded):
+	  providers later systems register (SetStatus) give a room's lamp and reading ("ON FIRE")
+	  whenever the overlay tab has nothing to say about it; a condition note (SetConditionNote)
+	  adds to the room panel's Condition (Prompt 13).
+
 	API for later prompts: SetHandler(action, fn(choice)), SetOverlay(name, provider),
-	ShowGhost(id, floor, column, span, label) and HideGhost(id) for open votes, Blink(key, on)
-	for alerts, Select(floor, column), IsOpen(), State().
+	SetStatus(name, provider), SetConditionNote(fn), ShowGhost(id, floor, column, span, label)
+	and HideGhost(id) for open votes, Blink(key, on) for alerts, Select(floor, column), IsOpen(),
+	State().
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -140,6 +146,8 @@ local pings: { { Frame: any, Floor: number, Column: number, Until: number } } = 
 local blinking: { [string]: boolean } = {}
 local handlers: { [string]: (Choice) -> () } = {}
 local overlays: { [string]: Overlay } = {}
+local statuses: { [string]: Overlay } = {} -- Prompt 13: a room's status lamp when the overlay is silent
+local conditionNote: ((string) -> string?)? = nil
 local selectionMark: any = nil
 local drag: { Start: Vector2, Last: Vector2, Moved: boolean, Touch: InputObject? }? = nil
 local pinch: { [InputObject]: Vector2 } = {}
@@ -363,6 +371,15 @@ local function placeLabels()
 			label.ImageColor3 = if blinking[id] then RUST else Color3.new(1, 1, 1)
 			local lamp = label:FindFirstChild("Lamp")
 			local sprite, reading = overlayLamp(id, room)
+			if sprite == nil and reading == nil then
+				for _, provider in statuses do
+					local ok, s, r = pcall(provider, id, room)
+					if ok and (s or r) then
+						sprite, reading = s, r
+						break
+					end
+				end
+			end
 			lamp.Visible = sprite ~= nil
 			if sprite then
 				KitRuntime.SetSprite(lamp, sprite)
@@ -550,7 +567,16 @@ local function showRoom(roomId: string)
 	local detail = part("Cabinet.Pages.CommandView.Detail")
 	detail:FindFirstChild("Name").Text = string.upper(info.Name)
 	detail:FindFirstChild("Sub").Text = `LEVEL {room.Level}  ·  {room.Span} CELL{if room.Span > 1 then "S" else ""}  ·  FLOOR {room.Floor}`
-	section(1, "Condition", if room.HP <= 0 then `Wrecked: 0 of {room.MaxHP} HP` else `{room.HP} of {room.MaxHP} HP`)
+	local condition = if room.Wrecked
+		then `Wrecked: {room.HP} of {room.MaxHP} HP. Works again at {Bunker.RepairedAt(room.MaxHP)}.`
+		else `{room.HP} of {room.MaxHP} HP`
+	if conditionNote then
+		local ok, note = pcall(conditionNote, roomId)
+		if ok and note then
+			condition ..= `\n{note}`
+		end
+	end
+	section(1, "Condition", condition)
 	section(2, "Power", powerLine(roomId, room, info))
 	local output = outputLine(roomId)
 	if output then
@@ -1200,6 +1226,20 @@ end
 function CommandViewController:SetOverlay(name: string, provider: Overlay?)
 	assert(OVERLAY_TEXT[name], `CommandViewController: no overlay {name}`)
 	overlays[name] = provider
+	if open then
+		refreshDetail()
+	end
+end
+
+-- A room status's provider (Prompt 13: burning, blackout, rubble...): (roomId, room) -> lamp
+-- sprite and a short reading, shown when the overlay tab has nothing for the room.
+function CommandViewController:SetStatus(name: string, provider: Overlay?)
+	statuses[name] = provider
+end
+
+-- A line added under a room's Condition in the detail panel (Prompt 13: "On fire, 64%").
+function CommandViewController:SetConditionNote(fn: ((string) -> string?)?)
+	conditionNote = fn
 	if open then
 		refreshDetail()
 	end

@@ -296,7 +296,7 @@ end
 local function respawnPlaces(): { Combat.Place }
 	local places = {}
 	for _, room in grid:RoomsOfType("Medbay") do
-		if room.HP > 0 and not power:IsDark(room.Id) then
+		if not room.Wrecked and not power:IsDark(room.Id) then
 			local model = grid:RoomModel(room.Id)
 			local respawn = model and model:FindFirstChild("Respawn", true)
 			local position = if respawn and respawn:IsA("Attachment")

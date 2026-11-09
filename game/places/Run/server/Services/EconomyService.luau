@@ -274,7 +274,7 @@ local function rateOf(room: any): RoomRate?
 	local crew = EconomyService:Crew(room.Id)
 	local workers = if crew then crew.Workers else 0
 	local idle: string? = nil
-	if room.HP <= 0 then
+	if room.Wrecked then
 		idle = "Wrecked"
 	elseif dark[room.Id] then
 		idle = "Dark"

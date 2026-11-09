@@ -24,8 +24,8 @@
 	  - on a player or resident through CombatService:Damage;
 	  - on a machine (a room): its HP falls by RoomDamageMultiplier of the damage (SmashesMachines:
 	    SmashMultiplier times that). A wrecked
-	    room stops (Prompt 9). The Reactor Core at 0 HP is destroyed and the run is lost
-	    (Section 5).
+	    room stops (Prompt 9) and isn't a target until it is repaired. The Reactor Core at 0 HP
+	    starts the meltdown (DisasterService, Prompt 13).
 	* Traits: Latches (Burrow Tick) hangs on a resident and bites until killed or swatted;
 	  Slows (Spitter Grub) keeps its distance and spits goo that slows (players: the SlowedUntil
 	  attribute; residents: their walk); stunned monsters (StunnedUntil: melee, Shock Mines)
@@ -55,6 +55,7 @@ local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Signal = require(Shared.Utilities.Signal)
 local Threat = require(Shared.Rules.Threat)
+local Hazards = require(ServerScriptService.Lib.Hazards)
 local PathGraph = require(ServerScriptService.Lib.PathGraph)
 
 local log = Log.new("MonsterService")
@@ -70,6 +71,7 @@ local MONSTER_GROUP = "Monsters"
 local ARRIVE = 2.5
 local REPLAN_SECONDS = 2.5
 local FLOOR_PENALTY = 40 -- studs a floor's difference counts as, when picking the nearest target
+local BLOCKED_SKIP_SECONDS = 6 -- rubble cuts a target off: look for others this long (Prompt 13)
 local NO_MACHINE: { [string]: boolean } = { Shaft = true }
 
 type Target = { Kind: string, Id: string, RoomId: string?, Position: Vector3 }
@@ -89,8 +91,10 @@ type Monster = {
 	Since: number,
 	PlannedFor: string?, -- the target unit the points lead to
 	PlannedAt: number,
+	PlannedVersion: number, -- Lib.Hazards' version when planned: rubble falling or cleared plans again
 	AttackReadyAt: number,
 	Aggro: { [string]: number }, -- player combatant id -> until (os.clock)
+	Skip: { [string]: number }, -- a target id rubble cuts it off from -> until (os.clock; Prompt 13)
 	LatchedTo: string?, -- a resident id (Burrow Ticks)
 	Latch: WeldConstraint?,
 }
@@ -278,8 +282,10 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?): string?
 		Since = os.clock(),
 		PlannedFor = nil,
 		PlannedAt = 0,
+		PlannedVersion = 0,
 		AttackReadyAt = os.clock() + 0.6,
 		Aggro = {},
+		Skip = {},
 		LatchedTo = nil,
 		Latch = nil,
 	}
@@ -391,10 +397,15 @@ local function roomPoint(room: any): Vector3
 	return Vector3.new(cell.X + (if room.Span % 2 == 0 then Grid.Pitch().X / 2 else 0), cell.Y, cell.Z + 2)
 end
 
+local function skipped(m: Monster, id: string): boolean
+	local untilAt = m.Skip[id]
+	return untilAt ~= nil and untilAt > os.clock()
+end
+
 local function residentTarget(m: Monster): Target?
 	local best, bestScore = nil, math.huge
 	for _, c in combat:All("Survivors") do
-		if c.Kind == "Resident" and c.State == "Alive" and c.ResidentId then
+		if c.Kind == "Resident" and c.State == "Alive" and c.ResidentId and not skipped(m, c.Id) then
 			local record = residents:Get(c.ResidentId)
 			if record and record.State == "Alive" then
 				local s = score(m.Root.Position, c.Root.Position)
@@ -410,7 +421,7 @@ end
 local function machineTarget(m: Monster): Target?
 	local best, bestScore = nil, math.huge
 	for _, room in grid:Rooms() do
-		if not NO_MACHINE[room.Type] and room.HP > 0 then
+		if not NO_MACHINE[room.Type] and not room.Wrecked and not skipped(m, room.Id) then
 			local s = score(m.Root.Position, roomPoint(room))
 			if s < bestScore then
 				best, bestScore = room, s
@@ -425,7 +436,8 @@ local function playerTarget(m: Monster): Target?
 	local best, bestScore = nil, math.huge
 	local runner = m.Spec.Role == "Runner"
 	for _, c in combat:All("Survivors") do
-		if c.Kind == "Player" and c.State == "Alive" and c.Player and c.Player:GetAttribute("Life") == "Alive" then
+		if c.Kind == "Player" and c.State == "Alive" and c.Player and c.Player:GetAttribute("Life") == "Alive"
+			and not skipped(m, c.Id) then
 			local hit = (m.Aggro[c.Id] or 0) > os.clock()
 			local s = score(m.Root.Position, c.Root.Position)
 			local near = not runner and s <= t.ProximityAggro
@@ -465,7 +477,7 @@ end
 local function targetPosition(target: Target): Vector3?
 	if target.Kind == "Machines" then
 		local room = grid:Room(target.RoomId :: string)
-		return if room and room.HP > 0 then roomPoint(room) else nil
+		return if room and not room.Wrecked then roomPoint(room) else nil
 	end
 	local c = combat:Get(target.Id)
 	if not c or c.State ~= "Alive" then
@@ -504,12 +516,23 @@ local function plan(m: Monster, goal: Vector3)
 	m.Since = os.clock()
 	m.PlannedFor = to
 	m.PlannedAt = os.clock()
+	m.PlannedVersion = Hazards.Version()
 	if from and to and from ~= to then
-		local points = PathGraph.Waypoints(grid:Bunker(), function(unit: string): Model?
+		local points, why = PathGraph.Waypoints(grid:Bunker(), function(unit: string): Model?
 			return grid:RoomModel(unit)
 		end, m.Root.Position, from, to, goal)
 		if points then
 			m.Points = points
+			return
+		end
+		if why == "Blocked" then
+			-- cave-in rubble stands between it and its target (Prompt 13): it looks for another
+			-- one for a while instead of walking through the rubble
+			if m.Target then
+				m.Skip[m.Target.Id] = os.clock() + BLOCKED_SKIP_SECONDS
+			end
+			m.Target = nil
+			m.Points = { m.Root.Position }
 			return
 		end
 	end
@@ -518,8 +541,15 @@ end
 
 local function walk(m: Monster, goal: Vector3)
 	local goalUnit = unitOf(goal + Vector3.new(0, 1, 0))
-	if m.PlannedFor ~= goalUnit or os.clock() - m.PlannedAt > REPLAN_SECONDS or #m.Points == 0 then
+	if m.PlannedFor ~= goalUnit or os.clock() - m.PlannedAt > REPLAN_SECONDS or #m.Points == 0
+		or m.PlannedVersion ~= Hazards.Version() then
 		plan(m, goal)
+		if not m.Target then
+			-- rubble cut the target off (plan): wait here and choose again next tick
+			halt(m)
+			setActivity(m, "Idle")
+			return
+		end
 	end
 	-- the last point follows a moving target
 	if #m.Points > 0 then
@@ -563,16 +593,15 @@ end
 
 local function hurtRoom(m: Monster, roomId: string, amount: number)
 	local room = grid:Room(roomId)
-	if not room or room.HP <= 0 then
+	if not room or room.Wrecked then
 		return
 	end
 	local smash = if m.Spec.Traits and table.find(m.Spec.Traits, "SmashesMachines") then ai().SmashMultiplier else 1
 	local hp = grid:SetHP(roomId, math.max(room.HP - amount * smash * ai().RoomDamageMultiplier, 0))
 	if hp and hp <= 0 then
+		-- a Reactor Core at 0 HP melts down (DisasterService listens to BunkerGrid.Wrecked;
+		-- Landon, 2026-11-08: the 60-second meltdown instead of losing at once)
 		log:Info("%s wrecked %s (%s)", m.Id, roomId, room.Type)
-		if room.Type == "ReactorCore" then
-			director:Lose("ReactorDestroyed") -- Section 5: the Reactor Core destroyed loses the run
-		end
 	end
 end
 

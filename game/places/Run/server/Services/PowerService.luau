@@ -15,11 +15,18 @@
 	doubled monster spawns (Prompt 12) ask IsDark. The team gets an alert when rooms go dark
 	and when the power comes back.
 
+	Blackouts (Prompt 13, Section 10: a floor or the whole grid goes dark): DisasterService sets
+	the units a blackout darkens (SetBlackout). They are dark on top of the balance, whatever
+	power is made: lights, fittings, work and IsDark all follow, but the power alerts and
+	DarkRooms count only rooms dark for want of power.
+
 	Replication: RunState PowerMade, PowerUsed, PowerNeeded and DarkRooms; the Power collection,
-	room id -> { Draw, Made, Dark, Steps } for every room that draws or makes power.
+	room id -> { Draw, Made, Dark, Steps, Blackout } for every room that draws or makes power.
 
 	API:
-		PowerService:IsDark(roomId): boolean
+		PowerService:IsDark(roomId): boolean            -- for want of power or in a blackout
+		PowerService:IsBlackout(unit): boolean
+		PowerService:SetBlackout(units?)                -- the units a blackout darkens; nil: none
 		PowerService:Balance(): Economy.Balance
 		PowerService:Refresh()
 		PowerService.DarkChanged: Signal<{ string }, { string }>  -- went dark, lit again
@@ -61,6 +68,12 @@ local powerCollection: any = nil
 local balance: Economy.Balance = { Made = 0, Needed = 0, Used = 0, Dark = {}, Draw = {}, MadeBy = {}, Steps = {} }
 local published: { [string]: string } = {} -- room id -> what was last sent (to send only changes)
 local pending = false
+local blackout: { [string]: boolean } = {} -- units dark in a blackout (Prompt 13)
+local darkNow: { [string]: boolean } = {} -- the balance's dark rooms plus the blackout
+
+local function isDarkNow(unit: string): boolean
+	return darkNow[unit] == true
+end
 
 local function announce(kind: string, text: string)
 	Remotes.FireClients("Alert", session:ReadyPlayers(), kind, text)
@@ -133,13 +146,13 @@ local function applyLights()
 	for _, light in CollectionService:GetTagged(BunkerKit.ROOM_LIGHT_TAG) do
 		local unit = light:GetAttribute("Unit")
 		if type(unit) == "string" then
-			setLight(light, balance.Dark[unit] == true)
+			setLight(light, isDarkNow(unit))
 		end
 	end
 	for _, room in grid:Rooms() do
 		local model = grid:RoomModel(room.Id)
 		if model then
-			local isDark = balance.Dark[room.Id] == true
+			local isDark = isDarkNow(room.Id)
 			if (model:GetAttribute("Dark") == true) ~= isDark then
 				model:SetAttribute("Dark", isDark)
 				setFittings(model, isDark)
@@ -167,10 +180,11 @@ local function publish()
 			local entry = {
 				Draw = draw or 0,
 				Made = round1(made or 0),
-				Dark = balance.Dark[room.Id] == true,
+				Dark = isDarkNow(room.Id),
 				Steps = balance.Steps[room.Id] or -1, -- -1: nothing reaches it
+				Blackout = blackout[room.Id] == true,
 			}
-			local key = `{entry.Draw}|{entry.Made}|{entry.Dark}|{entry.Steps}`
+			local key = `{entry.Draw}|{entry.Made}|{entry.Dark}|{entry.Steps}|{entry.Blackout}`
 			if published[room.Id] ~= key then
 				published[room.Id] = key
 				powerCollection:Set(room.Id, entry)
@@ -204,9 +218,25 @@ function PowerService:Refresh()
 			table.insert(litAgain, id)
 		end
 	end
-	economy:SetPowered(balance.Dark)
+	local wasDark = darkNow
+	darkNow = table.clone(balance.Dark)
+	for unit in blackout do
+		darkNow[unit] = true
+	end
+	economy:SetPowered(darkNow)
 	publish()
 	applyLights()
+	local blackoutChanged = false
+	for unit in darkNow do
+		if not wasDark[unit] then
+			blackoutChanged = true
+		end
+	end
+	for unit in wasDark do
+		if not darkNow[unit] then
+			blackoutChanged = true
+		end
+	end
 	if #wentDark > 0 or #litAgain > 0 then
 		table.sort(wentDark)
 		table.sort(litAgain)
@@ -221,6 +251,8 @@ function PowerService:Refresh()
 			announce("Info", "POWER RESTORED: EVERY ROOM IS LIT")
 		end
 		PowerService.DarkChanged:Fire(wentDark, litAgain)
+	elseif blackoutChanged then
+		PowerService.DarkChanged:Fire({}, {})
 	end
 end
 
@@ -238,7 +270,17 @@ local function soon()
 end
 
 function PowerService:IsDark(roomId: string): boolean
-	return balance.Dark[roomId] == true
+	return darkNow[roomId] == true
+end
+
+function PowerService:IsBlackout(unit: string): boolean
+	return blackout[unit] == true
+end
+
+-- The units (room ids, dug nodes) a blackout darkens; nil or {} ends it (DisasterService).
+function PowerService:SetBlackout(units: { [string]: boolean }?)
+	blackout = if units then table.clone(units) else {}
+	PowerService:Refresh()
 end
 
 function PowerService:Balance(): Economy.Balance
@@ -256,9 +298,10 @@ local function describe(): string
 	for _, room in rooms do
 		local draw, made = balance.Draw[room.Id], balance.MadeBy[room.Id]
 		if draw or made then
-			table.insert(lines, string.format("%s %s L%d: %s, steps %s%s", room.Id, room.Type, room.Level,
+			table.insert(lines, string.format("%s %s L%d: %s, steps %s%s%s", room.Id, room.Type, room.Level,
 				if made then string.format("makes %.1f", made) else `draws {draw}`,
-				tostring(balance.Steps[room.Id] or "none"), if balance.Dark[room.Id] then ", DARK" else ""))
+				tostring(balance.Steps[room.Id] or "none"), if balance.Dark[room.Id] then ", DARK" else "",
+				if blackout[room.Id] then ", BLACKOUT" else ""))
 		end
 	end
 	return table.concat(lines, "\n")

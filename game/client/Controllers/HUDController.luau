@@ -21,7 +21,9 @@
 	buttons, and another click locks it again. Ready has its own key (Z, D-pad down).
 
 	For later systems: Alert(kind, text) for the alert feed, Banner(text, kind) for
-	announcements, SetVital, SetClass, SetResource, SetSlot and the HotbarSelected signal.
+	announcements, HoldBanner(reason, on) while something else owns the banner's place (Prompt
+	13: the meltdown telegram), SetVital, SetClass, SetResource, SetSlot and the HotbarSelected
+	signal.
 
 	The HUD hides during the intro and while a Frame screen is open.
 ]]
@@ -252,8 +254,18 @@ local function bannerStyle(kind: AlertKind): (string, Color3)
 	return "Alert_Warning", COLORS.hazard
 end
 
+local bannerHolds: { [string]: boolean } = {}
+
+-- Keeps the banner hidden while `reason` holds its place (the meltdown telegram, Prompt 13).
+function HUDController:HoldBanner(reason: string, on: boolean)
+	bannerHolds[reason] = if on then true else nil
+	if on and gui then
+		part("Banner").Visible = false
+	end
+end
+
 function HUDController:Banner(text: string, kind: AlertKind?, seconds: number?)
-	if not gui then
+	if not gui or next(bannerHolds) then
 		return
 	end
 	local sprite, color = bannerStyle(kind or "Warning")

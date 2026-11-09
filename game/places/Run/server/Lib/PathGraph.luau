@@ -12,6 +12,10 @@
 	  climb from its floor to the floor above);
 	* the target last (a work spot, a seat, a bed).
 	Graybox rooms without sockets fall back to the cell's middle.
+
+	Cave-in rubble (Prompt 13, Lib.Hazards) blocks passages: routes go around it. When rubble is
+	the only reason there is no route, Waypoints says "Blocked" (residents are then trapped and
+	monsters look for another target).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,6 +23,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local Grid = require(ReplicatedStorage.Shared.Rules.Grid)
 local BunkerKit = require(ServerScriptService.Lib.BunkerKit)
+local Hazards = require(ServerScriptService.Lib.Hazards)
 
 local PathGraph = {}
 
@@ -26,8 +31,9 @@ local AISLE = 8 -- studs in front of the cell's centre line
 local DOOR = 2 -- the doorway's walking line, in front of centre
 local DOOR_REACH = 6 -- how far either side of a wall the doorway approach starts
 
--- The shortest route from one graph node to another (both included), or nil.
-function PathGraph.Route(bunker: any, from: string, to: string): { string }?
+-- The shortest route from one graph node to another (both included), or nil. Rubble blocks
+-- passages unless `ignoreRubble`.
+function PathGraph.Route(bunker: any, from: string, to: string, ignoreRubble: boolean?): { string }?
 	if from == to then
 		return { from }
 	end
@@ -38,7 +44,7 @@ function PathGraph.Route(bunker: any, from: string, to: string): { string }?
 	while index <= #queue do
 		local unit = queue[index]
 		index += 1
-		for _, other in bunker:Neighbors(unit) do
+		for _, other in if ignoreRubble then bunker:Neighbors(unit) else Hazards.Neighbors(bunker, unit) do
 			if not seen[other] then
 				seen[other] = true
 				previous[other] = unit
@@ -81,15 +87,24 @@ local function touching(bunker: any, a: string, b: string): ({ number }?, { numb
 	return nil, nil
 end
 
+-- Is rubble the only thing between two nodes? (A route exists without it, none with it.)
+function PathGraph.Blocked(bunker: any, from: string, to: string): boolean
+	if not Hazards.AnyBlocked() then
+		return false
+	end
+	return PathGraph.Route(bunker, from, to) == nil and PathGraph.Route(bunker, from, to, true) ~= nil
+end
+
 --[[
 	Waypoints from `fromPosition` (in node `fromUnit`) to `target` (in node `toUnit`). `modelOf`
-	gives a room's model (for the Shafts' stair sockets). nil when no route exists.
+	gives a room's model (for the Shafts' stair sockets). nil when no route exists, with
+	"Blocked" when rubble is what stands in the way.
 ]]
 function PathGraph.Waypoints(bunker: any, modelOf: (string) -> Model?, fromPosition: Vector3, fromUnit: string,
-	toUnit: string, target: Vector3): { Vector3 }?
+	toUnit: string, target: Vector3): ({ Vector3 }?, string?)
 	local route = PathGraph.Route(bunker, fromUnit, toUnit)
 	if not route then
-		return nil
+		return nil, if PathGraph.Route(bunker, fromUnit, toUnit, true) then "Blocked" else nil
 	end
 	local points: { Vector3 } = {}
 	local startCell = bunker:CellsOf(fromUnit)[1]

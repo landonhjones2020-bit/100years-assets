@@ -31,7 +31,9 @@ type Watched = { Tracks: { [string]: AnimationTrack }, Playing: AnimationTrack?,
 
 local watched: { [Model]: Watched } = {}
 local clips: { [string]: any } = {} -- "Rig:Activity" -> Config.Animations entry
-local FALLBACK: { [string]: string } = { Flee = "Walk", Run = "Walk", Fight = "Attack" }
+-- Activities without a clip of their own borrow one: residents beating out a fire (Prompt 13)
+-- kneel and work like a player reviving, until A3 brings their own clip.
+local FALLBACK: { [string]: string } = { Flee = "Walk", Run = "Walk", Fight = "Attack", Extinguish = "Revive" }
 
 local function rigOf(model: Model): string
 	local rig = model:GetAttribute("Rig")

@@ -192,8 +192,16 @@ end
 --[[
 	The whole power balance of a bunker. `crewOf(roomId)` gives a power room's crew;
 	`multiplierOf(roomType)` bunker-wide power on top (the Overclock card). A wrecked power room
-	(0 HP) makes nothing.
+	(Rules.Bunker: from 0 HP until repaired) makes nothing and a wrecked room draws nothing.
 ]]
+-- Wrecked (Prompt 13: from 0 HP until repaired); a record without the flag is wrecked at 0 HP.
+local function wrecked(room: any): boolean
+	if room.Wrecked ~= nil then
+		return room.Wrecked == true
+	end
+	return room.HP <= 0
+end
+
 function Economy.Balance(bunker: any, crewOf: (string) -> Crew?, multiplierOf: ((string) -> number)?): Balance
 	local steps = Economy.Steps(bunker)
 	local made = 0
@@ -203,14 +211,14 @@ function Economy.Balance(bunker: any, crewOf: (string) -> Crew?, multiplierOf: (
 	for _, room in bunker:AllRooms() do
 		if Economy.IsPowerRoom(room.Type) then
 			local amount = 0
-			if room.HP > 0 then
+			if not wrecked(room) then
 				amount = Economy.PowerMade(room.Type, room.Level, room.Span, crewOf(room.Id),
 					if multiplierOf then multiplierOf(room.Type) else 1)
 			end
 			madeBy[room.Id] = amount
 			made += amount
 		end
-		local d = if room.HP > 0 then Economy.Draw(room.Type, room.Level, room.Span) else 0 -- wrecked: none
+		local d = if not wrecked(room) then Economy.Draw(room.Type, room.Level, room.Span) else 0 -- wrecked: none
 		if d > 0 then
 			draw[room.Id] = d
 			table.insert(consumers, { Id = room.Id, Draw = d, Steps = steps[room.Id], Order = Economy.Order(room.Id) })

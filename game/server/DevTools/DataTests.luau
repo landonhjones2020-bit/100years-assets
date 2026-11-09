@@ -28,6 +28,8 @@ local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
 local Combat = require(Shared.Rules.Combat)
 local Threat = require(Shared.Rules.Threat)
+local Disasters = require(Shared.Rules.Disasters)
+local Modifiers = require(Shared.Rules.Modifiers)
 local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
 local Residents = require(Shared.Rules.Residents)
@@ -1608,6 +1610,183 @@ test("Animations: every Mines monster and the Brood Mother have their clips (A4)
 	for _, activity in { "Idle", "Walk", "Attack", "Roar", "LayEggs", "Stagger", "Death" } do
 		expect(have["BroodMother:" .. activity], `the Brood Mother's {activity} clip`)
 	end
+end)
+
+-- Disasters and repairs (Prompt 13) ---------------------------------------------------------
+
+test("Disasters: fire grows, residents and Extinguishers put it out, damage scales (Section 10)", function()
+	local f = Config.Get("Tuning", "Disasters").Fire
+	local grown = Disasters.FireStep(40, 10, 0, 0)
+	expect(math.abs(grown - (40 + f.GrowPerSecond * 10)) < 1e-9, `a fire left alone grows ({grown})`)
+	expectEqual(Disasters.FireStep(99, 10, 0, 0), 100, "up to 100")
+	local fought = Disasters.FireStep(40, 5, 2, 0)
+	expect(math.abs(fought - (40 + (f.GrowPerSecond - 2 * f.ResidentPerSecond) * 5)) < 1e-9, `two residents beat it down ({fought})`)
+	expectEqual(Disasters.FireStep(10, 1, 0, 30), 0, "an Extinguisher puts a small one out")
+	local full = Disasters.FireRoomDamage(100, 1)
+	expectEqual(full, Config.Get("Disasters", "Fire").RoomDamagePerSecond, "a full fire burns RoomDamagePerSecond")
+	expectEqual(Disasters.FireRoomDamage(50, 2), full, "half the strength, twice as long")
+	expect(math.abs(Disasters.FirePlayerDamage(100, 1, 0.25) - f.PlayerDamagePerSecond * 0.25) < 1e-9, "a Firefighter takes a quarter")
+	expectEqual(Disasters.SpreadSeconds(), 15, "it spreads every 15 seconds (Section 10)")
+	expectEqual(Disasters.SpreadSeconds(0.5), 30, "Sprinklers: 50% slower")
+	expect(Disasters.CanSpread(f.SpreadMinStrength) and not Disasters.CanSpread(f.SpreadMinStrength - 1), "a weak fire doesn't spread")
+end)
+
+test("Disasters: fire spreads through doorways to rooms on its floor, never up the Shaft", function()
+	local bunker = Bunker.FromStart()
+	local kitchen = bunker:RoomAt(2, -2) :: any
+	local purifier = bunker:RoomAt(2, -1) :: any
+	local reactor = bunker:RoomAt(2, 1) :: any
+	local medbay = bunker:RoomAt(2, 2) :: any
+	expectEqual(Disasters.SpreadTargets(bunker, kitchen.Id, {}), { purifier.Id }, "the Kitchen's only neighbour")
+	expectEqual(Disasters.SpreadTargets(bunker, purifier.Id, { [kitchen.Id] = true }), {}, "the Kitchen burns already; the Shaft doesn't burn")
+	expectEqual(Disasters.SpreadTargets(bunker, reactor.Id, {}), { medbay.Id }, "the Reactor Core: the Medbay, not the Shaft")
+	expect(not Disasters.Burns("Shaft") and Disasters.Burns("Kitchen") and Disasters.Burns("ReactorCore"), "the Shaft's bare steel")
+end)
+
+test("Disasters: a Surge's disaster is one Surges cause, of its era, within its budget (Section 5)", function()
+	local rng = Random.new(3)
+	local seen: { [string]: boolean } = {}
+	for _ = 1, 200 do
+		local id = Disasters.SurgePick(1, 100, rng)
+		if id then
+			seen[id] = true
+		end
+	end
+	expect(seen.Fire and seen.Blackout, "Era I Surges bring fires and blackouts")
+	for id in seen do
+		expect(id == "Fire" or id == "Blackout", `only Era I Surge disasters ({id})`)
+	end
+	expectEqual(Disasters.SurgePick(1, 5, rng), nil, "nothing under the cheapest's ThreatCost")
+	expectEqual(Disasters.SurgePick(1, 9, rng), "Blackout", "only the blackout fits 9")
+	for _, d in all("Disasters") do
+		local caused = string.find(d.CausedBy, "Surges") ~= nil
+		expect(((d.SurgeWeight or 0) > 0) == caused, `{d.Id}: a Surge weight exactly when Surges cause it`)
+	end
+end)
+
+test("Disasters: the meltdown's three valves (Section 10; Landon, 2026-11-08)", function()
+	local m = Config.Get("Tuning", "Disasters").Meltdown
+	expectEqual(Config.Get("Disasters", "ReactorOverload").TimerSeconds, 60, "a 60-second meltdown")
+	expectEqual({ m.SoloPlayers, m.SoloValveSeconds }, { 2, 10 }, "1 or 2 players: each turned valve stays turned 10 s")
+	local t0 = 1000
+	local solo = { Disasters.ValveTurned(1, t0), Disasters.ValveTurned(1, t0 + 3), Disasters.ValveTurned(1, t0 + 6) }
+	expectEqual(solo[1], t0 + m.SoloValveSeconds, "turned for 10 s")
+	expect(Disasters.MeltdownStopped(solo, t0 + 6.5), "alone: three turned within 10 s stop it")
+	expect(not Disasters.MeltdownStopped({ solo[1], solo[2], Disasters.ValveTurned(1, t0 + 12) }, t0 + 12.5), "the first ran out")
+	expectEqual(Disasters.ValveReleased(solo[1], 1, t0 + 1), solo[1], "letting go alone doesn't close it")
+	expect(Disasters.ValveTurned(2, t0) > t0, "two players: the same rule")
+	local team = { Disasters.ValveTurned(3, t0), Disasters.ValveTurned(3, t0), 0 }
+	expectEqual(team[1], Disasters.HELD, "three or more: a valve counts while it is held")
+	expect(not Disasters.MeltdownStopped(team, t0), "two held, one open")
+	team[3] = Disasters.ValveTurned(3, t0 + 1)
+	expect(Disasters.MeltdownStopped(team, t0 + 1), "all three held at the same time")
+	team[1] = Disasters.ValveReleased(team[1], 3, t0 + 1)
+	expect(Disasters.MeltdownStopped(team, t0 + 1.2) == (m.HeldGraceSeconds > 0.2), "a let-go valve counts a moment (network slack)")
+	expect(not Disasters.MeltdownStopped(team, t0 + 1 + m.HeldGraceSeconds + 0.1), "then it is open again")
+	expectEqual(Disasters.ValveReleased(Disasters.HELD, 2, t0), t0 + m.SoloValveSeconds, "held, then the team shrinks to two: 10 s")
+	expectEqual(Disasters.ValvesOn({ 0, Disasters.HELD, t0 + 5 }, t0), 2, "held and turned valves count")
+end)
+
+test("Disasters: blackouts, cave-ins and repairs (Sections 6 and 10)", function()
+	local bunker = Bunker.FromStart()
+	local floor2 = Disasters.BlackoutUnits(bunker, 2)
+	for unit in floor2 do
+		expectEqual(bunker:CellsOf(unit)[1][1], 2, `{unit} is on floor 2`)
+	end
+	expect(floor2[(bunker:RoomAt(2, 1) :: any).Id] and floor2["D:2,3"], "the floor's rooms and tunnels")
+	local whole = 0
+	for _ in Disasters.BlackoutUnits(bunker, nil) do
+		whole += 1
+	end
+	expectEqual(whole, #bunker:Units(), "the whole grid")
+	expectEqual(Disasters.BlackoutSeconds(), 60, "60 seconds")
+	expectEqual(Disasters.BlackoutSeconds(0.5), 30, "Insulated Grid: half as long")
+	local kitchen = bunker:RoomAt(2, -2) :: any
+	local purifier = bunker:RoomAt(2, -1) :: any
+	expectEqual(Disasters.RubbleEdges(bunker, "Doorway", 2, -2, "Right"), { { kitchen.Id, purifier.Id } }, "the Kitchen's doorway")
+	expectEqual(#Disasters.RubbleEdges(bunker, "Doorway", 2, -2, "Left"), 0, "rock on the left: no doorway")
+	expectEqual(#Disasters.RubbleEdges(bunker, "Tunnel", 2, 3, nil), 1, "the tunnel's one way in (from the Medbay)")
+	expectEqual(#Disasters.RubbleEdges(bunker, "Tunnel", 2, 2, nil), 0, "a room isn't a tunnel")
+	expectEqual(#Disasters.Doorways(bunker), 8, "the starting bunker's eight doorways")
+	local c = Config.Get("Tuning", "Disasters").CaveIn
+	expectEqual(Disasters.RubbleDamage("FireAxe", 30), 30 * c.BreakerMultiplier, "the Fire Axe breaks rubble")
+	expectEqual(Disasters.RubbleDamage("Wrench", 14), 14, "a Wrench just hits it")
+	expect(Disasters.CanDig({ "Wrench", "Drill" }) and Disasters.CanDig({ "Pickaxe" }) and not Disasters.CanDig({ "Wrench", "Welder" }),
+		"a Drill or a Pickaxe digs")
+	local r = Config.Get("Tuning", "Repairs")
+	local perResident = Config.Get("Tuning", "Rooms").ResidentRepairPerSecond
+	expectEqual(Disasters.WelderPerSecond(2), r.WelderPerSecond * 2, "the Engineer welds twice as fast")
+	expectEqual(Disasters.ResidentRepairPerSecond(r.ResidentSmartsBase), perResident, "a resident of average Smarts")
+	expectEqual(Disasters.ResidentRepairPerSecond(r.ResidentSmartsBase * 2), perResident * 2, "Smarts is repair speed (Section 11)")
+end)
+
+test("Bunker: a wrecked room works again once repaired to RepairedAt; HP modifiers (Prompt 13)", function()
+	local bunker = Bunker.FromStart()
+	local kitchen = bunker:RoomAt(2, -2) :: any
+	expect(kitchen.Wrecked == false, "a new room works")
+	bunker:SetHP(kitchen.Id, 0)
+	expect(Bunker.IsWrecked(kitchen), "0 HP: wrecked")
+	local at = Bunker.RepairedAt(kitchen.MaxHP)
+	expectEqual(at, math.ceil(kitchen.MaxHP * Config.Get("Tuning", "Repairs").RepairedAt), "it works again at RepairedAt")
+	bunker:SetHP(kitchen.Id, at - 1)
+	expect(kitchen.Wrecked, "still wrecked just short of it")
+	local balance = Economy.Balance(bunker, function(): any
+		return nil
+	end)
+	expect(balance.Draw[kitchen.Id] == nil, "a wrecked room draws nothing while it is repaired")
+	bunker:SetHP(kitchen.Id, at)
+	expect(not kitchen.Wrecked, "repaired")
+	bunker:SetHP(kitchen.Id, 1)
+	expect(not kitchen.Wrecked, "damage short of 0 doesn't wreck it")
+	local blast = bunker:RoomsOfType("BlastDoor")[1] :: any
+	local before = blast.MaxHP
+	bunker:SetHPScale("BlastDoor", 1.2)
+	expectEqual(blast.MaxHP, math.floor(before * 1.2 + 0.5), "BlastDoorHealth +20%")
+	bunker:SetHPScale("All", 1.25)
+	expectEqual(blast.MaxHP, math.floor(Bunker.MaxHP(1, 2) * 1.25 * 1.2 + 0.5), "Reinforced Walls on top")
+	expectEqual(bunker:MaxHPOf("Kitchen", 1, 1), math.floor(Bunker.MaxHP(1, 1) * 1.25 + 0.5), "new rooms get it too")
+	local copy = Bunker.FromSnapshot({ ["2,-2"] = { Room = "R9" } }, { R9 = { Type = "Kitchen", Floor = 2, Column = -2, Span = 1,
+		Level = 1, HP = 40, MaxHP = 500, Wrecked = true } })
+	expect(Bunker.IsWrecked(copy:Room("R9")), "the client's copy knows a room is wrecked")
+end)
+
+test("Modifiers: class passives fold by unit (Prompt 13)", function()
+	expectEqual(Modifiers.ClassValue("Firefighter", "ExtinguishSpeed"), 3, "the Firefighter puts out fires 3x faster")
+	expectEqual(Modifiers.ClassValue("Firefighter", "FireFloodDamageTaken"), 0.25, "and takes a quarter of the damage")
+	expectEqual(Modifiers.ClassValue("Engineer", "RepairSpeed"), 2, "the Engineer repairs twice as fast")
+	expectEqual(Modifiers.ClassValue("Survivor", "RepairSpeed"), 1, "no modifier: 1")
+	expectEqual(Modifiers.ClassValue("Firefighter", "FireSpread", 2), 0.5, "the Firefighter's level 2")
+	expectEqual(Modifiers.ClassValue("Firefighter", "FireSpread", 1), 1, "not at level 1")
+	expectEqual(Modifiers.ClassValue("Nobody", "RepairSpeed"), 1, "an unknown class")
+end)
+
+test("Disasters: rubble blocks passages; routes go round, or say Blocked (Run)", function()
+	local lib = game:GetService("ServerScriptService"):FindFirstChild("Lib")
+	local hazardsModule = lib and lib:FindFirstChild("Hazards")
+	local pathModule = lib and lib:FindFirstChild("PathGraph")
+	if not (hazardsModule and pathModule) then
+		return -- the Lobby has no bunker
+	end
+	local Hazards = require(hazardsModule) :: any
+	local PathGraph = require(pathModule) :: any
+	local bunker = Bunker.FromStart()
+	local kitchen = bunker:RoomAt(2, -2) :: any
+	local purifier = bunker:RoomAt(2, -1) :: any
+	local medbay = bunker:RoomAt(2, 2) :: any
+	local ok, err = pcall(function()
+		expect(PathGraph.Route(bunker, kitchen.Id, medbay.Id) ~= nil, "a way from the Kitchen to the Medbay")
+		Hazards.Block(kitchen.Id, purifier.Id, "DataTest")
+		expect(Hazards.Blocked(purifier.Id, kitchen.Id), "blocked both ways")
+		expectEqual(PathGraph.Route(bunker, kitchen.Id, medbay.Id), nil, "the Kitchen's one doorway is blocked")
+		expect(PathGraph.Blocked(bunker, kitchen.Id, medbay.Id), "rubble is the reason: a resident there is trapped")
+		expect(PathGraph.Route(bunker, kitchen.Id, medbay.Id, true) ~= nil, "without the rubble there is a way")
+		expect(PathGraph.Route(bunker, purifier.Id, medbay.Id) ~= nil, "the other side still gets about")
+	end)
+	Hazards.Unblock("DataTest")
+	if not ok then
+		error(err, 0)
+	end
+	expect(not Hazards.Blocked(kitchen.Id, purifier.Id), "cleared")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

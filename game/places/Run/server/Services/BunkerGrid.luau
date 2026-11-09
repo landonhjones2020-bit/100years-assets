@@ -9,7 +9,12 @@
 	starts it from Tuning.StartingBunker, builds the world from it (Lib.BunkerKit, graybox
 	until the A1 art) and replicates it:
 	* Cells collection: "floor,column" -> { Room = id } for every open cell ({} when Dug);
-	* Rooms collection: id -> { Type, Floor, Column, Span, Level, HP, MaxHP }.
+	* Rooms collection: id -> { Type, Floor, Column, Span, Level, HP, MaxHP, Wrecked }.
+
+	HP (Prompt 13): SetHP is how damage and repairs land. A room at 0 HP is Wrecked until it is
+	repaired to Tuning.Repairs.RepairedAt of its maximum (Rules.Bunker); Wrecked and Repaired
+	fire when that changes. SetHPModifier applies the RoomHP (every room) and BlastDoorHealth
+	(the Blast Door) multipliers from draft cards and classes.
 
 	Votes, costs and build time are BuildService's (Prompt 8); dig time, cell rolls and Push
 	Deeper are DigService's (Prompt 14). They call the methods below.
@@ -23,10 +28,13 @@
 		BunkerGrid:MergeRooms(a, b): (string?, string?)
 		BunkerGrid:SetLevel(id, level): (boolean, string?)
 		BunkerGrid:SetHP(id, hp): number?
+		BunkerGrid:SetHPModifier(source, key, value?)  -- RoomHP or BlastDoorHealth; nil clears
 		BunkerGrid:Neighbors(unit), :Graph(), :DeepestFloor()
 		BunkerGrid:RoomModel(id): Model?, :Root(): Folder
 		BunkerGrid.Changed: Signal<{ string }>    -- the cell keys whose state changed
 		BunkerGrid.RoomChanged: Signal<string>    -- a room was added, changed or removed
+	BunkerGrid.Wrecked: Signal<string>        -- a room's HP reached 0 (Prompt 13: the Reactor Core melts down)
+	BunkerGrid.Repaired: Signal<string>       -- a wrecked room works again
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -46,7 +54,12 @@ local BunkerGrid = {
 	Dependencies = { "ReplicationService", "DevService" },
 	Changed = Signal.new() :: Signal.Signal<{ string }>,
 	RoomChanged = Signal.new() :: Signal.Signal<string>,
+	Wrecked = Signal.new() :: Signal.Signal<string>,
+	Repaired = Signal.new() :: Signal.Signal<string>,
 }
+
+-- Which room types an HP modifier key scales (Config.Modifiers, Prompt 13).
+local HP_KEYS: { [string]: string } = { RoomHP = "All", BlastDoorHealth = "BlastDoor" }
 
 local CODES: { [string]: string } = {
 	BlastDoor = "BLD", Shaft = "SHF", ReactorCore = "RCT", Generator = "GEN", Kitchen = "KIT",
@@ -60,6 +73,7 @@ local bunker: Bunker.Bunker = Bunker.new()
 local root: Folder? = nil
 local cellsCollection: any = nil
 local roomsCollection: any = nil
+local hpModifiers: { [string]: { [string]: number } } = {} -- key -> source -> multiplier
 
 -- Replication and the world ---------------------------------------------------------------
 
@@ -74,6 +88,7 @@ local function publishRoom(id: string)
 			Level = room.Level,
 			HP = room.HP,
 			MaxHP = room.MaxHP,
+			Wrecked = room.Wrecked,
 		})
 	elseif roomsCollection:Get(id) ~= nil then
 		roomsCollection:Remove(id)
@@ -243,12 +258,41 @@ function BunkerGrid:SetLevel(id: string, level: number): (boolean, string?)
 end
 
 function BunkerGrid:SetHP(id: string, hp: number): number?
+	local room = bunker:Room(id)
+	if not room then
+		return nil
+	end
+	local before, wasWrecked = room.HP, room.Wrecked
 	local result = bunker:SetHP(id, hp)
-	if result then
-		roomsCollection:Patch(id, { HP = result })
+	if result and (result ~= before or room.Wrecked ~= wasWrecked) then
+		roomsCollection:Patch(id, { HP = result, Wrecked = room.Wrecked })
 		BunkerGrid.RoomChanged:Fire(id)
+		if room.Wrecked and not wasWrecked then
+			log:Info("%s (%s) is wrecked", id, room.Type)
+			BunkerGrid.Wrecked:Fire(id)
+		elseif wasWrecked and not room.Wrecked then
+			log:Info("%s (%s) is repaired", id, room.Type)
+			BunkerGrid.Repaired:Fire(id)
+		end
 	end
 	return result
+end
+
+-- RoomHP (every room) and BlastDoorHealth (the Blast Door) multipliers, by source (a draft card,
+-- a class); nil clears that source's. Every room keeps its share of its HP.
+function BunkerGrid:SetHPModifier(source: string, key: string, value: number?)
+	local target = HP_KEYS[key]
+	assert(target, `BunkerGrid:SetHPModifier: {key} isn't an HP modifier`)
+	hpModifiers[key] = hpModifiers[key] or {}
+	hpModifiers[key][source] = value
+	local product = 1
+	for _, v in hpModifiers[key] do
+		product *= v
+	end
+	bunker:SetHPScale(target, product)
+	for _, room in bunker:AllRooms() do
+		publishRoom(room.Id)
+	end
 end
 
 -- DevTools ----------------------------------------------------------------------------------
@@ -283,7 +327,7 @@ end
 local function roomList(): string
 	local lines = {}
 	for _, room in bunker:AllRooms() do
-		table.insert(lines, `{room.Id} {room.Type} L{room.Level} floor {room.Floor} columns {room.Column}..{room.Column + room.Span - 1} HP {room.HP}/{room.MaxHP}`)
+		table.insert(lines, `{room.Id} {room.Type} L{room.Level} floor {room.Floor} columns {room.Column}..{room.Column + room.Span - 1} HP {room.HP}/{room.MaxHP}{if room.Wrecked then " WRECKED" else ""}`)
 	end
 	return table.concat(lines, "\n")
 end
@@ -361,6 +405,19 @@ local function registerCommands(dev: any)
 		Run = function(_player, args): string?
 			local ok, why = BunkerGrid:SetLevel(tostring(args[1] or ""), tonumber(args[2]) or 0)
 			return if ok then roomList() else `can't set the level: {why}`
+		end,
+	})
+	dev:Register("grid.hp", {
+		Description = "Set a room's HP (0 wrecks it; a wrecked room works again at Tuning.Repairs.RepairedAt).",
+		Usage = "grid.hp <roomId> <hp>",
+		Run = function(_player, args): string?
+			local id, hp = tostring(args[1] or ""), tonumber(args[2])
+			if not hp or not bunker:Room(id) then
+				return "usage: grid.hp <roomId> <hp> (see grid.rooms)"
+			end
+			BunkerGrid:SetHP(id, hp)
+			local room = bunker:Room(id) :: Bunker.Room
+			return `{id} {room.Type}: {room.HP}/{room.MaxHP}{if room.Wrecked then ", WRECKED" else ""}`
 		end,
 	})
 	dev:Register("grid.sockets", {

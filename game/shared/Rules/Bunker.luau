@@ -16,7 +16,11 @@
 	  different levels never merge; Landon, Nov 8, 2026). Fixed rooms (the Blast Door, the
 	  Reactor Core) never merge, move or go. The merged room keeps both rooms' HP.
 	* HP is per cell (Landon, Nov 8, 2026): a room's maximum is Tuning.Rooms.HP for its level
-	  times its cells, so a 3-cell room at level 1 has 1,500.
+	  times its cells, so a 3-cell room at level 1 has 1,500. RoomHP and BlastDoorHealth
+	  modifiers scale it (SetHPScale; Prompt 13).
+	* Wrecked (Section 6: at 0 HP a room is wrecked and stops until repaired): a room is
+	  Wrecked from the moment its HP reaches 0 until repairs bring it back to Tuning.Repairs
+	  .RepairedAt of its maximum (Prompt 13). Wrecked rooms make nothing and draw nothing.
 	* SetLevel: 1 to 3; HP keeps its share of the new maximum.
 	* The room graph: a node per room ("R3") and per Dug cell ("D:2,3"), with an edge between
 	  side-by-side open cells of different units (a doorway) and between stacked Shafts. A dug
@@ -40,12 +44,14 @@ export type Room = {
 	Level: number,
 	HP: number,
 	MaxHP: number,
+	Wrecked: boolean, -- from 0 HP until repaired to RepairedAt of MaxHP (Prompt 13)
 }
 
 type Data = {
 	Cells: { [string]: string },
 	Rooms: { [string]: Room },
 	NextId: number,
+	HPScale: { [string]: number }, -- "All" or a room type -> HP multiplier (RoomHP, BlastDoorHealth)
 }
 
 local Bunker = {}
@@ -62,12 +68,19 @@ end
 
 Bunker.MaxHP = maxHP
 
+-- HP a wrecked room needs before it works again.
+local function repairedAt(maxHPValue: number): number
+	return math.ceil(maxHPValue * Config.Get("Tuning", "Repairs").RepairedAt)
+end
+
+Bunker.RepairedAt = repairedAt
+
 local function idNumber(id: string): number
 	return tonumber(string.sub(id, 2)) or 0
 end
 
 function Bunker.new(): Bunker
-	return setmetatable({ Cells = {}, Rooms = {}, NextId = 1 } :: Data, Bunker)
+	return setmetatable({ Cells = {}, Rooms = {}, NextId = 1, HPScale = {} } :: Data, Bunker)
 end
 
 -- The starting bunker (Tuning.StartingBunker), built by the same rules.
@@ -109,6 +122,7 @@ function Bunker.FromSnapshot(cells: { [string]: any }, rooms: { [string]: any })
 			Level = room.Level,
 			HP = room.HP,
 			MaxHP = room.MaxHP,
+			Wrecked = if room.Wrecked ~= nil then room.Wrecked == true else room.HP <= 0,
 		}
 		bunker.NextId = math.max(bunker.NextId, idNumber(id) + 1)
 	end
@@ -177,6 +191,30 @@ function Bunker.DeepestFloor(self: Bunker): number
 end
 
 -- Rooms ---------------------------------------------------------------------------------
+
+-- A room's maximum HP here: per cell by level, times this bunker's RoomHP scale and its type's.
+function Bunker.MaxHPOf(self: Bunker, roomType: string, level: number, span: number): number
+	local scale = (self.HPScale.All or 1) * (self.HPScale[roomType] or 1)
+	return math.floor(maxHP(level, span) * scale + 0.5)
+end
+
+-- Sets an HP multiplier ("All" rooms, or one room type) and rescales every room it touches,
+-- each keeping its share of its maximum (RoomHP: Reinforced Walls; BlastDoorHealth).
+function Bunker.SetHPScale(self: Bunker, key: string, value: number)
+	self.HPScale[key] = if value == 1 then nil else value
+	for _, room in self.Rooms do
+		local newMax = self:MaxHPOf(room.Type, room.Level, room.Span)
+		if newMax ~= room.MaxHP then
+			room.HP = math.floor(room.HP / math.max(room.MaxHP, 1) * newMax + 0.5)
+			room.MaxHP = newMax
+		end
+	end
+end
+
+-- Is the room wrecked? (Section 6: it stops until repaired.)
+function Bunker.IsWrecked(room: Room?): boolean
+	return room ~= nil and room.Wrecked == true
+end
 
 -- The live record: read it, never edit it (use the methods).
 function Bunker.Room(self: Bunker, id: string): Room?
@@ -251,7 +289,7 @@ function Bunker.Place(self: Bunker, roomType: string, floor: number, column: num
 	end
 	local id = `R{self.NextId}`
 	self.NextId += 1
-	local hp = maxHP(startLevel, span)
+	local hp = self:MaxHPOf(roomType, startLevel, span)
 	self.Rooms[id] = {
 		Id = id,
 		Type = roomType,
@@ -261,6 +299,7 @@ function Bunker.Place(self: Bunker, roomType: string, floor: number, column: num
 		Level = startLevel,
 		HP = hp,
 		MaxHP = hp,
+		Wrecked = false,
 	}
 	for offset = 0, span - 1 do
 		self.Cells[Grid.Key(floor, column + offset)] = id
@@ -331,7 +370,9 @@ function Bunker.Merge(self: Bunker, a: string, b: string): (string?, string?)
 	end
 	left.Span += right.Span
 	left.HP += right.HP -- HP is per cell: each part keeps what it had
-	left.MaxHP = maxHP(left.Level, left.Span)
+	left.MaxHP = self:MaxHPOf(left.Type, left.Level, left.Span)
+	left.HP = math.min(left.HP, left.MaxHP)
+	left.Wrecked = (left.Wrecked or right.Wrecked) and left.HP < repairedAt(left.MaxHP)
 	self.Rooms[right.Id] = nil
 	return left.Id, nil
 end
@@ -343,20 +384,29 @@ function Bunker.SetLevel(self: Bunker, id: string, level: number): (boolean, str
 	elseif level ~= 1 and level ~= 2 and level ~= 3 then
 		return false, "levels go from 1 to 3"
 	end
-	local newMax = maxHP(level, room.Span)
+	local newMax = self:MaxHPOf(room.Type, level, room.Span)
 	room.HP = math.floor(room.HP / room.MaxHP * newMax + 0.5)
 	room.MaxHP = newMax
 	room.Level = level
+	if room.Wrecked and room.HP >= repairedAt(room.MaxHP) then
+		room.Wrecked = false
+	end
 	return true, nil
 end
 
--- Sets a room's HP (0 is Wrecked). Returns the HP it now has.
+-- Sets a room's HP. At 0 it is Wrecked; a wrecked room works again once repairs bring it back
+-- to RepairedAt of its maximum (Prompt 13). Returns the HP it now has.
 function Bunker.SetHP(self: Bunker, id: string, hp: number): number?
 	local room = self.Rooms[id]
 	if not room then
 		return nil
 	end
 	room.HP = math.clamp(math.floor(hp + 0.5), 0, room.MaxHP)
+	if room.HP <= 0 then
+		room.Wrecked = true
+	elseif room.Wrecked and room.HP >= repairedAt(room.MaxHP) then
+		room.Wrecked = false
+	end
 	return room.HP
 end
 

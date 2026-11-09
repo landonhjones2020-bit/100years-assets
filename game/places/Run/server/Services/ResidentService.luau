@@ -20,14 +20,17 @@
 	* At 0 health a resident is down for DeathReviveSeconds: a player can revive them with a
 	  Medkit from the stockpile (ReviveResident). Then they are gone for the run. When the last
 	  one is gone, the run is lost (RunDirector, "ResidentsLost").
+	* Trapped (Prompt 13): cave-in rubble cuts a resident off from where they need to be
+	  (ResidentBrain says so). A trapped resident isn't in their room's crew until they are free.
 	* Replication: the Residents collection, id -> { Name, First, Last, Age, Tier, Level, XP,
-	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, DownUntil }.
+	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, Trapped, DownUntil }.
 
 	API:
 		ResidentService:All(): { Resident }, :Get(id), :Workers(roomId)
 		ResidentService:Assign(id, roomId?): (boolean, string?)
 		ResidentService:AutoAssign(): number          -- residents given a job
 		ResidentService:Hurt(id, amount, how), :Revive(id, player?): (boolean, string?)
+		ResidentService:SetTrapped(id, on)              -- ResidentBrain (Prompt 13)
 		ResidentService:Add(tier?, level?): string    -- a new resident (recruits, rescues; DevTools)
 		ResidentService.Changed: Signal<string>         -- a resident's data changed
 		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
@@ -118,6 +121,7 @@ local function publish(resident: Resident)
 		Mood = mood,
 		State = resident.State,
 		Hungry = resident.Hungry,
+		Trapped = resident.Trapped == true,
 		DownUntil = downUntil[resident.Id],
 		Log = table.clone(resident.Log),
 	})
@@ -315,6 +319,20 @@ function ResidentService:Hurt(id: string, amount: number, how: string)
 	end
 end
 
+-- Cave-in rubble cuts a resident off (ResidentBrain): out of their crew until they are free.
+function ResidentService:SetTrapped(id: string, on: boolean)
+	local resident = residents[id]
+	if not resident or (resident.Trapped == true) == on then
+		return
+	end
+	resident.Trapped = on
+	if on then
+		logLine(resident, "trapped by a cave-in")
+	end
+	publish(resident)
+	economy:RefreshCrew()
+end
+
 function ResidentService:Revive(id: string, player: Player?): (boolean, string?)
 	local resident = residents[id]
 	if not resident or resident.State ~= "Down" then
@@ -359,7 +377,7 @@ end
 
 local function medbayHeals(): boolean
 	for _, room in grid:RoomsOfType("Medbay") do
-		if room.HP > 0 and not power:IsDark(room.Id) and economy:Crew(room.Id) then
+		if not room.Wrecked and not power:IsDark(room.Id) and economy:Crew(room.Id) then
 			return true
 		end
 	end
@@ -589,7 +607,7 @@ function ResidentService:Start()
 			end
 			local workers = {}
 			for _, resident in residents do
-				if resident.Job == roomId then
+				if resident.Job == roomId and not resident.Trapped then
 					table.insert(workers, resident)
 				end
 			end

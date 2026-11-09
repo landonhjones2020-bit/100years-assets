@@ -51,9 +51,18 @@
 	  sprays foam (Foamed fires for Prompt 13's fires) and a Shock Mine arms and stuns the
 	  monsters that come near it.
 
+	Tools (Prompt 13): with the tool slot (3) held, holding Fire uses the tool (UseTool on and
+	off; the client faces where the camera looks). While a tool is in use, ToolTick fires
+	ToolTickSeconds apart with the player's root CFrame: DisasterService sprays fires with the
+	Extinguisher, BuildService repairs with the Welder. Changing slots, swinging or going down
+	stops it. ToolInUse (the item id) shows the use to every client (spray, sparks).
+	Swung fires when a melee swing lands (after its windup), for what else a swing can hit
+	(DisasterService: cave-in rubble).
+
 	Attributes on the Player (all replicate): Class, Slot, Item1 to Item5, Mag1 and Mag2,
 	Count4 and Count5, MeleeItem, CarriedAmmo, Medkits, HealEndsAt, Stamina, ReloadEndsAt,
-	ShotSalt, ShotNext, SwingEndsAt.
+	ShotSalt, ShotNext, SwingEndsAt, ToolInUse.
+	API: Loadout(player), Items(player): { string }, Carries(player, itemId): boolean.
 	Dev: class, give, ammo, medkits, loadout, stamina.
 ]]
 
@@ -102,6 +111,7 @@ type Loadout = {
 	HealEndsAt: number,
 	HealToken: number,
 	LastThrowAt: number,
+	ToolOn: string?, -- the tool in use (Prompt 13)
 }
 
 local WeaponService = {
@@ -109,6 +119,11 @@ local WeaponService = {
 	Dependencies = { "CombatService", "EconomyService", "BunkerGrid", "SessionService", "DevService" },
 	-- A Foam Grenade burst: position, radius, the thrower (Prompt 13's fires listen).
 	Foamed = Signal.new() :: Signal.Signal<Vector3, number, Player>,
+	-- A tool in use (Prompt 13): the player, the tool, their root CFrame, the seconds since the last tick.
+	ToolTick = Signal.new() :: Signal.Signal<Player, string, CFrame, number>,
+	-- A melee swing landing: the player, where they stood facing, its reach, its arc in degrees,
+	-- its damage, the weapon, heavy or not (Prompt 13: rubble).
+	Swung = Signal.new() :: Signal.Signal<Player, CFrame, number, number, number, string, boolean>,
 }
 
 local combat: any = nil
@@ -229,7 +244,9 @@ local function newLoadout(player: Player, classId: string, carried: number?): Lo
 		HealEndsAt = 0,
 		HealToken = 0,
 		LastThrowAt = -math.huge,
+		ToolOn = nil,
 	}
+	player:SetAttribute("ToolInUse", nil)
 	state.Selected = firstSlot(state)
 	loadouts[player] = state
 	player:SetAttribute("Stamina", state.Stamina)
@@ -769,11 +786,80 @@ local function cancelReload(player: Player, state: Loadout)
 	end
 end
 
+-- Tools (Prompt 13) -------------------------------------------------------------------------------
+
+local function stopTool(player: Player, state: Loadout)
+	if state.ToolOn then
+		state.ToolOn = nil
+		player:SetAttribute("ToolInUse", nil)
+	end
+end
+
+local function onUseTool(player: Player, on: boolean)
+	local state = loadouts[player]
+	if not state then
+		return
+	end
+	if not on then
+		stopTool(player, state)
+		return
+	end
+	local held = state.Slots[state.Selected]
+	local item = held and Config.Find("Items", held.Item)
+	if not held or not item or item.Kind ~= "Tool" or not alive(player) or now() < state.SwingEndsAt then
+		return
+	end
+	state.ToolOn = held.Item
+	player:SetAttribute("ToolInUse", held.Item)
+end
+
+local function toolLoop()
+	local last = os.clock()
+	while true do
+		task.wait(Config.Get("Tuning", "Repairs").ToolTickSeconds)
+		local dt = math.min(os.clock() - last, 0.5)
+		last = os.clock()
+		for player, state in loadouts do
+			local tool = state.ToolOn
+			if tool then
+				local c = combat:PlayerCombatant(player)
+				local held = state.Slots[state.Selected]
+				if not c or not alive(player) or not held or held.Item ~= tool then
+					stopTool(player, state)
+				else
+					WeaponService.ToolTick:Fire(player, tool, c.Root.CFrame, dt)
+				end
+			end
+		end
+	end
+end
+
+-- Everything a player carries: hotbar items and the melee weapon.
+function WeaponService:Items(player: Player): { string }
+	local state = loadouts[player]
+	local list = {}
+	if state then
+		for i = 1, SLOTS do
+			local held = state.Slots[i]
+			if held then
+				table.insert(list, held.Item)
+			end
+		end
+		table.insert(list, state.Melee.Item)
+	end
+	return list
+end
+
+function WeaponService:Carries(player: Player, itemId: string): boolean
+	return table.find(WeaponService:Items(player), itemId) ~= nil
+end
+
 local function onSelect(player: Player, slot: number)
 	local state = loadouts[player]
 	if not state or state.Selected == slot then
 		return
 	end
+	stopTool(player, state)
 	cancelReload(player, state)
 	state.Selected = slot
 	player:SetAttribute("Slot", slot)
@@ -804,6 +890,7 @@ local function onSwing(player: Player, heavy: boolean, facing: Vector3)
 	state.SwingEndsAt = clock + length
 	player:SetAttribute("SwingEndsAt", state.SwingEndsAt)
 	cancelReload(player, state)
+	stopTool(player, state)
 	refreshHeld(player, state)
 
 	local t = Combat.Tuning()
@@ -838,6 +925,7 @@ local function onSwing(player: Player, heavy: boolean, facing: Vector3)
 				end
 			end
 		end
+		WeaponService.Swung:Fire(player, at, t.MeleeReach + t.MeleeReachTolerance, t.MeleeArcDegrees, damage, item, heavy)
 	end)
 	task.delay(length, function()
 		if loadouts[player] == state and now() >= state.SwingEndsAt - 0.01 then
@@ -1200,6 +1288,7 @@ function WeaponService:Start()
 			state.Sprinting = false
 			cancelReload(player, state)
 			cancelHeal(player, state)
+			stopTool(player, state)
 			task.defer(function()
 				if player.Character then
 					player.Character:WaitForChild("RightHand", 10)
@@ -1228,6 +1317,7 @@ function WeaponService:Start()
 	Remotes.OnServer("Sprint", onSprint)
 	Remotes.OnServer("ThrowItem", onThrow)
 	Remotes.OnServer("UseMedkit", onMedkit)
+	Remotes.OnServer("UseTool", onUseTool)
 
 	combat.Downed:Connect(function(id: string)
 		local c = combat:Get(id)
@@ -1237,6 +1327,7 @@ function WeaponService:Start()
 			state.Sprinting = false
 			cancelReload(player, state)
 			cancelHeal(player, state)
+			stopTool(player, state)
 		end
 	end)
 
@@ -1245,6 +1336,7 @@ function WeaponService:Start()
 	end)
 	syncRestockPoints()
 	task.spawn(staminaLoop)
+	task.spawn(toolLoop)
 	log:Info("weapons ready: the Survivor's kit by default, carried ammo %d", Combat.Tuning().CarriedAmmo.Start)
 end
 

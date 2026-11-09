@@ -44,6 +44,7 @@ export type Resident = {
 	Morale: number, -- 0 to 100
 	State: State,
 	Hungry: boolean, -- missed the last meal
+	Trapped: boolean?, -- cave-in rubble cuts them off from where they need to be (Prompt 13)
 	Log: { string }, -- the run log (Section 11)
 }
 export type Crew = { Workers: number, StatSum: number, Morale: number, Multiplier: number? }

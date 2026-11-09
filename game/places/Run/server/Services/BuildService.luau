@@ -25,16 +25,27 @@
 	  1), Helpers, Seconds }. In the world they stand in workspace.Bunker.Sites (BunkerKit.Site).
 	* Rooms won from blueprint drafts and cryo pods: Unlock(roomType) (Prompts 17 and 19). They
 	  replicate in the Unlocked collection (room type -> true) for the Command View's menu.
-	Repairs come with Prompt 13.
+	* Repairs (Prompt 13; Section 6: at 0 HP a room is wrecked and stops until repaired with the
+	  Welder; residents slowly repair the room they work in; Section 11: Smarts is repair speed):
+	  * the Welder: a player using it (WeaponService.ToolTick) repairs the first damaged room in
+	    front of them within WelderReach, WelderPerSecond (RepairSpeed: the Engineer twice as
+	    fast). Their Welding attribute names the room (or "" when nothing there needs it);
+	  * residents at work in their own room (body there, Activity Work) repair it
+	    ResidentRepairPerSecond times Smarts over ResidentSmartsBase, every second;
+	  * a wrecked room works again at Tuning.Repairs.RepairedAt of its HP (Rules.Bunker).
+	  The team hears when a room is wrecked (not the Reactor Core: its meltdown says enough) and
+	  when it works again.
 
 	API:
 		BuildService:Propose(player, proposal): (boolean, string?)
 		BuildService:Unlock(roomType), :Unlocked(): { [string]: boolean }
 		BuildService:Reserved(exceptVoteId?): { [string]: boolean }  -- votes' and sites' cells
 		BuildService:FinishSite(id): boolean                           -- DevTools
+		BuildService:Repair(roomId, amount, how, player?): number      -- HP it added (fractions carry)
 		BuildService.Proposed: Signal<Player, string>   -- proposer, action (first-run objective 2)
 		BuildService.Built: Signal<string, string>      -- room id, action (Build, Upgrade, Merge)
 		BuildService.TornDown: Signal<string, string>   -- room id, room type
+		BuildService.Repaired: Signal<string, number, string, Player?> -- room id, HP, "Welder" or "Residents", who
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -42,10 +53,13 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Shared = ReplicatedStorage.Shared
+local Bunker = require(Shared.Rules.Bunker)
 local Config = require(Shared.Config)
 local Construction = require(Shared.Rules.Construction)
+local Disasters = require(Shared.Rules.Disasters)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
+local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
 local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
@@ -55,10 +69,14 @@ local log = Log.new("BuildService")
 
 local BuildService = {
 	Name = "BuildService",
-	Dependencies = { "BunkerGrid", "EconomyService", "VoteService", "SessionService", "RunDirector", "ReplicationService", "DevService" },
+	Dependencies = {
+		"BunkerGrid", "EconomyService", "VoteService", "SessionService", "RunDirector", "ReplicationService",
+		"WeaponService", "CombatService", "ResidentService", "DevService",
+	},
 	Proposed = Signal.new() :: Signal.Signal<Player, string>,
 	Built = Signal.new() :: Signal.Signal<string, string>,
 	TornDown = Signal.new() :: Signal.Signal<string, string>,
+	Repaired = Signal.new() :: Signal.Signal<string, number, string, Player?>,
 }
 
 type Site = {
@@ -88,6 +106,11 @@ local unlockedCollection: any = nil
 local sites: { [string]: Site } = {}
 local siteCount = 0
 local unlocked: { [string]: boolean } = {}
+local weapons: any = nil
+local combat: any = nil
+local residents: any = nil
+local repairCarry: { [string]: number } = {} -- room id -> HP of repair not yet whole
+local repairing: { [string]: { Welders: number, Residents: number } } = {} -- this second's repairs (DevTools)
 
 local function roomName(roomType: string): string
 	return Config.Get("Rooms", roomType).Name
@@ -395,8 +418,112 @@ local function describeSites(): string
 	return if #lines > 0 then table.concat(lines, "\n") else "no construction sites"
 end
 
+-- Repairs (Prompt 13) -----------------------------------------------------------------------------
+
+function BuildService:Repair(roomId: string, amount: number, how: string, player: Player?): number
+	local room = grid:Room(roomId)
+	if not room or room.HP >= room.MaxHP or amount <= 0 then
+		repairCarry[roomId] = nil
+		return 0
+	end
+	local carry = (repairCarry[roomId] or 0) + amount
+	local whole = math.floor(carry)
+	repairCarry[roomId] = carry - whole
+	if whole < 1 then
+		return 0
+	end
+	local before = room.HP
+	local hp = grid:SetHP(roomId, before + whole) or before
+	local done = hp - before
+	if done > 0 then
+		BuildService.Repaired:Fire(roomId, done, how, player)
+	end
+	return done
+end
+
+local function unitAt(position: Vector3): string?
+	local floor, column = Grid.CellAt(position)
+	if not floor or not column then
+		return nil
+	end
+	return grid:Bunker():UnitAt(floor, column)
+end
+
+-- The room a Welder points at: the first damaged room along the player's facing within
+-- WelderReach (their own room first), else the first room there (to say it needs nothing).
+local function weldTarget(at: CFrame): (string?, boolean)
+	local reach = Disasters.Repairs().WelderReach
+	local first: string? = nil
+	for _, d in { 0, 3, 6, reach } do
+		local unit = unitAt(at.Position + at.LookVector * d)
+		local room = if unit then grid:Room(unit) else nil
+		if room then
+			first = first or room.Id
+			if room.HP < room.MaxHP then
+				return room.Id, true
+			end
+		end
+	end
+	return first, false
+end
+
+local function onToolTick(player: Player, tool: string, at: CFrame, dt: number)
+	if tool ~= "Welder" then
+		return
+	end
+	local roomId, needs = weldTarget(at)
+	player:SetAttribute("Welding", if roomId and needs then roomId else "")
+	if roomId and needs then
+		local speed = Modifiers.ClassValue(player:GetAttribute("Class") :: string?, "RepairSpeed") or 1
+		BuildService:Repair(roomId, Disasters.WelderPerSecond(speed) * dt, "Welder", player)
+		local entry = repairing[roomId] or { Welders = 0, Residents = 0 }
+		entry.Welders += 1
+		repairing[roomId] = entry
+	end
+end
+
+-- Residents repair the room they work in while they are at work in it (Section 6).
+local function residentRepairs(dt: number)
+	local rates: { [string]: number } = {}
+	local counts: { [string]: number } = {}
+	for _, c in combat:All("Survivors") do
+		if c.Kind == "Resident" and c.State == "Alive" and c.ResidentId and c.Model:GetAttribute("Activity") == "Work" then
+			local resident = residents:Get(c.ResidentId)
+			if resident and resident.State == "Alive" and resident.Job and unitAt(c.Root.Position) == resident.Job then
+				rates[resident.Job] = (rates[resident.Job] or 0) + Disasters.ResidentRepairPerSecond(resident.Stats.Smarts or 0)
+				counts[resident.Job] = (counts[resident.Job] or 0) + 1
+			end
+		end
+	end
+	for roomId, rate in rates do
+		local room = grid:Room(roomId)
+		if room and room.HP < room.MaxHP then
+			BuildService:Repair(roomId, rate * dt, "Residents")
+			local entry = repairing[roomId] or { Welders = 0, Residents = 0 }
+			entry.Residents = counts[roomId]
+			repairing[roomId] = entry
+		end
+	end
+end
+
+local function describeRepairs(): string
+	local lines = {}
+	for _, room in grid:Rooms() do
+		if room.HP < room.MaxHP or room.Wrecked then
+			local entry = repairing[room.Id]
+			table.insert(lines, string.format("%s %s: %d/%d HP%s; works again at %d%s", room.Id, room.Type, room.HP, room.MaxHP,
+				if room.Wrecked then " WRECKED" else "", Bunker.RepairedAt(room.MaxHP),
+				if entry then `; last second {entry.Welders} welder ticks, {entry.Residents} residents` else ""))
+		end
+	end
+	return if #lines > 0 then table.concat(lines, "\n") else "every room is at full HP"
+end
+
 function BuildService:Init(registry)
 	grid = registry.BunkerGrid
+	weapons = registry.WeaponService
+	combat = registry.CombatService
+	residents = registry.ResidentService
 	economy = registry.EconomyService
 	votes = registry.VoteService
 	session = registry.SessionService
@@ -464,6 +591,26 @@ function BuildService:Init(registry)
 			return `finished {done} site(s)\n{describeSites()}`
 		end,
 	})
+	dev:Register("repairs", {
+		Description = "Damaged and wrecked rooms, and who is repairing them (Prompt 13).",
+		Usage = "repairs",
+		Run = function(): string?
+			return describeRepairs()
+		end,
+	})
+	dev:Register("repair", {
+		Description = "Repair a room by an amount of HP (or fully), as a Welder would.",
+		Usage = "repair <roomId> [hp]",
+		Run = function(_player: Player, args): string?
+			local id = tostring(args[1] or "")
+			local room = grid:Room(id)
+			if not room then
+				return "usage: repair <roomId> [hp] (see grid.rooms)"
+			end
+			BuildService:Repair(id, tonumber(args[2]) or (room.MaxHP - room.HP), "Welder", nil)
+			return describeRepairs()
+		end,
+	})
 	dev:Register("unlock", {
 		Description = "Unlock a room type as if a blueprint draft had won it.",
 		Usage = "unlock <roomType>",
@@ -479,12 +626,38 @@ function BuildService:Init(registry)
 end
 
 function BuildService:Start()
-	local acc = 0
+	local acc, repairAcc = 0, 0
 	RunService.Heartbeat:Connect(function(dt: number)
 		acc += dt
 		if acc >= 0.25 then
 			tick(acc)
 			acc = 0
+		end
+		repairAcc += dt
+		if repairAcc >= 1 then
+			table.clear(repairing)
+			if director:Phase() == "Playing" then
+				local ok, err = pcall(residentRepairs, repairAcc)
+				if not ok then
+					log:Warn("resident repairs: %s", tostring(err))
+				end
+			end
+			repairAcc = 0
+		end
+	end)
+	weapons.ToolTick:Connect(onToolTick)
+	-- the team hears when a room is wrecked and when it works again (Prompt 13)
+	grid.Wrecked:Connect(function(roomId: string)
+		local room = grid:Room(roomId)
+		if room and room.Type ~= "ReactorCore" then
+			Remotes.FireClients("Alert", session:ReadyPlayers(), "Danger",
+				`THE {string.upper(roomName(room.Type))} IS WRECKED: REPAIR IT WITH A WELDER`)
+		end
+	end)
+	grid.Repaired:Connect(function(roomId: string)
+		local room = grid:Room(roomId)
+		if room then
+			announce(`THE {string.upper(roomName(room.Type))} IS REPAIRED AND WORKING AGAIN`)
 		end
 	end)
 end

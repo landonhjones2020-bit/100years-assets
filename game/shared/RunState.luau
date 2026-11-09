@@ -19,6 +19,8 @@
 	Water, Scrap, Iron, Copper, Crystal, Medkits, Ammo), plus Research.
 	Power (PowerService): PowerMade, PowerUsed, PowerNeeded and DarkRooms.
 	Threat (ThreatDirector): Threat and Monsters.
+	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt
+	and ValvesTurned.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -29,6 +31,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
+	| "DisasterService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -43,7 +46,7 @@ local FIELDS: { [string]: Field } = {
 	IntroEndsAt = { Type = "number", By = "RunDirector", Doc = "server time the intro ends and the run clock starts (Intro only)" },
 	Difficulty = { Type = "string", By = "RunDirector", Doc = "Normal, Hard or Nightmare (Config.Difficulties)" },
 	Outcome = { Type = "string", By = "RunDirector", Values = { "CenturyVictory", "DeepVictory", "Defeat" }, Doc = "how the run ended (Ended only)" },
-	DefeatReason = { Type = "string", By = "RunDirector", Values = { "ReactorDestroyed", "ResidentsLost" }, Doc = "why the bunker fell (Defeat only)" },
+	DefeatReason = { Type = "string", By = "RunDirector", Values = { "ReactorDestroyed", "ResidentsLost" }, Doc = "why the bunker fell (Defeat only): the Reactor Core melted down, or the last resident died" },
 	Victory = { Type = "string", By = "RunDirector", Values = { "Century", "Deep" }, Doc = "the victory this run won; kept through Endless" },
 	Endless = { Type = "boolean", By = "RunDirector", Doc = "Keep Going passed: the run carries on past Year 100 with stronger Surges" },
 
@@ -80,6 +83,14 @@ local FIELDS: { [string]: Field } = {
 	-- ThreatDirector (Prompt 12): the danger now
 	Threat = { Type = "number", By = "ThreatDirector", Doc = "the threat level (Section 10), rounded" },
 	Monsters = { Type = "number", By = "ThreatDirector", Doc = "monsters on the map plus those queued at the cap" },
+
+	-- DisasterService (Prompt 13): disasters now (the details are the Disasters collection)
+	Fires = { Type = "number", By = "DisasterService", Doc = "rooms on fire" },
+	BlackoutRooms = { Type = "number", By = "DisasterService", Doc = "rooms and tunnels dark in a blackout (0: none)" },
+	Rubble = { Type = "number", By = "DisasterService", Doc = "piles of rubble blocking the way" },
+	Meltdown = { Type = "boolean", By = "DisasterService", Doc = "the Reactor Core is melting down (Section 10)" },
+	MeltdownEndsAt = { Type = "number", By = "DisasterService", Doc = "server time the meltdown loses the run (Meltdown only)" },
+	ValvesTurned = { Type = "number", By = "DisasterService", Doc = "the meltdown valves turned now, 0 to 3 (Meltdown only)" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

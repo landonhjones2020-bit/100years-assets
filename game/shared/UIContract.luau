@@ -177,6 +177,17 @@ local UIContract: { [string]: Screen } = {
 			"Templates.Prompt.Plate.Gauge.Fill",
 			"Templates.DamageNumber.Value",
 			"Templates.HealthBar.Back.Fill",
+			"Meltdown", -- Prompt 13: the meltdown telegram (DisasterController)
+			"Meltdown.Title",
+			"Meltdown.Text",
+			"Meltdown.Valves.Valve1.Lamp",
+			"Meltdown.Valves.Valve2.Lamp",
+			"Meltdown.Valves.Valve3.Lamp",
+			"Meltdown.Count",
+			"Templates.Valve.Plate.Lamp", -- a valve's plate in the world
+			"Templates.Valve.Plate.Label",
+			"Templates.Valve.Plate.State",
+			"Templates.Valve.Plate.Gauge.Fill",
 		},
 	},
 }

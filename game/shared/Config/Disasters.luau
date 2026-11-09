@@ -1,7 +1,10 @@
 --!strict
 --[[
 	Disasters: one comes with every Surge (bible Section 10). Numbers are provisional, for
-	Prompts 13, 23 and 24. BestClass names the class built to stop it.
+	Prompts 13, 23 and 24. BestClass names the class built to stop it. SurgeWeight: how often a
+	Surge picks it as its one disaster (Section 10's "Caused by": only Surges' own disasters have
+	one); a Surge picks among the weighted disasters of its era and before that its budget can
+	pay for (ThreatCost). The rule numbers of each disaster are Tuning.Disasters.
 ]]
 
 local Check = require(script.Parent.Parent.Utilities.Check)
@@ -20,6 +23,7 @@ return {
 		SpreadSeconds = Check.optional(F.Seconds),
 		TimerSeconds = Check.optional(F.Seconds),
 		DurationSeconds = Check.optional(F.Seconds),
+		SurgeWeight = Check.optional(F.NonNegative),
 	}),
 	Order = { "Fire", "Flood", "Blackout", "CaveIn", "GasLeak", "ReactorOverload", "RadiationLeak", "Outbreak", "ElectricalSurge" },
 	Entries = {
@@ -29,7 +33,7 @@ return {
 			Effect = "Spreads to the next room every 15 seconds, burning room HP and residents.",
 			Fix = "Extinguisher, Foam Grenade, residents in the room.",
 			BestClass = "Firefighter",
-			Era = 1, ThreatCost = 10, RoomDamagePerSecond = 6, SpreadSeconds = 15,
+			Era = 1, ThreatCost = 10, RoomDamagePerSecond = 6, SpreadSeconds = 15, SurgeWeight = 1,
 		},
 		Flood = {
 			Name = "Flood",
@@ -45,7 +49,7 @@ return {
 			Effect = "A floor or the whole grid goes dark.",
 			Fix = "Reset the fuse box in the Reactor Core.",
 			BestClass = "Engineer",
-			Era = 1, ThreatCost = 8, DurationSeconds = 60,
+			Era = 1, ThreatCost = 8, DurationSeconds = 60, SurgeWeight = 1,
 		},
 		CaveIn = {
 			Name = "Cave-in",
@@ -65,9 +69,9 @@ return {
 		},
 		ReactorOverload = {
 			Name = "Reactor overload",
-			CausedBy = "A damaged or overclocked Reactor Core",
+			CausedBy = "A Reactor Core at 0 HP, or an overclocked one",
 			Effect = "A 60-second meltdown timer.",
-			Fix = "Three valves turned at the same time, so it takes teamwork.",
+			Fix = "Three valves turned at the same time, so it takes teamwork; with 1 or 2 players each turned valve stays turned for 10 seconds.",
 			BestClass = "Engineer",
 			Era = 1, ThreatCost = 14, TimerSeconds = 60,
 		},

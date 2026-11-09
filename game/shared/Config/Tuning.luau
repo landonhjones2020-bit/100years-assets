@@ -107,6 +107,23 @@ local Schemas: { [string]: Check.Checker } = {
 		MaxMonsters = I, WaveSpacingSeconds = S, SpawnSpacingSeconds = S, TrickleCheckSeconds = S, DarkRoomWeight = N,
 		BarricadeWeight = Fr, MaxBreachPointsPerSurge = I,
 	}),
+	Disasters = shape({
+		TickSeconds = S, SurgeDelaySeconds = S, FuseSeconds = S, ValveSeconds = S,
+		Fire = shape({
+			StartStrength = N, GrowPerSecond = N, SpreadMinStrength = N,
+			ResidentPerSecond = N, ExtinguisherPerSecond = N, ExtinguisherReach = N,
+			PlayerDamagePerSecond = N, ResidentDamagePerSecond = N, ResidentFleeHealth = Fr,
+			Fireproof = list(Check.ref("Rooms"), 21),
+		}),
+		Blackout = shape({ WholeGridChance = Fr }),
+		CaveIn = shape({
+			DoorwayHP = N, TunnelHP = N, BreakerMultiplier = N, DigSeconds = S, TunnelDigSeconds = S, Damage = N,
+			DigItems = list(Check.ref("Items"), 4),
+		}),
+		Meltdown = shape({ SoloPlayers = I, SoloValveSeconds = S, HeldGraceSeconds = S, StartsFire = Check.boolean() }),
+		ElectricalSurge = shape({ EraChance = list(Fr, 4), FireChance = Fr, BlackoutChance = Fr }),
+	}),
+	Repairs = shape({ RepairedAt = Fr, WelderPerSecond = N, WelderReach = N, ResidentSmartsBase = N, ToolTickSeconds = S }),
 	MonsterAI = shape({
 		TickSeconds = S, AggroSeconds = S, ProximityAggro = N, SmashMultiplier = N, StuckSeconds = S, KeepDistanceFraction = Fr,
 		RoomDamageMultiplier = N, LatchDamageMultiplier = N, LatchIntervalMultiplier = N,
@@ -253,6 +270,47 @@ return {
 			-- often); a barricaded point less often (Section 10). Spacing and counts provisional.
 			MaxMonsters = 25, WaveSpacingSeconds = 14, SpawnSpacingSeconds = 0.45, TrickleCheckSeconds = 15,
 			DarkRoomWeight = 2, BarricadeWeight = 0.25, MaxBreachPointsPerSurge = 3,
+		},
+		Disasters = { -- Prompt 13 (Section 10's disasters; each disaster's own numbers are in Config.Disasters); prov.
+			-- The Surge's one disaster starts SurgeDelaySeconds into the Surge; a fuse box resets after
+			-- FuseSeconds of holding Interact, a valve turns after ValveSeconds.
+			TickSeconds = 0.25, SurgeDelaySeconds = 8, FuseSeconds = 2, ValveSeconds = 1,
+			-- Fire (Section 10: spreads to the next room every 15 s, burning room HP and residents; put out
+			-- by an Extinguisher, a Foam Grenade, or residents in the room). Strength runs 0 to 100: it
+			-- starts at StartStrength and grows; residents in the room beat it down ResidentPerSecond each,
+			-- an Extinguisher ExtinguisherPerSecond (the Firefighter 3x); at 0 it is out. A fire weaker
+			-- than SpreadMinStrength doesn't spread. Damage scales with strength. Fires stay on their floor:
+			-- the Shaft's bare steel doesn't burn. Residents fight it until their health falls below
+			-- ResidentFleeHealth, then flee.
+			Fire = {
+				StartStrength = 40, GrowPerSecond = 1, SpreadMinStrength = 30,
+				ResidentPerSecond = 2, ExtinguisherPerSecond = 14, ExtinguisherReach = 16,
+				PlayerDamagePerSecond = 5, ResidentDamagePerSecond = 3, ResidentFleeHealth = 0.4,
+				Fireproof = { "Shaft" },
+			},
+			Blackout = { WholeGridChance = 0.3 }, -- Section 10: a floor or the whole grid
+			-- Cave-in (Section 10: rubble blocks a doorway or cell and can trap residents; dig or smash
+			-- through it). Melee smashes it (BreaksRubble weapons, the Fire Axe and Sledgehammer, do
+			-- BreakerMultiplier times their damage); a Drill or a Pickaxe digs through it in one hold.
+			CaveIn = {
+				DoorwayHP = 300, TunnelHP = 600, BreakerMultiplier = 3, DigSeconds = 5, TunnelDigSeconds = 8, Damage = 15,
+				DigItems = { "Drill", "Pickaxe" },
+			},
+			-- The meltdown (Section 10's Reactor overload; Landon, 2026-11-08): the three valves turned
+			-- together stop it. With SoloPlayers or fewer each turned valve stays turned SoloValveSeconds;
+			-- with more, a valve counts while its player holds it (HeldGraceSeconds of slack for the
+			-- network). Section 10: a Reactor overload causes a fire (StartsFire).
+			Meltdown = { SoloPlayers = 2, SoloValveSeconds = 10, HeldGraceSeconds = 0.6, StartsFire = true },
+			-- Electrical surges (Section 10: random, more often in Era III; they cause fires and blackouts):
+			-- a day's chance by era; an unwelded one may end in a fire or a blackout of its floor.
+			ElectricalSurge = { EraChance = { 0.2, 0.25, 0.45, 0.35 }, FireChance = 0.3, BlackoutChance = 0.25 },
+		},
+		Repairs = { -- Prompt 13 (Section 6: a wrecked room stops until repaired with the Welder; residents slowly
+			-- repair the room they work in; Section 11: Smarts is repair speed). prov.
+			-- A wrecked room works again once it is back to RepairedAt of its HP. The Welder repairs
+			-- the room it points at, WelderPerSecond (the Engineer twice as fast); a worker repairs
+			-- Tuning.Rooms.ResidentRepairPerSecond, scaled by Smarts over ResidentSmartsBase.
+			RepairedAt = 0.25, WelderPerSecond = 25, WelderReach = 10, ResidentSmartsBase = 5, ToolTickSeconds = 0.1,
 		},
 		MonsterAI = { -- Prompt 12 (Section 10: residents first, then machines, then players who hit them); prov.
 			-- Playtest, Nov 8: one Hollow Miner wrecked a 500-HP room in 12 s at full damage, and three

@@ -18,6 +18,10 @@
 	* Reload (R, a tap of X): from carried ammo, over the gun's ReloadSeconds.
 	* Throw (Landon, 2026-11-08): with a throwable's slot held, Fire throws one toward the
 	  reticle, lofted so it lands there (ThrowSpeed, ThrowGravity). The slot shows "x2".
+	* Tools (Prompt 13): with the tool slot held, holding Fire uses the tool (UseTool on, then
+	  off on release) and the character faces where the camera looks: the Extinguisher sprays
+	  the fire in front, the Welder repairs the room in front. The tool is held forward like a
+	  gun (GunHold).
 	* Heal (H, a hold of D-pad up, the Heal button; Landon, 2026-11-08): uses a carried Medkit
 	  over MedkitSeconds, walking slower meanwhile. The HUD's Medkits chip shows the count and
 	  fills while healing.
@@ -212,8 +216,11 @@ end
 local function updateHold()
 	local item = itemIn(selected())
 	local wanted: string? = nil
+	local entry = if item then Config.Find("Items", item) else nil
 	if alive() and Combat.Gun(item) and now() >= swingEndsAt then
 		wanted = if camera:IsAiming() then "GunAim" else "GunHold"
+	elseif alive() and entry and entry.Kind == "Tool" and now() >= swingEndsAt then
+		wanted = "GunHold" -- tools are held forward like a gun (Prompt 13)
 	end
 	if wanted ~= holdTrack then
 		if holdTrack then
@@ -572,6 +579,20 @@ local function throw(slot: number)
 	Remotes.FireServer("ThrowItem", slot, origin, direction)
 end
 
+-- Tools (Prompt 13): Fire held with the tool slot uses it; the server does the work.
+local toolOn = false
+local function updateTool()
+	local item = itemIn(selected())
+	local entry = if item then Config.Find("Items", item) else nil
+	local want = fireHeld and alive() and entry ~= nil and entry.Kind == "Tool" and now() >= swingEndsAt
+		and os.clock() >= dodgeUntil
+	if want ~= toolOn then
+		toolOn = want
+		Remotes.FireServer("UseTool", want)
+		camera:Face("Tool", want)
+	end
+end
+
 local function tryFire()
 	local slot = selected()
 	local item = itemIn(slot)
@@ -579,6 +600,9 @@ local function tryFire()
 	local pressed = firePressed
 	firePressed = false
 	local entry = if item and not gun then Config.Find("Items", item) else nil
+	if entry and entry.Kind == "Tool" then
+		return -- updateTool
+	end
 	if entry and entry.Kind == "Throwable" then
 		if pressed and alive() and now() >= swingEndsAt and os.clock() >= dodgeUntil then
 			throw(slot)
@@ -1063,6 +1087,7 @@ function CombatController:Start()
 		if fireHeld or firePressed then
 			tryFire()
 		end
+		updateTool()
 		if os.clock() > faceUntil then
 			camera:Face("Fire", false)
 		end
