@@ -41,7 +41,8 @@ return {
 		Cache = {
 			Text = "A cache in a dug cell or a cave",
 			Rolls = 2,
-			Lines = { r("Scrap", 40, 90, 5), s("Gear", 1, 1, 2), s("RadioLog", 1, 1, 2), r("Ammo", 20, 40, 2), r("Medkits", 1, 2, 1) },
+			Lines = { r("Scrap", 40, 90, 5), s("Gear", 1, 1, 2), s("RadioLog", 1, 1, 2), r("Ammo", 20, 40, 2), r("Medkits", 1, 2, 1),
+				i("FragGrenade", 1, 2, 1), i("Flare", 1, 2, 1) }, -- throwables found exploring (Landon, 2026-11-08)
 		},
 		Nest = {
 			Text = "A destroyed nest",
@@ -62,7 +63,7 @@ return {
 		HardwareStore = {
 			Text = "Hardware store",
 			Rolls = 2,
-			Lines = { r("Scrap", 15, 40, 6), s("Gear", 1, 1, 2), i("Lamp", 1, 1, 1), s("Blueprint", 1, 1, 1) },
+			Lines = { r("Scrap", 15, 40, 6), s("Gear", 1, 1, 2), i("Lamp", 1, 1, 1), s("Blueprint", 1, 1, 1), i("FoamGrenade", 1, 2, 1) },
 		},
 		Grocery = { Text = "Grocery", Rolls = 2, Lines = { r("Food", 5, 12, 6), r("Water", 4, 10, 4) } },
 		GasStation = { Text = "Gas station", Rolls = 2, Lines = { r("Scrap", 10, 25, 5), r("Water", 2, 6, 3), i("Flare", 1, 2, 2) } },
@@ -78,7 +79,7 @@ return {
 		Checkpoint = {
 			Text = "Military checkpoint (Era III)",
 			Rolls = 3,
-			Lines = { r("Ammo", 30, 70, 5), s("Gear", 1, 1, 4), r("Medkits", 2, 4, 3), i("FragGrenade", 1, 2, 2) },
+			Lines = { r("Ammo", 30, 70, 5), s("Gear", 1, 1, 4), r("Medkits", 2, 4, 3), i("FragGrenade", 1, 2, 2), i("ShockMine", 1, 1, 1) },
 		},
 
 		-- Expeditions (per cycle away)

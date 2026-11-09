@@ -5,7 +5,8 @@
 
 	Breach points (Section 10; Section 6: every dug cell next to rock is a way in)
 	* every room's vent (BunkerKit's Kit_Vent; the Shaft and the Blast Door have none);
-	* dug cells next to rock in the deepest depth band reached;
+	* every dug cell next to rock, on any floor (Landon, 2026-11-08: every tunnel touching rock
+	  counts, not only the deepest band's);
 	* cave openings come with the caves (Prompt 17) and the Blast Door's surface threats with
 	  raids (Prompt 16).
 	Each point has a weight: DarkRoomWeight in a dark room (Section 6: dark rooms spawn monsters
@@ -108,14 +109,12 @@ local function roomPoint(room: any, dark: boolean): Point
 	}
 end
 
--- Dug cells next to rock in the deepest band reached (Section 10: "dug cells at the rock edge of
--- the deepest band").
+-- Every dug cell next to rock, on any floor (Landon's answer to the Prompt 12 question: every
+-- tunnel touching rock is a way in, not only the deepest band's).
 local function rockPoints(): { Point }
 	local list: { Point } = {}
 	local t = Grid.Tuning()
-	local deepest = grid:DeepestFloor()
-	local band = Grid.BandOf(math.max(deepest, t.FloorMin))
-	for floor = band.Floors.From, math.min(band.Floors.To, t.FloorMax) do
+	for floor = t.FloorMin, t.FloorMax do
 		for column = t.ColumnMin, t.ColumnMax do
 			local state = grid:State(floor, column)
 			if state == "Dug" then

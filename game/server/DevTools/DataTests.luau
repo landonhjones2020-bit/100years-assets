@@ -1496,6 +1496,29 @@ test("Combat: melee arcs, combos, cones, stamina and respawn (Section 9)", funct
 	expect(tuning.DownedSeconds == 20 and tuning.ReviveSeconds == 3 and tuning.RespawnSeconds == 15, "Section 9's timings")
 end)
 
+test("Throwables: each can be crafted and found exploring (Landon's Prompt 12 answer)", function()
+	local found: { [string]: boolean } = {}
+	for _, tbl in all("LootTables") do
+		for _, line in tbl.Lines do
+			if line.Item then
+				found[line.Item] = true
+			end
+		end
+	end
+	local crafted: { [string]: boolean } = {}
+	for _, recipe in all("Recipes") do
+		if recipe.Gives and recipe.Gives.Item then
+			crafted[recipe.Gives.Item] = true
+		end
+	end
+	for _, item in all("Items") do
+		if item.Kind == "Throwable" then
+			expect(crafted[item.Id], `{item.Id} has a Workshop recipe`)
+			expect(found[item.Id], `{item.Id} is in a loot table`)
+		end
+	end
+end)
+
 test("Combat: every kit has a melee weapon; Medkits and throwables (Landon, 2026-11-08)", function()
 	for _, class in Config.All("Classes") do
 		local id = class.Id
