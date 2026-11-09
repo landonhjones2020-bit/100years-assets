@@ -85,6 +85,28 @@ local DEFINITIONS: { [string]: Definition } = {
 		Doc = "Vote yes or no on the vote on the banner (VoteService); a player can change their vote until it closes.",
 	},
 
+	AssignResident = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^N%d+$", min = 2 }), Check.string(12, { pattern = "^R?%d*$" }) },
+		Rate = { Burst = 8, PerSecond = 3 },
+		Doc = "Give a resident a job (a room id) or take it away (\"\"); no vote (Section 8). ResidentService checks the room has a job and a free slot.",
+	},
+	AutoAssign = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.5 },
+		Doc = "Auto-Assign (Section 7): fill empty job slots with idle residents by best stat.",
+	},
+	ReviveResident = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^N%d+$", min = 2 }) },
+		Rate = { Burst = 3, PerSecond = 1 },
+		Doc = "Revive a downed resident with a Medkit from the stockpile (the resident's prompt; Section 11).",
+	},
+
 	-- server -> client
 	Delta = {
 		To = "Client",

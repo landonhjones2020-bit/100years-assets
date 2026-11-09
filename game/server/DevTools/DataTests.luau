@@ -28,6 +28,7 @@ local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
 local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
+local Residents = require(Shared.Rules.Residents)
 local Votes = require(Shared.Rules.Votes)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
@@ -1295,6 +1296,68 @@ test("Economy: power goes dark farthest from the Reactor Core first", function()
 	balance = Economy.Balance(bunker, crewWith({ Workers = 1, StatSum = 5, Morale = 1 }))
 	expect(balance.Steps[lost] == nil and balance.Steps[far] == 4, "the dug-under Kitchen can't be reached")
 	expectEqual(balance.Dark, { [lost] = true }, "12 made, 14 needed: the unreachable Kitchen goes dark first")
+end)
+
+test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11)", function()
+	local t = Config.Get("Tuning", "Residents")
+	local rng = Random.new(7)
+	local used = {}
+	local a = Residents.Roll(rng, "N1", "Common", 1, used)
+	local b = Residents.Roll(rng, "N2", "Common", 3, used)
+	expect(Residents.Name(a) ~= Residents.Name(b) and used[Residents.Name(a)] and used[Residents.Name(b)], "names don't repeat")
+	for _, stat in Residents.StatIds() do
+		expect(a.Stats[stat] >= t.StatMin and a.Stats[stat] <= t.StatMax, `{stat} rolls {t.StatMin} to {t.StatMax}`)
+	end
+	expectEqual(a.MaxHealth, t.HealthBase + a.Stats.Grit * t.HealthPerGrit, "max health from Grit")
+	expect(a.Health == a.MaxHealth and a.Morale == t.MoraleStart and a.Rest == 100 and a.State == "Alive", "a fresh resident")
+	expect(b.Level == 3, "a level 3 founder")
+	expectEqual(Residents.XPToLevel(1), t.XPToLevelBase, "XP to level 2")
+	local speed = a.Stats.Speed
+	expectEqual(Residents.AddXP(a, Residents.XPToLevel(1), "Speed"), 1, "one level")
+	expect(a.Level == 2 and a.Stats.Speed == math.min(t.StatCap, speed + 1), "the level goes into the job's stat")
+	local mood, effect = Residents.MoraleState(60)
+	expect(mood == "Settled" and effect == 1, "60 is Settled")
+	mood, effect = Residents.MoraleState(95)
+	expect(mood == "Inspired" and effect == 1.2, "95 is Inspired: +20%")
+	-- a crew: Speed 4 and 6 at morale 60 and 80
+	local cook1 = Residents.Roll(rng, "N3", "Common", 1, used)
+	local cook2 = Residents.Roll(rng, "N4", "Common", 1, used)
+	cook1.Stats.Speed, cook2.Stats.Speed, cook1.Morale, cook2.Morale = 4, 6, 60, 80
+	local crew = Residents.Crew({ cook1, cook2 }, "Kitchen") :: any
+	expect(crew.Workers == 2 and crew.StatSum == 10 and math.abs(crew.Morale - 1.05) < 1e-6, "a Kitchen crew: Speed 10, morale 1.05")
+	cook2.Rest = 0
+	crew = Residents.Crew({ cook1, cook2 }, "Kitchen") :: any
+	expect(crew.StatSum == 4 + 6 * Config.Get("Conditions", "Exhausted").OutputMultiplier, "an Exhausted worker counts half")
+	expect(Residents.Crew({ cook1 }, "Quarters") == nil, "nobody works in the Quarters")
+	-- Auto-Assign on the starting bunker: the Reactor Core first
+	local bunker = Bunker.FromStart()
+	local rooms = {}
+	for _, room in bunker:AllRooms() do
+		table.insert(rooms, { Id = room.Id, Type = room.Type, Level = room.Level, Span = room.Span })
+	end
+	local free = {}
+	for i = 1, 6 do
+		table.insert(free, Residents.Roll(rng, `N{10 + i}`, "Common", 1, used))
+	end
+	local plan = Residents.AutoAssign(rooms, {}, free)
+	local reactor = (bunker:RoomAt(2, 1) :: any).Id
+	local onReactor, assigned = 0, 0
+	for _, roomId in plan do
+		assigned += 1
+		if roomId == reactor then
+			onReactor += 1
+		end
+	end
+	expect(assigned == 6 and onReactor == 2 and #free == 0, `six jobs, two on the Reactor Core ({assigned}, {onReactor})`)
+	-- needs: a worker with a bed, one without, one who missed the meal
+	local worker = Residents.Roll(rng, "N30", "Common", 1, used)
+	Residents.Cycle(worker, true, nil, true, true, false)
+	expectEqual(worker.Rest, 100, "work then a bed: rested")
+	Residents.Cycle(worker, true, nil, false, true, false)
+	expectEqual(worker.Rest, 100 - t.RestDrainPerShift + t.RestRefillPerCycle * t.NoBedRestMultiplier, "no bed: less rest")
+	local health = worker.Health
+	Residents.Cycle(worker, true, nil, true, false, false)
+	expect(worker.Hungry and worker.Health == health - t.ShortfallHealth, "a missed meal costs health")
 end)
 
 test("RunState: a value for every stocked resource, written by EconomyService", function()

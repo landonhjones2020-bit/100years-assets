@@ -97,7 +97,8 @@ local Schemas: { [string]: Check.Checker } = {
 		NoBedRestMultiplier = N, FriendsMax = I, FriendThreshold = N, GrievingMorale = N, GrievingCycles = I,
 		SurgeSurvivedMorale = N, DeathReviveSeconds = S, XPPerWorkCycle = N, XPPerKill = N,
 		XPPerExpeditionCycle = N, XPToLevelBase = N, XPToLevelStep = N,
-		RareStatBonus = I,
+		RareStatBonus = I, HealthBase = N, HealthPerGrit = N, MedbayHealPerCycle = N,
+		AutoAssignOrder = list(Check.ref("Rooms"), 21),
 	}),
 	Aging = shape({
 		StartAge = F.Range, YoungUntil = I, YoungXP = N, VeteranFrom = I, VeteranSpeed = N,
@@ -214,6 +215,13 @@ return {
 			NoBedRestMultiplier = 0.4, FriendsMax = 3, FriendThreshold = 100, GrievingMorale = 20, GrievingCycles = 2,
 			SurgeSurvivedMorale = 5, DeathReviveSeconds = 20, XPPerWorkCycle = 30, XPPerKill = 5,
 			XPPerExpeditionCycle = 40, XPToLevelBase = 100, XPToLevelStep = 40, RareStatBonus = 2,
+			-- Prompt 10, prov.: max health = HealthBase + Grit x HealthPerGrit (Grit 5: 100); a staffed, lit
+			-- Medbay heals every hurt resident this much a cycle; Auto-Assign fills rooms in this order
+			-- (power first, so the lights stay on), then any other room with a job
+			HealthBase = 70, HealthPerGrit = 6, MedbayHealPerCycle = 20,
+			AutoAssignOrder = { "ReactorCore", "Generator", "WaterPurifier", "Kitchen", "Medbay", "Greenhouse",
+				"Armory", "Workshop", "Lab", "DrillBay", "RadioRoom", "Lounge", "DeconRoom", "CryoBay", "TradingPost",
+				"BlastDoor" },
 		},
 		Aging = { -- Section 11
 			StartAge = { Min = 18, Max = 50 }, YoungUntil = 29, YoungXP = 1.1, VeteranFrom = 55, VeteranSpeed = 0.9,

@@ -39,7 +39,7 @@
 		EconomyService:Multiplier(key, roomType?), :OutputMultiplier(roomType)
 		EconomyService.Changed: Signal<string>            -- a resource id, or "Research"
 		EconomyService.CrewChanged: Signal<()>            -- crews or output modifiers changed
-		EconomyService.Ate: Signal<number, { [string]: number }>    -- cycle, what was taken
+		EconomyService.Ate: Signal<number, taken, missing>       -- cycle, what was taken, what was short
 		EconomyService.Shortfall: Signal<{ [string]: number }>      -- what was missing
 ]]
 
@@ -72,7 +72,7 @@ local EconomyService = {
 	Dependencies = { "BunkerGrid", "CycleClock", "SessionService", "ReplicationService", "DevService" },
 	Changed = Signal.new() :: Signal.Signal<string>,
 	CrewChanged = Signal.new() :: Signal.Signal<()>,
-	Ate = Signal.new() :: Signal.Signal<number, { [string]: number }>,
+	Ate = Signal.new() :: Signal.Signal<number, { [string]: number }, { [string]: number }>,
 	Shortfall = Signal.new() :: Signal.Signal<{ [string]: number }>,
 }
 
@@ -376,7 +376,7 @@ local function eat(cycle: number)
 		end
 	end
 	log:Info("cycle %d: %d residents ate %d Food and drank %d Water", cycle, #eaters, taken.Food, taken.Water)
-	EconomyService.Ate:Fire(cycle, taken)
+	EconomyService.Ate:Fire(cycle, taken, missing)
 	if next(missing) then
 		local parts = {}
 		for _, id in { "Food", "Water" } do

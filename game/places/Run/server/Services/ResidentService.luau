@@ -1,0 +1,606 @@
+--!strict
+--[[
+	ResidentService: resident data, jobs, needs, morale, levels and death, phase 1 (bible Sections
+	11 and 23). Run place only. The rules are Shared.Rules.Residents; walking and routines are
+	ResidentBrain's.
+
+	* The six founders (Tuning.StartingBunker: Common, levels 1 to 3) arrive when the run starts,
+	  and Auto-Assign gives them jobs, power first, so the lights come on.
+	* Jobs: AssignResident (a room id, or "" for none) and AutoAssign come from players, with no
+	  vote (Section 8). A room's crew goes to EconomyService (SetResidents), which works out
+	  production and power. When a room goes, its workers move to the room standing in its cells
+	  (a merge) if it has room, or go idle.
+	* Every cycle, after the meal (EconomyService.Ate), each resident's needs move (Rules.Residents
+	  .Cycle): rest with work and beds, the meal (the newest arrivals go hungry first when the
+	  stockpile runs short), morale with job fit, dark job rooms and beds. Workers gain
+	  XPPerWorkCycle; each level adds 1 to their job's stat. A staffed, lit Medbay heals the hurt.
+	  Surviving a Surge gives everyone SurgeSurvivedMorale.
+	* At 0 health a resident is down for DeathReviveSeconds: a player can revive them with a
+	  Medkit from the stockpile (ReviveResident). Then they are gone for the run. When the last
+	  one is gone, the run is lost (RunDirector, "ResidentsLost").
+	* Replication: the Residents collection, id -> { Name, First, Last, Age, Tier, Level, XP,
+	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, DownUntil }.
+
+	API:
+		ResidentService:All(): { Resident }, :Get(id), :Workers(roomId)
+		ResidentService:Assign(id, roomId?): (boolean, string?)
+		ResidentService:AutoAssign(): number          -- residents given a job
+		ResidentService:Hurt(id, amount, how), :Revive(id, player?): (boolean, string?)
+		ResidentService:Add(tier?, level?): string    -- a new resident (recruits, rescues; DevTools)
+		ResidentService.Changed: Signal<string>         -- a resident's data changed
+		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
+		ResidentService.Died: Signal<string, string>    -- resident, how
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Shared = ReplicatedStorage.Shared
+local Config = require(Shared.Config)
+local Log = require(Shared.Utilities.Log)
+local Remotes = require(Shared.Remotes)
+local Residents = require(Shared.Rules.Residents)
+local RunState = require(Shared.RunState)
+local Signal = require(Shared.Utilities.Signal)
+
+local log = Log.new("ResidentService")
+
+type Resident = Residents.Resident
+
+local ResidentService = {
+	Name = "ResidentService",
+	Dependencies = { "BunkerGrid", "EconomyService", "PowerService", "CycleClock", "RunDirector", "SessionService", "ReplicationService", "DevService" },
+	Changed = Signal.new() :: Signal.Signal<string>,
+	Assigned = Signal.new() :: Signal.Signal<string, string?>,
+	Died = Signal.new() :: Signal.Signal<string, string>,
+}
+
+local grid: any = nil
+local economy: any = nil
+local power: any = nil
+local clock: any = nil
+local director: any = nil
+local session: any = nil
+local collection: any = nil
+local rng = Random.new()
+local residents: { [string]: Resident } = {}
+local count = 0
+local usedNames: { [string]: boolean } = {}
+local downUntil: { [string]: number } = {}
+local downHow: { [string]: string } = {}
+local jobCells: { [string]: { number } } = {} -- room id -> { floor, column } of the rooms people work in
+
+local function announce(kind: string, text: string)
+	Remotes.FireClients("Alert", session:ReadyPlayers(), kind, text)
+end
+
+local function order(id: string): number
+	return tonumber(string.match(id, "%d+")) or 0
+end
+
+local function sorted(): { Resident }
+	local list = {}
+	for _, resident in residents do
+		table.insert(list, resident)
+	end
+	table.sort(list, function(a: Resident, b: Resident): boolean
+		return order(a.Id) < order(b.Id)
+	end)
+	return list
+end
+
+local function logLine(resident: Resident, text: string)
+	table.insert(resident.Log, `Year {RunState.Get("Year") or 1}: {text}`)
+	if #resident.Log > 20 then
+		table.remove(resident.Log, 1)
+	end
+end
+
+local function publish(resident: Resident)
+	local mood = Residents.MoraleState(resident.Morale)
+	collection:Set(resident.Id, {
+		Name = Residents.Name(resident),
+		First = resident.First,
+		Last = resident.Last,
+		Age = resident.Age,
+		Tier = resident.Tier,
+		Level = resident.Level,
+		XP = math.floor(resident.XP),
+		XPNext = Residents.XPToLevel(resident.Level),
+		Stats = table.clone(resident.Stats),
+		Job = resident.Job,
+		Health = math.floor(resident.Health + 0.5),
+		MaxHealth = resident.MaxHealth,
+		Rest = math.floor(resident.Rest + 0.5),
+		Morale = math.floor(resident.Morale + 0.5),
+		Mood = mood,
+		State = resident.State,
+		Hungry = resident.Hungry,
+		DownUntil = downUntil[resident.Id],
+		Log = table.clone(resident.Log),
+	})
+	ResidentService.Changed:Fire(resident.Id)
+end
+
+-- Queries ------------------------------------------------------------------------------------------
+
+function ResidentService:All(): { Resident }
+	return sorted()
+end
+
+function ResidentService:Get(id: string): Resident?
+	return residents[id]
+end
+
+function ResidentService:Workers(roomId: string): { Resident }
+	local list = {}
+	for _, resident in sorted() do
+		if resident.Job == roomId and resident.State ~= "Dead" then
+			table.insert(list, resident)
+		end
+	end
+	return list
+end
+
+local function slotsFree(roomId: string, except: string?): number
+	local room = grid:Room(roomId)
+	if not room then
+		return 0
+	end
+	local used = 0
+	for _, resident in residents do
+		if resident.Job == roomId and resident.State ~= "Dead" and resident.Id ~= except then
+			used += 1
+		end
+	end
+	return Residents.Slots(room.Type, room.Level, room.Span) - used
+end
+
+-- Jobs ---------------------------------------------------------------------------------------------
+
+local function setJob(resident: Resident, roomId: string?)
+	resident.Job = roomId
+	if roomId then
+		local room = grid:Room(roomId)
+		if room then
+			jobCells[roomId] = { room.Floor, room.Column }
+		end
+	end
+	publish(resident)
+	ResidentService.Assigned:Fire(resident.Id, roomId)
+end
+
+function ResidentService:Assign(id: string, roomId: string?): (boolean, string?)
+	local resident = residents[id]
+	if not resident or resident.State == "Dead" then
+		return false, "That resident isn't in the bunker."
+	end
+	if roomId == nil then
+		if resident.Job then
+			setJob(resident, nil)
+			economy:RefreshCrew()
+		end
+		return true, nil
+	end
+	local room = grid:Room(roomId)
+	if not room then
+		return false, "That room isn't there any more."
+	end
+	if not Residents.JobStat(room.Type) then
+		return false, `Nobody works in the {Config.Get("Rooms", room.Type).Name}.`
+	end
+	if resident.Job == roomId then
+		return true, nil
+	end
+	if slotsFree(roomId, id) <= 0 then
+		return false, `The {Config.Get("Rooms", room.Type).Name} is full.`
+	end
+	setJob(resident, roomId)
+	log:Info("%s works in %s (%s) now", Residents.Name(resident), roomId, room.Type)
+	economy:RefreshCrew()
+	return true, nil
+end
+
+function ResidentService:AutoAssign(): number
+	local free = {}
+	local taken: { [string]: number } = {}
+	for _, resident in sorted() do
+		if resident.State == "Alive" then
+			if resident.Job and grid:Room(resident.Job) then
+				taken[resident.Job] = (taken[resident.Job] or 0) + 1
+			else
+				table.insert(free, resident)
+			end
+		end
+	end
+	local rooms = {}
+	for _, room in grid:Rooms() do
+		table.insert(rooms, { Id = room.Id, Type = room.Type, Level = room.Level, Span = room.Span })
+	end
+	local plan = Residents.AutoAssign(rooms, taken, free)
+	local n = 0
+	for residentId, roomId in plan do
+		local resident = residents[residentId]
+		if resident then
+			setJob(resident, roomId)
+			n += 1
+		end
+	end
+	if n > 0 then
+		economy:RefreshCrew()
+		log:Info("Auto-Assign gave %d resident(s) a job", n)
+	end
+	return n
+end
+
+-- A room went: its workers move to the room now standing in its cells (a merge), or go idle.
+local function roomChanged(roomId: string)
+	if grid:Room(roomId) then
+		return
+	end
+	local cell = jobCells[roomId]
+	jobCells[roomId] = nil
+	local successor = if cell then grid:RoomAt(cell[1], cell[2]) else nil
+	local moved = false
+	for _, resident in sorted() do
+		if resident.Job == roomId then
+			if successor and Residents.JobStat(successor.Type) and slotsFree(successor.Id) > 0 then
+				setJob(resident, successor.Id)
+			else
+				setJob(resident, nil)
+			end
+			moved = true
+		end
+	end
+	if moved then
+		economy:RefreshCrew()
+	end
+end
+
+-- Health and death ---------------------------------------------------------------------------------
+
+local function goDown(resident: Resident, how: string)
+	if resident.State ~= "Alive" then
+		return
+	end
+	resident.State = "Down"
+	resident.Health = 0
+	downUntil[resident.Id] = workspace:GetServerTimeNow() + Config.Get("Tuning", "Residents").DeathReviveSeconds
+	downHow[resident.Id] = how
+	logLine(resident, `fell ({how})`)
+	publish(resident)
+	economy:RefreshCrew()
+	announce("Danger", `{string.upper(Residents.Name(resident))} IS DOWN: REVIVE THEM WITH A MEDKIT`)
+end
+
+local function checkLost()
+	for _, resident in residents do
+		if resident.State ~= "Dead" then
+			return
+		end
+	end
+	if next(residents) and director:Phase() == "Playing" then
+		log:Warn("the last resident is gone: the bunker falls")
+		director:Lose("ResidentsLost")
+	end
+end
+
+local function die(resident: Resident)
+	local how = downHow[resident.Id] or "unknown"
+	resident.State = "Dead"
+	downUntil[resident.Id] = nil
+	downHow[resident.Id] = nil
+	resident.Job = nil
+	logLine(resident, `died ({how})`)
+	publish(resident)
+	economy:RefreshCrew()
+	log:Warn("%s died (%s)", Residents.Name(resident), how)
+	announce("Danger", `{string.upper(Residents.Name(resident))} DIED`)
+	ResidentService.Died:Fire(resident.Id, how)
+	checkLost()
+end
+
+function ResidentService:Hurt(id: string, amount: number, how: string)
+	local resident = residents[id]
+	if not resident or resident.State ~= "Alive" then
+		return
+	end
+	resident.Health = math.max(0, resident.Health - amount)
+	if resident.Health <= 0 then
+		goDown(resident, how)
+	else
+		publish(resident)
+	end
+end
+
+function ResidentService:Revive(id: string, player: Player?): (boolean, string?)
+	local resident = residents[id]
+	if not resident or resident.State ~= "Down" then
+		return false, "Nobody is down there."
+	end
+	local paid, why = economy:Spend({ Medkits = 1 }, `reviving {Residents.Name(resident)}`)
+	if not paid then
+		return false, `No Medkit: {why}.`
+	end
+	resident.State = "Alive"
+	resident.Health = math.max(1, math.floor(resident.MaxHealth * 0.25))
+	downUntil[id] = nil
+	downHow[id] = nil
+	logLine(resident, if player then `revived by {player.DisplayName}` else "revived")
+	publish(resident)
+	economy:RefreshCrew()
+	announce("Info", `{string.upper(Residents.Name(resident))} IS BACK ON THEIR FEET`)
+	return true, nil
+end
+
+-- New residents ------------------------------------------------------------------------------------
+
+function ResidentService:Add(tier: string?, level: number?): string
+	count += 1
+	local resident = Residents.Roll(rng, `N{count}`, tier or "Common", level or 1, usedNames)
+	residents[resident.Id] = resident
+	logLine(resident, "came into the bunker")
+	publish(resident)
+	return resident.Id
+end
+
+-- Once a cycle, after the meal ---------------------------------------------------------------------
+
+local function beds(): number
+	local n = 0
+	for _, room in grid:RoomsOfType("Quarters") do
+		local info = Config.Get("Rooms", "Quarters")
+		n += (info.Beds and info.Beds[room.Level] or 0) * room.Span
+	end
+	return n
+end
+
+local function medbayHeals(): boolean
+	for _, room in grid:RoomsOfType("Medbay") do
+		if room.HP > 0 and not power:IsDark(room.Id) and economy:Crew(room.Id) then
+			return true
+		end
+	end
+	return false
+end
+
+local function afterMeal(cycle: number, _taken: { [string]: number }, missing: { [string]: number })
+	local t = Config.Get("Tuning", "Residents")
+	local alive = {}
+	for _, resident in sorted() do
+		if resident.State == "Alive" then
+			table.insert(alive, resident)
+		end
+	end
+	-- who goes hungry: one resident for each missing meal, the newest arrivals first
+	local short = math.max(missing.Food or 0, missing.Water or 0)
+	local hungry: { [string]: boolean } = {}
+	for i = #alive, math.max(1, #alive - short + 1), -1 do
+		if short > 0 then
+			hungry[alive[i].Id] = true
+		end
+	end
+	local bedsLeft = beds()
+	local heals = medbayHeals()
+	for _, resident in alive do
+		local room = if resident.Job then grid:Room(resident.Job) else nil
+		local jobStat = if room then Residents.JobStat(room.Type) else nil
+		local bed = bedsLeft > 0
+		if bed then
+			bedsLeft -= 1
+		end
+		local notes = Residents.Cycle(resident, room ~= nil, jobStat, bed, not hungry[resident.Id],
+			room ~= nil and power:IsDark(room.Id))
+		for _, note in notes do
+			logLine(resident, note)
+		end
+		if room and jobStat then
+			local levels = Residents.AddXP(resident, t.XPPerWorkCycle, jobStat)
+			if levels > 0 then
+				logLine(resident, `reached level {resident.Level}`)
+				announce("Info", `{string.upper(Residents.Name(resident))} REACHED LEVEL {resident.Level}`)
+			end
+		end
+		if heals and resident.Health > 0 and resident.Health < resident.MaxHealth then
+			resident.Health = math.min(resident.MaxHealth, resident.Health + t.MedbayHealPerCycle)
+		end
+		if resident.Health <= 0 then
+			goDown(resident, if hungry[resident.Id] then "hunger" else "weakness")
+		else
+			publish(resident)
+		end
+	end
+	log:Info("cycle %d: needs for %d residents (%d hungry, %d beds)", cycle, #alive, short, beds())
+	economy:RefreshCrew()
+end
+
+local function afterSurge()
+	local boost = Config.Get("Tuning", "Residents").SurgeSurvivedMorale
+	for _, resident in residents do
+		if resident.State == "Alive" then
+			resident.Morale = math.min(100, resident.Morale + boost)
+			publish(resident)
+		end
+	end
+	economy:RefreshCrew()
+end
+
+-- DevTools ---------------------------------------------------------------------------------------
+
+local function describe(resident: Resident): string
+	local stats = {}
+	for _, stat in Residents.StatIds() do
+		table.insert(stats, `{string.sub(stat, 1, 3)} {resident.Stats[stat]}`)
+	end
+	local room = if resident.Job then grid:Room(resident.Job) else nil
+	return string.format("%s %s, %d, L%d (%d/%d xp): %s; job %s; HP %d/%d, rest %d, morale %d (%s)%s%s",
+		resident.Id, Residents.Name(resident), resident.Age, resident.Level, resident.XP, Residents.XPToLevel(resident.Level),
+		table.concat(stats, ", "), if room then `{room.Id} {room.Type}` else "none", resident.Health, resident.MaxHealth,
+		resident.Rest, resident.Morale, (Residents.MoraleState(resident.Morale)),
+		if resident.Hungry then ", HUNGRY" else "", if resident.State ~= "Alive" then `, {resident.State}` else "")
+end
+
+local function describeAll(): string
+	local lines = {}
+	for _, resident in sorted() do
+		table.insert(lines, describe(resident))
+	end
+	return if #lines > 0 then table.concat(lines, "\n") else "no residents"
+end
+
+function ResidentService:Init(registry)
+	grid = registry.BunkerGrid
+	economy = registry.EconomyService
+	power = registry.PowerService
+	clock = registry.CycleClock
+	director = registry.RunDirector
+	session = registry.SessionService
+	collection = registry.ReplicationService:Collection("Residents")
+	Remotes.OnServer("AssignResident", function(player: Player, id: string, roomId: string)
+		local ok, why = ResidentService:Assign(id, if roomId == "" then nil else roomId)
+		if not ok and why then
+			Remotes.FireClient("Alert", player, "Warning", why)
+		end
+	end)
+	Remotes.OnServer("AutoAssign", function(player: Player)
+		local n = ResidentService:AutoAssign()
+		Remotes.FireClient("Alert", player, "Info",
+			if n > 0 then `AUTO-ASSIGN: {n} RESIDENT{if n == 1 then "" else "S"} PUT TO WORK` else "AUTO-ASSIGN: NO EMPTY JOB FITS ANYONE IDLE")
+	end)
+	Remotes.OnServer("ReviveResident", function(player: Player, id: string)
+		local ok, why = ResidentService:Revive(id, player)
+		if not ok and why then
+			Remotes.FireClient("Alert", player, "Warning", why)
+		end
+	end)
+	local dev = registry.DevService
+	dev:Register("residents", {
+		Description = "Every resident: stats, job, needs and state.",
+		Usage = "residents",
+		Run = function(): string?
+			return describeAll()
+		end,
+	})
+	dev:Register("residents.auto", {
+		Description = "Auto-Assign idle residents.",
+		Usage = "residents.auto",
+		Run = function(): string?
+			return `assigned {ResidentService:AutoAssign()}\n{describeAll()}`
+		end,
+	})
+	dev:Register("residents.add", {
+		Description = "New residents (a recruit, for testing).",
+		Usage = "residents.add [count] [tier] [level]",
+		Run = function(_player: Player?, args): string?
+			for _ = 1, math.clamp(tonumber(args[1]) or 1, 1, 20) do
+				ResidentService:Add(if args[2] then tostring(args[2]) else nil, tonumber(args[3]))
+			end
+			return describeAll()
+		end,
+	})
+	dev:Register("resident.assign", {
+		Description = "Give a resident a job (a room id) or none.",
+		Usage = "resident.assign <id> <roomId|none>",
+		Run = function(_player: Player?, args): string?
+			local id, roomId = tostring(args[1] or ""), tostring(args[2] or "")
+			local ok, why = ResidentService:Assign(id, if roomId == "none" then nil else roomId)
+			return if ok then describeAll() else `refused: {why}`
+		end,
+	})
+	dev:Register("resident.hurt", {
+		Description = "Hurt a resident (0 health: down, then dead).",
+		Usage = "resident.hurt <id> <amount>",
+		Run = function(_player: Player?, args): string?
+			ResidentService:Hurt(tostring(args[1] or ""), tonumber(args[2]) or 10, "DevTools")
+			return describeAll()
+		end,
+	})
+	dev:Register("resident.revive", {
+		Description = "Revive a downed resident with a Medkit from the stockpile.",
+		Usage = "resident.revive <id>",
+		Run = function(_player: Player?, args): string?
+			local ok, why = ResidentService:Revive(tostring(args[1] or ""), nil)
+			return if ok then describeAll() else `refused: {why}`
+		end,
+	})
+	dev:Register("resident.set", {
+		Description = "Set a resident's need or stat: health, rest, morale, xp or a stat name.",
+		Usage = "resident.set <id> <field> <value>",
+		Run = function(_player: Player?, args): string?
+			local resident = residents[tostring(args[1] or "")]
+			local field, value = string.lower(tostring(args[2] or "")), tonumber(args[3])
+			if not resident or not value then
+				return "usage: resident.set <id> <health|rest|morale|xp|Strength...> <value>"
+			end
+			if field == "health" then
+				resident.Health = math.clamp(value, 0, resident.MaxHealth)
+			elseif field == "rest" then
+				resident.Rest = math.clamp(value, 0, 100)
+			elseif field == "morale" then
+				resident.Morale = math.clamp(value, 0, 100)
+			elseif field == "xp" then
+				Residents.AddXP(resident, value, nil)
+			else
+				for _, stat in Residents.StatIds() do
+					if string.lower(stat) == field then
+						resident.Stats[stat] = math.clamp(value, 1, Config.Get("Tuning", "Residents").StatCap)
+						resident.MaxHealth = Residents.MaxHealth(resident.Stats)
+					end
+				end
+			end
+			publish(resident)
+			economy:RefreshCrew()
+			return describe(resident)
+		end,
+	})
+end
+
+function ResidentService:Start()
+	local start = Config.Get("Tuning", "StartingBunker")
+	for _ = 1, start.Residents do
+		ResidentService:Add(start.ResidentTier, rng:NextInteger(start.ResidentLevels.Min, start.ResidentLevels.Max))
+	end
+	ResidentService:AutoAssign()
+	economy:SetResidents({
+		Crew = function(roomId: string): Residents.Crew?
+			local room = grid:Room(roomId)
+			if not room then
+				return nil
+			end
+			local workers = {}
+			for _, resident in residents do
+				if resident.Job == roomId then
+					table.insert(workers, resident)
+				end
+			end
+			return Residents.Crew(workers, room.Type)
+		end,
+		Eaters = function(): { { Id: string, FoodUse: number? } }
+			local list = {}
+			for _, resident in sorted() do
+				if resident.State == "Alive" then
+					table.insert(list, { Id = resident.Id })
+				end
+			end
+			return list
+		end,
+	})
+	economy.Ate:Connect(afterMeal)
+	clock.SurgeEnded:Connect(afterSurge)
+	grid.RoomChanged:Connect(roomChanged)
+	RunService.Heartbeat:Connect(function()
+		if next(downUntil) == nil then
+			return
+		end
+		local now = workspace:GetServerTimeNow()
+		for id, untilTime in table.clone(downUntil) do
+			local resident = residents[id]
+			if resident and resident.State == "Down" and now >= untilTime then
+				die(resident)
+			end
+		end
+	end)
+	log:Info("%d founders in the bunker:\n%s", start.Residents, describeAll())
+end
+
+return ResidentService
