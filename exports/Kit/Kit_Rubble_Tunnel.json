@@ -1,0 +1,59 @@
+{
+ "asset": "Kit_Rubble_Tunnel",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  35.707,
+  17.575,
+  16.158
+ ],
+ "tris": 2272,
+ "pivot": [
+  0.163,
+  0.305,
+  -0.608
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    -0.093,
+    8.182,
+    0.064
+   ],
+   "size": [
+    33.672,
+    16.603,
+    14.753
+   ],
+   "tris": 2272
+  }
+ ],
+ "meta": {
+  "kit": "rubble",
+  "shape": "Tunnel",
+  "face": [
+   32.0,
+   16.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "9e9624aabe781d75"
+}

@@ -32,7 +32,8 @@
 	  a blackout. A Surge can't end early while its disaster, a fire or a meltdown is on
 	  (HoldsSurge; Section 5).
 
-	Disasters run only while the run is playing, and hold still while the clock is paused.
+	Disasters run while the run is playing (like monsters and residents, they go on when DevTools
+	pause the cycle clock).
 
 	Replication: the Disasters collection, id -> one of
 	  { Kind = "Fire", Room, Strength, Cause }                       id "F:<room>"
@@ -649,8 +650,10 @@ local function buildRubble(r: Rubble): Model?
 		block.CFrame = CFrame.new(face.Centre)
 		CollectionService:AddTag(block, CAMERA_IGNORE_TAG)
 		block.Parent = model
-		-- what you see: the art kit's pile, or a graybox one
-		local source = art(if r.Shape == "Tunnel" then "Kit_Rubble_Tunnel" else "Kit_Rubble_Doorway")
+		-- what you see: the art kit's pile, or a graybox one. A room's 8-wide doorway gets the
+		-- doorway pile; a tunnel's ends and the open rock between two dug cells (32 wide) get the
+		-- tunnel's rockfall.
+		local source = art(if face.Size.Z > 12 then "Kit_Rubble_Tunnel" else "Kit_Rubble_Doorway")
 		local floorAt = face.Centre - Vector3.new(0, face.Size.Y / 2, 0)
 		if source then
 			local copy = source:Clone()
@@ -1086,19 +1089,6 @@ local function tick(dt: number)
 		return
 	end
 	local t = now()
-	if RunState.Get("Paused") == true then
-		-- the clock is paused (DevTools): everything holds still
-		if blackout then
-			blackout.EndsAt += dt
-		end
-		if meltdown then
-			meltdown.EndsAt += dt
-		end
-		for _, s in surges do
-			s.EndsAt += dt
-		end
-		return
-	end
 	local inside = occupants()
 	tickFires(dt, t, inside)
 	if blackout and t >= blackout.EndsAt then

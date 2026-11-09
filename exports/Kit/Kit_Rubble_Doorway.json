@@ -1,0 +1,64 @@
+{
+ "asset": "Kit_Rubble_Doorway",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  11.2,
+  10.577,
+  10.427
+ ],
+ "tris": 1448,
+ "pivot": [
+  0.0,
+  0.277,
+  0.011
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "copper",
+    "gunmetal",
+    "rust",
+    "sandstone",
+    "steel",
+    "stone"
+   ],
+   "offset": [
+    0.0,
+    5.09,
+    -0.026
+   ],
+   "size": [
+    11.2,
+    10.42,
+    9.858
+   ],
+   "tris": 1448
+  }
+ ],
+ "meta": {
+  "kit": "rubble",
+  "shape": "Doorway",
+  "face": [
+   8.0,
+   10.0
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "2dbcc95eeab3f7b5"
+}

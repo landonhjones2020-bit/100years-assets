@@ -180,19 +180,19 @@ local function makeFire(id: string, roomId: string): Effect
 					ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 120, 40)),
 					ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 30, 20)),
 				}),
-				Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2.2), NumberSequenceKeypoint.new(0.5, 3.6), NumberSequenceKeypoint.new(1, 0.6) }),
-				Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(0.7, 0.4), NumberSequenceKeypoint.new(1, 1) }),
-				Lifetime = NumberRange.new(0.6, 1.1), Speed = NumberRange.new(3, 6), SpreadAngle = Vector2.new(14, 14),
+				Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 3), NumberSequenceKeypoint.new(0.45, 5.2), NumberSequenceKeypoint.new(1, 0.8) }),
+				Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(0.7, 0.4), NumberSequenceKeypoint.new(1, 1) }),
+				Lifetime = NumberRange.new(0.8, 1.4), Speed = NumberRange.new(4, 8), SpreadAngle = Vector2.new(16, 16),
 				Acceleration = Vector3.new(0, 5, 0), RotSpeed = NumberRange.new(-60, 60), Rotation = NumberRange.new(0, 360),
 				EmissionDirection = Enum.NormalId.Top, Rate = 0,
 			}))
 			if i == 2 then
 				table.insert(effect.Emitters, emitter(part, {
 					Name = "Smoke", Texture = SMOKE_TEXTURE, LightEmission = 0, LightInfluence = 1,
-					Color = ColorSequence.new(Color3.fromRGB(58, 52, 48), Color3.fromRGB(30, 28, 26)),
-					Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 3), NumberSequenceKeypoint.new(1, 9) }),
-					Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) }),
-					Lifetime = NumberRange.new(2, 3.4), Speed = NumberRange.new(2.5, 4), SpreadAngle = Vector2.new(25, 25),
+					Color = ColorSequence.new(Color3.fromRGB(46, 42, 40), Color3.fromRGB(24, 22, 21)),
+					Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 4), NumberSequenceKeypoint.new(1, 13) }),
+					Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) }),
+					Lifetime = NumberRange.new(2.8, 4.2), Speed = NumberRange.new(3, 5), SpreadAngle = Vector2.new(30, 30),
 					Acceleration = Vector3.new(0, 1.5, 0), Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-20, 20),
 					EmissionDirection = Enum.NormalId.Top, Rate = 0,
 				}))
@@ -221,9 +221,9 @@ local function setFireStrength(effect: Effect, strength: number)
 	local k = math.clamp(strength / 100, 0.15, 1)
 	for _, e in effect.Emitters do
 		if e.Name == "Flames" then
-			e.Rate = 26 * k
+			e.Rate = 30 * k
 		elseif e.Name == "Smoke" then
-			e.Rate = 7 * k
+			e.Rate = 10 * k
 		elseif e.Name == "Embers" then
 			e.Rate = 10 * k
 		end
@@ -630,7 +630,7 @@ local function updateRoomBar()
 		end
 		local bar = roomBar :: any
 		local low, high = Grid.CellPosition(room.Floor, room.Column), Grid.CellPosition(room.Floor, room.Column + (room.Span or 1) - 1)
-		bar.Anchor.Position = (low + high) / 2 + Vector3.new(0, Grid.Tuning().CellHeight - 3, 6)
+		bar.Anchor.Position = (low + high) / 2 + Vector3.new(0, 8.5, 4) -- at eye height over the room's middle
 		bar.Room = roomId
 		bar.HideAt = os.clock() + 1.5
 		bar.Gui.Enabled = true

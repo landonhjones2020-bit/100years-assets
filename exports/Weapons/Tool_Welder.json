@@ -1,0 +1,107 @@
+{
+ "asset": "Tool_Welder",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.6,
+  1.53,
+  2.405
+ ],
+ "tris": 1408,
+ "pivot": [
+  0.0,
+  0.655,
+  0.884
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "copper",
+    "gunmetal",
+    "hazard",
+    "rubber",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.077,
+    -0.884
+   ],
+   "size": [
+    0.6,
+    1.465,
+    2.405
+   ],
+   "tris": 1360
+  },
+  {
+   "name": "PilotLamp",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.0,
+    0.81,
+    0.05
+   ],
+   "size": [
+    0.13,
+    0.13,
+    0.13
+   ],
+   "tris": 48
+  }
+ ],
+ "meta": {
+  "kind": "Tool",
+  "item": "Welder",
+  "class": [
+   "Engineer",
+   "Tinkerer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.27,
+    -2.06
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "67dfcc3c8c812100"
+}

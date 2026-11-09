@@ -392,6 +392,15 @@
   ],
   "slice": null
  },
+ "Icon_Extinguisher": {
+  "group": "items",
+  "note": "Extinguisher icon from the model (hotbar)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Fire": {
   "group": "hud",
   "note": "touch: fire (a cartridge; white, tint with ImageColor3)",
@@ -549,6 +558,15 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Welder": {
+  "group": "items",
+  "note": "Welder icon from the model (hotbar)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },

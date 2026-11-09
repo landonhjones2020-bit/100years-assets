@@ -246,6 +246,8 @@ WEAPON_ICONS = {
     "Icon_ServiceRevolver": ("Weapon_ServiceRevolver", (-18, 12), 3.0),
     "Icon_PocketPistol": ("Weapon_PocketPistol", (-18, 12), 2.5),
     "Icon_Wrench": ("Weapon_Wrench", (-38, 12), 4.4),
+    "Icon_Extinguisher": ("Tool_Extinguisher", (-12, 14), 3.6),     # Prompt 13
+    "Icon_Welder": ("Tool_Welder", (-14, 12), 3.0),
 }
 
 
@@ -262,6 +264,7 @@ def weapon_icon(module, sprite, size=256):
     root = bpy.data.objects.new("IconRoot", None)
     bpy.context.scene.collection.objects.link(root)
     root.location = ctr
+    bpy.context.view_layer.update()   # (Prompt 13) or the parent inverse below misses ctr and the model drops off-centre
     for o in objs:
         o.parent = root
         o.matrix_parent_inverse = root.matrix_world.inverted()
@@ -292,6 +295,8 @@ SPECS["Portrait_Security_Large"] = {"size": [480, 408], "slice": None, "note": "
 SPECS["Icon_ServiceRevolver"] = {"size": [256, 256], "slice": None, "note": "Service Revolver icon from the model"}
 SPECS["Icon_PocketPistol"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Pocket Pistol icon from the model (hotbar)"}
 SPECS["Icon_Wrench"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Wrench icon from the model (hotbar)"}
+SPECS["Icon_Extinguisher"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Extinguisher icon from the model (hotbar)"}
+SPECS["Icon_Welder"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Welder icon from the model (hotbar)"}
 
 if __name__ == "__main__":
     args = sys.argv[1:]

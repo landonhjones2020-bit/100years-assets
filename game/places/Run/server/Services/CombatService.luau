@@ -46,6 +46,7 @@ local Config = require(Shared.Config)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Signal = require(Shared.Utilities.Signal)
+local Hazards = require(game:GetService("ServerScriptService").Lib.Hazards)
 
 local log = Log.new("CombatService")
 
@@ -292,11 +293,12 @@ local function removePrompt(record: Combatant)
 	end
 end
 
--- The working Medbays' respawn points (Section 9), nearest first is Combat.Nearest's job.
+-- The working Medbays' respawn points (Section 9), nearest first is Combat.Nearest's job. A
+-- burning Medbay isn't one (Prompt 13): nobody comes back into a fire.
 local function respawnPlaces(): { Combat.Place }
 	local places = {}
 	for _, room in grid:RoomsOfType("Medbay") do
-		if not room.Wrecked and not power:IsDark(room.Id) then
+		if not room.Wrecked and not power:IsDark(room.Id) and not Hazards.Fire(room.Id) then
 			local model = grid:RoomModel(room.Id)
 			local respawn = model and model:FindFirstChild("Respawn", true)
 			local position = if respawn and respawn:IsA("Attachment")
