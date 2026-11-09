@@ -190,7 +190,7 @@ local Schemas: { [string]: Check.Checker } = {
 		RaiderMinEra = Check.integer(1, 4), WraithEverySeconds = F.Range, WraithDistance = F.Range, DespawnSeconds = S,
 	}),
 	Deep = shape({ -- Prompt 17
-		CavePieces = F.Range, PlannerTries = I, Margin = N, GridBack = N, LowestY = F.Number,
+		CavePieces = F.Range, PlannerTries = I, Margin = N, GridBack = F.Number, LowestY = F.Number,
 		FindOdds = Check.map(Check.string(20), N, 12), NestChance = Fr, GuardChance = Fr, GuardBudget = N,
 		WakeRange = N, GuardRange = N, DeepAggro = N, MineSeconds = S, OpenSeconds = S, ListenSeconds = S, ChestSeconds = S,
 		FallDamageFrom = N, FallDamagePerStud = N, FallDamageMax = N, LightRange = N, LightBrightness = N,

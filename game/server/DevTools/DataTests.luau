@@ -844,7 +844,7 @@ end)
 
 test("RunState: every value has one owner, a type and its allowed values", function()
 	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true, PowerService = true,
-		ThreatDirector = true, DisasterService = true, DigService = true, SurfaceService = true }
+		ThreatDirector = true, DisasterService = true, DigService = true, SurfaceService = true, DeepService = true }
 	for name, field in RunState.Fields do
 		expect(owners[field.By], `{name} to have a known owner`)
 	end
