@@ -44,14 +44,14 @@ return {
 		PlayerGunHold = {
 			Rig = "R15",
 			Activity = "GunHold",
-			AssetId = "rbxassetid://118074187085453",
+			AssetId = "rbxassetid://137332197362680",
 			Looped = true,
-			Text = "A one-handed gun held forward at the hip, the barrel straight (Prompt 11, R15_GunHold v2)",
+			Text = "A one-handed gun held forward at the hip, the barrel straight (Prompt 11, R15_GunHold v3)",
 		},
 		PlayerGunAim = {
 			Rig = "R15",
 			Activity = "GunAim",
-			AssetId = "rbxassetid://103754004397733",
+			AssetId = "rbxassetid://79362406154244",
 			Looped = true,
 			Text = "Both hands up, the gun at eye line (Prompt 11, R15_GunAim)",
 		},

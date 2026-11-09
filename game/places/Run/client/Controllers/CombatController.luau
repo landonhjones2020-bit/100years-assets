@@ -828,19 +828,24 @@ end
 -- aiming, the waist tips with the camera so the barrel points at the reticle up and down too.
 -- Local only: other players see the clip's level aim.
 
-local waistMotor: Motor6D? = nil
+local waistJoint: Instance? = nil -- a Motor6D, or the AnimationConstraint of Roblox's newer avatar joints
 local waistBase: CFrame? = nil
 local waistPitch = 0
 local function aimPitch(dt: number)
 	local character = player.Character
 	local upper = character and character:FindFirstChild("UpperTorso")
-	local motor = upper and upper:FindFirstChild("Waist")
-	if motor ~= waistMotor then
-		waistMotor = if motor and motor:IsA("Motor6D") then motor else nil
-		waistBase = if waistMotor then waistMotor.C0 else nil
+	local joint = upper and upper:FindFirstChild("Waist")
+	if joint ~= waistJoint then
+		waistJoint = joint
+		waistBase = nil
 		waistPitch = 0
+		if joint and joint:IsA("Motor6D") then
+			waistBase = joint.C0
+		elseif joint and joint:IsA("AnimationConstraint") and joint.Attachment0 then
+			waistBase = joint.Attachment0.CFrame
+		end
 	end
-	if not waistMotor or not waistBase then
+	if not joint or not waistBase then
 		return
 	end
 	local want = 0
@@ -851,8 +856,16 @@ local function aimPitch(dt: number)
 			want = math.clamp(math.asin(y), math.rad(-50), math.rad(50))
 		end
 	end
+	if math.abs(want - waistPitch) < 1e-4 and want == 0 then
+		return
+	end
 	waistPitch += (want - waistPitch) * math.min(1, dt * 12)
-	waistMotor.C0 = waistBase * CFrame.Angles(waistPitch, 0, 0)
+	local frame = waistBase * CFrame.Angles(waistPitch, 0, 0)
+	if joint:IsA("Motor6D") then
+		joint.C0 = frame
+	elseif joint:IsA("AnimationConstraint") and joint.Attachment0 then
+		joint.Attachment0.CFrame = frame
+	end
 end
 
 -- Medkits -----------------------------------------------------------------------------------------

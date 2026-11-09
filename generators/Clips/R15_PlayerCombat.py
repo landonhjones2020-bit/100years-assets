@@ -74,7 +74,9 @@ def finger_direction(arm, pose: dict):
     m = arm.matrix_world.to_3x3() @ arm.pose.bones["RightHand"].matrix.to_3x3()
     d = -(m @ Vector((0, 1, 0)))
     d.normalize()
-    return math.degrees(math.atan2(d.x, -d.y)), math.degrees(math.asin(max(-1.0, min(1.0, d.z))))
+    side = (m @ Vector((1, 0, 0))).normalized()   # the hand's lateral axis: level when the gun is upright
+    roll = math.degrees(math.asin(max(-1.0, min(1.0, side.z))))
+    return math.degrees(math.atan2(d.x, -d.y)), math.degrees(math.asin(max(-1.0, min(1.0, d.z)))), roll
 
 
 def straighten(arm, pose: dict) -> dict:
@@ -84,16 +86,23 @@ def straighten(arm, pose: dict) -> dict:
     tips it up and down."""
     out = dict(pose)
     rx, ry, rz = out.get("RightHand", (0, 0, 0))
-    for _ in range(6):
+    # the wrist's twist (Y) levels the gun's roll; find which way it turns it first
+    out["RightHand"] = (rx, ry, rz)
+    _y, _p, r0 = finger_direction(arm, out)
+    out["RightHand"] = (rx, ry + 1.0, rz)
+    _y, _p, r1 = finger_direction(arm, out)
+    twist = 1.0 if r1 < r0 else -1.0
+    for _ in range(8):
         out["RightHand"] = (rx, ry, rz)
-        yaw, pitch = finger_direction(arm, out)
-        if abs(yaw) < 0.2 and abs(pitch) < 0.2:
+        yaw, pitch, roll = finger_direction(arm, out)
+        if abs(yaw) < 0.2 and abs(pitch) < 0.2 and abs(roll) < 0.3:
             break
         rz -= yaw
         rx += pitch
-    out["RightHand"] = (round(rx, 2), ry, round(rz, 2))
-    yaw, pitch = finger_direction(arm, out)
-    print(f"[R15_PlayerCombat] straightened RightHand {out['RightHand']}: barrel yaw {yaw:.2f}, pitch {pitch:.2f}")
+        ry += twist * roll
+    out["RightHand"] = (round(rx, 2), round(ry, 2), round(rz, 2))
+    yaw, pitch, roll = finger_direction(arm, out)
+    print(f"[R15_PlayerCombat] straightened RightHand {out['RightHand']}: barrel yaw {yaw:.2f}, pitch {pitch:.2f}, roll {roll:.2f}")
     for pb in arm.pose.bones:
         pb.rotation_quaternion = (1, 0, 0, 0)
         pb.location = (0, 0, 0)
