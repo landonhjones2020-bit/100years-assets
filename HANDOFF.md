@@ -1,6 +1,6 @@
 # 100 Years Of Fallout: handoff for the next chat
 
-Written 2026-11-09 (night), at the end of Prompt 17. The game bible (live doc
+Written 2026-11-09 (night), at the end of Prompt 18. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 133, and the two project parts, which match
 it) wins over everything here.
 
@@ -14,8 +14,15 @@ it) wins over everything here.
 
 ## Where things stand
 
-* Prompts 0 to 17 are built and tested in Studio. Code build `p17-5901951` (code asset
-  95026446991297, revision 70) is installed in both places; 105 data tests pass.
+* Prompts 0 to 18 are built and tested in Studio. Code build `p18-9427693` (code asset
+  95026446991297, revision 74) is installed in both places; 107 data tests pass.
+* Prompt 18 (expeditions): from the EXPEDITIONS console on the Blast Door guard's radio or in a
+  Radio Room, 1 to 3 residents go to the surface or the Deep for 1 to 3 cycles with Food, Water
+  and Medkits. They walk out through the Blast Door and leave the map. Each dawn they find loot,
+  and someone may be hurt or lost, or the team radios a distress call. A call puts a red flare and
+  a plate where they're pinned down (a town survivor spot, or a cave). Players have until the next
+  day's end to reach them (hold HELP) and lead them home. The Radio Room brings recruits and Lost
+  Crew calls. The Residents screen has an AWAY tab. Report: `game/reports/P18_Expeditions.md`.
 * Prompt 17 (the Deep): a dug cave opening breaks into a cave put together behind the bunker from
   the band's A6 pieces (`workspace.Deep`): ore veins, caches, radio logs, trapped miners, cryo
   pods, Glowshard chests, guards and cave nests. The Lost Crews: one in a cave in the Mines and one
@@ -40,18 +47,26 @@ it) wins over everything here.
 
 ## Next, in order
 
-1. Prompt 18: resident expeditions and distress calls.
-2. Prompt 19: the blueprint draft.
+1. Prompt 19: the blueprint draft. Its Radio Booster and Veteran Recruit cards can call
+   `ExpeditionService:Recruit`; blueprints found on expeditions are skipped until then.
+2. Prompt 20: all 18 classes plus the Survivor, abilities, class levels (the Radio Operator's
+   Supply Call).
 
 ## Waiting on Landon
 
-* His answers to the eight Prompt 17, eight Prompt 16, eight Prompt 14 and six Prompt 13 Bible
-  Questions (in the reports). The six Prompt 15 answers are approved and in the bible.
+* His answers to the eight Prompt 18, eight Prompt 17, eight Prompt 16, eight Prompt 14 and six
+  Prompt 13 Bible Questions (in the reports). The six Prompt 15 answers are approved and in the bible.
 * His look at the town, the surface monsters and the caves (`previews/Game/P16_*.jpg`,
   `P17_*.jpg`).
 
 ## Testing tips
 
+* Expeditions: `exp` (trips out, their logs, the radio), `exp.send <surface|deep> <cycles> <medkits>
+  <id...>` (no console needed), `exp.cycle [Quiet|Hurt|Lost|Distress]` (a dawn now, the event
+  forced), `exp.call [id]`, `exp.home [id]`, `exp.deadline`, `recruit [tier]`, `radio call`. The
+  screen: `ui.open Expeditions` from the client's DevInvoke, or E at a console. Pause the clock
+  (`clock.pause`) while testing: `clock.next` through a Surge leaves its monsters loose in the
+  bunker, and they kill residents.
 * The Deep: `crews` (where each Lost Crew is), `deep.cave <floor> <column>` (dig a rock cell into
   a cave; dig a path to a crew's cell first with `dig`), `deep` (caves, + guards asleep, * woken),
   `deep.tp <floor> <column> [piece]`, `deep.find <kind>` (in front of you), `radiolog [id]`,

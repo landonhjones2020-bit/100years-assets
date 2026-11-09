@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T21:55:03Z",
- "commit": "0b8b6611e290c08502c3c2eba82eae307b14e161",
- "label": "p18-0b8b661",
+ "built": "2026-11-09T22:00:43Z",
+ "commit": "9427693e209b05df2b057c96da57065ba49430f6",
+ "label": "p18-9427693",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -432,7 +432,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "065fbe02"
+    "Hash": "33865017"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -999,7 +999,7 @@
    "ServerScriptService.Services.ExpeditionService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ExpeditionService.luau",
-    "Hash": "5f22a976"
+    "Hash": "707c43b1"
    },
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
@@ -1089,7 +1089,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "065fbe02"
+    "Hash": "33865017"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",

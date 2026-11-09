@@ -32,6 +32,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 15: the Brood Mother and the results screen (Run) | ✅ done 2026-11-09 | Run playtests with real shots, clicks and a real boss Surge: her warning, rise and roar, slams, egg sacs laid and hatching, a sac broken by Revolver shots and one burned by the Flamethrower, belly hits for double, a stagger, phase 2, her death ending the Surge (Year 25 to 27, Era II); the Run Report with payouts saved to the profile, Play Again, Keep Going and Return to Lobby clicked; Lobby start check; `game/reports/P15_BroodMother_Results.md`, `previews/Game/P15_*.jpg` |
 | Prompt 16: the surface (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, presses and clicks: the elevator both ways, searching, a survivor freed, followed home and joined, generator parts carried and delivered, unloading at the hall, a jackal shot dead into the pack, raider rifle hits, a dropped bag picked up, radiation death and a clean respawn, a Decon Room, the checkpoint opening in Era III, the Scout's outline and storm warning; Lobby start check; `game/reports/P16_Surface.md`, `previews/Game/P16_*.jpg` |
 | Prompt 17: the Deep (Run) | ✅ done 2026-11-09 | Run playtests with real W, E holds and presses and shotgun clicks: walking into a cave through the opened back wall, the Deep's lighting and the player's light, a radio log and its crew hint, an ore vein mined, a cache and a Glowshard chest opened (the profile and the results), the Mines' crew freed and led out of its cave (Lost Crew done), the raider camp's guards waking and going back to sleep and the surface crew riding home (Lost Crew done), a cryo pod found, carried, delivered and thawed into a Rare resident, a fall's damage and the Spelunker's none, the Spelunker's eye, a cave nest destroyed into the pack, a monster's drop in a cave, a monster walking out of a cave; Lobby start check; `game/reports/P17_Deep.md`, `previews/Game/P17_*.jpg` |
+| Prompt 18: resident expeditions and distress calls (Run) | ✅ done 2026-11-09 | Run playtests with real E presses and holds, clicks and Enter: the Expeditions screen opened at the Blast Door guard's radio and a Radio Room, teams sent to the surface and the Deep, residents walking out and coming home to their jobs, a real dawn's cycle away, distress calls (forced and rolled) with the radio card, alert, flare, plate countdown and edge arrow, members reached and led home from the town and from a cave, the deadline on the real clock losing the pinned, losses and a Medkit's save, the Radio Room's recruits (rate, the Radio Operator, a Rare recruit) and a crew call, the Residents screen's AWAY tab, the run's stories; Lobby start check; `game/reports/P18_Expeditions.md`, `previews/Game/P18_*.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
 | A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
@@ -74,6 +75,51 @@ Newest first. Every "verified" line says how it was checked.
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (night): Prompt 18, resident expeditions and distress calls
+
+Game code builds `p18-0c0e847` to `p18-9427693` (final): code asset 95026446991297 revision 74,
+installed in Run and Lobby: StructureCheck 0 errors (Run 461 checks, Lobby 254), 107 data tests
+passed in each. The HUD got `Templates.Distress` in Run (`studio/ui/patches/HUD_P18.lua`).
+
+**Done**
+* Prompt 18:
+  * Rules.Expeditions (who goes, supplies, risk and odds, events, carrying and finds, harm, the
+    deadline, recruit tiers, log line words).
+  * ExpeditionService:
+    * the EXPEDITIONS consoles, on the Blast Door guard's desk radio and a radio set in each Radio
+      Room;
+    * sending, each cycle away, finds, harm and losses, coming home;
+    * distress calls with markers and the deadline;
+    * the Radio Room's recruits and Lost Crew calls.
+  * ExpeditionsController: the Expeditions screen, the distress markers and edge arrows.
+  * Config.ExpeditionLogs (draft lines).
+  * Residents Away (ResidentService, ResidentBrain); residents already in the run as rescues
+    (RescueService); distress spots (SurfaceService, DeepService).
+  * The Residents screen's AWAY tab; expedition stories in the results.
+  * Report: `game/reports/P18_Expeditions.md` (eight Bible Questions).
+* No new art: the Radio Room's set is the A6 radio recorder until A7.
+* Fixes from the playtests:
+  * the hall's console moved to the guard desk's radio (it floated by the crates);
+  * the detail panel's titles shortened (they ran into the subtitle);
+  * two footer actions (a third ran under the hint);
+  * the edge arrow drawn over the HUD (it hid under the year counter);
+  * the Deep's no-cave spot at the rock face (it was in the Shaft);
+  * a lost resident shows 0 health;
+  * a shorter distress alert;
+  * `exp.cycle` can force an event.
+
+**Verified in Studio**: see the testing checklist in `game/reports/P18_Expeditions.md`. Captures:
+`previews/Game/P18_*.jpg`.
+
+**Open**
+* Landon's answers to the eight Prompt 18 Bible Questions, and the earlier open ones (Prompts 13,
+  14, 16 and 17).
+* Not seen: four players, gamepad and touch on the new screen, a call answered in a storm, two
+  calls at once, a Radio Room's crew call at a real dawn.
+* Seen in the first playtest, not reproduced: a resident at 0 health after coming home and setting
+  out again. The likely cause is the monsters left in the bunker after `clock.next` skipped a
+  Surge. A repeat showed the expedition code keeps health.
 
 ## 2026-11-09 (night): Prompt 17, the Deep; A6 cave pieces
 
