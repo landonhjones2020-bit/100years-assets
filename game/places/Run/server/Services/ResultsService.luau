@@ -40,6 +40,7 @@ local Constants = require(Shared.Constants)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
+local Residents = require(Shared.Rules.Residents)
 local Results = require(Shared.Rules.Results)
 local RunState = require(Shared.RunState)
 
@@ -115,7 +116,7 @@ end
 
 local function residentName(id: string): string
 	local r = residents:Get(id)
-	return if r and r.Name then r.Name else "A resident"
+	return if r then Residents.Name(r) else "A resident"
 end
 
 -- The results -------------------------------------------------------------------------------------------
