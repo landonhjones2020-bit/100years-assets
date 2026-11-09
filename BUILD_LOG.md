@@ -39,9 +39,9 @@ Newest first. Every "verified" line says how it was checked.
 
 ## 2026-11-08 (late night): Prompt 8, votes and construction; Landon's answers
 
-Game code builds `p8-eacefa6` to `p8-f9a192c`. The last one is code asset 95026446991297
-revision 24, installed in Run and Lobby: StructureCheck 0 errors (Run 307 checks, Lobby 213),
-71 data tests passed.
+Game code builds `p8-eacefa6` to `p8-5de5ef5` (the last adds only the docs). It is code asset
+95026446991297 revision 25, installed in Run and Lobby: StructureCheck 0 errors (Run 307
+checks, Lobby 213), 71 data tests passed.
 
 **Done**
 * Code:

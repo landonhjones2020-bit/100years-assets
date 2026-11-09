@@ -1,7 +1,7 @@
 {
- "built": "2026-11-08T23:56:23Z",
- "commit": "f9a192cd1d9af70760fe786e71a5818bccfb2093",
- "label": "p8-f9a192c",
+ "built": "2026-11-09T00:03:39Z",
+ "commit": "5de5ef5a86d68ccde54752bfe7c4d6fd48ba0233",
+ "label": "p8-5de5ef5",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -342,7 +342,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "7520c432"
+    "Hash": "a95388c3"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -799,7 +799,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "7520c432"
+    "Hash": "a95388c3"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",

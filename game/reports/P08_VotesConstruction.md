@@ -1,8 +1,9 @@
 # Prompt 8: Votes and construction
 
 Team votes (bible Section 8) and building, upgrading, merging and tearing down rooms (Section
-6), with the team's stockpile they spend. Built and tested on 2026-11-08: final build
-`p8-f9a192c` (code asset 95026446991297 revision 24), installed in Run and Lobby. Votes and
+6), with the team's stockpile they spend. Built and tested on 2026-11-08 with build
+`p8-f9a192c`; the final install is `p8-5de5ef5` (the same code with these docs; code asset
+95026446991297 revision 25), in Run and Lobby. Votes and
 construction work in the Run place. This prompt also built Landon's answers to the Prompt 6
 and 7 questions (addenda in `P06_FrameHUD.md` and `P07_CommandView.md`).
 
