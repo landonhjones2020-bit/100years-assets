@@ -21,13 +21,13 @@
    ]
   },
   "items": {
-   "decalId": 116109976139787,
+   "decalId": 75294353899571,
    "file": "ui/atlas_items.png",
-   "imageId": 99377896545998,
-   "sha1": "aac34c1c917b94d4dff1ecb9bab63187fbb8abd3",
+   "imageId": 111680310007713,
+   "sha1": "b5e9443ac1a2fc96d77666f2286834f0181d8a98",
    "size": [
     1024,
-    449
+    485
    ]
   },
   "kit_a": {
@@ -656,11 +656,24 @@
    ],
    "slice": null
   },
+  "Icon_Drill": {
+   "atlas": "items",
+   "note": "Drill icon from the model (hotbar)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
   "Icon_Extinguisher": {
    "atlas": "items",
    "note": "Extinguisher icon from the model (hotbar)",
    "offset": [
-    4,
+    268,
     4
    ],
    "size": [
@@ -786,6 +799,19 @@
    ],
    "slice": null
   },
+  "Icon_Pickaxe": {
+   "atlas": "items",
+   "note": "Pickaxe icon from the model (hotbar)",
+   "offset": [
+    532,
+    4
+   ],
+   "size": [
+    256,
+    256
+   ],
+   "slice": null
+  },
   "Icon_Ping": {
    "atlas": "hud",
    "note": "touch: ping (a map pin; white, tint with ImageColor3)",
@@ -803,8 +829,8 @@
    "atlas": "items",
    "note": "Pocket Pistol icon from the model (hotbar)",
    "offset": [
-    268,
-    4
+    4,
+    268
    ],
    "size": [
     256,
@@ -920,8 +946,8 @@
    "atlas": "items",
    "note": "Welder icon from the model (hotbar)",
    "offset": [
-    532,
-    4
+    268,
+    268
    ],
    "size": [
     256,
@@ -933,7 +959,7 @@
    "atlas": "items",
    "note": "Wrench icon from the model (hotbar)",
    "offset": [
-    4,
+    532,
     268
    ],
    "size": [

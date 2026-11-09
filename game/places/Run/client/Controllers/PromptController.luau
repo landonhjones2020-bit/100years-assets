@@ -12,6 +12,8 @@
 	* A prompt with an Owner attribute equal to this player's UserId isn't shown: your own
 	  revive prompt is for your teammates.
 	* Holding a Revive prompt plays the kneel clip, if it exists (CombatController.Kneel).
+	* A prompt with a Progress attribute (0 to 1; Prompt 14's dig prompts, where players stack)
+	  shows that in its gauge rather than its own hold time; its words follow the prompt's.
 ]]
 
 local Players = game:GetService("Players")
@@ -103,9 +105,34 @@ local function show(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInpu
 	local entry = { Gui = gui, Tween = nil :: Tween?, Connections = {} :: { RBXScriptConnection } }
 	shown[prompt] = entry
 	local fill = fillOf(gui)
+	-- A prompt whose work is shared (Prompt 14: digging a cell; players stack) has a Progress
+	-- attribute from the server: the gauge shows it instead of the hold's own time.
+	local function shared(): boolean
+		return type(prompt:GetAttribute("Progress")) == "number"
+	end
+	local function showProgress()
+		local value = prompt:GetAttribute("Progress")
+		if fill and type(value) == "number" then
+			fill.Size = UDim2.fromScale(math.clamp(value, 0, 1), 1)
+		end
+	end
+	if shared() then
+		showProgress()
+	end
+	table.insert(entry.Connections, prompt:GetAttributeChangedSignal("Progress"):Connect(showProgress))
+	table.insert(entry.Connections, prompt:GetPropertyChangedSignal("ObjectText"):Connect(function()
+		if object then
+			object.Text = prompt.ObjectText
+		end
+	end))
+	table.insert(entry.Connections, prompt:GetPropertyChangedSignal("ActionText"):Connect(function()
+		if action then
+			action.Text = string.upper(prompt.ActionText)
+		end
+	end))
 
 	table.insert(entry.Connections, prompt.PromptButtonHoldBegan:Connect(function()
-		if fill then
+		if fill and not shared() then
 			fill.Size = UDim2.fromScale(0, 1)
 			entry.Tween = TweenService:Create(fill, TweenInfo.new(prompt.HoldDuration, Enum.EasingStyle.Linear), { Size = UDim2.fromScale(1, 1) })
 			entry.Tween:Play()
@@ -119,7 +146,7 @@ local function show(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInpu
 			entry.Tween:Cancel()
 			entry.Tween = nil
 		end
-		if fill then
+		if fill and not shared() then
 			fill.Size = UDim2.fromScale(0, 1)
 		end
 		combat:Kneel(false)

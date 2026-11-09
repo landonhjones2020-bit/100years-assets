@@ -31,7 +31,8 @@
 	  adds to the room panel's Condition (Prompt 13).
 
 	API for later prompts: SetHandler(action, fn(choice)), SetOverlay(name, provider),
-	SetStatus(name, provider), SetConditionNote(fn), ShowGhost(id, floor, column, span, label)
+	SetStatus(name, provider), SetConditionNote(fn), SetCellNotes(fn), SetRockOptions(fn) and
+	Refresh() (Prompt 14: digging), ShowGhost(id, floor, column, span, label)
 	and HideGhost(id) for open votes, Blink(key, on) for alerts, Select(floor, column), IsOpen(),
 	State().
 ]]
@@ -65,7 +66,7 @@ local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
 local log = Log.new("CommandViewController")
 
 export type Choice = {
-	Action: string, -- "Build", "Upgrade", "Merge", "TearDown"; "Assign", "Unassign", "AutoAssign" (no vote)
+	Action: string, -- "Build", "Upgrade", "Merge", "TearDown"; "Assign", "Unassign", "AutoAssign", "MarkDig", "UnmarkDig" (no vote)
 	Floor: number,
 	Column: number,
 	RoomType: string?, -- Build
@@ -148,6 +149,11 @@ local handlers: { [string]: (Choice) -> () } = {}
 local overlays: { [string]: Overlay } = {}
 local statuses: { [string]: Overlay } = {} -- Prompt 13: a room's status lamp when the overlay is silent
 local conditionNote: ((string) -> string?)? = nil
+-- Prompt 14: what digging says about a cell, and the dig queue's actions on rock
+export type CellNote = { Title: string, Text: string }
+export type CellOption = { Name: string, Value: string, Choice: Choice? }
+local cellNotes: ((floor: number, column: number, state: string) -> { CellNote })? = nil
+local rockOptions: ((floor: number, column: number) -> { CellOption })? = nil
 local selectionMark: any = nil
 local drag: { Start: Vector2, Last: Vector2, Moved: boolean, Touch: InputObject? }? = nil
 local pinch: { [InputObject]: Vector2 } = {}
@@ -495,6 +501,23 @@ local function setMainAction()
 		})
 		return
 	end
+	-- the Drill Bay's dig queue is never voted on (Section 7; Prompt 14)
+	if current.Action == "MarkDig" or current.Action == "UnmarkDig" then
+		local handler = handlers[current.Action]
+		ui:SetMainAction({
+			Label = current.Label or (if current.Action == "MarkDig" then "Queue for the Drill Bay" else "Take off the queue"),
+			Enabled = handler ~= nil,
+			OnPress = function()
+				local h = handlers[current.Action]
+				if h then
+					h(current)
+				end
+				choice = nil
+				refreshDetail()
+			end,
+		})
+		return
+	end
 	-- solo runs have no votes (Section 8, rule 6): the choice applies at once
 	local verb = if (RunState.Get("ReadyNeeded") or 1) <= 1 then
 		(if current.Action == "Build" then "Build" elseif current.Action == "Upgrade" then "Upgrade to" elseif current.Action == "Merge" then "Merge" else "Tear down")
@@ -704,6 +727,10 @@ local function showOpenCell(floor: number, column: number)
 	end
 	detail:FindFirstChild("Name").Text = "OPEN CELL"
 	section(1, "Build here", "Pick a room type, then propose it to the team.")
+	local notes = if cellNotes then cellNotes(floor, column, "Dug") else {}
+	for i, note in notes do
+		section(1 + i, note.Title, note.Text)
+	end
 	local b = currentBunker()
 	local ctx = context()
 	local available, locked = {}, {}
@@ -741,6 +768,14 @@ local function showRock(floor: number, column: number)
 	end
 	if Grid.IsBandStart(floor) and floor > b:DeepestFloor() then
 		section(3, "Next band", `The first cell of the {band.Name}: opening it needs a Push Deeper vote.`)
+	end
+	local notes = if cellNotes then cellNotes(floor, column, "Rock") else {}
+	for i, note in notes do
+		section(3 + i, note.Title, note.Text)
+	end
+	local options = if rockOptions then rockOptions(floor, column) else {}
+	for i, option in options do
+		optionRow(i, option.Name, option.Value, option.Choice ~= nil, option.Choice)
 	end
 end
 
@@ -1240,6 +1275,29 @@ end
 -- A line added under a room's Condition in the detail panel (Prompt 13: "On fire, 64%").
 function CommandViewController:SetConditionNote(fn: ((string) -> string?)?)
 	conditionNote = fn
+	if open then
+		refreshDetail()
+	end
+end
+
+-- Prompt 14: notes on a rock or dug cell (dig time, progress, the queue, what a dug cell holds,
+-- the Driller's hints) and the dig queue's options on rock.
+function CommandViewController:SetCellNotes(fn: ((floor: number, column: number, state: string) -> { CellNote })?)
+	cellNotes = fn
+	if open then
+		refreshDetail()
+	end
+end
+
+function CommandViewController:SetRockOptions(fn: ((floor: number, column: number) -> { CellOption })?)
+	rockOptions = fn
+	if open then
+		refreshDetail()
+	end
+end
+
+-- Refresh the detail panel (a dig site's progress, a queue change).
+function CommandViewController:Refresh()
 	if open then
 		refreshDetail()
 	end

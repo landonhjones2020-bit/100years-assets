@@ -1,0 +1,107 @@
+{
+ "asset": "Prop_Nest",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  16.05,
+  7.945,
+  12.797
+ ],
+ "tris": 2918,
+ "pivot": [
+  0.317,
+  0.708,
+  -1.113
+ ],
+ "parts": [
+  {
+   "name": "Mound",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum",
+    "rubber"
+   ],
+   "offset": [
+    -0.021,
+    2.577,
+    0.424
+   ],
+   "size": [
+    10.009,
+    6.57,
+    8.078
+   ],
+   "tris": 294
+  },
+  {
+   "name": "Mound_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream",
+    "plum",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    -0.398,
+    3.404,
+    1.057
+   ],
+   "size": [
+    15.89,
+    7.508,
+    12.566
+   ],
+   "tris": 1572
+  },
+  {
+   "name": "Glow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.507,
+    2.987,
+    1.113
+   ],
+   "size": [
+    14.402,
+    6.045,
+    12.797
+   ],
+   "tris": 1052
+  }
+ ],
+ "meta": {
+  "kind": "Prop",
+  "feature": "Nest"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "7bbccc7902f5175e"
+}

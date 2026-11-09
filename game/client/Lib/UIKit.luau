@@ -48,7 +48,8 @@ UIKit.Sprites["Icon_Command"] = {image = "rbxassetid://108416061266181", offset 
 UIKit.Sprites["Icon_Copper"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(276, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Crystal"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(412, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Dodge"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(548, 268), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Extinguisher"] = {image = "rbxassetid://99377896545998", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
+UIKit.Sprites["Icon_Drill"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
+UIKit.Sprites["Icon_Extinguisher"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Icon_Fire"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(684, 268), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Food"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Glowshard"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 140), size = Vector2.new(128, 128), slice = nil}
@@ -58,8 +59,9 @@ UIKit.Sprites["Icon_Iron"] = {image = "rbxassetid://108416061266181", offset = V
 UIKit.Sprites["Icon_Jump"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(4, 404), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Medkit"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(548, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Melee"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(140, 404), size = Vector2.new(128, 128), slice = nil}
+UIKit.Sprites["Icon_Pickaxe"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(532, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Icon_Ping"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(276, 404), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_PocketPistol"] = {image = "rbxassetid://99377896545998", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}
+UIKit.Sprites["Icon_PocketPistol"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(4, 268), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Icon_Power"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(684, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Scrap"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(820, 140), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_ServiceRevolver"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(532, 268), size = Vector2.new(256, 256), slice = nil}
@@ -68,8 +70,8 @@ UIKit.Sprites["Icon_Shoulder"] = {image = "rbxassetid://129337851835347", offset
 UIKit.Sprites["Icon_Sprint"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(548, 404), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Tag"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 276), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Icon_Water"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(276, 276), size = Vector2.new(128, 128), slice = nil}
-UIKit.Sprites["Icon_Welder"] = {image = "rbxassetid://99377896545998", offset = Vector2.new(532, 4), size = Vector2.new(256, 256), slice = nil}
-UIKit.Sprites["Icon_Wrench"] = {image = "rbxassetid://99377896545998", offset = Vector2.new(4, 268), size = Vector2.new(256, 256), slice = nil}
+UIKit.Sprites["Icon_Welder"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(268, 268), size = Vector2.new(256, 256), slice = nil}
+UIKit.Sprites["Icon_Wrench"] = {image = "rbxassetid://111680310007713", offset = Vector2.new(532, 268), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Lamp_Amber"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(76, 892), size = Vector2.new(48, 48), slice = nil}
 UIKit.Sprites["Lamp_Green"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(132, 892), size = Vector2.new(48, 48), slice = nil}
 UIKit.Sprites["Lamp_Off"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(188, 892), size = Vector2.new(48, 48), slice = nil}

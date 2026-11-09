@@ -62,7 +62,9 @@
 	Attributes on the Player (all replicate): Class, Slot, Item1 to Item5, Mag1 and Mag2,
 	Count4 and Count5, MeleeItem, CarriedAmmo, Medkits, HealEndsAt, Stamina, ReloadEndsAt,
 	ShotSalt, ShotNext, SwingEndsAt, ToolInUse.
-	API: Loadout(player), Items(player): { string }, Carries(player, itemId): boolean.
+	API: Loadout(player), Items(player): { string }, Carries(player, itemId): boolean,
+	GiveThrowable(player, itemId, count): number (Prompt 14: caches); signals Foamed, ToolTick,
+	Swung (Prompt 13) and Exploded (Prompt 14: explosives raise Disturbance).
 	Dev: class, give, ammo, medkits, loadout, stamina.
 ]]
 
@@ -124,6 +126,8 @@ local WeaponService = {
 	-- A melee swing landing: the player, where they stood facing, its reach, its arc in degrees,
 	-- its damage, the weapon, heavy or not (Prompt 13: rubble).
 	Swung = Signal.new() :: Signal.Signal<Player, CFrame, number, number, number, string, boolean>,
+	-- A player's explosive went off: where, its radius, whose (Prompt 14: explosives raise Disturbance).
+	Exploded = Signal.new() :: Signal.Signal<Vector3, number, Player>,
 }
 
 local combat: any = nil
@@ -414,6 +418,7 @@ end
 -- Guns ---------------------------------------------------------------------------------------
 
 local function explode(player: Player, at: Vector3, radius: number, damage: number, shooterId: string)
+	WeaponService.Exploded:Fire(at, radius, player)
 	local blast = Instance.new("Explosion")
 	blast.BlastPressure = 0 -- visual only: players' explosives never damage the bunker (Section 9)
 	blast.DestroyJointRadiusPercent = 0
@@ -852,6 +857,38 @@ end
 
 function WeaponService:Carries(player: Player, itemId: string): boolean
 	return table.find(WeaponService:Items(player), itemId) ~= nil
+end
+
+-- Throwables found (Prompt 14: a dug cell's cache): onto the slot that holds the same item, up to
+-- ThrowableStack, then into an empty throwable slot. Returns how many the player took.
+function WeaponService:GiveThrowable(player: Player, itemId: string, count: number): number
+	local state = loadouts[player]
+	local item = Config.Find("Items", itemId)
+	if not state or not item or item.Kind ~= "Throwable" or count <= 0 then
+		return 0
+	end
+	local cap = Combat.Tuning().ThrowableStack
+	local left = count
+	for _, pass in { "Same", "Empty" } do
+		for slot = 4, SLOTS do
+			local held = state.Slots[slot]
+			if left > 0 and pass == "Same" and held and held.Item == itemId then
+				local room = math.max(cap - (held.Count or 0), 0)
+				local add = math.min(room, left)
+				held.Count = (held.Count or 0) + add
+				left -= add
+			elseif left > 0 and pass == "Empty" and not held then
+				local add = math.min(cap, left)
+				state.Slots[slot] = { Item = itemId, Rarity = "Standard", Count = add }
+				left -= add
+			end
+		end
+	end
+	if left < count then
+		publish(player, state)
+		refreshHeld(player, state)
+	end
+	return count - left
 end
 
 local function onSelect(player: Player, slot: number)

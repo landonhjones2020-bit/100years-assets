@@ -1,0 +1,81 @@
+{
+ "asset": "Kit_CaveMouth",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  15.208,
+  10.193,
+  5.43
+ ],
+ "tris": 1612,
+ "pivot": [
+  0.002,
+  0.862,
+  2.835
+ ],
+ "parts": [
+  {
+   "name": "Funnel",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    0.129,
+    4.426,
+    -2.655
+   ],
+   "size": [
+    13.996,
+    9.092,
+    5.069
+   ],
+   "tris": 1376
+  },
+  {
+   "name": "Eyes",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.095,
+    5.19,
+    -2.719
+   ],
+   "size": [
+    10.585,
+    7.488,
+    4.798
+   ],
+   "tris": 236
+  }
+ ],
+ "meta": {
+  "kit": "cave",
+  "feature": "CaveOpening",
+  "wallOffset": 2.0
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "f64958940d74d711"
+}

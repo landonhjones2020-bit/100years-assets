@@ -30,6 +30,8 @@ local Combat = require(Shared.Rules.Combat)
 local Threat = require(Shared.Rules.Threat)
 local Disasters = require(Shared.Rules.Disasters)
 local Modifiers = require(Shared.Rules.Modifiers)
+local Dig = require(Shared.Rules.Dig)
+local Loot = require(Shared.Rules.Loot)
 local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
 local Residents = require(Shared.Rules.Residents)
@@ -1787,6 +1789,151 @@ test("Disasters: rubble blocks passages; routes go round, or say Blocked (Run)",
 		error(err, 0)
 	end
 	expect(not Hazards.Blocked(kitchen.Id, purifier.Id), "cleared")
+end)
+
+-- Digging, Disturbance and loot (Prompt 14) ------------------------------------------------------
+
+test("Dig: dig time by band, stacking, the Driller and the Drill Bay (Section 6)", function()
+	expectEqual(Dig.Seconds(1), 20, "the Mines: 20 s a cell")
+	expectEqual(Dig.Seconds(5), 30, "the Flooded Caverns: 30 s")
+	expectEqual(Dig.Seconds(8), 45, "the Crystal Hollows: 45 s")
+	expectEqual(Dig.Rate({ 1 }, 2), 1 / 20, "one player")
+	expectEqual(Dig.Rate({ 1, 1 }, 2), 2 / 20, "two players on one cell stack")
+	expectEqual(Dig.Rate({ Modifiers.ClassValue("Driller", "DigSpeed") or 1 }, 2), 2 / 20, "the Driller digs twice as fast")
+	expectEqual(Dig.Rate({}, 2), 0, "nobody digging")
+	local base = Config.Get("Rooms", "DrillBay").Output.Base
+	expectEqual(Dig.DrillBaySpeed(base, base), Dig.Tuning().ResidentDigMultiplier, "a Drill Bay's unit of crew digs slowly")
+	expectEqual(Dig.DrillBaySpeed(0, base), 0, "an idle Drill Bay doesn't dig")
+	expect(Dig.CanDigWith({ "PocketPistol", "Drill" }), "a Drill digs")
+	expect(Dig.CanDigWith({ "Pickaxe" }), "a Pickaxe digs")
+	expect(not Dig.CanDigWith({ "Wrench", "Welder" }), "nothing else does")
+	for _, id in Dig.Tuning().Tools do
+		expect(Config.Find("Items", id) ~= nil, `dig tool {id} is an item`)
+	end
+end)
+
+test("Dig: faces to dig from and Push Deeper's floors (Sections 6 and 8)", function()
+	local bunker = Bunker.FromStart()
+	local function sides(floor: number, column: number): string
+		local list = {}
+		for _, face in Dig.Faces(bunker, floor, column) do
+			table.insert(list, face.Side)
+		end
+		table.sort(list)
+		return table.concat(list, ",")
+	end
+	expectEqual(sides(1, 4), "Left", "beside the dug cell at the end of floor 1")
+	expectEqual(sides(3, 0), "Above", "under the Shaft")
+	expectEqual(sides(1, 0), "", "an open cell has nothing to dig")
+	expectEqual(sides(3, 5), "", "deep in the rock: nothing beside or above it is open")
+	local face = Dig.Faces(bunker, 1, 4)[1]
+	local point = Dig.FacePoint(face, 1, 4)
+	local wall = (Grid.CellPosition(1, 3).X + Grid.CellPosition(1, 4).X) / 2
+	expectEqual(point.X, wall, "a side's prompt is on the wall line")
+	expectEqual(Dig.StartLimit(), 3, "the Mines are open from the start")
+	expect(not Dig.NeedsVote(3, 3), "floor 3 needs no vote")
+	expect(Dig.NeedsVote(4, 3), "floor 4 opens the Flooded Caverns: a vote")
+	expectEqual(Dig.LimitAfter(4), 6, "the vote opens the whole band")
+	expectEqual(Dig.LimitAfter(7), 9, "and the Crystal Hollows")
+	expectEqual(Dig.LimitAfter(10), 10, "and the Source Chamber")
+	for _, floor in Dig.Tuning().PushDeeperFloors do
+		expect(Grid.IsBandStart(floor), `floor {floor} starts a band`)
+	end
+	expectEqual(Dig.Depth(bunker, 1, 4, 2), 1, "one cell into the rock")
+	expectEqual(Dig.Depth(bunker, 1, 5, 2), 2, "two cells in")
+	expectEqual(Dig.Depth(bunker, 1, 6, 2), nil, "past the Driller's sight")
+end)
+
+test("Dig: a cell's roll is fixed for the run and keeps Section 6's odds", function()
+	local available = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true }
+	expectEqual(Dig.Roll(77, 3, 1, 1, available), Dig.Roll(77, 3, 1, 1, available), "the same roll every time")
+	local counts: { [string]: number } = {}
+	local n = 0
+	for seedValue = 1, 40 do
+		for floor = 1, 10 do
+			for column = -6, 6 do
+				local result = Dig.Roll(seedValue * 7919, floor, column, 1, available)
+				counts[result] = (counts[result] or 0) + 1
+				n += 1
+			end
+		end
+	end
+	local function share(id: string): number
+		return (counts[id] or 0) / n
+	end
+	expect(math.abs(share("OrePocket") - 0.20) < 0.04, `ore pockets near 20% (got {share("OrePocket")})`)
+	expect(math.abs(share("CaveOpening") - 0.08) < 0.03, `cave openings near 8% (got {share("CaveOpening")})`)
+	expect(math.abs(share("Cache") - 0.04) < 0.02, `caches near 4% (got {share("Cache")})`)
+	expect(share("Nest") < 0.025, `nests rare (got {share("Nest")})`)
+	expectEqual(counts.HazardPocket, nil, "hazard pockets wait for gas and floods (Prompt 23): Empty")
+	expectEqual(counts.CryoPod, nil, "no cryo pods in Era I")
+	expect(math.abs(share("Empty") - 0.67) < 0.05, `the rest is empty (got {share("Empty")})`)
+	local withPods = table.clone(available)
+	withPods.CryoPod = true
+	local pods = 0
+	for column = -6, 6 do
+		for floor = 1, 10 do
+			for seedValue = 1, 30 do
+				if Dig.Roll(seedValue * 104729, floor, column, 2, withPods) == "CryoPod" then
+					pods += 1
+				end
+			end
+		end
+	end
+	expect(pods > 0, "cryo pods from Era II when their system exists")
+	local hint = Dig.Hint(77, 3, 1, 1, available)
+	expect(hint == nil or hint == "OrePocket" or hint == "CaveOpening", "the Driller sees ore and caves only")
+end)
+
+test("Dig: Disturbance's extra breach and Tremor (Section 10)", function()
+	local t = Dig.DisturbanceTuning()
+	expectEqual(Dig.AddDisturbance(98, 5), t.Max, "it tops out at 100")
+	expectEqual(Dig.AddDisturbance(3, -10), 0, "and bottoms out at 0")
+	local extra, tremor = Dig.Crossed(45, 50)
+	expect(extra and not tremor, "reaching 50: an extra small breach")
+	extra, tremor = Dig.Crossed(55, 60)
+	expect(not extra and not tremor, "past 50 already: nothing new")
+	extra, tremor = Dig.Crossed(95, 100)
+	expect(tremor and not extra, "reaching 100: a Tremor")
+	expectEqual(Dig.AfterTremor(), 40, "then it drops to 40")
+	expectEqual(Dig.Level(0), "CALM", "the seismograph at rest")
+	expectEqual(Dig.Level(30), "RISING", "rising")
+	expectEqual(Dig.Level(60), "UNSETTLED", "past the extra breach")
+	expectEqual(Dig.Level(90), "DANGER", "near a Tremor")
+	expectEqual(Dig.Tuning().DisturbancePerCell, 5, "every dug cell adds 5")
+	expectEqual(t.DecayPerCycle, 10, "it falls 10 a cycle")
+	expectEqual(t.NestDestroyed, 20, "and 20 when a nest is destroyed")
+	expectEqual(t.Explosive, 10, "explosives add 10")
+end)
+
+test("Loot: tables roll by weight, band ore and skipped specials (Prompt 14)", function()
+	local rng = Random.new(5)
+	for _ = 1, 20 do
+		local drops = Loot.Roll("OrePocket", rng, { BandOre = "Iron" })
+		expectEqual(#drops, 1, "an ore pocket gives one drop")
+		expectEqual(drops[1].Resource, "Iron", "the band's ore")
+		expect(drops[1].Count >= 8 and drops[1].Count <= 15, "8 to 15")
+	end
+	expectEqual(#Loot.Roll("OrePocket", rng, {}), 0, "no ore in a band without one")
+	local boosted = Loot.Roll("OrePocket", Random.new(9), { BandOre = "Copper", OreMultiplier = 2 })
+	local plain = Loot.Roll("OrePocket", Random.new(9), { BandOre = "Copper" })
+	expectEqual(boosted[1].Count, math.floor(plain[1].Count * 2 + 0.5), "the Driller's DugOre scales the ore")
+	local skip = { Gear = true, RadioLog = true }
+	for _ = 1, 40 do
+		for _, drop in Loot.Roll("Cache", rng, { BandOre = "Iron", Skip = skip }) do
+			expect(drop.Special == nil, "skipped specials never drop")
+			expect(drop.Resource ~= nil or drop.Item ~= nil, "a resource or an item")
+		end
+	end
+	local nest = Loot.Roll("Nest", rng, { BandOre = "Iron" })
+	expect(#nest >= 1, "a nest pays")
+	expect(Loot.Text({ { Resource = "Scrap", Count = 62 }, { Item = "Flare", Count = 1 } }) == "62 SCRAP · 1 FLARE", "alert text")
+	for _, id in Config.Ids("DigResults") do
+		local entry = Config.Get("DigResults", id)
+		if entry.Loot then
+			expect(Config.Find("LootTables", entry.Loot) ~= nil, `{id}'s loot table exists`)
+		end
+	end
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

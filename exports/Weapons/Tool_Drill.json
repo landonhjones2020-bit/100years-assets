@@ -1,0 +1,105 @@
+{
+ "asset": "Tool_Drill",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  1.406,
+  1.85,
+  3.18
+ ],
+ "tris": 1462,
+ "pivot": [
+  0.357,
+  0.665,
+  1.05
+ ],
+ "parts": [
+  {
+   "name": "Motor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "rubber",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    -0.357,
+    0.26,
+    -1.05
+   ],
+   "size": [
+    1.406,
+    1.85,
+    3.18
+   ],
+   "tris": 1426
+  },
+  {
+   "name": "PilotLamp",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    0.23,
+    0.78,
+    0.14
+   ],
+   "size": [
+    0.1,
+    0.116,
+    0.116
+   ],
+   "tris": 36
+  }
+ ],
+ "meta": {
+  "kind": "Tool",
+  "item": "Drill",
+  "class": [
+   "Driller"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.53,
+    -2.62
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "e77d06585ba42c79"
+}

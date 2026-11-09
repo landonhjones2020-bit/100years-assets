@@ -21,6 +21,7 @@
 	Threat (ThreatDirector): Threat and Monsters.
 	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt
 	and ValvesTurned.
+	Digging (DigService, Prompt 14): Disturbance, DigLimit, DigSeed, TremorAt and Nests.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -31,7 +32,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
-	| "DisasterService"
+	| "DisasterService" | "DigService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -91,6 +92,13 @@ local FIELDS: { [string]: Field } = {
 	Meltdown = { Type = "boolean", By = "DisasterService", Doc = "the Reactor Core is melting down (Section 10)" },
 	MeltdownEndsAt = { Type = "number", By = "DisasterService", Doc = "server time the meltdown loses the run (Meltdown only)" },
 	ValvesTurned = { Type = "number", By = "DisasterService", Doc = "the meltdown valves turned now, 0 to 3 (Meltdown only)" },
+
+	-- DigService (Prompt 14): Disturbance and digging
+	Disturbance = { Type = "number", By = "DigService", Doc = "the Disturbance meter, 0 to 100 (Section 10): the HUD's seismograph" },
+	DigLimit = { Type = "number", By = "DigService", Doc = "the deepest floor the team may dig without a Push Deeper vote (3, then 6, 9, 10)" },
+	DigSeed = { Type = "number", By = "DigService", Doc = "the run's seed for what dug cells hold (Rules.Dig.Roll), so the Driller's hints match" },
+	TremorAt = { Type = "number", By = "DigService", Doc = "server time of the last Tremor (clients shake the camera)" },
+	Nests = { Type = "number", By = "DigService", Doc = "nests alive in the bunker" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

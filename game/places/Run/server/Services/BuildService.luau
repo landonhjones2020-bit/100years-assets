@@ -39,6 +39,7 @@
 	API:
 		BuildService:Propose(player, proposal): (boolean, string?)
 		BuildService:Unlock(roomType), :Unlocked(): { [string]: boolean }
+		BuildService:SetCellCheck(fn(floor, column) -> (ok, why?))  -- Prompt 14: what a dug cell holds
 		BuildService:Reserved(exceptVoteId?): { [string]: boolean }  -- votes' and sites' cells
 		BuildService:FinishSite(id): boolean                           -- DevTools
 		BuildService:Repair(roomId, amount, how, player?): number      -- HP it added (fractions carry)
@@ -356,6 +357,31 @@ local function ghostLabel(plan: Construction.Plan): string
 	return "TEAR DOWN?"
 end
 
+-- Something in a dug cell that has to be dealt with before a room goes on it (Prompt 14: a nest, a
+-- cache, a cave opening; DigService sets the check).
+local cellCheck: ((floor: number, column: number) -> (boolean, string?))? = nil
+
+function BuildService:SetCellCheck(fn: ((floor: number, column: number) -> (boolean, string?))?)
+	cellCheck = fn
+end
+
+local function cellsClear(plan: Construction.Plan): (boolean, string?)
+	local check = cellCheck
+	if not check or plan.Action ~= "Build" then
+		return true, nil
+	end
+	for _, key in Construction.Cells(plan) do
+		local floor, column = Grid.Parse(key)
+		if floor and column then
+			local ok, why = check(floor, column)
+			if not ok then
+				return false, why
+			end
+		end
+	end
+	return true, nil
+end
+
 function BuildService:Propose(player: Player, proposal: Construction.Proposal): (boolean, string?)
 	local ok, why = votes:CanPropose(player)
 	if not ok then
@@ -364,6 +390,10 @@ function BuildService:Propose(player: Player, proposal: Construction.Proposal): 
 	local plan, reason = Construction.Plan(grid:Bunker(), proposal, context(nil))
 	if not plan then
 		return false, reason
+	end
+	local clear, blocked = cellsClear(plan)
+	if not clear then
+		return false, blocked
 	end
 	local voteId: string? = nil
 	local latest: Construction.Plan = plan
@@ -378,6 +408,10 @@ function BuildService:Propose(player: Player, proposal: Construction.Proposal): 
 		Check = function(): (boolean, string?)
 			local again, why2 = Construction.Plan(grid:Bunker(), proposal, context(voteId))
 			if again then
+				local clear2, blocked2 = cellsClear(again)
+				if not clear2 then
+					return false, blocked2
+				end
 				latest = again
 				return true, nil
 			end

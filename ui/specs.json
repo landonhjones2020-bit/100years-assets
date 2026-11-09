@@ -392,6 +392,15 @@
   ],
   "slice": null
  },
+ "Icon_Drill": {
+  "group": "items",
+  "note": "Drill icon from the model (hotbar)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Extinguisher": {
   "group": "items",
   "note": "Extinguisher icon from the model (hotbar)",
@@ -474,6 +483,15 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Pickaxe": {
+  "group": "items",
+  "note": "Pickaxe icon from the model (hotbar)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },

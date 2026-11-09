@@ -7,8 +7,9 @@
 	* every room's vent (BunkerKit's Kit_Vent; the Shaft and the Blast Door have none);
 	* every dug cell next to rock, on any floor (Landon, 2026-11-08: every tunnel touching rock
 	  counts, not only the deepest band's);
-	* cave openings come with the caves (Prompt 17) and the Blast Door's surface threats with
-	  raids (Prompt 16).
+	* cave openings and living nests in dug cells (DigService adds them, Prompt 14; the caves
+	  behind the openings come with Prompt 17), and the Blast Door's surface threats with raids
+	  (Prompt 16).
 	Each point has a weight: DarkRoomWeight in a dark room (Section 6: dark rooms spawn monsters
 	twice as often), BarricadeWeight when barricaded (its Barricaded attribute; the Engineer's
 	barricades come with Prompt 20).
@@ -24,6 +25,7 @@
 		BreachService:Points(): { { Id, Kind, RoomId?, Floor, Column, Weight, Dark } }
 		BreachService:Pick(rng): point?                    -- weighted
 		BreachService:Open(pointId, groups, tag?): boolean
+		BreachService:SetExtraPoint(id, point?)            -- Prompt 14: cave openings and nests
 		BreachService.Opened: Signal<string, string?>      -- point id, tag (after the warning)
 	Dev: breaches, breach.
 ]]
@@ -50,8 +52,8 @@ local BreachService = {
 }
 
 export type Point = {
-	Id: string, -- "V:<roomId>" (a vent) or "D:<floor>,<column>" (a dug cell at the rock)
-	Kind: string, -- "Vent" or "Rock"
+	Id: string, -- "V:<roomId>" (a vent), "D:<floor>,<column>" (a dug cell at the rock), or one another service adds
+	Kind: string, -- "Vent", "Rock", or another service's ("Cave", "Nest": DigService, Prompt 14)
 	RoomId: string?,
 	Floor: number,
 	Column: number,
@@ -71,6 +73,7 @@ local dev: any = nil
 local collection: any = nil
 
 local warnings: { [string]: { EndsAt: number, Tag: string? } } = {}
+local extra: { [string]: Point } = {} -- points other services add (Prompt 14: cave openings, nests)
 
 local function threatTuning(): { [string]: any }
 	return Config.Get("Tuning", "Threat")
@@ -163,7 +166,15 @@ function BreachService:Points(): { Point }
 	for _, point in rockPoints() do
 		table.insert(list, point)
 	end
+	for _, point in extra do
+		table.insert(list, point)
+	end
 	return list
+end
+
+-- A breach point another service owns (Prompt 14: a cave opening, a living nest); nil removes it.
+function BreachService:SetExtraPoint(id: string, point: Point?)
+	extra[id] = point
 end
 
 function BreachService:Pick(rng: Random, exclude: { [string]: boolean }?): Point?
@@ -192,6 +203,11 @@ local function placeName(point: Point): string
 		if room then
 			return string.upper(Config.Get("Rooms", room.Type).Name)
 		end
+	end
+	if point.Kind == "Cave" then
+		return `THE CAVE OPENING, FLOOR {point.Floor}`
+	elseif point.Kind == "Nest" then
+		return `THE NEST, FLOOR {point.Floor}`
 	end
 	return `THE ROCK, FLOOR {point.Floor}`
 end

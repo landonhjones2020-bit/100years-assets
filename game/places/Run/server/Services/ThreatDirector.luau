@@ -17,7 +17,8 @@
 	  the first cycle, so the tutorial day stays calm), and minor incidents (Section 10): each day
 	  from the second may bring one electrical surge (Rules.Disasters.ElectricalChance by era, at a
 	  random moment of the day, in a random room).
-	* Disturbance (Prompt 14) calls ExtraBreach at 50 and Tremor at 100.
+	* Disturbance (DigService, Prompt 14) calls ExtraBreach at 50 and Tremor at 100; a nest dug open
+	  calls Burst.
 	* At most 25 monsters are on the map at once: MonsterService queues the rest.
 
 	API:
@@ -25,6 +26,7 @@
 		ThreatDirector:SpendSurge(kind?): number      -- the wave now (DevTools; Tremor)
 		ThreatDirector:ExtraBreach(): boolean        -- Disturbance 50 (Section 10)
 		ThreatDirector:Tremor(): number              -- Disturbance 100: a full wave at once
+		ThreatDirector:Burst(fraction, at, tag): number -- Prompt 14: a nest's monsters, at once
 		ThreatDirector:SetDisasterCheck(fn)          -- replaces DisasterService:HoldsSurge (tests)
 	Dev: threat, surge.wave.
 ]]
@@ -177,6 +179,22 @@ function ThreatDirector:Tremor(): number
 	local level = ThreatDirector:Level()
 	local groups = Threat.Groups(level, Threat.Roster(clock:Era()), rng)
 	return spend(groups, "Tremor", tuning().MaxBreachPointsPerSurge, 0)
+end
+
+-- Monsters all at once at one spot, no warning (Prompt 14: a nest pours its monsters out when it is
+-- dug open): `fraction` of the threat level, bought like any group.
+function ThreatDirector:Burst(fraction: number, at: CFrame, tag: string): number
+	local groups = Threat.Groups(ThreatDirector:Level() * fraction, Threat.Roster(clock:Era()), rng)
+	local n = 0
+	for _, group in groups do
+		for _ = 1, group.Count do
+			local offset = CFrame.new(((n % 3) - 1) * 2.2, 0, -math.floor(n / 3) * 1.6)
+			monsters:Spawn(group.Type, at * offset, tag)
+			n += 1
+		end
+	end
+	log:Info("burst of %d monsters (%s)", n, tag)
+	return n
 end
 
 function ThreatDirector:SetDisasterCheck(fn: () -> boolean)

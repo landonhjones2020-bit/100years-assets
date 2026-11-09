@@ -96,6 +96,9 @@ local Schemas: { [string]: Check.Checker } = {
 	Digging = shape({
 		DisturbancePerCell = N, StackPlayers = Check.boolean(), PushDeeperFloors = list(I, 3),
 		ResidentDigMultiplier = N,
+		-- Prompt 14
+		Tools = list(Check.ref("Items"), 4), PromptReach = N, TickSeconds = S, CaveInChance = Fr,
+		NestHealth = N, NestBudget = N, NestPerCycle = N, CacheOpenSeconds = S, VoteRetrySeconds = S,
 	}),
 	Disturbance = shape({
 		Max = N, DecayPerCycle = N, NestDestroyed = N, Explosive = N, ExtraBreachAt = N, TremorAt = N, AfterTremor = N,
@@ -256,7 +259,18 @@ return {
 			Ambient = "#6E7680", OutdoorAmbient = "#8C949E", ExposureCompensation = 0.4,
 		},
 		Ping = { Seconds = 6 }, -- Section 7: a pinged cell shows on every player's mini-map; prov.
-		Digging = { DisturbancePerCell = 5, StackPlayers = true, PushDeeperFloors = { 4, 7, 10 }, ResidentDigMultiplier = 0.25 },
+		Digging = { -- Section 6 (dig times are Config.DepthBands' DigSeconds), Section 10 (Disturbance)
+			DisturbancePerCell = 5, StackPlayers = true, PushDeeperFloors = { 4, 7, 10 }, ResidentDigMultiplier = 0.25,
+			-- Prompt 14, prov. A Drill or a Pickaxe digs; a dig prompt answers within PromptReach. A Drill
+			-- Bay digs the queue at ResidentDigMultiplier of a player's speed for each unit of its crew's
+			-- output (two average workers are one unit). A dug cell's passage caves in CaveInChance of the
+			-- time (Section 10: digging causes cave-ins). A nest: NestHealth, NestBudget of the threat
+			-- level in monsters pouring out when it opens, NestPerCycle Disturbance each cycle it lives
+			-- (Section 10: nests left alive raise it). A cache opens after CacheOpenSeconds of holding
+			-- Interact. A failed Push Deeper vote can be asked again after VoteRetrySeconds.
+			Tools = { "Drill", "Pickaxe" }, PromptReach = 8, TickSeconds = 0.25, CaveInChance = 0.05,
+			NestHealth = 600, NestBudget = 0.5, NestPerCycle = 10, CacheOpenSeconds = 1, VoteRetrySeconds = 30,
+		},
 		Disturbance = { -- Section 10
 			Max = 100, DecayPerCycle = 10, NestDestroyed = 20, Explosive = 10, ExtraBreachAt = 50, TremorAt = 100, AfterTremor = 40,
 		},

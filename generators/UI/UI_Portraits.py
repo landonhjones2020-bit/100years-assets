@@ -248,6 +248,8 @@ WEAPON_ICONS = {
     "Icon_Wrench": ("Weapon_Wrench", (-38, 12), 4.4),
     "Icon_Extinguisher": ("Tool_Extinguisher", (-12, 14), 2.9),     # Prompt 13
     "Icon_Welder": ("Tool_Welder", (-14, 12), 3.0),
+    "Icon_Drill": ("Tool_Drill", (-16, 12), 3.7),                  # Prompt 14
+    "Icon_Pickaxe": ("Weapon_Pickaxe", (-40, 12), 4.3),
 }
 
 
@@ -297,6 +299,8 @@ SPECS["Icon_PocketPistol"] = {"size": [256, 256], "slice": None, "group": "items
 SPECS["Icon_Wrench"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Wrench icon from the model (hotbar)"}
 SPECS["Icon_Extinguisher"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Extinguisher icon from the model (hotbar)"}
 SPECS["Icon_Welder"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Welder icon from the model (hotbar)"}
+SPECS["Icon_Drill"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Drill icon from the model (hotbar)"}
+SPECS["Icon_Pickaxe"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Pickaxe icon from the model (hotbar)"}
 
 if __name__ == "__main__":
     args = sys.argv[1:]

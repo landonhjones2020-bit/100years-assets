@@ -11,7 +11,8 @@
 	* Top left: health from the character; the class and its ability (the Survivor until the
 	  loadout arrives); stamina and radiation rest until combat.
 	* Top right: the stockpile chips (values come with the economy, Prompt 9), the seismograph
-	  at rest (Disturbance, Prompt 14) and the Command View button.
+	  (Disturbance, Prompt 14: the trace swings wider as it rises, a Tremor throws it wide, and the
+	  reading says CALM, RISING, UNSETTLED or DANGER) and the Command View button.
 	* Bottom centre: the hotbar's selection (1 to 5, the D-pad, a tap).
 	* Bottom right on touch: Fire, Aim, Melee, Ability, Interact, Jump, Dodge, Sprint (a
 	  toggle), Ping and Shoulder, bound through InputController. Roblox's own jump button is
@@ -39,6 +40,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
 local Grid = require(Shared.Rules.Grid)
+local Dig = require(Shared.Rules.Dig)
 local Hud = require(Shared.Rules.Hud)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
@@ -59,6 +61,7 @@ local COLORS = {
 	hazard = Color3.fromHex("#F2C14E"),
 	signal = Color3.fromHex("#E8743B"),
 	leaf = Color3.fromHex("#7CC26A"),
+	rust = Color3.fromHex("#B5412B"),
 }
 -- The stockpile chips: Section 18 lists power, Food, Water, Scrap, ore and Ammo.
 local STOCK = {
@@ -610,6 +613,54 @@ function HUDController:Init(registry)
 	inRun = Constants.PlaceKind() == "Run"
 end
 
+-- The seismograph (Section 10: Disturbance shown as a seismograph on the HUD; Prompt 14) ----------
+-- The trace scrolls across the paper; its swing grows with Disturbance, a Tremor throws it wide
+-- for a moment, and the reading under DISTURBANCE says how close the next breach or Tremor is.
+
+local SEISMO_HZ = 20
+local seismoValue = 0
+local seismoTremorUntil = 0
+local seismoPhase = 0
+local LEVEL_COLORS = { CALM = "leaf", RISING = "hazard", UNSETTLED = "signal", DANGER = "rust" }
+
+local function showDisturbance()
+	local value = RunState.Get("Disturbance")
+	seismoValue = if type(value) == "number" then value else 0
+	local level = Dig.Level(seismoValue)
+	local label = gui and gui:FindFirstChild("DisturbanceLevel")
+	if label and label:IsA("TextLabel") then
+		label.Text = level
+		label.TextColor3 = COLORS[LEVEL_COLORS[level] or "leaf"]
+	end
+end
+
+local function tickSeismograph(dt: number)
+	local seis = gui and gui:FindFirstChild("Disturbance")
+	local trace = seis and seis:FindFirstChild("Trace")
+	if not trace then
+		return
+	end
+	seismoPhase += dt
+	local max = Dig.DisturbanceTuning().Max
+	local swing = 0.03 + 0.34 * math.clamp(seismoValue / max, 0, 1)
+	if os.clock() < seismoTremorUntil then
+		swing = 0.45
+	end
+	for _, segment in trace:GetChildren() do
+		if segment:IsA("GuiObject") then
+			local i = tonumber(string.sub(segment.Name, 2)) or 0
+			-- newer readings on the right; the paper runs left
+			local y = math.noise(i * 0.35 - seismoPhase * 6, seismoPhase * 0.7) * swing * 2
+			segment.Position = UDim2.fromScale(segment.Position.X.Scale, 0.5 + math.clamp(y, -0.46, 0.46))
+		end
+	end
+	local label = gui and gui:FindFirstChild("DisturbanceLevel")
+	if label and label:IsA("TextLabel") then
+		-- DANGER blinks: the next step is a Tremor
+		label.TextTransparency = if Dig.Level(seismoValue) == "DANGER" and os.clock() % 0.8 < 0.3 then 0.6 else 0
+	end
+end
+
 function HUDController:Start()
 	if not inRun then
 		return -- the Lobby's own HUD comes with the lobby (Prompt 21)
@@ -680,6 +731,20 @@ function HUDController:Start()
 	RunState.Changed("RunPhase"):Connect(refreshVisible)
 	showYear()
 	showEra()
+	-- Disturbance (Prompt 14)
+	RunState.Changed("Disturbance"):Connect(showDisturbance)
+	RunState.Changed("TremorAt"):Connect(function()
+		seismoTremorUntil = os.clock() + 2.5
+	end)
+	showDisturbance()
+	local seismoElapsed = 0
+	RunService.Heartbeat:Connect(function(dt: number)
+		seismoElapsed += dt
+		if seismoElapsed >= 1 / SEISMO_HZ and gui and gui.Enabled then
+			tickSeismograph(seismoElapsed)
+			seismoElapsed = 0
+		end
+	end)
 	local elapsed = 0
 	RunService.Heartbeat:Connect(function(dt: number)
 		elapsed += dt

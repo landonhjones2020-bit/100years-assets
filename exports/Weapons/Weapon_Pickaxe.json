@@ -1,0 +1,82 @@
+{
+ "asset": "Weapon_Pickaxe",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.38,
+  2.605,
+  3.39
+ ],
+ "tris": 658,
+ "pivot": [
+  0.0,
+  1.503,
+  1.065
+ ],
+ "parts": [
+  {
+   "name": "Haft",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "leather",
+    "pine",
+    "rubber",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    -0.179,
+    -1.065
+   ],
+   "size": [
+    0.38,
+    2.562,
+    3.39
+   ],
+   "tris": 658
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "item": "Pickaxe",
+  "class": [
+   "Driller"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    -1.46,
+    -1.99
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "40c2c8d4ed6a0010"
+}

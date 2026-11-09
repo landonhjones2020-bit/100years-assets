@@ -184,6 +184,13 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 8, PerSecond = 6 },
 		Doc = "Start (true) or stop (false) using the held tool while Fire is held: the Extinguisher sprays, the Welder repairs what the player faces (WeaponService; Prompt 13).",
 	},
+	MarkDig = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.integer(1, 10), Check.integer(-6, 6), Check.boolean() },
+		Rate = { Burst = 6, PerSecond = 2 },
+		Doc = "Put a rock cell (floor, column) on the Drill Bay's dig queue (true) or take it off (false) from the Command View; no vote (Section 7; DigService, Prompt 14).",
+	},
 
 	-- server -> client
 	Delta = {

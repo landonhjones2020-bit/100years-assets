@@ -10,7 +10,7 @@
 	  AimDistance, slows walking to AimWalkSpeed (Lib.Movement) and turns the character to where
 	  the camera looks. Face(reason, on) turns it the same way without aiming (firing from the
 	  hip, a swing; Prompt 11), and Nudge(yaw, pitch) turns the camera a little (recoil, aim
-	  assist).
+	  assist). Shake(seconds, degrees) shakes it (Prompt 14: a Tremor).
 	* Zoom (the wheel, a pinch) between Distance.Min and Distance.Max, capped at IndoorMax while
 	  the character is in a bunker cell.
 	* Zoom caps: a spherecast from the shoulder keeps the camera out of walls, slabs and rock: it
@@ -218,6 +218,19 @@ local function active(): boolean
 	return not stopped and next(suspended) == nil
 end
 
+-- Shake (Prompt 14: a Tremor): a small turn that fades over the seconds given.
+local shakeUntil, shakeSeconds, shakeDegrees = 0, 0, 0
+
+local function shakeOffset(): CFrame
+	local left = shakeUntil - os.clock()
+	if left <= 0 then
+		return CFrame.identity
+	end
+	local k = shakeDegrees * (left / math.max(shakeSeconds, 0.01))
+	local t = os.clock() * 31
+	return CFrame.Angles(math.rad(math.noise(t, 0.5) * k * 2), math.rad(math.noise(t, 7.5) * k * 2), 0)
+end
+
 local function updateMouse()
 	local locked = active() and next(cursorFree) == nil and input:Device() ~= "Touch" and not GuiService.MenuIsOpen
 	local behavior = if locked then Enum.MouseBehavior.LockCenter else Enum.MouseBehavior.Default
@@ -411,7 +424,7 @@ local function step(dt: number)
 	end
 
 	local position = focus - look * distance
-	camera.CFrame = CFrame.new(position) * rotation
+	camera.CFrame = CFrame.new(position) * rotation * shakeOffset()
 	camera.Focus = CFrame.new(focus)
 	camera.FieldOfView = t.FieldOfView + (aimFieldOfView - t.FieldOfView) * aimBlend
 
@@ -497,6 +510,13 @@ function CameraController:Face(reason: string, on: boolean)
 end
 
 -- Turn the camera by a few degrees (recoil kicks it up; aim assist pulls it toward a target).
+-- Shake the over-the-shoulder camera for `seconds`, up to `degrees` (Prompt 14: Tremors).
+function CameraController:Shake(seconds: number, degrees: number)
+	shakeUntil = os.clock() + seconds
+	shakeSeconds = seconds
+	shakeDegrees = degrees
+end
+
 function CameraController:Nudge(yawDegrees: number, pitchDegrees: number)
 	yaw += math.rad(yawDegrees)
 	pitch = CameraRig.ClampPitch(pitch + math.rad(pitchDegrees))
