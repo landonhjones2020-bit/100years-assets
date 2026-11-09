@@ -473,6 +473,7 @@ function ResidentService:Lose(id: string, how: string)
 		return
 	end
 	downHow[id] = how
+	resident.Health = 0
 	die(resident, true)
 end
 

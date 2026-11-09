@@ -9,7 +9,7 @@
 	* SURFACE and DEEP: the cards are the residents who can go (alive, in the bunker, not cut off by
 	  rubble), with the stats an expedition leans on (Grit, Speed, Strength); a card joins or leaves
 	  the team (three at most, lamp lit). The footer sets the length (1, 2 or 3 cycles) and the
-	  Medkits packed (0 to 3) and clears the team. Zone D: the destination, the team, when they'd be
+	  Medkits packed (0 to 3). Zone D: the destination, the team, when they'd be
 	  back, the supplies taken from the stockpile (the top bar shows what's in it), the risk each
 	  cycle (Rules.Expeditions.Odds) and what a cycle finds on average; SEND fires SendExpedition
 	  (the server checks it all again).
@@ -48,6 +48,8 @@ local ExpeditionsController = {
 
 local RUST = Color3.fromHex("#B5412B")
 local SURFACE_FLARE, DEEP_FLARE = 220, 12 -- studs: a column over the town, a short one in a cave
+local FLARE_WIDTH = 2.4
+local ARROW_Z = 30 -- the edge arrow sits over the HUD's top bar
 local STATUS_TEXT: { [string]: string } = { Away = "away", Pinned = "pinned down", Following = "on the way home", Home = "home", Lost = "lost" }
 
 local ui: any = nil
@@ -200,10 +202,6 @@ local function footer()
 			medkits = if medkits >= t.MedkitsMax then 0 else medkits + 1
 			render()
 		end },
-		{ Label = "Clear team", OnPress = function()
-			team = {}
-			render()
-		end },
 	})
 end
 
@@ -217,7 +215,7 @@ local function showPlan(detail: any)
 		ui:SetSprite(heroImage, hero)
 	end
 	ui:SetRarity(detail, "Common")
-	detail:FindFirstChild("Name").Text = if destination == "Deep" then "DEEP EXPEDITION" else "SURFACE EXPEDITION"
+	detail:FindFirstChild("Name").Text = if destination == "Deep" then "THE DEEP" else "THE SURFACE"
 	detail.Sub.Text = if band then `{destinationName("Deep", band.Id)}{if band.Ore then `  ·  {string.upper(band.Ore)}` else ""}`
 		else destinationName("Surface")
 	local body = ui:Clear(detail.Body)
@@ -312,7 +310,7 @@ local function fillPlan(content: any, detail: any)
 	end
 	content.Empty.Visible = #list == 0
 	showPlan(detail)
-	ui:SetHint(if #list == 0 then "Nobody can set out now" else `{#team} of {Expeditions.Tuning().Size.Max} picked · cards join or leave the team`)
+	ui:SetHint(if #list == 0 then "Nobody can set out now" else `{#team} of {Expeditions.Tuning().Size.Max} picked`)
 end
 
 -- Expeditions out (ACTIVE) ------------------------------------------------------------------------
@@ -350,9 +348,9 @@ local function showActive(detail: any, id: string?)
 		ui:SetSprite(heroImage, "Icon_Radio")
 	end
 	ui:SetRarity(detail, "Common")
-	detail:FindFirstChild("Name").Text = if e.Destination == "Deep" then "DEEP EXPEDITION" else "SURFACE EXPEDITION"
+	detail:FindFirstChild("Name").Text = if e.Destination == "Deep" then "THE DEEP" else "THE SURFACE"
 	local state = stateText(e)
-	detail.Sub.Text = `{destinationName(e.Destination, e.Band)}  ·  {state}`
+	detail.Sub.Text = state
 	local body = ui:Clear(detail.Body)
 	local who = {}
 	for _, m in e.Members do
@@ -521,7 +519,7 @@ local function placeMarker(id: string, e: any)
 		column.Material = Enum.Material.Neon
 		column.Color = RUST
 		column.Transparency = 0.35
-		column.Size = Vector3.new(1.2, height, 1.2)
+		column.Size = Vector3.new(FLARE_WIDTH, height, FLARE_WIDTH)
 		column.Parent = effectsFolder()
 		local anchor = Instance.new("Part")
 		anchor.Name = `DistressPlate_{id}`
@@ -540,6 +538,7 @@ local function placeMarker(id: string, e: any)
 		if arrow and root then
 			arrow.Name = `DistressArrow_{id}`
 			arrow.Visible = false
+			arrow.ZIndex = ARROW_Z
 			arrow.Parent = root
 		end
 		m = { Column = column, Anchor = anchor, Gui = gui, Arrow = arrow, Data = e }

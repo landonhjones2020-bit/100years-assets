@@ -843,8 +843,9 @@ cycle's average finds, for the screen), `Harm(maxHealth, x, medkit)`, `Deadline(
 `Tuning.Expeditions`, the log lines `Config.ExpeditionLogs`, the finds `LootTables` ExpeditionSurface
 and ExpeditionDeep.
 
-* `ExpeditionService` puts an EXPEDITIONS console prompt (Kind `Expeditions`) in the Blast Door
-  hall and in every Radio Room (`<bunker>.ExpeditionConsoles`, again on `BunkerGrid.Changed`). The
+* `ExpeditionService` puts an EXPEDITIONS console prompt (Kind `Expeditions`) on the radio of the
+  Blast Door guard's desk (`Kit_BlastDoor`'s `GuardDesk`; beside the door in a graybox hall) and in
+  every Radio Room (`<bunker>.ExpeditionConsoles`, again on `BunkerGrid.Changed`). The
   `SendExpedition` remote (destination, resident ids, cycles, Medkits; no vote, Section 8) is
   checked: the sender within `UseRange` of a console, `Rules.Expeditions.Check`, the stockpile
   (`EconomyService:Spend` takes the Food, Water and Medkits). Each member leaves their job and goes

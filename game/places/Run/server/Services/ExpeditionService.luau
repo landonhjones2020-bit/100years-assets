@@ -90,8 +90,9 @@ local ExpeditionService = {
 -- loot nothing hands out yet: gear (Prompt 26), blueprints (Prompt 19); recruits are this service's
 local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true }
 local HALL = Vector3.new(0, 0, 6) -- from the Blast Door's Door socket into the hall (where the elevator lets out)
-local BLAST_CONSOLE = Vector3.new(-10, 2.5, 1) -- the hall's expedition radio, left of the door
-local RADIO_CONSOLE_BACK = 5 -- a Radio Room's console: this far in from its back wall
+local BLAST_CONSOLE = Vector3.new(-10, 2.5, 1) -- the hall's console without the art kit's GuardDesk: left of the door
+local RADIO_CONSOLE_BACK = 5 -- a Radio Room's console: this far in from its back wall (or its Console socket)
+local RADIO_SCALE = 1.5 -- the radio set on a Radio Room's console (Prop_RadioLog, A6) until A7 brings the room's art
 local MODIFIER_KEYS = { "RecruitRate", "RareRecruitChance", "DistressCallLeadSeconds" }
 
 type Member = {
@@ -873,6 +874,30 @@ local function consolePrompt(anchor: BasePart, label: string)
 	prompt.Parent = anchor
 end
 
+-- A radio set (the A6 recorder) on a Radio Room's console, so the room shows where to send from.
+local function radioSet(anchor: BasePart, at: Vector3)
+	local assets = game:GetService("ServerStorage"):FindFirstChild("Assets")
+	local props = assets and assets:FindFirstChild("Props")
+	local source = props and props:FindFirstChild("Prop_RadioLog")
+	if not source or not source:IsA("Model") then
+		return
+	end
+	local radio = source:Clone()
+	radio.Name = "Radio"
+	radio:SetAttribute("Find", nil)
+	for _, part in radio:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+		end
+	end
+	radio:ScaleTo(RADIO_SCALE)
+	radio:PivotTo(CFrame.new(at) * CFrame.Angles(0, math.pi, 0)) -- facing into the room
+	radio.Parent = anchor
+end
+
 local function syncConsoles()
 	local root = grid:Root()
 	if not root then
@@ -884,15 +909,36 @@ local function syncConsoles()
 		holder.Name = "ExpeditionConsoles"
 		holder.Parent = root
 	end
-	local wanted: { [string]: { At: Vector3, Label: string } } = {}
+	local wanted: { [string]: { At: Vector3, Label: string, Radio: Vector3? } } = {}
+	-- the Blast Door guard's desk and its radio (Kit_BlastDoor), or beside the door in a graybox hall
+	local door = grid:RoomsOfType("BlastDoor")[1]
+	local doorModel = door and grid:RoomModel(door.Id)
+	local desk = doorModel and doorModel:FindFirstChild("GuardDesk", true)
 	local socket = doorSocket()
-	if socket then
+	if desk and desk:IsA("BasePart") then
+		wanted.Hall = { At = desk.Position + Vector3.new(0, desk.Size.Y / 2 + 1.5, 0), Label = "Blast Door radio" }
+	elseif socket then
 		wanted.Hall = { At = socket.Position + BLAST_CONSOLE, Label = "Blast Door radio" }
 	end
 	local g = Grid.Tuning()
 	for _, room in grid:RoomsOfType("RadioRoom") do
+		local model = grid:RoomModel(room.Id)
+		local socket = model and BunkerKit.Socket(model, "Console")
 		local cell = Grid.CellPosition(room.Floor, room.Column + (room.Span - 1) / 2)
-		wanted[`Radio {room.Id}`] = { At = cell + Vector3.new(0, 2.5, -g.CellDepth / 2 + RADIO_CONSOLE_BACK), Label = "Radio Room" }
+		local spot = if socket then socket.Position else cell + Vector3.new(0, 0, -g.CellDepth / 2 + RADIO_CONSOLE_BACK)
+		-- the set stands on whatever is there: a desk, or the floor
+		local top = spot.Y
+		if model then
+			local params = RaycastParams.new()
+			params.FilterType = Enum.RaycastFilterType.Include
+			params.FilterDescendantsInstances = { model }
+			local hit = workspace:Raycast(spot + Vector3.new(0, 8, 0), Vector3.new(0, -12, 0), params)
+			if hit then
+				top = hit.Position.Y
+			end
+		end
+		local base = Vector3.new(spot.X, top, spot.Z)
+		wanted[`Radio {room.Id}`] = { At = base + Vector3.new(0, 1.8, 0), Label = "Radio Room", Radio = base }
 	end
 	for _, child in (holder :: Folder):GetChildren() do
 		if not wanted[child.Name] then
@@ -915,6 +961,12 @@ local function syncConsoles()
 			anchor = part
 		end
 		(anchor :: BasePart).CFrame = CFrame.new(spec.At)
+		local radio = (anchor :: BasePart):FindFirstChild("Radio")
+		if spec.Radio and not radio then
+			radioSet(anchor :: BasePart, spec.Radio)
+		elseif radio and spec.Radio then
+			(radio :: Model):PivotTo(CFrame.new(spec.Radio) * CFrame.Angles(0, math.pi, 0))
+		end
 	end
 end
 
