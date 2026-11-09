@@ -21,6 +21,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 7: Command View (Run) | ✅ done 2026-11-08 | Run playtests with real keys, clicks, drags and the wheel, plus graphics level 1; Lobby start check; gamepad and touch still need a person; `game/reports/P07_CommandView.md`, `previews/Game/P07_Studio_sheet.jpg` |
 | Prompt 8: votes and construction (Run), with Landon's answers to the Prompt 6 and 7 questions | ✅ done 2026-11-08 | Run playtests with real clicks and keys, a team of three with pretend voters; two real players, gamepad, touch and the wheel click still need a person; `game/reports/P08_VotesConstruction.md`, `previews/Game/P08_Studio_sheet.jpg` |
 | Prompt 9: economy and power (Run), with Landon's answers to the Prompt 8 questions | ✅ done 2026-11-08 | Run playtests with pretend crews and eaters, the dark order, refunds, a Nightmare upgrade site, Y voting sent by the test tool; a real controller, two real players and touch still need a person; `game/reports/P09_EconomyPower.md`, `previews/Game/P09_Studio_sheet.jpg` |
+| Prompt 10: residents, phase 1 (Run) | ✅ done 2026-11-08 | Run playtests: founders at work, the routine (meal, work, Shaft stairs to bed), assigning with real clicks, the Residents screen, revive and death, defeat; `game/reports/P10_Residents.md`, `previews/Game/P10_Studio_sheet.jpg` |
 | A2 to A11 | not started | |
 
 ## Ids
@@ -37,6 +38,40 @@ Newest first. Every "verified" line says how it was checked.
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-08 (late night): Prompt 10, residents phase 1
+
+Game code builds `p9-e4d9a53` to `p10-b80edc7` (final). The final is code asset 95026446991297
+revision 32, installed in Run and Lobby: StructureCheck 0 errors (Run 332 checks, Lobby 226),
+74 data tests passed.
+
+**Done**
+* Rules.Residents and ResidentService:
+  * the six founders, put to work by Auto-Assign (best matches, power first);
+  * needs, levels and Medbay healing each cycle; who goes hungry;
+  * death, revival and defeat.
+* ResidentBrain and Lib.PathGraph: the routine (meal, work, bed) walked through doorways and up
+  the Shaft stairs. NPCAnimator and Config.Animations (the A0 walk).
+* The Residents screen; workers and assigning in the Command View; the Morale overlay.
+
+**Verified in Studio**
+* The economy now runs on real crews (31 to 38 power, food and water from stats).
+* The routine, in a Run playtest:
+  * all six went to the Kitchen at the day's start, then to work;
+  * at the Surge they climbed to the Quarters and lay in their bunks.
+* Assigning with real clicks in the Command View; the Residents screen.
+* Death: revive (a Medkit spent), death after 20 s, the run lost when everyone was gone.
+
+**Findings**
+1. **Filling rooms one by one wasted stats**: a Speed 10 resident ran the reactor while a Speed 2
+   one cooked. Auto-Assign now picks slots by priority and fills them by best match.
+2. **Config adds `Id` to every entry**, so the clip's own id field is `AssetId`.
+
+**Landon to do**
+* Answer the three Bible Questions in `game/reports/P10_Residents.md`:
+  1. who goes hungry;
+  2. whether the founders start at work;
+  3. the routine's timing and the Lounge.
 
 ## 2026-11-08 (late night): Prompt 9, economy and power; Landon's Prompt 8 answers
 

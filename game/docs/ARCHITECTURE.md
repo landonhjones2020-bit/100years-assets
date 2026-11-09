@@ -392,6 +392,36 @@ drawn, steps along the room graph, the dark order, eating with carry).
 * Remotes: `Propose`, `CastVote` (client to server, Run), `Alert` (server to client: a message
   for the HUD's alert feed).
 
+## Residents (Run place)
+
+Bible Sections 11 and 23, phase 1. `Shared.Rules.Residents` is pure: rolls, max health (Grit),
+levels, morale states, a room's crew, the Auto-Assign matching, one cycle of needs.
+
+* `ResidentService` owns the records:
+  * the six founders at the start, auto-assigned;
+  * jobs: `Assign(id, roomId?)`, `AutoAssign()`, and the `AssignResident` and `AutoAssign`
+    remotes, with no vote;
+  * the crew and eater source for EconomyService (`SetResidents`);
+  * needs, XP and Medbay healing after each meal (`EconomyService.Ate`; the newest arrivals go
+    hungry first); Surge morale;
+  * death: down for 20 s, `Revive` with a stockpile Medkit (the `ReviveResident` remote and a
+    prompt), then gone; the last one gone loses the run.
+  * The `Residents` collection carries the records for the UI.
+* `ResidentBrain` gives each resident a body (the A0 resident) in `workspace.Bunker.Residents`
+  and runs the routine at 5 Hz:
+  * the first 20 s of a day at a Kitchen seat, the rest at a work spot, the Surge in bed;
+  * idle residents by their bed;
+  * down: lying with a revive prompt.
+  * Bodies walk `Lib.PathGraph` routes (front aisles, doorways, Shaft stairs) with
+    Humanoid:MoveTo and carry an `Activity` attribute. Residents don't collide with each other
+    or players.
+* `NPCAnimator` (client) plays `Config.Animations` clips for each body's Activity.
+* `ResidentsController` (client): the Residents screen (Section 18), opened from the Command
+  View's footer: tabs All, Working, Idle, Hurt; a resident card; Assign (the free job on their
+  best stat) or Take off the job; the footer's Auto-Assign.
+* The Command View lists a room's workers and the idle residents best at its job (Assign, Take
+  off the job, Auto-Assign), and its Morale overlay reads the workers' average morale.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -475,6 +505,9 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   <Build|Upgrade|Merge|TearDown> <floor> <column> [roomType|otherRoomId]`, `sites`,
   `site.finish [id]`, `unlock <roomType>`. From Studio's server tools, `build` and `vote.yes|no`
   act as the first player in the run. On the client, `vote` prints the telegram and the ghosts.
+* Residents (Run place): `residents`, `residents.auto`, `residents.add [count] [tier] [level]`,
+  `resident.assign <id> <roomId|none>`, `resident.hurt <id> <amount>`, `resident.revive <id>`,
+  `resident.set <id> <health|rest|morale|xp|stat> <value>`, `brains` (where each body is going).
 * The economy and power (Run place): `production` (every room's rate and why idle rooms are
   idle), `staff <roomId|roomType> <statSum> [workers] [morale]` and `staff.clear` (Studio: pretend
   crews until residents arrive), `eaters <n>` (pretend eaters), `eat` (the start-of-cycle meal
@@ -506,6 +539,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | Run | PingService | service | SessionService, DevService | cell pings (PingCell in, CellPinged out to every ready player) |
 | Run | EconomyService | service | BunkerGrid, CycleClock, SessionService, ReplicationService, DevService | the stockpile (amounts, caps, spending, research), production, food and water, bunker-wide output modifiers |
 | Run | PowerService | service | BunkerGrid, EconomyService, SessionService, ReplicationService, DevService | the power balance, dark rooms (lights, fittings, alerts) |
+| Run | ResidentService | service | BunkerGrid, EconomyService, PowerService, CycleClock, RunDirector, SessionService, ReplicationService, DevService | residents: records, jobs, needs, levels, death |
+| Run | ResidentBrain | service | ResidentService, BunkerGrid, CycleClock, DevService | residents' bodies, routines, walking (Lib.PathGraph) |
 | Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
 | Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
@@ -516,6 +551,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
 | both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
+| both | NPCAnimator | controller | | residents' clips from their Activity attribute (Run) |
+| both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -564,3 +601,8 @@ Wanderers, Expeditions, Surface, Legends, ClassShop, Account, Lobby).
   chip, the Command View's Power and Production overlays with readings. Landon's answers to the
   Prompt 8 questions: tear-down refunds half, upgrades take time on Nightmare, controllers vote
   with Y (tap yes, hold no), the proposer stays a yes; and to Prompt 9's: power needs crew.
+* **Prompt 10 (2026-11-08)**: residents, phase 1 (Run). Rules.Residents, ResidentService (the
+  founders, jobs and Auto-Assign by best match, needs, levels, death and defeat), ResidentBrain and
+  Lib.PathGraph (eating, working and sleeping, walking doorways and Shaft stairs), NPCAnimator
+  and Config.Animations, the Residents screen, workers and assigning in the Command View, the
+  Morale overlay.

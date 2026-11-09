@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T00:53:23Z",
- "commit": "7ef7e8b93fa010dae2f1d96dafd1585685864df7",
- "label": "p9-7ef7e8b",
+ "built": "2026-11-09T00:56:06Z",
+ "commit": "b80edc7be063428049b4219cf0b1098a1030267e",
+ "label": "p10-b80edc7",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -252,7 +252,7 @@
    "ReplicatedStorage.Shared.Rules.Residents": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Residents.luau",
-    "Hash": "7cb5cd9b"
+    "Hash": "f4b8453d"
    },
    "ReplicatedStorage.Shared.Rules.Votes": {
     "Class": "ModuleScript",
@@ -322,7 +322,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "d10869c9"
+    "Hash": "17f235b0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -689,7 +689,7 @@
    "ReplicatedStorage.Shared.Rules.Residents": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Residents.luau",
-    "Hash": "7cb5cd9b"
+    "Hash": "f4b8453d"
    },
    "ReplicatedStorage.Shared.Rules.Votes": {
     "Class": "ModuleScript",
@@ -759,7 +759,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "d10869c9"
+    "Hash": "17f235b0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
