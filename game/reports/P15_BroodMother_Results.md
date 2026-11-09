@@ -266,3 +266,10 @@ rewards and the MVP, with Play Again, Keep Going and Return to Lobby.
 * A new payout: a `Config.GlowshardRewards` entry and a line in `Rules.Results.Payout` (the
   ledger keeps it from paying twice).
 * A new story line: call `story(text)` in ResultsService from the signal that marks the moment.
+
+## Landon's answers (2026-11-09)
+
+"All of that is ok": all six Bible Questions approved as built. BossService and ResultsService are
+in the bible's Section 23 service table (RunDirector no longer owns results), bosses' clips play on
+the server (Section 23, Residents and monsters), and the payout rules are a line under Section 16's
+table. Live doc revision 133; project part 2 refreshed.

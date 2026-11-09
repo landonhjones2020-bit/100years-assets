@@ -94,9 +94,9 @@ passed in each. The Run place boots cleanly with it.
 Captures: `previews/Game/P15_*.jpg`.
 
 **Open**
-* Landon's answers to the six Prompt 15 Bible Questions (results and bosses as services, bosses'
-  clips on the server, her numbers, the arena, payouts, the MVP weights), the eight from Prompt
-  14 and the six from Prompt 13.
+* Landon approved all six Prompt 15 answers (2026-11-09, "All of that is ok"); the bible (live doc
+  rev 133, project part 2) has them. Still open: the eight from Prompt 14 and the six from
+  Prompt 13.
 * Not seen: a fight with several players, real teleports (Play Again, Return to Lobby: live
   servers only), the Run Report coming back after being closed.
 * The test account (`PlayerProfiles_Studio`) now has `FirstRunDone` true and 112 Glowshards.
