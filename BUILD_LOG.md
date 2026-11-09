@@ -102,18 +102,22 @@ Lobby, 82 data tests): every dug cell at the rock edge on any floor is a breach 
 caches, the hardware store and the checkpoint now hold throwables. The live doc (rev 128) has
 the answers in Sections 5, 6, 10, 12, 14 and 16.
 
-**Next session, in order**
-1. Refresh the project's bible parts from the live doc (rev 128; the project copies still lack
-   the Prompt 12 answers): Section 5 "Losing" (the meltdown), Section 6's Reactor Core row,
-   Section 10's breach points, monster targets and Reactor overload row, Section 12's loot,
-   Section 14's Loadout (pre-run supplies), Section 16's Glowshard spends.
-2. Prompt 13, disasters (fire, blackout, cave-in) and repairs, and with them the Reactor
-   overload: at 0 HP the Reactor Core starts a 60-second meltdown that three valves turned
-   together stop (Landon's answer 1; ask how a solo player turns three valves "together").
-3. Then Prompt 14 (digging, depth bands, Disturbance, Push Deeper) and Prompt 15 (the Brood
-   Mother's fight, her art is ready, and the results screen).
-* For the Lobby and shop prompts (21, 28): throwables bought before a run as supplies (Landon);
-  the currency is proposed as Glowshards and still to confirm.
+Landon then settled the two follow-ups: with 1 or 2 players each turned valve stays turned for
+10 seconds (with 3 or more the three are turned together), and pre-run throwables cost
+Glowshards. Both are in the live doc (rev 130) and in both project bible parts, which now match
+the live doc.
+
+**Next session, in order** (also in the project doc `claude/100-years-of-fallout-handoff.md`)
+1. Prompt 13, disasters (fire, blackout, cave-in) and repairs, and with them the Reactor
+   overload: at 0 HP the Reactor Core starts a 60-second meltdown instead of losing at once;
+   three valves in the Reactor Core turned together stop it; with 1 or 2 players each turned
+   valve stays turned for 10 seconds. A meltdown that runs out loses the run.
+2. Then Prompt 14 (digging, depth bands, Disturbance, Push Deeper) and Prompt 15 (the Brood
+   Mother's fight, her art and clips are ready, and the results screen).
+* Waiting on Landon: his look at the rebuilt monsters (the Hollow Miner changed after its A0
+  approval) and the Brood Mother.
+* For the Lobby and shop prompts (21, 28): throwables bought before a run as supplies, paid in
+  Glowshards (Landon), prices provisional.
 
 ## 2026-11-08 (night): Prompt 11, combat core; the gun handles
 
