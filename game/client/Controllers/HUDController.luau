@@ -619,7 +619,25 @@ function HUDController:Start()
 	refreshDevice()
 	input.DeviceChanged:Connect(refreshDevice)
 
-	-- the stockpile (EconomyService replicates the amounts as RunState values; Power is Prompt 9's)
+	-- power (PowerService): what every room would draw against what is made; the lamp is red
+	-- while rooms are dark, amber past PowerWarnAt of the power made, green otherwise
+	local function showPower()
+		local made, needed = RunState.Get("PowerMade"), RunState.Get("PowerNeeded")
+		if type(made) ~= "number" or type(needed) ~= "number" then
+			HUDController:SetResource("Power", "—", "Lamp_Off")
+			return
+		end
+		local darkRooms = RunState.Get("DarkRooms")
+		local lamp = if type(darkRooms) == "number" and darkRooms > 0 then "Lamp_Red"
+			elseif needed > made * Config.Get("Tuning", "Rooms").PowerWarnAt then "Lamp_Amber"
+			else "Lamp_Green"
+		HUDController:SetResource("Power", `{math.floor(needed + 0.5)}/{math.floor(made + 0.5)}`, lamp)
+	end
+	for _, name in { "PowerMade", "PowerNeeded", "DarkRooms" } do
+		RunState.Changed(name):Connect(showPower)
+	end
+	showPower()
+	-- the stockpile (EconomyService replicates the amounts as RunState values)
 	for _, entry in STOCK do
 		if RunState.Fields[entry.Id] then
 			local function show()

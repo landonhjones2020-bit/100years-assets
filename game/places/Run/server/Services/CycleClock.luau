@@ -33,7 +33,7 @@
 		CycleClock:Begin(), :Halt(), :Resume(), :SetEndless(on)
 		CycleClock:EndSurge(): boolean                       -- ThreatDirector: this Surge is cleared (not a boss Surge)
 		CycleClock:SetResting(player, on): boolean           -- a player lies down in or leaves a Quarters bed
-		CycleClock:Phase(), :Year(), :Cycle(), :Era(), :YearsPerCycle(), :Surge(), :TimeLeft(), :IsRunning()
+		CycleClock:Phase(), :Year(), :Cycle(), :Era(), :YearsPerCycle(), :Surge(), :TimeLeft(), :IsRunning(), :TimeScale()
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -455,6 +455,11 @@ end
 
 function CycleClock:IsRunning(): boolean
 	return running
+end
+
+-- DevTools' time scale (1 normally): the economy runs at the same speed as the clock.
+function CycleClock:TimeScale(): number
+	return scale
 end
 
 -- DevTools --------------------------------------------------------------------------------

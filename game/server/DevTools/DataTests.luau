@@ -27,6 +27,7 @@ local CameraRig = require(Shared.Rules.CameraRig)
 local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
 local Construction = require(Shared.Rules.Construction)
+local Economy = require(Shared.Rules.Economy)
 local Votes = require(Shared.Rules.Votes)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
@@ -831,7 +832,7 @@ test("Clock: completing nothing takes 100 cycles; crews and bosses make it 13 to
 end)
 
 test("RunState: every value has one owner, a type and its allowed values", function()
-	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true }
+	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true, PowerService = true }
 	for name, field in RunState.Fields do
 		expect(owners[field.By], `{name} to have a known owner`)
 	end
@@ -1210,6 +1211,7 @@ test("Construction: plans follow the bunker's rules, the unlocks, the stockpile 
 	expect(plan == nil and why ~= nil, "the Reactor Core can't be torn down")
 	plan = Construction.Plan(bunker, { Action = "TearDown", Floor = 2, Column = -2 }, context)
 	expect(plan ~= nil and next(plan.Costs) == nil, "tearing down is free")
+	expectEqual((plan :: any).Refund, { Scrap = 60 }, "a level 1 Kitchen gives half its 120 Scrap back (Landon)")
 	local kitchen = bunker:Place("Kitchen", 2, 3, 1) :: string
 	local first = bunker:RoomAt(2, -2) :: any
 	plan, why = Construction.Plan(bunker, { Action = "Merge", Floor = 2, Column = 3, Other = first.Id }, context)
@@ -1221,6 +1223,78 @@ test("Construction: plans follow the bunker's rules, the unlocks, the stockpile 
 	expectEqual(Construction.CostText({ Iron = 20, Scrap = 220 }), "220 SCRAP · 20 IRON", "cost text")
 	local ok, short, missing = Construction.CanAfford({ Scrap = 120, Iron = 10 }, { Scrap = 200, Iron = 4 })
 	expect(not ok and short == "Iron" and missing == 6, "the first short resource")
+end)
+
+test("Economy: Section 13's output formula, power made and drawn, food eaten", function()
+	local average = { Workers = 2, StatSum = 10, Morale = 1 }
+	expectEqual(Economy.Output("Kitchen", 1, 1, average, true), 8, "a level 1 Kitchen with workers summing to 10 makes its Base")
+	local big = Economy.Output("Kitchen", 2, 2, { Workers = 4, StatSum = 20, Morale = 1 }, true)
+	expect(math.abs(big - 26.4) < 1e-6, `2 cells at level 2: 8 x 2 x 1.5 x 1.1 = 26.4 (got {big})`)
+	expectEqual(Economy.Output("Kitchen", 1, 1, average, false), 0, "a dark room makes nothing")
+	expectEqual(Economy.Output("Kitchen", 1, 1, nil, true), 0, "no crew, nothing made")
+	local happy = Economy.Output("Kitchen", 1, 1, { Workers = 2, StatSum = 10, Morale = 1.2 }, true, 1.5)
+	expect(math.abs(happy - 14.4) < 1e-6, `morale and bunker-wide multipliers (got {happy})`)
+	expectEqual(Economy.Output("Quarters", 1, 2, average, true), 0, "Quarters make nothing")
+	expectEqual(Economy.PowerMade("ReactorCore", 1, 1, average), 24, "the Reactor Core with a full crew")
+	expectEqual(Economy.PowerMade("ReactorCore", 1, 1, { Workers = 1, StatSum = 5, Morale = 1 }), 12, "half the stat, half the power")
+	expectEqual(Economy.PowerMade("ReactorCore", 1, 1, nil), 0, "no crew, no power (Landon: A)")
+	expectEqual(Economy.Draw("Quarters", 1, 2), 2, "the 2-cell Quarters draw 1 a cell")
+	local kind, resource = Economy.Makes("Kitchen", 2)
+	expect(kind == "Resource" and resource == "Food", "the Kitchen makes Food")
+	kind, resource = Economy.Makes("DrillBay", 5)
+	expect(kind == "Resource" and resource == "Copper", "a Drill Bay makes its band's ore")
+	kind, resource = Economy.Makes("Lab", 2)
+	expect(kind == "Research" and resource == nil, "the Lab makes research")
+	expect(Economy.Makes("Quarters", 1) == nil, "the Quarters make nothing")
+	local take, carry = Economy.Eat({ 1, 1, 1, 0.5 }, 1, 0)
+	expect(take == 3 and math.abs(carry - 0.5) < 1e-6, "3.5 Food: 3 now, half carried")
+	take, carry = Economy.Eat({ 1, 1, 1, 0.5 }, 1, carry)
+	expect(take == 4 and carry < 1e-6, "the carried half makes 4 the next cycle")
+	local whole, rest = Economy.Accrue(0, 8, 135, 270)
+	expect(whole == 4 and rest < 1e-6, "half a cycle makes half of 8")
+	whole, rest = Economy.Accrue(0.9, 8, 10, 270)
+	expect(whole == 1 and math.abs(rest - (0.9 + 80 / 270 - 1)) < 1e-6, "fractions carry over")
+	expectEqual(Construction.Refund("Kitchen", 2, 2), { Scrap = 340, Iron = 20 }, "half of both levels' costs, per cell")
+	expect(Config.Get("Difficulties", "Nightmare").UpgradesTakeTime == true, "upgrades take time on Nightmare")
+	expect(not Config.Get("Difficulties", "Normal").UpgradesTakeTime, "and are instant on Normal")
+end)
+
+test("Economy: power goes dark farthest from the Reactor Core first", function()
+	local bunker = Bunker.FromStart()
+	local reactor = bunker:RoomAt(2, 1) :: any
+	local full = { Workers = 2, StatSum = 10, Morale = 1 }
+	local function crewWith(crew: any): (string) -> any
+		return function(roomId: string): any
+			return if roomId == reactor.Id then crew else nil
+		end
+	end
+	local balance = Economy.Balance(bunker, crewWith(full))
+	expect(balance.Made == 24 and balance.Needed == 10 and balance.Used == 10 and next(balance.Dark) == nil,
+		`the starting bunker: 24 made, 10 drawn, nothing dark (got {balance.Made}, {balance.Needed})`)
+	expectEqual(balance.Steps[reactor.Id], 0, "the Reactor Core is step 0")
+	expectEqual(balance.Steps[(bunker:RoomAt(2, 2) :: any).Id], 1, "the Medbay beside it")
+	expectEqual(balance.Steps[bunker:UnitAt(2, 3) :: string], 2, "a dug cell counts as a step")
+	expectEqual(balance.Steps[(bunker:RoomAt(1, 1) :: any).Id], 3, "the Quarters, up the Shaft")
+	expectEqual(balance.Steps[bunker:UnitAt(1, 3) :: string], 4, "the dug cell past the Quarters")
+	local kitchen = bunker:RoomAt(2, -2) :: any
+	balance = Economy.Balance(bunker, crewWith({ Workers = 1, StatSum = 4, Morale = 1 }))
+	expect(math.abs(balance.Made - 9.6) < 1e-6, "a weak crew makes 9.6")
+	expectEqual(balance.Dark, { [kitchen.Id] = true }, "short by 0.4: the newest of the farthest rooms goes dark")
+	balance = Economy.Balance(bunker, crewWith(nil))
+	local darkCount = 0
+	for id in balance.Dark do
+		darkCount += 1
+		expect((bunker:Room(id) :: any).Type ~= "Shaft", "Shafts draw nothing and stay lit")
+	end
+	expect(darkCount == 5 and balance.Used == 0, `no crew: every room that draws goes dark ({darkCount})`)
+	-- a room nothing can reach goes dark before a far one, even when it is older
+	expect(bunker:Dig(3, 3), "dig under the dug cell")
+	local lost = bunker:Place("Kitchen", 3, 3, 1) :: string
+	local far = bunker:Place("Kitchen", 1, 3, 1) :: string
+	expect(lost ~= nil and far ~= nil, "two more Kitchens")
+	balance = Economy.Balance(bunker, crewWith({ Workers = 1, StatSum = 5, Morale = 1 }))
+	expect(balance.Steps[lost] == nil and balance.Steps[far] == 4, "the dug-under Kitchen can't be reached")
+	expectEqual(balance.Dark, { [lost] = true }, "12 made, 14 needed: the unreachable Kitchen goes dark first")
 end)
 
 test("RunState: a value for every stocked resource, written by EconomyService", function()

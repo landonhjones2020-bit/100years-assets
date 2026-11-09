@@ -85,10 +85,10 @@ local TABS = {
 	{ Id = "Production", Label = "Production", Icon = "Icon_Scrap" },
 }
 local OVERLAY_TEXT: { [string]: string } = { -- bible Section 7's overlays
-	Power = "Rooms by power: lit or dark.",
+	Power = "Green: lit. Red: dark for want of power. Rooms go dark farthest from the Reactor Core or a Generator first.",
 	Morale = "Rooms by their workers' morale.",
 	Threat = "Likely breach points.",
-	Production = "Rooms by what they make each cycle.",
+	Production = "What each room makes a cycle. Amber: no one works there. Red: dark or wrecked.",
 }
 local PAN_KEYS: { [Enum.KeyCode]: Vector2 } = {
 	[Enum.KeyCode.W] = Vector2.new(0, 1),
@@ -318,16 +318,20 @@ end
 
 -- Labels, marks and pings ---------------------------------------------------------------------
 
-local function overlayLamp(roomId: string, room: any): string?
+-- The overlay's lamp and reading for a room ("+8 FOOD", "DARK"), when an overlay tab is on.
+local function overlayLamp(roomId: string, room: any): (string?, string?)
 	if tab == "Build" then
-		return nil
+		return nil, nil
 	end
 	local provider = overlays[tab]
 	if not provider then
-		return nil
+		return nil, nil
 	end
-	local ok, lamp = pcall(provider, roomId, room)
-	return if ok then lamp else nil
+	local ok, lamp, reading = pcall(provider, roomId, room)
+	if ok then
+		return lamp, reading
+	end
+	return nil, nil
 end
 
 local function rebuildLabels()
@@ -356,10 +360,17 @@ local function placeLabels()
 			label.Visible = visible
 			label.ImageColor3 = if blinking[id] then RUST else Color3.new(1, 1, 1)
 			local lamp = label:FindFirstChild("Lamp")
-			local sprite = overlayLamp(id, room)
+			local sprite, reading = overlayLamp(id, room)
 			lamp.Visible = sprite ~= nil
 			if sprite then
 				KitRuntime.SetSprite(lamp, sprite)
+			end
+			local chip = label:FindFirstChild("Reading") -- Prompt 9's patch adds it
+			if chip then
+				chip.Visible = reading ~= nil and visible
+				if reading then
+					chip.Text.Text = reading
+				end
 			end
 		end
 	end
@@ -472,6 +483,47 @@ local function setMainAction()
 	})
 end
 
+-- What a room's power reading says (PowerService's Power collection).
+local function powerLine(roomId: string, room: any, info: any): string
+	local power = replica:Get("Power", roomId)
+	if info.PowerOutput then
+		local made = if power then power.Made or 0 else 0
+		return if made > 0 then `Makes {math.floor(made + 0.5)} with its crew. Every room draws from it.`
+			else "Makes nothing: no one works here. Without power the rooms farthest from it go dark first."
+	end
+	local draw = info.Power[room.Level] * room.Span
+	if draw <= 0 then
+		return "Draws none."
+	end
+	if power and power.Dark then
+		return `Dark: draws {draw}, but there isn't enough power. Dark rooms make nothing.`
+	end
+	return `Draws {draw}. Lit.`
+end
+
+local OUTPUT_WORDS: { [string]: string } = {
+	Research = "Lab research", Morale = "morale", Recruits = "recruits", Training = "training",
+	Crafting = "crafting", Thawing = "thawing", Decon = "decon", Digging = "digging",
+}
+
+-- What a room's output reading says (EconomyService's Production collection), or nil.
+local function outputLine(roomId: string): string?
+	local made = replica:Get("Production", roomId)
+	if type(made) ~= "table" then
+		return nil
+	end
+	local resource = Config.Find("Resources", made.Makes or "")
+	local what = if resource then resource.Name else (OUTPUT_WORDS[made.Makes] or tostring(made.Makes))
+	if made.Idle == "Wrecked" then
+		return `Makes {what}; nothing until it is repaired.`
+	elseif made.Idle == "Dark" then
+		return `Makes {what}; nothing while it is dark.`
+	elseif made.Idle == "NoCrew" then
+		return `Makes {what} once residents work here.`
+	end
+	return `{made.Rate} {what} a cycle, {made.Workers} working.`
+end
+
 local function showRoom(roomId: string)
 	local b = currentBunker()
 	local room = b:Room(roomId) :: any
@@ -480,20 +532,22 @@ local function showRoom(roomId: string)
 	detail:FindFirstChild("Name").Text = string.upper(info.Name)
 	detail:FindFirstChild("Sub").Text = `LEVEL {room.Level}  ·  {room.Span} CELL{if room.Span > 1 then "S" else ""}  ·  FLOOR {room.Floor}`
 	section(1, "Condition", if room.HP <= 0 then `Wrecked: 0 of {room.MaxHP} HP` else `{room.HP} of {room.MaxHP} HP`)
-	if info.PowerOutput then
-		section(2, "Power", `Makes {info.PowerOutput[room.Level] * room.Span}`)
-	elseif info.Power[room.Level] > 0 then
-		section(2, "Power", `Draws {info.Power[room.Level] * room.Span}`)
-	end
-	if info.Output and info.Output.Resource then
-		local resource = Config.Get("Resources", info.Output.Resource)
-		section(3, "Output", `{info.Output.Base} {resource.Name} per cell a cycle at level 1, with average workers`)
+	section(2, "Power", powerLine(roomId, room, info))
+	local output = outputLine(roomId)
+	if output then
+		section(3, "Output", output)
 	end
 	section(4, "What it does", info.Text)
+	-- an upgrade being built (Nightmare): the room works at its old level until it's done
+	local site = siteAt(room.Floor, room.Column)
+	if site and site.Kind == "Upgrade" then
+		section(5, "Upgrading", `To level {site.Level}: {math.floor((site.Progress or 0) * 100)}% done. `
+			.. (if (site.Helpers or 0) > 0 then `{site.Helpers} helping.` else "Stand in it to build faster."))
+	end
 	-- a proposal already open on this room: no second one until it closes (Section 8)
-	local openVote = voteAt(room.Floor, room.Column)
-	if openVote then
-		section(5, "Proposal open", `{openVote.ProposerName}: {openVote.Title}. Vote on the banner.`)
+	local openVote = voteAt(room.Floor, room.Column) or (if site and site.Kind == "Upgrade" then site else nil)
+	if openVote and openVote ~= site then
+		section(6, "Proposal open", `{openVote.ProposerName}: {openVote.Title}. Vote on the banner.`)
 	end
 	local order = 1
 	if room.Level < 3 then
@@ -526,7 +580,9 @@ local function showRoom(roomId: string)
 	end
 	local canRemove, why = b:CanRemove(roomId)
 	local can = canRemove and not openVote
-	optionRow(order, "Tear down", if canRemove then "Its cells become open cells again" else sentence(why or ""), can,
+	local refund = Construction.Refund(room.Type, room.Level, room.Span)
+	local back = if next(refund) then `  ·  {Construction.CostText(refund)} BACK` else ""
+	optionRow(order, "Tear down", if canRemove then `Its cells become open cells again{back}` else sentence(why or ""), can,
 		if can then { Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId } else nil)
 end
 
@@ -1223,9 +1279,40 @@ function CommandViewController:Start()
 			end)
 		end
 	end
-	for _, name in { "Sites", "Votes", "Unlocked" } do
+	for _, name in { "Sites", "Votes", "Unlocked", "Power", "Production" } do
 		replica:Changed(name):Connect(soon)
 	end
+	-- Prompt 9's overlays: power (PowerService) and production (EconomyService)
+	CommandViewController:SetOverlay("Power", function(roomId: string, room: any): (string?, string?)
+		local power = replica:Get("Power", roomId)
+		if type(power) ~= "table" then
+			return nil, nil
+		end
+		if Config.Get("Rooms", room.Type).PowerOutput then
+			local made = power.Made or 0
+			return if made > 0 then "Lamp_Green" else "Lamp_Red", `MAKES {math.floor(made + 0.5)}`
+		end
+		if power.Dark then
+			return "Lamp_Red", "DARK"
+		end
+		return "Lamp_Green", `DRAWS {power.Draw}`
+	end)
+	CommandViewController:SetOverlay("Production", function(roomId: string, _room: any): (string?, string?)
+		local made = replica:Get("Production", roomId)
+		if type(made) ~= "table" then
+			return nil, nil
+		end
+		if made.Idle == "Dark" then
+			return "Lamp_Red", "DARK"
+		elseif made.Idle == "Wrecked" then
+			return "Lamp_Red", "WRECKED"
+		elseif made.Idle == "NoCrew" then
+			return "Lamp_Amber", "NO CREW"
+		end
+		local resource = Config.Find("Resources", made.Makes or "")
+		local what = if resource then string.upper(resource.Name) else string.upper(tostring(made.Makes))
+		return "Lamp_Green", `+{made.Rate} {what}`
+	end)
 	for _, id in Config.Ids("Resources") do
 		if RunState.Fields[id] then
 			RunState.Changed(id):Connect(soon)

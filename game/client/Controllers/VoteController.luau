@@ -8,21 +8,29 @@
 	* The telegram (StarterGui.Votes.VoteBanner, above The Frame, so a vote can be answered from
 	  the Command View or any other screen) shows the live vote from the Votes collection
 	  (VoteService):
-	  * what, and its cost: "KITCHEN  ·  120 SCRAP";
+	  * what, and its cost: "KITCHEN  ·  120 SCRAP", or what comes back: "TEAR DOWN KITCHEN  ·
+	    50 SCRAP BACK";
 	  * who, the tally and the time: "LANDON  ·  YES 2  ·  NO 1  ·  12 S", plus what it needs when
 	    that isn't the usual more yes than no ("3 OF 4 MUST SAY YES"), and "1 WAITING";
 	  * the timer strip running down;
 	  * YES and NO. Your vote stays pressed in, and you can change it until the vote closes.
 	  When a vote closes the telegram shows PASSED or FAILED and why, then the next vote.
-	* On PC the mouse belongs to the camera: hold Left Alt to click the buttons (the HUD's rule).
+	* On PC the mouse belongs to the camera: click the mouse wheel to free the cursor and click
+	  the buttons (the HUD's rule). On a controller (Landon, Nov 8, 2026): tap Y for yes, hold Y
+	  for no (HOLD_SECONDS). The Frame's screens use Y for their main action, so while your
+	  ballot is still open Y votes on any screen (a binding above The Frame's); once you have
+	  voted, Y changes your vote only outside the screens. The buttons show their key chips
+	  whenever Y would vote, on a gamepad. Touch players tap the buttons.
 	* Ghost outlines in the Command View for open proposals ("KITCHEN?") and for construction
-	  sites ("KITCHEN 45%"), from the Votes and Sites collections.
+	  sites ("KITCHEN 45%"; an upgrade on Nightmare: "LEVEL 2 45%"), from the Votes and Sites
+	  collections.
 	* The Command View's Propose (SetHandler for Build, Upgrade, Merge and TearDown) sends the
 	  Propose remote. BuildService answers on the telegram, or with an alert when it refuses.
 	* Chimes: SoundService.VoteOpen and SoundService.VotePassed, when they exist (Prompt 32's
 	  audio).
 ]]
 
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -46,11 +54,22 @@ local INK = Color3.fromHex("#2A3B4C")
 
 local VoteController = {
 	Name = "VoteController",
-	Dependencies = { "ReplicaController", "CommandViewController" },
+	Dependencies = { "ReplicaController", "CommandViewController", "InputController" },
 }
+
+local HOLD_SECONDS = 0.5 -- a controller's Y held this long votes no; a shorter tap votes yes
+local VOTE_NOW = "100Y_VoteNow" -- Y above The Frame's main action while your ballot is open
+local VOTE_NOW_PRIORITY = Enum.ContextActionPriority.High.Value + 30
 
 local replica: any = nil
 local commandView: any = nil
+local input: any = nil
+local yDownAt: number? = nil -- when Y went down (a controller's vote)
+local yHeld = false -- this press already voted no
+local voteNowBound = false
+local yVotes = false -- would Y vote right now (the key chips show)
+local showKeys: () -> () -- below
+local bindVoteNow: (pending: boolean) -> () -- below
 local gui: ScreenGui? = nil
 local banner: any = nil
 local shownId: string? = nil -- the vote on the telegram
@@ -128,6 +147,9 @@ local function render()
 	if not id or not vote then
 		banner.Visible = false
 		shownId, shownStatus = nil, nil
+		yVotes = false
+		bindVoteNow(false)
+		showKeys()
 		return
 	end
 	if id ~= shownId then
@@ -138,7 +160,9 @@ local function render()
 	end
 	banner.Visible = true
 	-- line 1: what and what it costs; line 2: who, the tally, the time and what it needs
-	local cost = if type(vote.Cost) == "string" and vote.Cost ~= "" and vote.Cost ~= "FREE" then `  ·  {vote.Cost}` else ""
+	local cost = if type(vote.Cost) == "string" and vote.Cost ~= "" and vote.Cost ~= "FREE" then `  ·  {vote.Cost}`
+		elseif type(vote.Refund) == "string" then `  ·  {vote.Refund} BACK`
+		else ""
 	banner.Proposal.Text = `{vote.Title}{cost}`
 	local yes, no = banner.Yes, banner.No
 	local fill = banner.Timer.Fill
@@ -151,6 +175,10 @@ local function render()
 		banner.Tally.TextColor3 = INK
 		fill.Size = UDim2.fromScale(math.clamp(left / math.max(vote.Seconds or 1, 1), 0, 1), 1)
 		local ballot = myBallot(vote)
+		bindVoteNow(ballot == nil)
+		-- Y votes while the ballot is open, and outside the screens afterwards (to change it)
+		yVotes = ballot == nil or not input:IsBlocked()
+		showKeys()
 		KitRuntime.SetEnabled(yes, true)
 		KitRuntime.SetEnabled(no, true)
 		KitRuntime.SetLatched(yes, ballot == "Yes")
@@ -163,6 +191,9 @@ local function render()
 		KitRuntime.SetLatched(no, false)
 		KitRuntime.SetEnabled(yes, false)
 		KitRuntime.SetEnabled(no, false)
+		bindVoteNow(false)
+		yVotes = false
+		showKeys()
 	end
 end
 
@@ -185,7 +216,9 @@ local function syncGhosts()
 	for id, site in replica:All("Sites") do
 		if type(site) == "table" then
 			local info = Config.Find("Rooms", site.Type)
-			local name = if info then string.upper(info.Name) else tostring(site.Type)
+			local name = if site.Kind == "Upgrade" then `LEVEL {site.Level}`
+				elseif info then string.upper(info.Name)
+				else tostring(site.Type)
 			want["site:" .. id] = { site.Floor, site.Column, site.Span, `{name} {math.floor((site.Progress or 0) * 100)}%` }
 		end
 	end
@@ -224,9 +257,66 @@ function VoteController:State(): { [string]: any }
 	}
 end
 
+-- The key chips show on a gamepad while Y would vote (PC clicks, touch taps).
+showKeys = function()
+	if not banner then
+		return
+	end
+	local visible = yVotes and input:Device() == "Gamepad"
+	for _, name in { "Yes", "No" } do
+		local key = banner[name]:FindFirstChild("Key")
+		if key and key.Visible ~= visible then
+			key.Visible = visible
+		end
+	end
+end
+
+-- A controller's Y: a tap votes yes; held for HOLD_SECONDS it votes no (once per press).
+local function yBegan()
+	yDownAt = os.clock()
+	yHeld = false
+end
+
+local function yEnded()
+	if yDownAt and not yHeld then
+		cast("Yes")
+	end
+	yDownAt = nil
+	yHeld = false
+end
+
+local function checkHold()
+	if yDownAt and not yHeld and os.clock() - yDownAt >= HOLD_SECONDS then
+		yHeld = true
+		cast("No")
+	end
+end
+
+-- While your ballot is open (and while Y is still held), Y is bound above The Frame's main action.
+bindVoteNow = function(pending: boolean)
+	local want = pending or yDownAt ~= nil
+	if want == voteNowBound then
+		return
+	end
+	voteNowBound = want
+	if want then
+		ContextActionService:BindActionAtPriority(VOTE_NOW, function(_name, state: Enum.UserInputState): Enum.ContextActionResult
+			if state == Enum.UserInputState.Begin then
+				yBegan()
+			elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+				yEnded()
+			end
+			return Enum.ContextActionResult.Sink
+		end, false, VOTE_NOW_PRIORITY, Enum.KeyCode.ButtonY)
+	else
+		ContextActionService:UnbindAction(VOTE_NOW)
+	end
+end
+
 function VoteController:Init(registry)
 	replica = registry.ReplicaController
 	commandView = registry.CommandViewController
+	input = registry.InputController
 end
 
 function VoteController:Start()
@@ -261,8 +351,12 @@ function VoteController:Start()
 	banner.No.Activated:Connect(function()
 		cast("No")
 	end)
+	input:On("Vote", yBegan, yEnded)
+	input.DeviceChanged:Connect(showKeys)
+	showKeys()
 	local elapsed = 0
 	RunService.Heartbeat:Connect(function(dt: number)
+		checkHold()
 		elapsed += dt
 		if elapsed >= 0.1 then
 			elapsed = 0

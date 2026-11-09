@@ -20,6 +20,7 @@
 
 	API:
 		RunDirector:Phase(): RunPhase
+		RunDirector:Difficulty(): string                       -- Normal, Hard or Nightmare
 		RunDirector:Win(kind: "Century" | "Deep"): boolean
 		RunDirector:Lose(reason: "ReactorDestroyed" | "ResidentsLost"): boolean
 		RunDirector:KeepGoing(): boolean
@@ -135,6 +136,11 @@ end
 
 function RunDirector:Phase(): RunPhase
 	return phase
+end
+
+-- Normal, Hard or Nightmare (Config.Difficulties). Normal until the lobby's pads choose (Prompt 21).
+function RunDirector:Difficulty(): string
+	return difficulty
 end
 
 -- A victory (Century: the final Surge survived; Deep: the Source destroyed in its chamber).
@@ -259,6 +265,21 @@ local function registerCommands(dev: any)
 				return `can't lose now (run is {phase})`
 			end
 			return describe()
+		end,
+	})
+	dev:Register("run.difficulty", {
+		Description = "Play this run at another difficulty (Studio testing; the lobby's pads choose it later).",
+		Usage = "run.difficulty <Normal|Hard|Nightmare>",
+		Run = function(_player: Player?, args): string?
+			local wanted = tostring(args[1] or "")
+			for _, id in Config.Ids("Difficulties") do
+				if string.lower(id) == string.lower(wanted) then
+					difficulty = id
+					set("Difficulty", difficulty)
+					return describe()
+				end
+			end
+			return "usage: run.difficulty <Normal|Hard|Nightmare>"
 		end,
 	})
 	dev:Register("run.keepgoing", {

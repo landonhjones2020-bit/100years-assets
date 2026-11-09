@@ -17,6 +17,7 @@
 
 	The stockpile (EconomyService): one value per stocked resource in Config.Resources (Food,
 	Water, Scrap, Iron, Copper, Crystal, Medkits, Ammo), plus Research.
+	Power (PowerService): PowerMade, PowerUsed, PowerNeeded and DarkRooms.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -26,7 +27,7 @@ local Config = require(script.Parent.Config)
 export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
-export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService"
+export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -69,6 +70,12 @@ local FIELDS: { [string]: Field } = {
 
 	-- EconomyService: Lab research so far (the stock amounts are added below from Config.Resources)
 	Research = { Type = "number", By = "EconomyService", Doc = "Lab research so far (level 3 upgrades need it)" },
+
+	-- PowerService: the live power balance (Power is not a stock)
+	PowerMade = { Type = "number", By = "PowerService", Doc = "power the Reactor Core and Generators make now" },
+	PowerUsed = { Type = "number", By = "PowerService", Doc = "power the lit rooms draw" },
+	PowerNeeded = { Type = "number", By = "PowerService", Doc = "power every room would draw" },
+	DarkRooms = { Type = "number", By = "PowerService", Doc = "rooms dark for want of power" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

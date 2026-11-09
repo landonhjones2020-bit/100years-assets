@@ -75,6 +75,8 @@ local UIContract: { [string]: Screen } = {
 			"Cabinet.Pages.CommandView.Detail.Options",
 			"Templates.RoomLabel.Name",
 			"Templates.RoomLabel.Lamp",
+			"Templates.RoomLabel.Reading", -- Prompt 9: the overlay reading under a room label
+			"Templates.RoomLabel.Reading.Text",
 			"Templates.CellMark.Label",
 			"Templates.PingMark",
 			"Templates.OptionRow.Name",
@@ -93,8 +95,12 @@ local UIContract: { [string]: Screen } = {
 			"VoteBanner.Timer.Fill",
 			"VoteBanner.Yes",
 			"VoteBanner.Yes.Content.Label",
+			"VoteBanner.Yes.Key", -- Prompt 9: the controller's key chips (tap Y, hold Y)
+			"VoteBanner.Yes.Key.Text",
 			"VoteBanner.No",
 			"VoteBanner.No.Content.Label",
+			"VoteBanner.No.Key",
+			"VoteBanner.No.Key.Text",
 		},
 	},
 	HUD = {

@@ -53,6 +53,7 @@ local rl = new("ImageLabel", templates, "RoomLabel", { anchor = { 0.5, 0 }, size
 text(rl, "Name", "", { pos = { 0.08, 0.16 }, size = { 0.72, 0.68 }, font = F.label, color = COL.cream, alignX = CENTER, z = 2 })
 new("ImageLabel", rl, "Lamp", { pos = { 0.9, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.56 }, aspect = 1, dom = "H",
 	sprite = "Lamp_Off", z = 2, visible = false })
+--@include Frame_RoomReading.lua
 local mark = new("Frame", templates, "CellMark", { bg = COL.signal, bgT = 0.82, visible = false })
 stroke(mark, 3, COL.signal, 0)
 -- the label sits low in the cell: a room's own label chip hangs from the top

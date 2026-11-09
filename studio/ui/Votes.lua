@@ -14,6 +14,7 @@ for _, v in { { "Yes", "YES", 0.65, "Button_Leaf_Up", "Button_Leaf_Down" }, { "N
 	local b = button(vote, v[1], { pos = { v[3], 0.22 }, size = { 0.15, 0.62 } }, { v[4], v[5] })
 	text(b.Content, "Label", v[2], { pos = { 0.15, 0.22 }, size = { 0.7, 0.56 }, font = F.title, color = COL.cream, alignX = CENTER })
 end
+--@include Votes_Keys.lua
 
 sg.Parent = game:GetService("StarterGui")
 return "Votes built: " .. #sg:GetDescendants() .. " instances"

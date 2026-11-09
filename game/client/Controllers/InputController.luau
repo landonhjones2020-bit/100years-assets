@@ -53,9 +53,10 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 	Ping = { Enum.KeyCode.G, Enum.KeyCode.DPadUp },
 	CommandView = { Enum.KeyCode.Tab, Enum.KeyCode.ButtonSelect },
 	Ready = { Enum.KeyCode.Z, Enum.KeyCode.DPadDown }, -- Landon, 2026-11-08: Ready gets its own key
+	Vote = { Enum.KeyCode.ButtonY }, -- Landon, 2026-11-08: votes on a controller (tap yes, hold no)
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
-local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true }
+local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true, Vote = true } -- a vote can be answered from any screen
 -- Keys the engine marks as processed before ContextActionService sees them begin (Tab: Roblox
 -- keeps it for its player list and UI navigation; the gamepad's View button: Roblox's own UI
 -- selection, which Init turns off). These are read from UserInputService too, unless a text box

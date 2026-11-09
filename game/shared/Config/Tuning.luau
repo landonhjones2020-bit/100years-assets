@@ -48,7 +48,7 @@ local Schemas: { [string]: Check.Checker } = {
 	Rooms = shape({
 		WorkerSlotsPerCell = list(I, 3), HP = list(I, 3), LevelMultiplier = list(N, 3), MergeMultiplier = list(N, 3),
 		BuildSecondsPerCell = S, HelperBuildSpeed = N, ResidentRepairPerSecond = N,
-		DarkSpawnMultiplier = N, DarkMoralePerCycle = F.Number,
+		DarkSpawnMultiplier = N, DarkMoralePerCycle = F.Number, TearDownRefund = Fr, PowerWarnAt = Fr,
 	}),
 	Votes = shape({
 		TiesFail = Check.boolean(), BigSpendFraction = Fr, OpenProposalsPerPlayer = I, FailedCooldownSeconds = S,
@@ -163,6 +163,9 @@ return {
 			WorkerSlotsPerCell = { 2, 3, 4 }, HP = { 500, 800, 1200 }, LevelMultiplier = { 1, 1.5, 2 },
 			MergeMultiplier = { 1, 1.1, 1.2 }, BuildSecondsPerCell = 20, HelperBuildSpeed = 0.25,
 			ResidentRepairPerSecond = 2, DarkSpawnMultiplier = 2, DarkMoralePerCycle = -5,
+			-- Landon, 2026-11-08: tearing a room down gives part of its cost back (half, prov.)
+			TearDownRefund = 0.5,
+			PowerWarnAt = 0.85, -- prov.: the HUD's power lamp turns amber past this share of the power made
 		},
 		Votes = { -- Section 8
 			TiesFail = true, BigSpendFraction = 0.4, OpenProposalsPerPlayer = 1, FailedCooldownSeconds = 20,

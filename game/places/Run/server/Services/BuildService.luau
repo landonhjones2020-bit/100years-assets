@@ -13,12 +13,16 @@
 	    (Tuning.Rooms.BuildSecondsPerCell), 25% faster for every player standing in it
 	    (HelperBuildSpeed; residents join with Prompt 10). When it's done the room is placed
 	    (BunkerGrid).
-	  * Upgrade: the room's level goes up at once.
+	  * Upgrade: the room's level goes up at once (Landon, Nov 8, 2026). On a difficulty with
+	    UpgradesTakeTime (Nightmare) it becomes a construction site over the room instead, as
+	    long as building would take; the room keeps working at its old level until it is done.
 	  * Merge: the two rooms become one at once.
-	  * TearDown: the room goes at once and its cells are open cells again. Nothing comes back
-	    (the bible names no refund).
-	* Sites replicate in the Sites collection: id -> { Type, Floor, Column, Span, Progress
-	  (0 to 1), Helpers }. In the world they stand in workspace.Bunker.Sites (BunkerKit.Site).
+	  * TearDown: the room goes at once and its cells are open cells again. Part of what it cost
+	    comes back (Landon, Nov 8, 2026): the plan's Refund, Tuning.Rooms.TearDownRefund of every
+	    level's cost so far (Rules.Construction.Refund), up to the stockpile's caps.
+	* Sites replicate in the Sites collection: id -> { Kind ("Build" or "Upgrade"), Type, Floor,
+	  Column, Span, Level (an upgrade's new level), RoomId (an upgrade's room), Progress (0 to
+	  1), Helpers, Seconds }. In the world they stand in workspace.Bunker.Sites (BunkerKit.Site).
 	* Rooms won from blueprint drafts and cryo pods: Unlock(roomType) (Prompts 17 and 19). They
 	  replicate in the Unlocked collection (room type -> true) for the Command View's menu.
 	Repairs come with Prompt 13.
@@ -51,7 +55,7 @@ local log = Log.new("BuildService")
 
 local BuildService = {
 	Name = "BuildService",
-	Dependencies = { "BunkerGrid", "EconomyService", "VoteService", "SessionService", "ReplicationService", "DevService" },
+	Dependencies = { "BunkerGrid", "EconomyService", "VoteService", "SessionService", "RunDirector", "ReplicationService", "DevService" },
 	Proposed = Signal.new() :: Signal.Signal<Player, string>,
 	Built = Signal.new() :: Signal.Signal<string, string>,
 	TornDown = Signal.new() :: Signal.Signal<string, string>,
@@ -59,6 +63,9 @@ local BuildService = {
 
 type Site = {
 	Id: string,
+	Kind: "Build" | "Upgrade",
+	RoomId: string?, -- Upgrade: the room
+	Level: number?, -- Upgrade: its new level
 	Type: string,
 	Floor: number,
 	Column: number,
@@ -75,6 +82,7 @@ local grid: any = nil
 local economy: any = nil
 local votes: any = nil
 local session: any = nil
+local director: any = nil
 local sitesCollection: any = nil
 local unlockedCollection: any = nil
 local sites: { [string]: Site } = {}
@@ -126,6 +134,9 @@ local function publishSite(site: Site)
 	local progress = math.floor(math.min(1, site.Done / site.Seconds) * 100) / 100
 	site.Sent = progress
 	sitesCollection:Set(site.Id, {
+		Kind = site.Kind,
+		RoomId = site.RoomId,
+		Level = site.Level,
 		Type = site.Type,
 		Floor = site.Floor,
 		Column = site.Column,
@@ -152,8 +163,12 @@ end
 
 local function startSite(plan: Construction.Plan)
 	siteCount += 1
+	local upgrade = plan.Action == "Upgrade"
 	local site: Site = {
 		Id = `S{siteCount}`,
+		Kind = if upgrade then "Upgrade" else "Build",
+		RoomId = if upgrade then plan.RoomId else nil,
+		Level = if upgrade then plan.Level else nil,
 		Type = plan.RoomType,
 		Floor = plan.Floor,
 		Column = plan.Column,
@@ -166,12 +181,27 @@ local function startSite(plan: Construction.Plan)
 	}
 	local folder = sitesFolder()
 	if folder then
-		site.Model = BunkerKit.Site(folder, site.Id, site.Type, site.Floor, site.Column, site.Span)
+		site.Model = BunkerKit.Site(folder, site.Id, site.Type, site.Floor, site.Column, site.Span, upgrade)
 	end
 	sites[site.Id] = site
 	publishSite(site)
-	log:Info("%s: building a %s at %s (%d s)", site.Id, site.Type, Grid.Key(site.Floor, site.Column), site.Seconds)
-	announce(`BUILDING A {string.upper(roomName(site.Type))}: STAND IN IT TO HELP`)
+	if upgrade then
+		log:Info("%s: upgrading %s to level %d (%d s)", site.Id, tostring(site.RoomId), site.Level or 0, site.Seconds)
+		announce(`UPGRADING THE {string.upper(roomName(site.Type))}: STAND IN IT TO HELP`)
+	else
+		log:Info("%s: building a %s at %s (%d s)", site.Id, site.Type, Grid.Key(site.Floor, site.Column), site.Seconds)
+		announce(`BUILDING A {string.upper(roomName(site.Type))}: STAND IN IT TO HELP`)
+	end
+end
+
+local function upgradeNow(roomId: string, roomType: string, level: number)
+	local ok, err = grid:SetLevel(roomId, level)
+	if ok then
+		announce(`{string.upper(roomName(roomType))} UPGRADED TO LEVEL {level}`)
+		BuildService.Built:Fire(roomId, "Upgrade")
+	else
+		log:Warn("upgrade of %s failed: %s", roomId, tostring(err))
+	end
 end
 
 local function finishSite(site: Site)
@@ -179,6 +209,11 @@ local function finishSite(site: Site)
 	sitesCollection:Remove(site.Id)
 	if site.Model then
 		site.Model:Destroy()
+	end
+	if site.Kind == "Upgrade" then
+		log:Info("%s done: %s is level %d", site.Id, tostring(site.RoomId), site.Level or 0)
+		upgradeNow(site.RoomId :: string, site.Type, site.Level :: number)
+		return
 	end
 	local roomId, why = grid:PlaceRoom(site.Type, site.Floor, site.Column, site.Span)
 	if roomId then
@@ -247,13 +282,11 @@ local function apply(plan: Construction.Plan)
 	if plan.Action == "Build" then
 		startSite(plan)
 	elseif plan.Action == "Upgrade" then
-		local roomId, level = plan.RoomId :: string, plan.Level :: number
-		local ok, err = grid:SetLevel(roomId, level)
-		if ok then
-			announce(`{string.upper(roomName(plan.RoomType))} UPGRADED TO LEVEL {level}`)
-			BuildService.Built:Fire(roomId, "Upgrade")
+		local difficulty = Config.Find("Difficulties", director:Difficulty())
+		if difficulty and difficulty.UpgradesTakeTime then
+			startSite(plan)
 		else
-			log:Warn("upgrade of %s failed: %s", roomId, tostring(err))
+			upgradeNow(plan.RoomId :: string, plan.RoomType, plan.Level :: number)
 		end
 	elseif plan.Action == "Merge" then
 		local merged, err = grid:MergeRooms(plan.RoomId :: string, plan.Other :: string)
@@ -267,7 +300,18 @@ local function apply(plan: Construction.Plan)
 		local roomId = plan.RoomId :: string
 		local ok, err = grid:RemoveRoom(roomId)
 		if ok then
-			announce(`{string.upper(roomName(plan.RoomType))} TORN DOWN`)
+			local back = {}
+			for _, id in Config.Ids("Resources") do
+				local amount = plan.Refund and plan.Refund[id]
+				if amount and amount > 0 then
+					local added = economy:Add(id, amount, `refund for {plan.Label}`)
+					if added > 0 then
+						back[id] = added
+					end
+				end
+			end
+			announce(if next(back) then `{string.upper(roomName(plan.RoomType))} TORN DOWN: {Construction.CostText(back)} BACK`
+				else `{string.upper(roomName(plan.RoomType))} TORN DOWN`)
 			BuildService.TornDown:Fire(roomId, plan.RoomType)
 		else
 			log:Warn("teardown of %s failed: %s", roomId, tostring(err))
@@ -305,6 +349,7 @@ function BuildService:Propose(player: Player, proposal: Construction.Proposal): 
 		Proposer = player,
 		Title = plan.Label,
 		Costs = plan.Costs,
+		Refund = plan.Refund,
 		Subject = { Floor = plan.Floor, Column = plan.Column, Span = plan.Span, Label = ghostLabel(plan) },
 		Cells = Construction.Cells(plan),
 		Check = function(): (boolean, string?)
@@ -343,7 +388,7 @@ end
 local function describeSites(): string
 	local lines = {}
 	for id, site in sites do
-		table.insert(lines, string.format("%s %s at %s: %.0f%% (%d helping, %.1f of %d s)", id, site.Type,
+		table.insert(lines, string.format("%s %s %s at %s: %.0f%% (%d helping, %.1f of %d s)", id, site.Kind, site.Type,
 			Grid.Key(site.Floor, site.Column), math.min(1, site.Done / site.Seconds) * 100, site.Helpers, site.Done, site.Seconds))
 	end
 	table.sort(lines)
@@ -355,6 +400,7 @@ function BuildService:Init(registry)
 	economy = registry.EconomyService
 	votes = registry.VoteService
 	session = registry.SessionService
+	director = registry.RunDirector
 	sitesCollection = registry.ReplicationService:Collection("Sites")
 	unlockedCollection = registry.ReplicationService:Collection("Unlocked")
 	Remotes.OnServer("Propose", function(player: Player, action: string, floor: number, column: number, detail: string)

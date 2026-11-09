@@ -56,6 +56,7 @@ export type Spec = {
 	Proposer: Player?, -- nil for votes the game opens
 	Title: string, -- what is proposed: "KITCHEN", "QUARTERS TO LEVEL 2"
 	Costs: { [string]: number }?, -- shown on the banner; a big spend needs a team majority
+	Refund: { [string]: number }?, -- shown on the banner: what comes back (a tear-down)
 	Subject: { Floor: number, Column: number, Span: number, Label: string }?, -- the ghost outline
 	Cells: { string }?, -- cell keys it holds while open
 	Check: (() -> (boolean, string?))?, -- run again when it passes
@@ -147,6 +148,7 @@ local function publish(vote: Vote)
 		Proposer = if spec.Proposer then spec.Proposer.UserId else 0,
 		ProposerName = nameOf(spec.Proposer),
 		Cost = if spec.Costs then Construction.CostText(spec.Costs) else "",
+		Refund = if spec.Refund and next(spec.Refund) then Construction.CostText(spec.Refund) else nil,
 		Rule = vote.Rule,
 		Need = Votes.NeedText(vote.Rule, size),
 		Status = vote.Status,

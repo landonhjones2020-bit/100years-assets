@@ -721,9 +721,10 @@ local SITE_GHOST = { From = 0.8, To = 0.3 } -- the coming room's transparency, f
 	A construction site in open cells (BuildService): the coming room's interior art, see-through
 	and firming up as the build goes on (SetSiteProgress), behind a timber scaffold with a
 	hazard-striped plank. Graybox scaffolding until the art kit has a scaffold piece. Nothing on
-	it collides; the camera passes through it.
+	it collides; the camera passes through it. An upgrade site (`upgrade`, Nightmare's upgrades)
+	is the scaffold alone: the room is already there and keeps working until it is done.
 ]]
-function BunkerKit.Site(parent: Instance, name: string, roomType: string, floor: number, column: number, span: number): Model
+function BunkerKit.Site(parent: Instance, name: string, roomType: string, floor: number, column: number, span: number, upgrade: boolean?): Model
 	local t = Grid.Tuning()
 	local model = newModel(name, parent)
 	model:SetAttribute("RoomType", roomType)
@@ -732,11 +733,13 @@ function BunkerKit.Site(parent: Instance, name: string, roomType: string, floor:
 	model:SetAttribute("Span", span)
 	local ghost = Instance.new("Model")
 	ghost.Name = "Ghost"
-	ghost.Parent = model
+	ghost.Parent = if upgrade then nil else model
 	local source = art("Rooms", `Room_{roomType}_L1`)
 	for offset = 0, span - 1 do
 		local cell = Grid.CellPosition(floor, column + offset)
-		if source then
+		if upgrade then
+			-- no ghost: the room stands there already
+		elseif source then
 			place(source, `Interior {Grid.Key(floor, column + offset)}`, ghost, Grid.CellCFrame(floor, column + offset))
 		else
 			local color = ROOM_COLORS[roomType] or DEFAULT_ROOM_COLOR

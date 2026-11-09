@@ -8,7 +8,9 @@
 	  * Upgrade: the next level's costs for every cell of the room; level 3 also needs Lab
 	    research (a threshold the Lab reaches, not spent).
 	  * Merge: a room with a matching neighbour (free).
-	  * TearDown: a room goes and its cells become open cells (free, nothing back).
+	  * TearDown: a room goes and its cells become open cells (free). Part of what the room cost
+	    comes back (Landon, Nov 8, 2026): Tuning.Rooms.TearDownRefund of every level's cost so
+	    far, per cell (Refund). Lab research doesn't come back.
 	* Unlocks (Section 6), for Build: Start; a blueprint draft; a draft or reaching depth N; an
 	  era; the first cryo pod. Rooms won from drafts or cryo pods come in `Context.Unlocked`.
 	* Reserved cells: a cell in an open vote or under construction can't be in another
@@ -48,6 +50,7 @@ export type Plan = {
 	Level: number?, -- Upgrade: the new level
 	Costs: { [string]: number },
 	Research: number?, -- Upgrade to level 3: the research it needs
+	Refund: { [string]: number }?, -- TearDown: what comes back
 	Label: string, -- "KITCHEN", "QUARTERS TO LEVEL 2", "MERGE STORAGE", "TEAR DOWN MEDBAY"
 }
 
@@ -79,6 +82,26 @@ function Construction.CostsAt(roomType: string, level: number, span: number?): {
 		costs[id] = amount * (span or 1)
 	end
 	return costs
+end
+
+-- What tearing a room down gives back: a share (Tuning.Rooms.TearDownRefund) of every level's
+-- cost so far, per cell, rounded down. Lab research isn't given back.
+function Construction.Refund(roomType: string, level: number, span: number): { [string]: number }
+	local total: { [string]: number } = {}
+	for l = 1, level do
+		for id, amount in Construction.CostsAt(roomType, l, span) do
+			total[id] = (total[id] or 0) + amount
+		end
+	end
+	local share = rooms().TearDownRefund
+	local refund: { [string]: number } = {}
+	for id, amount in total do
+		local back = math.floor(amount * share)
+		if back > 0 then
+			refund[id] = back
+		end
+	end
+	return refund
 end
 
 -- Research needed to upgrade a room type to `level`: its Research for level 3, else none.
@@ -222,7 +245,8 @@ function Construction.Plan(bunker: any, proposal: Proposal, context: Context): (
 			end
 			plan = {
 				Action = "TearDown", Floor = room.Floor, Column = room.Column, Span = room.Span, RoomType = room.Type,
-				RoomId = room.Id, Costs = {}, Label = `TEAR DOWN {string.upper(name)}`,
+				RoomId = room.Id, Costs = {}, Refund = Construction.Refund(room.Type, room.Level, room.Span),
+				Label = `TEAR DOWN {string.upper(name)}`,
 			}
 		else
 			return nil, "That isn't something to propose."
