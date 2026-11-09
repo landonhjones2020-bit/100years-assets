@@ -170,7 +170,7 @@ return {
 			Where = { "Surface" },
 			Role = "Fighter",
 			Text = "Melee or rifles; collapses and fades when beaten. Raids the Blast Door from Era II.",
-			Health = 120, Damage = 14, AttackSeconds = 1, Range = 60, MoveSpeed = 16,
+			Health = 120, Damage = 12, AttackSeconds = 1.6, Range = 60, MoveSpeed = 16, -- Prompt 16: a rifle shot every 1.6 s
 			Targets = { "BlastDoor", "Residents", "Players", "Machines" },
 			ThreatCost = 5, Group = { Min = 2, Max = 5 },
 			Traits = { "Fades", "Shoots" },
@@ -181,9 +181,9 @@ return {
 			Where = { "Surface" },
 			Role = "PackRunner",
 			Text = "Mutated animals that circle and dart in.",
-			Health = 50, Damage = 9, AttackSeconds = 0.8, Range = 4, MoveSpeed = 24,
+			Health = 50, Damage = 5, AttackSeconds = 0.8, Range = 4, MoveSpeed = 24, -- playtest (Prompt 16): 9 a bite downed a lone player in 10 s
 			Targets = { "Players", "Residents", "Machines" },
-			ThreatCost = 2, Group = { Min = 3, Max = 6 },
+			ThreatCost = 2, Group = { Min = 3, Max = 5 },
 			Drops = "SurfaceMonster", Era = 1, Asset = "Monster_AshJackal",
 		},
 		AshWraith = {

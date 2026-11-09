@@ -397,7 +397,7 @@ return {
 			-- anywhere in the town (SurfaceAggro; playtest: at 90 a pack spawned out of range stood idle),
 			-- plan a path this often, Ash Jackals circle at CircleRadius between bites ("circle and
 			-- dart in"), and an Ash Raider's rifle hits this often
-			SurfaceAggro = 300, PathSeconds = 1.5, CircleRadius = 11, CircleSeconds = { Min = 1.2, Max = 2.4 }, ShotAccuracy = 0.55,
+			SurfaceAggro = 300, PathSeconds = 1.5, CircleRadius = 11, CircleSeconds = { Min = 2, Max = 3.5 }, ShotAccuracy = 0.45,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,

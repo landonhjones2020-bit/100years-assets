@@ -57,6 +57,11 @@ local PLACES = {
 	{ Id = "RailYard", Location = "RailYard", Asset = "Bldg_RailYard", At = { -10, 168 }, Yaw = 0, Kind = "Train", W = 150, D = 30 },
 	{ Id = "Checkpoint", Location = "Checkpoint", Asset = "Bldg_Checkpoint", At = { 272, 0 }, Yaw = 90, Kind = "Checkpoint", W = 50, D = 44 },
 }
+-- What the art's sign boards (parts whose Role is Sign) say: the location's name unless set here,
+-- and the ink when the board is dark.
+local INK = { navy = Color3.fromRGB(27, 42, 58), cream = Color3.fromRGB(242, 230, 201) }
+local SIGN_TEXT = { Entrance = "Steadfast Shelter Co.", WaterTower = "Brightwater" }
+local SIGN_INK = { WaterTower = INK.cream }
 -- Wrecks and clutter: { asset, x, z, yaw }
 local DECOR = {
 	{ "Prop_CarWreck_A", -235, 9, 80 }, { "Prop_CarWreck_B", -62, -9, 262 }, { "Prop_CarWreck_A", 38, 10, 95 },
@@ -165,27 +170,34 @@ function BrightwaterMap.Build(): string
 		part(m, "Roof", Vector3.new(w * 0.55, 0.8, d), CFrame.new(-w * 0.22, h + 0.4, 0), C.dark)
 	end
 
-	local function sign(m: Instance, text: string, at: CFrame, w: number)
-		local s = part(m, "Sign", Vector3.new(w, 4, 0.6), at, C.cream)
+	-- Lettering on a sign board's front (-Z) face, lit by the scene like paint.
+	local function letter(board: BasePart, text: string, ink: Color3?)
 		local gui = Instance.new("SurfaceGui")
+		gui.Name = "Lettering"
 		gui.Face = Enum.NormalId.Front
-		gui.CanvasSize = Vector2.new(w * 40, 160)
+		gui.LightInfluence = 1
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+		gui.CanvasSize = Vector2.new(board.Size.X * 40, board.Size.Y * 40)
 		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
+		label.Size = UDim2.fromScale(0.9, 0.8)
+		label.Position = UDim2.fromScale(0.05, 0.1)
 		label.BackgroundTransparency = 1
 		label.Text = string.upper(text)
 		label.TextScaled = true
 		label.Font = Enum.Font.Oswald
-		label.TextColor3 = Color3.fromRGB(27, 42, 58)
+		label.TextColor3 = ink or INK.navy
 		label.Parent = gui
-		gui.Parent = s
+		gui.Parent = board
+	end
+	local function sign(m: Instance, text: string, at: CFrame, w: number)
+		letter(part(m, "Sign", Vector3.new(w, 4, 0.6), at, C.cream), text)
 	end
 
 	local function backRow(n: number, w: number, d: number): { [string]: CFrame }
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
 			local x = -w / 2 + 4 + (w - 8) * (if n == 1 then 0.5 else (i - 1) / (n - 1))
-			s["Container" .. i] = CFrame.new(x, 0.6, d / 2 - 2.5) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(x, 0.6, d / 2 - 2.5)
 		end
 		return s
 	end
@@ -216,7 +228,7 @@ function BrightwaterMap.Build(): string
 		sign(m, "Gas", CFrame.new(-6, 17.2, -17.4), 12)
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
-			s["Container" .. i] = CFrame.new(6 + (i - 1) * 7, 0.6, 18) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(6 + (i - 1) * 7, 0.6, 18)
 		end
 		s.Survivor1 = CFrame.new(8, 0.6, 7)
 		s.BigFind = CFrame.new(-20, 0.4, 8)
@@ -236,7 +248,7 @@ function BrightwaterMap.Build(): string
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
 			local x = -p.W / 2 + p.W / rooms * (i - 0.5)
-			s["Container" .. i] = CFrame.new(x, 0.6, p.D / 2 - 2.5) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(x, 0.6, p.D / 2 - 2.5)
 		end
 		s.Survivor1 = CFrame.new(-p.W / 2 + p.W / rooms * 1.5, 0.6, 2)
 		s.Survivor2 = CFrame.new(-p.W / 2 + p.W / rooms * 4.5, 0.6, 2)
@@ -259,7 +271,7 @@ function BrightwaterMap.Build(): string
 		shack(m, 0, 16, 14, 10)
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
-			s["Container" .. i] = CFrame.new(-4 + (i - 1) * 8, 0.6, 19.5) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(-4 + (i - 1) * 8, 0.6, 19.5)
 		end
 		s.Survivor1 = CFrame.new(0, 0.6, 1)
 		return s
@@ -272,7 +284,7 @@ function BrightwaterMap.Build(): string
 		shack(m, 0, 8, 16, 11)
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
-			s["Container" .. i] = CFrame.new(-5 + (i - 1) * 5, 0.6, 11.5) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(-5 + (i - 1) * 5, 0.6, 11.5)
 		end
 		s.Survivor1 = CFrame.new(-10, 0.6, -3)
 		s.BigFind = CFrame.new(10, 0.4, -6)
@@ -294,7 +306,7 @@ function BrightwaterMap.Build(): string
 			for k = 1, 2 do
 				i += 1
 				if i <= n then
-					s["Container" .. i] = CFrame.new(car[2] + (k == 1 and -8 or 8), 3.1, 2.4) * CFrame.Angles(0, math.pi, 0)
+					s["Container" .. i] = CFrame.new(car[2] + (k == 1 and -8 or 8), 3.1, 2.4)
 				end
 			end
 			if c == 2 then
@@ -323,7 +335,7 @@ function BrightwaterMap.Build(): string
 		sign(m, "Military Checkpoint", CFrame.new(0, 11.5, -4.8), 22)
 		local s: { [string]: CFrame } = {}
 		for i = 1, n do
-			s["Container" .. i] = CFrame.new(-16 + (i - 1) * 32 / math.max(n - 1, 1), 0.6, 27) * CFrame.Angles(0, math.pi, 0)
+			s["Container" .. i] = CFrame.new(-16 + (i - 1) * 32 / math.max(n - 1, 1), 0.6, 27)
 		end
 		s.Survivor1 = CFrame.new(16, 0.6, 8)
 		s.BigFind = CFrame.new(-6, 0.4, 14)
@@ -367,7 +379,7 @@ function BrightwaterMap.Build(): string
 		return s
 	end
 
-	local counts = { Containers = 0, Survivors = 0, Finds = 0, Art = 0, Stand = 0 }
+	local counts = { Containers = 0, Survivors = 0, Finds = 0, Art = 0, Stand = 0, Signs = 0 }
 	for _, p in PLACES do
 		local cf = moved[p.Id] or W(p.At[1], 0, p.At[2]) * CFrame.Angles(0, math.rad(p.Yaw), 0)
 		local model: any
@@ -378,6 +390,15 @@ function BrightwaterMap.Build(): string
 			model = src:Clone()
 			sockets = socketsOf(model)
 			counts.Art += 1
+			local text = SIGN_TEXT[p.Id] or (p.Location and Config.Get("SurfaceLocations", p.Location).Name)
+			if text then
+				for _, d in model:GetDescendants() do
+					if d:IsA("BasePart") and d:GetAttribute("Role") == "Sign" then
+						letter(d, text, SIGN_INK[p.Id])
+						counts.Signs += 1
+					end
+				end
+			end
 			if p.Location and Config.Get("SurfaceLocations", p.Location).MinEra > 1 then
 				-- the art's gate: parts whose Role is Barrier close the place until its era
 				model:SetAttribute("MinEra", Config.Get("SurfaceLocations", p.Location).MinEra)
@@ -467,8 +488,8 @@ function BrightwaterMap.Build(): string
 		d.Parent = holder
 	end
 	holder.Parent = workspace
-	return string.format("workspace.Surface built: %d places (%d art, %d stand-ins), %d containers, %d survivor spots, %d find spots, %d spawn points, %d wrecks",
-		counts.Art + counts.Stand, counts.Art, counts.Stand, counts.Containers, counts.Survivors, counts.Finds, #SPAWNS, #DECOR)
+	return string.format("workspace.Surface built: %d places (%d art, %d stand-ins), %d signs lettered, %d containers, %d survivor spots, %d find spots, %d spawn points, %d wrecks",
+		counts.Art + counts.Stand, counts.Art, counts.Stand, counts.Signs, counts.Containers, counts.Survivors, counts.Finds, #SPAWNS, #DECOR)
 end
 
 return BrightwaterMap

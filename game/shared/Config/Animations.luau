@@ -14,7 +14,7 @@ local F = require(script.Parent._Fields)
 
 return {
 	Schema = Check.shape({
-		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother" }), -- a model's Rig attribute
+		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
@@ -99,6 +99,49 @@ return {
 			AssetId = "rbxassetid://87238019294136",
 			Looped = true,
 			Text = "A Tunnel Hound's gallop, jaw hanging (A4 detail pass, TunnelHound_Walk)",
+		},
+		-- The surface monsters (A5; Prompt 16): MonsterService fires the hit at the model's HitTime
+		AshJackalWalk = {
+			Rig = "AshJackal",
+			Activity = "Walk",
+			AssetId = "rbxassetid://84332717499460",
+			Looped = true,
+			Text = "An Ash Jackal's lope, head low (A5, AshJackal_Walk)",
+		},
+		AshJackalAttack = {
+			Rig = "AshJackal",
+			Activity = "Attack",
+			AssetId = "rbxassetid://119698905968735",
+			Looped = false,
+			Text = "An Ash Jackal darts in and snaps (A5, AshJackal_Attack; Hit 0.35 s)",
+		},
+		AshWraithWalk = {
+			Rig = "AshWraith",
+			Activity = "Walk",
+			AssetId = "rbxassetid://101978077102714",
+			Looped = true,
+			Text = "An Ash Wraith drifts, arms trailing (A5, AshWraith_Walk)",
+		},
+		AshWraithAttack = {
+			Rig = "AshWraith",
+			Activity = "Attack",
+			AssetId = "rbxassetid://95768211145275",
+			Looped = false,
+			Text = "An Ash Wraith rears and rakes with both hands (A5, AshWraith_Attack; Hit 0.55 s)",
+		},
+		AshRaiderWalk = {
+			Rig = "AshRaider",
+			Activity = "Walk",
+			AssetId = "rbxassetid://92909841950988",
+			Looped = true,
+			Text = "An Ash Raider prowls with the rifle up (A5, AshRaider_Walk)",
+		},
+		AshRaiderAttack = {
+			Rig = "AshRaider",
+			Activity = "Attack",
+			AssetId = "rbxassetid://71659501687501",
+			Looped = false,
+			Text = "An Ash Raider shoulders the rifle and fires (A5, AshRaider_Attack; Hit 0.45 s)",
 		},
 		ResidentWalk = {
 			Rig = "R15",
