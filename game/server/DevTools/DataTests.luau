@@ -1568,14 +1568,14 @@ test("Threat: groups within the budget, weighted points, target order", function
 	expectEqual(Threat.Choose({ "Residents" }, {}), nil, "nothing to go for")
 end)
 
-test("Animations: every Era I monster and the Brood Mother have their clips (A4)", function()
+test("Animations: every Mines monster and the Brood Mother have their clips (A4)", function()
 	local have: { [string]: boolean } = {}
 	for _, clip in all("Animations") do
 		expect(not have[clip.Rig .. ":" .. clip.Activity], `one {clip.Activity} clip for {clip.Rig}`)
 		have[clip.Rig .. ":" .. clip.Activity] = true
 	end
 	for _, monster in all("Monsters") do
-		if monster.Era == 1 then
+		if table.find(monster.Where, "Mines") then
 			local rig = string.gsub(monster.Asset, "^Monster_", "")
 			for _, activity in { "Walk", "Attack" } do
 				expect(have[rig .. ":" .. activity], `{monster.Id}: a {activity} clip for rig {rig}`)
