@@ -18,6 +18,7 @@
 	The stockpile (EconomyService): one value per stocked resource in Config.Resources (Food,
 	Water, Scrap, Iron, Copper, Crystal, Medkits, Ammo), plus Research.
 	Power (PowerService): PowerMade, PowerUsed, PowerNeeded and DarkRooms.
+	Threat (ThreatDirector): Threat and Monsters.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -27,7 +28,7 @@ local Config = require(script.Parent.Config)
 export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
-export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService"
+export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -76,6 +77,9 @@ local FIELDS: { [string]: Field } = {
 	PowerUsed = { Type = "number", By = "PowerService", Doc = "power the lit rooms draw" },
 	PowerNeeded = { Type = "number", By = "PowerService", Doc = "power every room would draw" },
 	DarkRooms = { Type = "number", By = "PowerService", Doc = "rooms dark for want of power" },
+	-- ThreatDirector (Prompt 12): the danger now
+	Threat = { Type = "number", By = "ThreatDirector", Doc = "the threat level (Section 10), rounded" },
+	Monsters = { Type = "number", By = "ThreatDirector", Doc = "monsters on the map plus those queued at the cap" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

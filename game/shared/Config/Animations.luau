@@ -14,17 +14,26 @@ local F = require(script.Parent._Fields)
 
 return {
 	Schema = Check.shape({
-		Rig = Check.enum({ "R15" }),
+		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
 			"Dodge", "Downed", "Revive", -- players (CombatController, Prompt 11)
+			"Attack", "Run", "Stunned", "Latched", "Fight", "Flee", -- monsters and residents in danger (Prompt 12)
 		}),
 		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
 		Text = F.Short,
 	}),
 	Entries = {
+		-- Monsters (A0 and A4; NPCAnimator replays Attack on each AttackAt)
+		HollowMinerAttack = {
+			Rig = "HollowMiner",
+			Activity = "Attack",
+			AssetId = "rbxassetid://99038102545112",
+			Looped = false,
+			Text = "The Hollow Miner's overhead pickaxe strike (A0, HollowMiner_Attack)",
+		},
 		ResidentWalk = {
 			Rig = "R15",
 			Activity = "Walk",

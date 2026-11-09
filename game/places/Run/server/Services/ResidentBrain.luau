@@ -17,6 +17,11 @@
 	* idle during the day: a seat in the Lounge when there is one (Section 11: socialise in the
 	  Lounge; Landon, Nov 8, 2026), or by their bed.
 	* Down: lying where they fell with a Revive prompt (a Medkit from the stockpile); dead: gone.
+	* Danger (Prompt 12; Section 11: in danger the unarmed flee to the nearest safe room, and
+	  they handle a single Burrow Tick themselves): a monster in their room, or within
+	  ResidentFleeRadius on their floor, sends them to the nearest room with no monster in or
+	  next to it, until ResidentCalmSeconds pass with none near. A lone Burrow Tick they swat
+	  (ResidentSwatDamage every ResidentSwatSeconds). Spitter goo slows them (SlowedUntil).
 	They walk the room graph (Lib.PathGraph: doorways, Shaft stairs) with Humanoid:MoveTo, at a
 	speed from their Speed stat. A resident stuck for STUCK_SECONDS steps to their next waypoint.
 	Residents pass through each other and through players (collision groups).
@@ -46,7 +51,7 @@ local log = Log.new("ResidentBrain")
 
 local ResidentBrain = {
 	Name = "ResidentBrain",
-	Dependencies = { "ResidentService", "BunkerGrid", "CycleClock", "DevService" },
+	Dependencies = { "ResidentService", "BunkerGrid", "CycleClock", "CombatService", "DevService" },
 }
 
 local TICK = 0.2 -- 5 Hz (Section 23)
@@ -72,6 +77,9 @@ type Body = {
 local residents: any = nil
 local grid: any = nil
 local clock: any = nil
+local combat: any = nil
+local fleeing: { [string]: { Until: number, Room: string? } } = {}
+local swattedAt: { [string]: number } = {}
 local bodies: { [string]: Body } = {}
 local folder: Folder? = nil
 local dayStartedAt = os.clock()
@@ -126,6 +134,15 @@ local function speedFor(id: string): number
 	local resident = residents:Get(id)
 	local t = Config.Get("Tuning", "Residents")
 	return t.WalkSpeedBase + (if resident then resident.Stats.Speed or 0 else 5) * t.WalkSpeedPerSpeed
+end
+
+local function slowedSpeed(body: any): number
+	local base = speedFor(body.Id)
+	local slowed = body.Model:GetAttribute("SlowedUntil")
+	if type(slowed) == "number" and slowed > workspace:GetServerTimeNow() then
+		return base * Config.Get("Tuning", "MonsterAI").GooSlowMultiplier
+	end
+	return base
 end
 
 local function spawnBody(id: string): Body?
@@ -226,6 +243,105 @@ local function spotAcross(roomType: string, pattern: string, n: number): (string
 	return nil, nil
 end
 
+-- Danger (Prompt 12) ---------------------------------------------------------------------------
+
+local function unitAt(position: Vector3): string?
+	local floor, column = Grid.CellAt(position)
+	if not floor or not column then
+		return nil
+	end
+	return grid:Bunker():UnitAt(floor, column)
+end
+
+local function monstersNear(position: Vector3): { any }
+	local t = Config.Get("Tuning", "MonsterAI")
+	local near = {}
+	local myUnit = unitAt(position)
+	local myFloor = Grid.CellAt(position)
+	for _, c in combat:All("Monsters") do
+		local floor = Grid.CellAt(c.Root.Position)
+		local sameUnit = myUnit ~= nil and unitAt(c.Root.Position) == myUnit
+		if sameUnit or (floor == myFloor and (c.Root.Position - position).Magnitude <= t.ResidentFleeRadius) then
+			table.insert(near, c)
+		end
+	end
+	return near
+end
+
+-- The nearest room (by the room graph) with no monster in it or next to it; else any room with
+-- none in it.
+local function safeRoom(fromUnit: string?): string?
+	if not fromUnit then
+		return nil
+	end
+	local danger: { [string]: boolean } = {}
+	for _, c in combat:All("Monsters") do
+		local unit = unitAt(c.Root.Position)
+		if unit then
+			danger[unit] = true
+		end
+	end
+	local bunker = grid:Bunker()
+	local seen: { [string]: boolean } = { [fromUnit] = true }
+	local queue = { fromUnit }
+	local fallback: string? = nil
+	local index = 1
+	while index <= #queue do
+		local unit = queue[index]
+		index += 1
+		local room = grid:Room(unit)
+		if unit ~= fromUnit and room and room.Type ~= "Shaft" and not danger[unit] then
+			local nextToDanger = false
+			for _, other in bunker:Neighbors(unit) do
+				if danger[other] then
+					nextToDanger = true
+				end
+			end
+			if not nextToDanger then
+				return unit
+			end
+			fallback = fallback or unit
+		end
+		for _, other in bunker:Neighbors(unit) do
+			if not seen[other] then
+				seen[other] = true
+				table.insert(queue, other)
+			end
+		end
+	end
+	return fallback
+end
+
+local function danger(id: string): (string?, string?, CFrame?, string?)
+	local body = bodies[id]
+	if not body or not combat then
+		return nil
+	end
+	local t = Config.Get("Tuning", "MonsterAI")
+	local near = monstersNear(body.Root.Position)
+	if #near == 1 and near[1].MonsterType == "BurrowTick" then
+		fleeing[id] = nil
+		return `Swat:{near[1].Id}`, nil, nil, "Fight"
+	end
+	local flee = fleeing[id]
+	if #near > 0 then
+		local room = if flee then flee.Room else nil
+		local current = if room then grid:Room(room) else nil
+		if not current or #monstersNear(Grid.CellPosition(current.Floor, current.Column)) > 0 then
+			room = safeRoom(unitAt(body.Root.Position))
+		end
+		flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = room }
+		fleeing[id] = flee
+	end
+	if flee and os.clock() < flee.Until and flee.Room and grid:Room(flee.Room) then
+		local room = grid:Room(flee.Room)
+		local spot = CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 0, 4))
+		return `Flee:{flee.Room}`, flee.Room, spot, "Flee"
+	end
+	fleeing[id] = nil
+	return nil
+end
+
 local function plan(id: string, order: number): (string, string?, CFrame?, string)
 	local resident = residents:Get(id)
 	if not resident then
@@ -233,6 +349,10 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 	end
 	if resident.State == "Down" then
 		return "Down", nil, nil, "Down"
+	end
+	local threatGoal, threatRoom, threatSpot, threatActivity = danger(id)
+	if threatGoal then
+		return threatGoal, threatRoom, threatSpot, threatActivity :: string
 	end
 	local phase = clock:Phase()
 	local mealSeconds = Config.Get("Tuning", "Residents").MealSeconds / math.max(clock:TimeScale(), 0.01)
@@ -341,6 +461,30 @@ local function step(body: Body, order: number)
 	if goal ~= body.Goal then
 		setGoal(body, goal, roomId, spot, activity)
 	end
+	local speed = slowedSpeed(body)
+	if math.abs(body.Humanoid.WalkSpeed - speed) > 0.05 then
+		body.Humanoid.WalkSpeed = speed
+	end
+	if string.sub(goal, 1, 5) == "Swat:" then
+		-- a lone Burrow Tick: stand and swat it (Section 11)
+		local tickId = string.sub(goal, 6)
+		local tick = combat:Get(tickId)
+		if tick and tick.State == "Alive" then
+			local t = Config.Get("Tuning", "MonsterAI")
+			local flat = Vector3.new(tick.Root.Position.X, body.Root.Position.Y, tick.Root.Position.Z)
+			if (flat - body.Root.Position).Magnitude > 4 then
+				body.Humanoid:MoveTo(flat)
+			else
+				body.Humanoid:MoveTo(body.Root.Position)
+				if os.clock() - (swattedAt[body.Id] or 0) >= t.ResidentSwatSeconds then
+					swattedAt[body.Id] = os.clock()
+					combat:Damage(tickId, t.ResidentSwatDamage, body.Id, "swatted")
+				end
+			end
+			setActivity(body, "Fight")
+		end
+		return
+	end
 	local target = body.Points[body.Index]
 	if not target then
 		-- arrived: face the spot's way, and lie down in bed
@@ -444,6 +588,7 @@ function ResidentBrain:Init(registry)
 	residents = registry.ResidentService
 	grid = registry.BunkerGrid
 	clock = registry.CycleClock
+	combat = registry.CombatService
 	registry.DevService:Register("brains", {
 		Description = "Where every resident is going and what they are doing.",
 		Usage = "brains",

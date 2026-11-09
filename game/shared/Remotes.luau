@@ -196,6 +196,11 @@ local DEFINITIONS: { [string]: Definition } = {
 		Place = "Run",
 		Doc = "A player pinged a cell: floor, column, the player's UserId and display name (PingService).",
 	},
+	BreachWarning = {
+		To = "Client",
+		Place = "Run",
+		Doc = "A breach is coming (Section 10): floor, column, seconds of warning, where (text), how many monsters, and the room id if it is a vent (BreachService).",
+	},
 	HitConfirmed = {
 		To = "Client",
 		Place = "Run",

@@ -39,6 +39,7 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Rules.Economy", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Residents", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Combat", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Threat", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Votes", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Utilities", "Folder" },
 	{ "ReplicatedStorage.Shared.Utilities.Check", "ModuleScript" },
@@ -99,6 +100,10 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.WeaponService", "ModuleScript" },
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.CombatController", "ModuleScript" },
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.PromptController", "ModuleScript" },
+		{ "ServerScriptService.Services.MonsterService", "ModuleScript" }, -- Prompt 12
+		{ "ServerScriptService.Services.BreachService", "ModuleScript" },
+		{ "ServerScriptService.Services.ThreatDirector", "ModuleScript" },
+		{ "StarterPlayer.StarterPlayerScripts.Controllers.ThreatController", "ModuleScript" },
 		{ "StarterGui.Reticle.Sight.Hit", "Frame" },
 		{ "StarterGui.Reticle.Sight.Kill", "Frame" },
 	},

@@ -27,6 +27,7 @@ local CameraRig = require(Shared.Rules.CameraRig)
 local Hud = require(Shared.Rules.Hud)
 local CommandView = require(Shared.Rules.CommandView)
 local Combat = require(Shared.Rules.Combat)
+local Threat = require(Shared.Rules.Threat)
 local Construction = require(Shared.Rules.Construction)
 local Economy = require(Shared.Rules.Economy)
 local Residents = require(Shared.Rules.Residents)
@@ -1516,6 +1517,54 @@ test("Combat: every kit has a melee weapon; Medkits and throwables (Landon, 2026
 	expect(p.MedkitHeal == 60 and p.MedkitSeconds == 1.5 and p.Loadout.Medkits == 3, "a Medkit heals 60 over 1.5 s; carry 3")
 	local medic = Config.Get("Classes", "Medic")
 	expect(medic.Kit[1].Item == "Medkit" and medic.Kit[1].Count == 5, "the Medic starts with 5 Medkits (Section 14)")
+end)
+
+-- Threats (Prompt 12) -----------------------------------------------------------------------
+
+test("Threat: level, Surge budgets and the era's roster (Section 10)", function()
+	local t = Config.Get("Tuning", "Threat")
+	local level = Threat.Level({ Year = 10, DeepestFloor = 2, Disturbance = 0, Rooms = 8, Players = 1 })
+	expect(math.abs(level - (t.Base + t.PerYear * 10 + t.PerDeepestFloor * 2 + t.PerRoom * 8)) < 1e-9, `solo level ({level})`)
+	local four = Threat.Level({ Year = 10, DeepestFloor = 2, Disturbance = 0, Rooms = 8, Players = 4 })
+	expect(math.abs(four - level * t.PlayerScale[4]) < 1e-9, "four players scale it")
+	expect(Threat.Level({ Year = 10, DeepestFloor = 2, Disturbance = 40, Rooms = 8, Players = 1 }) > level, "Disturbance raises it")
+	expectEqual(Threat.SurgeBudget(level, "Tutorial", false), t.TutorialSurgeBudget, "the first Surge is the tutorial wave")
+	expectEqual(Threat.SurgeBudget(level, "Boss", false), 0, "a boss Surge brings its boss instead")
+	expect(math.abs(Threat.SurgeBudget(level, "Normal", true) - level * 0.7) < 1e-9, "a first run's Era I is 30% easier")
+	local roster = Threat.Roster("SettlingIn")
+	expect(#roster == 4 and table.find(roster, "BurrowTick") and table.find(roster, "HollowMiner")
+		and table.find(roster, "SpitterGrub") and table.find(roster, "TunnelHound"), "Era I: the four Mines monsters")
+	expect(not table.find(Threat.Roster("Expansion"), "AshRaider"), "raiders come by the Blast Door, not breaches")
+	expect(table.find(Threat.Roster(4), "Murkling") ~= nil, "Era IV: everything before")
+	expectEqual(t.MaxMonsters, 25, "Section 23's cap")
+end)
+
+test("Threat: groups within the budget, weighted points, target order", function()
+	local rng = Random.new(7)
+	local roster = Threat.Roster("SettlingIn")
+	for _, budget in { 6, 20, 45 } do
+		local groups = Threat.Groups(budget, roster, rng)
+		expect(#groups > 0, `something to spend {budget} on`)
+		expect(Threat.Cost(groups) <= budget, `{budget}: spent {Threat.Cost(groups)}`)
+		for _, group in groups do
+			local monster = Config.Get("Monsters", group.Type)
+			expect(group.Count >= 1 and group.Count <= monster.Group.Max, `{group.Type} x{group.Count} within its group size`)
+		end
+	end
+	expectEqual(#Threat.Groups(0.5, roster, rng), 0, "too little for anything")
+	local hits = { Lit = 0, Dark = 0 }
+	for _ = 1, 3000 do
+		local point = Threat.Pick({ { Id = "Lit", Weight = 1 }, { Id = "Dark", Weight = 2 } }, rng)
+		if point then
+			hits[point.Id] += 1
+		end
+	end
+	expect(hits.Dark > hits.Lit * 1.7 and hits.Dark < hits.Lit * 2.3, `dark rooms twice as often ({hits.Dark} to {hits.Lit})`)
+	expectEqual(Threat.Choose({ "Residents", "Machines", "Players" }, { Machines = true, Players = true }), "Machines",
+		"residents first, then machines")
+	expectEqual(Threat.Choose({ "Machines", "Residents", "Players" }, { Residents = true, Machines = true }), "Machines",
+		"the Hollow Miner goes for machines first")
+	expectEqual(Threat.Choose({ "Residents" }, {}), nil, "nothing to go for")
 end)
 
 -- Remotes and constants ------------------------------------------------------------------

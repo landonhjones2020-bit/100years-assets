@@ -4,10 +4,12 @@
 	Section 23: animations play on clients from a replicated Activity attribute, which keeps the
 	server light and avoids Animate scripts in NPCs). Run place only.
 
-	It watches workspace.Bunker.Residents. For each body, the clip in Config.Animations whose Rig
-	and Activity match the body's Activity attribute plays, looped as the clip says; any other
-	activity stops it. Today there is the walk (A0); A3 adds working, eating and sleeping clips
-	with no code change.
+	It watches workspace.Bunker.Residents and workspace.Monsters (Prompt 12). For each model, the
+	clip in Config.Animations whose Rig (the model's Rig attribute; residents are R15) and
+	Activity match its Activity attribute plays, looped as the clip says; any other activity
+	stops it. Fleeing and running use the walk when there is no clip of their own. A monster's
+	attack replays each time its AttackAt attribute changes. Today there are the residents' walk
+	(A0) and the monsters' A4 clips; A3 adds working, eating and sleeping with no code change.
 ]]
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -28,10 +30,26 @@ local NPCAnimator = {
 type Watched = { Tracks: { [string]: AnimationTrack }, Playing: AnimationTrack?, Connections: { RBXScriptConnection } }
 
 local watched: { [Model]: Watched } = {}
-local clips: { [string]: any } = {} -- activity -> Config.Animations entry (R15)
+local clips: { [string]: any } = {} -- "Rig:Activity" -> Config.Animations entry
+local FALLBACK: { [string]: string } = { Flee = "Walk", Run = "Walk", Fight = "Attack" }
 
-local function trackFor(model: Model, state: Watched, activity: string): AnimationTrack?
-	local clip = clips[activity]
+local function rigOf(model: Model): string
+	local rig = model:GetAttribute("Rig")
+	return if type(rig) == "string" then rig else "R15"
+end
+
+local function clipFor(model: Model, activity: string): (any, string)
+	local rig = rigOf(model)
+	local clip = clips[`{rig}:{activity}`]
+	if not clip and FALLBACK[activity] then
+		activity = FALLBACK[activity]
+		clip = clips[`{rig}:{activity}`]
+	end
+	return clip, activity
+end
+
+local function trackFor(model: Model, state: Watched, wanted: string): AnimationTrack?
+	local clip, activity = clipFor(model, wanted)
 	if not clip then
 		return nil
 	end
@@ -84,6 +102,17 @@ local function watch(model: Instance)
 	table.insert(state.Connections, model:GetAttributeChangedSignal("Activity"):Connect(function()
 		apply(model)
 	end))
+	-- a monster's attack replays on every AttackAt
+	table.insert(state.Connections, model:GetAttributeChangedSignal("AttackAt"):Connect(function()
+		local track = trackFor(model, state, "Attack")
+		if track then
+			if state.Playing and state.Playing ~= track then
+				state.Playing:Stop(0.1)
+			end
+			track:Play(0.05)
+			state.Playing = track
+		end
+	end))
 	table.insert(state.Connections, model.AncestryChanged:Connect(function(_, parent)
 		if parent == nil then
 			for _, connection in state.Connections do
@@ -104,10 +133,8 @@ function NPCAnimator:Start()
 	end
 	local ids = {}
 	for _, clip in Config.All("Animations") do
-		if clip.Rig == "R15" then
-			clips[clip.Activity] = clip
-			table.insert(ids, clip.AssetId)
-		end
+		clips[`{clip.Rig}:{clip.Activity}`] = clip
+		table.insert(ids, clip.AssetId)
 	end
 	task.spawn(function()
 		local animations = {}
@@ -132,6 +159,16 @@ function NPCAnimator:Start()
 		end
 		holder.ChildAdded:Connect(watch)
 		log:Debug("watching residents (%d clips)", #ids)
+	end)
+	task.spawn(function()
+		local monsters = workspace:WaitForChild("Monsters", 120)
+		if not monsters then
+			return
+		end
+		for _, model in monsters:GetChildren() do
+			watch(model)
+		end
+		monsters.ChildAdded:Connect(watch)
 	end)
 end
 

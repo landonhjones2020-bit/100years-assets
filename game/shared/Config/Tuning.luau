@@ -104,6 +104,13 @@ local Schemas: { [string]: Check.Checker } = {
 		Base = N, PerYear = N, PerDeepestFloor = N, PerDisturbance = N, PerRoom = N,
 		PlayerScale = list(N, 6), BetweenSurgesFraction = N, BreachWarningSeconds = S,
 		TutorialSurgeBudget = N, FirstRunEraIMultiplier = N,
+		MaxMonsters = I, WaveSpacingSeconds = S, SpawnSpacingSeconds = S, TrickleCheckSeconds = S, DarkRoomWeight = N,
+		BarricadeWeight = Fr, MaxBreachPointsPerSurge = I,
+	}),
+	MonsterAI = shape({
+		TickSeconds = S, AggroSeconds = S, ProximityAggro = N, SmashMultiplier = N, StuckSeconds = S, KeepDistanceFraction = Fr,
+		GooSpeed = N, GooSlowSeconds = S, GooSlowMultiplier = Fr, WindupFraction = Fr,
+		ResidentFleeRadius = N, ResidentCalmSeconds = S, ResidentSwatDamage = N, ResidentSwatSeconds = S,
 	}),
 	Residents = shape({
 		StatMin = I, StatMax = I, StatCap = I, LevelMax = I, MoraleStart = N, FoodPerCycle = N, WaterPerCycle = N,
@@ -239,6 +246,18 @@ return {
 			Base = 12, PerYear = 1.2, PerDeepestFloor = 4, PerDisturbance = 0.25, PerRoom = 1,
 			PlayerScale = { 1, 1.6, 2.1, 2.5, 2.8, 3 }, BetweenSurgesFraction = 0.1, BreachWarningSeconds = 10,
 			TutorialSurgeBudget = 6, FirstRunEraIMultiplier = 0.7,
+			-- Prompt 12: Section 23's cap of 25 monsters (the rest queue); a Surge's groups open
+			-- WaveSpacingSeconds apart, each after its BreachWarningSeconds; dark rooms' vents are
+			-- picked DarkRoomWeight times as often (Section 6: dark rooms spawn monsters twice as
+			-- often); a barricaded point less often (Section 10). Spacing and counts provisional.
+			MaxMonsters = 25, WaveSpacingSeconds = 14, SpawnSpacingSeconds = 0.45, TrickleCheckSeconds = 15,
+			DarkRoomWeight = 2, BarricadeWeight = 0.25, MaxBreachPointsPerSurge = 3,
+		},
+		MonsterAI = { -- Prompt 12 (Section 10: residents first, then machines, then players who hit them); prov.
+			TickSeconds = 0.2, AggroSeconds = 10, ProximityAggro = 9, SmashMultiplier = 2, StuckSeconds = 2.5,
+			KeepDistanceFraction = 0.7, GooSpeed = 60, GooSlowSeconds = 3, GooSlowMultiplier = 0.6, WindupFraction = 0.45,
+			-- Section 11: the unarmed flee to the nearest safe room; a lone Burrow Tick they swat themselves
+			ResidentFleeRadius = 22, ResidentCalmSeconds = 6, ResidentSwatDamage = 6, ResidentSwatSeconds = 1,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,
