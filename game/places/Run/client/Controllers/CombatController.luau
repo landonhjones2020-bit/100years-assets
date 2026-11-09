@@ -398,11 +398,14 @@ local function showHealth(model: Model)
 		gui.StudsOffsetWorldSpace = Vector3.new(0, size.Y / 2 + 1, 0)
 		gui.Adornee = root
 		gui.Enabled = true
-		gui.Parent = effectsFolder()
+		gui.Parent = player:FindFirstChild("PlayerGui")
 		entry = { Gui = gui, Until = 0 }
 		healthBars[model] = entry
 	end
 	local e = entry :: { Gui: BillboardGui, Until: number }
+	if e.Gui.Parent ~= player:FindFirstChild("PlayerGui") then
+		e.Gui.Parent = player:FindFirstChild("PlayerGui") -- billboards draw from PlayerGui with an Adornee
+	end
 	e.Until = os.clock() + HEALTH_BAR_SECONDS
 	local health, max = model:GetAttribute("Health"), model:GetAttribute("MaxHealth")
 	local fill = e.Gui:FindFirstChild("Fill", true) :: GuiObject?
@@ -704,6 +707,9 @@ end
 local function applyLife()
 	local h = humanoidRef
 	local state = life()
+	if state ~= "Alive" then
+		hud:SetVital("Health", 0, "0") -- the Humanoid stays at 1 while down (CombatService)
+	end
 	if state == "Downed" then
 		Movement.Override("Downed", t.CrawlSpeed)
 		Movement.Set("Sprint", nil)
@@ -913,6 +919,15 @@ function CombatController:Start()
 	if player.Character then
 		task.spawn(setCharacter, player.Character)
 	end
+	-- the HUD finds its ScreenGui after the controllers start: fill the hotbar and the stamina
+	-- gauge once it is there
+	task.spawn(function()
+		while not hud:Gui() do
+			task.wait(0.2)
+		end
+		refreshHotbar()
+		hud:SetVital("Stamina", math.clamp(stamina() / p.Stamina, 0, 1))
+	end)
 
 	local lastSecond = -1
 	RunService.RenderStepped:Connect(function(dt)

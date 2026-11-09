@@ -26,8 +26,10 @@
 	  Medbay (not wrecked, not dark), or in the Blast Door hall when no Medbay works.
 	* Each player's life shows as attributes on the Player: Life ("Alive", "Downed", "Dead"),
 	  LifeEndsAt (when the downed or respawn wait ends, server time) and InvulnerableUntil.
-	* The client turns off the Humanoid's Dead state for its own character (CombatController),
-	  so 0 health downs a player instead of killing them; Died is still handled as a fallback.
+	* A player's Humanoid never reaches 0 health: the hit that would take it there leaves it at
+	  1 and downs the player (at 0 the server kills a Humanoid whatever the client does). The
+	  client also turns the Dead state off for its own character, and Died is still handled as a
+	  fallback.
 
 	Dev: combat, hurt, heal, down, revive, kill, dummy, dummy.attack, dummy.clear.
 ]]
@@ -507,8 +509,19 @@ function CombatService:Damage(targetId: string, amount: number, sourceId: string
 		if not h then
 			return 0
 		end
-		done = math.min(amount, h.Health)
-		h.Health = math.max(h.Health - amount, 0)
+		if h.Health - amount <= 0 then
+			-- A player's Humanoid never reaches 0: at 0 the server kills it whatever the client's
+			-- states (playtest, Nov 8, 2026). It stays at 1 and the player is Downed instead; the
+			-- HUD shows 0 while down (CombatController).
+			done = h.Health
+			h.Health = 1
+			CombatService.Damaged:Fire(targetId, done, sourceId, how)
+			if target.Player then
+				down(target.Player, target)
+			end
+			return done
+		end
+		h.Health -= amount
 	elseif target.Kind == "Resident" then
 		if target.ResidentId then
 			residents:Hurt(target.ResidentId, amount, how or "attacked")
@@ -606,6 +619,7 @@ end
 -- Dev: a target dummy until Prompt 12's monsters ----------------------------------------------
 
 local function spawnDummy(player: Player?, monsterId: string, health: number?): (string?, string?)
+	player = player or Players:GetPlayers()[1] -- run from Studio's command bar: the first player
 	local monster = Config.Find("Monsters", monsterId)
 	if not monster then
 		return nil, `no monster {monsterId}`
