@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T00:07:00Z",
- "commit": "9e6cd5a3827623348caa37a76c9d16ea6e32eea4",
- "label": "p18-9e6cd5a",
+ "built": "2026-11-10T01:01:35Z",
+ "commit": "4b18cca1e5252c9c309c3f6e09d323f8e49f4f84",
+ "label": "p19-4b18cca",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -57,12 +57,12 @@
    "ReplicatedStorage.Shared.Config.Disasters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Disasters.luau",
-    "Hash": "ddea9a81"
+    "Hash": "f5be62a3"
    },
    "ReplicatedStorage.Shared.Config.DraftCards": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/DraftCards.luau",
-    "Hash": "629ee797"
+    "Hash": "bcc3a11e"
    },
    "ReplicatedStorage.Shared.Config.Eras": {
     "Class": "ModuleScript",
@@ -122,7 +122,7 @@
    "ReplicatedStorage.Shared.Config.Monsters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Monsters.luau",
-    "Hash": "801bf4ca"
+    "Hash": "e05e905d"
    },
    "ReplicatedStorage.Shared.Config.MoraleStates": {
     "Class": "ModuleScript",
@@ -197,7 +197,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "6155e90c"
+    "Hash": "f148b899"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -217,12 +217,12 @@
    "ReplicatedStorage.Shared.Constants": {
     "Class": "ModuleScript",
     "From": "game/shared/Constants.luau",
-    "Hash": "1edcb875"
+    "Hash": "756dc7c5"
    },
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "86293468"
+    "Hash": "f62e0b20"
    },
    "ReplicatedStorage.Shared.Rules.Boss": {
     "Class": "ModuleScript",
@@ -272,7 +272,12 @@
    "ReplicatedStorage.Shared.Rules.Disasters": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Disasters.luau",
-    "Hash": "a088ad6d"
+    "Hash": "3307a17e"
+   },
+   "ReplicatedStorage.Shared.Rules.Draft": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Draft.luau",
+    "Hash": "3fce1881"
    },
    "ReplicatedStorage.Shared.Rules.Economy": {
     "Class": "ModuleScript",
@@ -297,7 +302,7 @@
    "ReplicatedStorage.Shared.Rules.Loot": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Loot.luau",
-    "Hash": "5f0d0e56"
+    "Hash": "1b202765"
    },
    "ReplicatedStorage.Shared.Rules.Modifiers": {
     "Class": "ModuleScript",
@@ -317,7 +322,7 @@
    "ReplicatedStorage.Shared.Rules.Surface": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Surface.luau",
-    "Hash": "be644e31"
+    "Hash": "1695c9c3"
    },
    "ReplicatedStorage.Shared.Rules.Threat": {
     "Class": "ModuleScript",
@@ -342,7 +347,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "fca7b4c7"
+    "Hash": "45a5abcd"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -392,7 +397,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "04a3fc7c"
+    "Hash": "dcbf906d"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -432,7 +437,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "cffcc0bb"
+    "Hash": "83cc714b"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -492,7 +497,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "c2b0b677"
+    "Hash": "4c3d3e06"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
@@ -512,7 +517,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "416d93c3"
+    "Hash": "3dc459be"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
@@ -574,12 +579,12 @@
    "ReplicatedStorage.Shared.Config.Disasters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Disasters.luau",
-    "Hash": "ddea9a81"
+    "Hash": "f5be62a3"
    },
    "ReplicatedStorage.Shared.Config.DraftCards": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/DraftCards.luau",
-    "Hash": "629ee797"
+    "Hash": "bcc3a11e"
    },
    "ReplicatedStorage.Shared.Config.Eras": {
     "Class": "ModuleScript",
@@ -639,7 +644,7 @@
    "ReplicatedStorage.Shared.Config.Monsters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Monsters.luau",
-    "Hash": "801bf4ca"
+    "Hash": "e05e905d"
    },
    "ReplicatedStorage.Shared.Config.MoraleStates": {
     "Class": "ModuleScript",
@@ -714,7 +719,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "6155e90c"
+    "Hash": "f148b899"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -734,12 +739,12 @@
    "ReplicatedStorage.Shared.Constants": {
     "Class": "ModuleScript",
     "From": "game/shared/Constants.luau",
-    "Hash": "1edcb875"
+    "Hash": "756dc7c5"
    },
    "ReplicatedStorage.Shared.Remotes": {
     "Class": "ModuleScript",
     "From": "game/shared/Remotes.luau",
-    "Hash": "86293468"
+    "Hash": "f62e0b20"
    },
    "ReplicatedStorage.Shared.Rules.Boss": {
     "Class": "ModuleScript",
@@ -789,7 +794,12 @@
    "ReplicatedStorage.Shared.Rules.Disasters": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Disasters.luau",
-    "Hash": "a088ad6d"
+    "Hash": "3307a17e"
+   },
+   "ReplicatedStorage.Shared.Rules.Draft": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Draft.luau",
+    "Hash": "3fce1881"
    },
    "ReplicatedStorage.Shared.Rules.Economy": {
     "Class": "ModuleScript",
@@ -814,7 +824,7 @@
    "ReplicatedStorage.Shared.Rules.Loot": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Loot.luau",
-    "Hash": "5f0d0e56"
+    "Hash": "1b202765"
    },
    "ReplicatedStorage.Shared.Rules.Modifiers": {
     "Class": "ModuleScript",
@@ -834,7 +844,7 @@
    "ReplicatedStorage.Shared.Rules.Surface": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Surface.luau",
-    "Hash": "be644e31"
+    "Hash": "1695c9c3"
    },
    "ReplicatedStorage.Shared.Rules.Threat": {
     "Class": "ModuleScript",
@@ -859,7 +869,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "fca7b4c7"
+    "Hash": "45a5abcd"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -909,7 +919,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "04a3fc7c"
+    "Hash": "dcbf906d"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -949,7 +959,7 @@
    "ServerScriptService.Services.BreachService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/BreachService.luau",
-    "Hash": "bba20cfa"
+    "Hash": "afa51885"
    },
    "ServerScriptService.Services.BuildService": {
     "Class": "ModuleScript",
@@ -974,7 +984,7 @@
    "ServerScriptService.Services.DeepService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DeepService.luau",
-    "Hash": "c08ee859"
+    "Hash": "4ec67ee7"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
@@ -984,12 +994,17 @@
    "ServerScriptService.Services.DigService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DigService.luau",
-    "Hash": "ead28a44"
+    "Hash": "ee0d667f"
    },
    "ServerScriptService.Services.DisasterService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DisasterService.luau",
-    "Hash": "ba0dd648"
+    "Hash": "07631da7"
+   },
+   "ServerScriptService.Services.DraftService": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Services/DraftService.luau",
+    "Hash": "19614dbc"
    },
    "ServerScriptService.Services.EconomyService": {
     "Class": "ModuleScript",
@@ -999,12 +1014,12 @@
    "ServerScriptService.Services.ExpeditionService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ExpeditionService.luau",
-    "Hash": "df52f4b4"
+    "Hash": "5a746dce"
    },
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/InventoryService.luau",
-    "Hash": "d04dea15"
+    "Hash": "f5052f76"
    },
    "ServerScriptService.Services.MonsterService": {
     "Class": "ModuleScript",
@@ -1049,12 +1064,12 @@
    "ServerScriptService.Services.ResidentService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ResidentService.luau",
-    "Hash": "a4f6a198"
+    "Hash": "94565570"
    },
    "ServerScriptService.Services.ResultsService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ResultsService.luau",
-    "Hash": "52d0623c"
+    "Hash": "f0378431"
    },
    "ServerScriptService.Services.RunDirector": {
     "Class": "ModuleScript",
@@ -1069,7 +1084,7 @@
    "ServerScriptService.Services.SurfaceService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/SurfaceService.luau",
-    "Hash": "869afa4a"
+    "Hash": "164f45b4"
    },
    "ServerScriptService.Services.ThreatDirector": {
     "Class": "ModuleScript",
@@ -1079,17 +1094,17 @@
    "ServerScriptService.Services.VoteService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/VoteService.luau",
-    "Hash": "88364a2b"
+    "Hash": "cb745bd2"
    },
    "ServerScriptService.Services.WeaponService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/WeaponService.luau",
-    "Hash": "50ecae50"
+    "Hash": "f1e99462"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "cffcc0bb"
+    "Hash": "83cc714b"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -1109,7 +1124,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CombatController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/CombatController.luau",
-    "Hash": "e2eb78d6"
+    "Hash": "d68089c8"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
@@ -1199,7 +1214,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "c2b0b677"
+    "Hash": "4c3d3e06"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
@@ -1219,7 +1234,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "416d93c3"
+    "Hash": "3dc459be"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",

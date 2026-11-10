@@ -505,7 +505,8 @@ return {
 			SurvivorLevel = { Min = 1, Max = 3 }, SurvivorHealth = 60, FollowDistance = 6, SurvivorWalkSpeed = 15,
 			-- creatures: jackal packs by day, raiders from RaiderMinEra, wraiths only in storms
 			MaxMonsters = 8, SpawnDistance = { Min = 70, Max = 160 }, JackalEverySeconds = { Min = 30, Max = 55 },
-			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, RaiderMeleeShare = 0.33, -- Landon (Prompt 16): a third of raiders fight hand to hand WraithEverySeconds = { Min = 10, Max = 18 },
+			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, WraithEverySeconds = { Min = 10, Max = 18 },
+			RaiderMeleeShare = 0.33, -- Landon (Prompt 16): a third of raiders fight hand to hand
 			WraithDistance = { Min = 35, Max = 70 }, DespawnSeconds = 20,
 		},
 		Deep = { -- Section 12 (Prompt 17), all prov.

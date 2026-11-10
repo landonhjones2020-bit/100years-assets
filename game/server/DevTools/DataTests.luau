@@ -2513,7 +2513,7 @@ end)
 
 test("Draft: what found blueprints and the cards need (Landon, Prompt 19)", function()
 	expectEqual(Draft.Tuning().FoundPerDraft, 1, "a found blueprint joins a draft as one extra card")
-	for _, id in { "ExpeditionSurface", "HardwareStore", "RadioTower", "Cache" } do
+	for _, id in { "ExpeditionSurface", "HardwareStore", "RadioTower", "Showroom" } do
 		local lines = Loot.Lines(id, {})
 		local has = false
 		for _, line in lines do
