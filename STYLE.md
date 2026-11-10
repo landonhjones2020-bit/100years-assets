@@ -125,7 +125,7 @@ this game, by Steadfast Shelter Co., in 1958.
   Pivot = bottom-centre unless the object hinges (doors, lids: `pivot=` at the hinge line).
 * Asset names `Category_Name` or `Category_Name_Variant`, PascalCase. Categories so far:
   `Prop`, `Room`, `Kit` (bunker kit), `Weapon`, `Tool`, `Monster`, `Boss`, `Resident`,
-  `Surface`, `Cave`, `Lobby`, `Cutscene`, `Digby`, `Cosmetic`, `UI`.
+  `Surface`, `Cave`, `Lobby`, `Town`, `Cutscene`, `Digby`, `Cosmetic`, `UI`.
 * Part names unique per asset. Parts that code must find get `role=` (they stay separate
   MeshParts); everything else that shares settings is merged into one MeshPart on export.
 * Collision (`collision=`): `none` for decoration (collision and queries off), `query` for
@@ -152,8 +152,37 @@ this game, by Steadfast Shelter Co., in 1958.
 | Surface building | 6,000 |
 | Cave piece | 8,000 |
 | Boss | 15,000 |
+| Town block: two or three buildings and their pavement (A9) | 16,000 |
+| A large building's shell, hall or fittings, each (A9) | 20,000 |
 
 Phones should see no more than about 150,000 triangles at once.
+
+### Buildings and streets (the town kit, A9)
+
+Made with `generators/Town/townkit.py`; the lobby's Main Street is the reference
+(`previews/Lobby/Lobby_Street.png`).
+
+* **A building is decoration.** Everything is merged into a few MeshParts per material with no
+  collision. What players, shots and the camera hit is invisible boxes listed in the sidecar
+  (`k.collider`), and its lamps are `k.light`; AssetSetup builds both inside the model. Keep
+  colliders few and simple: a body, the shop front, each thing on the pavement.
+* **No textures, so surfaces are built.** Brick is a flat wall with thin proud courses every few
+  studs; stone is coursed blocks of two or three swatches standing proud of a mortar colour; tiles,
+  panel joints and awning stripes are geometry. Two faces never share a plane (it flickers): leave
+  the hidden face out (`open_=`) or stand one piece proud.
+* **Lettering is geometry** in five open-licence fonts (`generators/Town/fonts/`): Alfa Slab One
+  for shop names, Lobster for script signs, Oswald and Bebas Neue for everything small. A raised
+  letter costs about 45 triangles (60 in Alfa Slab, 75 in Lobster); painted lettering is
+  `flat=True` (fronts only, about 25). Never Special Elite as geometry (500 a letter).
+* **Glass and Neon parts show one colour each** in Studio, so they are split per swatch on export
+  (`DecorNeonCream`, `DecorGlassSkyblue`). Use few glass tints.
+* **A merged mesh stays under 12,000 triangles**: the export cuts a bigger one in pieces (`Decor`,
+  `Decor2`). A block is about 12,000 in all.
+* **A street reads from its signs.** Every shop has a name on its band, most have an awning or a
+  canopy, a blade sign or a roof sign; a lamp, a tree, a lamp, a tree along the kerb; something on
+  the pavement in front of each shop that says what it sells.
+* **Cars** keep their body as its own part, `Paint`, on the tint swatch: whoever places one sets
+  that part's Color.
 
 ## 5. Dimensions (bible Section 6; provisional until the bunker kit, A1)
 
@@ -164,6 +193,9 @@ Phones should see no more than about 150,000 triangles at once.
 | Player avatar (R15) | about 5 tall |
 | Doorway between rooms | proposed 8 wide × 10 tall, fixed in A1 |
 | Supply crate (`Prop_SupplyCrate`) | 4.2 × 2.65 × 2.75 |
+| A shop's ground floor (floor to the sign band's top) | 13; an upper floor 10.5 |
+| Main Street: roadway, a pavement | 44 wide, 12 deep |
+| A parked car | 17 long, 6.6 wide |
 
 ## 6. Review loop (every asset)
 

@@ -975,6 +975,58 @@ experience), `Config.Classes` (kits, passives, abilities, level 2 and 3 as modif
 * Dev: classes, class <Id> [level] [player], class.level, class.own, ability [option],
   ability.ready, classxp <years>, resident.arm <id|all> [item|none], record <Class> [trial].
 
+## The lobby (Lobby place)
+
+Bible Section 21 (the hub, elevator pads, teleport, rejoin), Section 14 (the Daily Class Shop, the
+wishlist, the free trial), Section 17 (the 99 Robux reroll); Prompt 21. `Shared.Rules.ClassShop`
+and `Shared.Rules.Lobby` (pure), `Config.Pads`, `Tuning.ClassShop` and `Tuning.Lobby`.
+
+* **The shop** is the profile's `ClassShop` record (`{ Day, Slots, RerollsUsed, Wishlist?, WishDay?,
+  Trial?, TrialUsed? }`) and the loadout its `Loadout` record (`{ Class }`). `ClassShopService`
+  refreshes the shop when a session is ready and whenever the UTC day turns, and answers ShopBuy,
+  ShopReroll, ShopWish and SetLoadoutClass. `Rules.ClassShop.Settle` puts the loadout back on a
+  class that can be played after anything that may have taken the trial away. The client reads the
+  Player's `ShopDay` and `VIP` and ReplicatedStorage's `ShopResetAt`.
+* **Purchases.** `PurchaseService` (both places) is ProcessReceipt: a product is a row with an id
+  from Config and a grant that edits the profile without yielding; `ProfileService:GrantPurchase`
+  runs it once per receipt. `Prompt(player, name)` opens Roblox's prompt; `Granted` fires once per
+  receipt. The first row is ClassShopReroll (`Tuning.ClassShop.RerollProductId`).
+* **Pads.** A pad in the world is a Model with a `PadId` attribute (a `Config.Pads` id) and a
+  `Floor` part; a player whose root is over the floor rides it. `PadService` runs each pad's phase
+  (Idle, Waiting, Counting, Launching), `Rules.Lobby.MayBoard` says who may ride, and the `Pads`
+  collection and the Player's `Pad` attribute tell clients. Remotes: PadDifficulty, PadStart,
+  PadInvite, PadHold. A pad model's `Sign` part carries the sign (`PadController` puts
+  `Lobby.Templates.PadSign`, a SurfaceGui, on the side its `SignFace` attribute names).
+* **Launching.** `Lib.RunLaunch.Start(players, difficulty, loadouts)`: reserve a Run server, write
+  the run's record under its id (`Lib.RunRecord`), write each player's rejoin record
+  (`Lib.Rejoin`: hash map `RunRejoin`, key = the user id, `{ Key, Code, Difficulty, At }`),
+  teleport. The pads and Play Again both use it. In Studio the record goes under the Studio key
+  and nothing teleports.
+* **In the Run place** `PartyService` reads the record once: it sets the difficulty
+  (`RunDirector:SetDifficulty`), holds each session at its `Party` gate until then, sends strangers
+  (and anyone in a server that isn't reserved) back to the lobby, and renews the party's rejoin
+  records while the run is on.
+* **Rejoin.** `RejoinService` reads a player's rejoin record when their session is ready and sets
+  the Player's `RejoinOffer`; RejoinRun sends them back with the record's code (never sent to a
+  client), RejoinDismiss puts the card away.
+* **The screens.** `ClassShopController` owns the Class Shop and Loadout pages of The Frame;
+  `LobbyController` the class plate, the two buttons, the wallet, alerts, the booths' prompts
+  (a ProximityPrompt with a `LobbyAction` attribute: "ClassShop" or "Loadout") and the rejoin card;
+  `PadController` the signs, the pad panel and the invite list. `Lib.ClassArt` says how a class is
+  shown (its portrait when the UI kit has one, else its signature item's icon). The mouse is locked
+  as in a run, so buttons carry key chips (`LobbyController:SetKey`); a wheel click frees the cursor.
+* **The world** is `workspace.Lobby`, built in Studio by the Luau `tools/lobby_world.py` prints
+  (asset 104368016773499): the showroom (`Lobby_Showroom`, `Hall`, `Fit`, `Frontage`), six
+  `Lobby_ElevatorPad` at its `Socket_Bay1..6`, the booths at `Socket_ClassBooth` and
+  `Socket_LoadoutBooth`, ten `Lobby_Block*` along Main Street (`generators/Lobby/street_plan.py`),
+  the ground, cars, bunting, the town beyond the barricades, tall invisible walls (`Bounds`) and
+  four spawns. Town and lobby models are merged decoration with no collision: `AssetSetup` builds
+  each model's `Colliders` (invisible boxes; small ones tagged CameraIgnore) and `Lights` from its
+  sidecar.
+* Dev: shop, shop.new, shop.day <n>, shop.rerolls <n>, shop.trial <used|unused>, pads, pad.go <id>,
+  pad.fill <id> <n>, pad.unlock <Hard|Nightmare|none>, products, purchase.test <Product>
+  [receiptId], rejoin, rejoin.fake [Difficulty], rejoin.clear; in Run: party.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -1087,6 +1139,11 @@ ClassShop, Account, Lobby).
 | both | DevService | service | | DevTools commands and permission |
 | both | ReplicationService | service | SessionService, DevService | the delta channel (server) |
 | both | ProfileService | service | SessionService, ReplicationService, DevService | saved data: session-locked profiles, Glowshards, purchase receipts |
+| both | PurchaseService | service | ProfileService, DevService | developer product receipts: grant once, record, confirm; the Class Shop reroll (Prompt 21) |
+| Lobby | ClassShopService | service | SessionService, ProfileService, PurchaseService, DevService | the Daily Class Shop, rerolls, the wishlist, the free trial, the loadout |
+| Lobby | PadService | service | SessionService, ProfileService, ClassShopService, ReplicationService, DevService | the elevator pads: riders, countdowns, leaders and invites, difficulty, launching a run |
+| Lobby | RejoinService | service | SessionService, DevService | "Rejoin your run": the offer and the trip back |
+| Run | PartyService | service | SessionService, RunDirector, DevService | who belongs to this run: the record's party and difficulty, the gate, rejoin records kept alive |
 | Run | ObjectiveService | service | DevService | Lost Crews rescued, era bosses beaten, their Years per Cycle bonuses |
 | Run | CycleClock | service | SessionService, ObjectiveService, DevService | 4:30 cycles, day and Surge phases, the year counter, Years per Cycle, skips |
 | Run | RunDirector | service | SessionService, CycleClock, DevService | the run's lifecycle (intro, playing, ended), win and lose, Endless, the summary |
@@ -1135,6 +1192,9 @@ ClassShop, Account, Lobby).
 | Run | SurfaceController | controller | HUDController, CameraController | the surface's and the Deep's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
 | Run | DeepController | controller | HUDController | the radio log sheet, the Spelunker's eye |
 | Run | ExpeditionsController | controller | UIController, ReplicaController | the Expeditions screen, distress markers and their edge arrows |
+| Lobby | ClassShopController | controller | UIController, ReplicaController | the Class Shop and Loadout pages of The Frame |
+| Lobby | LobbyController | controller | UIController, ReplicaController, CameraController, InputController, ClassShopController | the lobby's HUD: class plate, buttons and their key chips, wallet, alerts, booth prompts, the rejoin card |
+| Lobby | PadController | controller | UIController, ReplicaController, CameraController, InputController | the pads' signs, the pad panel, the invite list |
 | both | DevController | controller | ReplicaController, InputController, CameraController, UIController, HUDController, CommandViewController, VoteController | `/dev` chat command, Studio DevInvoke |
 
 ## Prompt log
@@ -1266,3 +1326,10 @@ ClassShop, Account, Lobby).
   player clips (`Config.Items.Hold` picks them), 26 icons. The Ash Raider's detail pass:
   `Monster_AshRaider_Melee` (rig AshRaiderMelee), the rifle's own joint, Idle clips, and NPCAnimator
   playing an attack over the rig's Idle.
+* **Prompt 21 (2026-11-10)**: the Lobby. Rules.ClassShop and Rules.Lobby, Config.Pads,
+  ClassShopService, PadService, RejoinService (Lobby), PartyService (Run), PurchaseService (both),
+  Lib.RunLaunch and Lib.Rejoin, ClassShopController, LobbyController, PadController, Lib.ClassArt,
+  the Lobby screen. The run's record is written by the pads and by Play Again; the Run place lets in
+  only the record's party. The Class Shop Reroll developer product (3730189637). The A9 lobby art:
+  28 models on `generators/Town/townkit.py` (architecture as merged decoration with colliders and
+  lights in the sidecar), `workspace.Lobby` built by `tools/lobby_world.py`.

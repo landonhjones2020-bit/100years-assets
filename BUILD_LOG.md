@@ -35,6 +35,9 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 18: resident expeditions and distress calls (Run) | ✅ done 2026-11-09 | Run playtests with real E presses and holds, clicks and Enter: the Expeditions screen opened at the Blast Door guard's radio and a Radio Room, teams sent to the surface and the Deep, residents walking out and coming home to their jobs, a real dawn's cycle away, distress calls (forced and rolled) with the radio card, alert, flare, plate countdown and edge arrow, members reached and led home from the town and from a cave, the deadline on the real clock losing the pinned, losses and a Medkit's save, the Radio Room's recruits (rate, the Radio Operator, a Rare recruit) and a crew call, the Residents screen's AWAY tab, the run's stories; Lobby start check; `game/reports/P18_Expeditions.md`, `previews/Game/P18_*.jpg` |
 | Prompt 19: the blueprint draft (Run), with Landon's answers to the Prompt 13, 14, 16 and 17 questions | ✅ done 2026-11-09 | Run playtests with real clicks, E presses and Y: a draft after a real Surge, solo and team picks, a found card, the Mad Scientist's reroll, every usable card's effect, a blueprint hauled home; `game/reports/P19_BlueprintDraft.md`, `previews/Game/P19_*.jpg` |
 | Prompt 20: all 18 classes plus the Survivor (Run) | ✅ done 2026-11-10 | Run playtests with real Q taps and holds: every class's ability, refusals, options, class experience and levels saved; staggers, burning, barricades, the Warden's choices (Nov 9); two players, touch and a real controller still need a person; `game/reports/P20_Classes.md`, `previews/Game/P20_*.jpg` |
+| Prompt 21: the Lobby (Lobby and Run), with the 99 Robux reroll product | ✅ built 2026-11-10, waiting for the live test | Lobby and Run playtests with real key presses: the shop, buying, both rerolls (Roblox's own prompt as a Studio test purchase), the wishlist, the trial, all three pad kinds, the locked pad, the rejoin card, the record read by a Run playtest; reserved servers and teleports need the published game; `game/reports/P21_Lobby.md` |
+| A9 lobby art: the Steadfast showroom and Main Street | ✅ in Studio 2026-11-10 | 28 models set up in Lobby (size and position measured against their sidecars), `workspace.Lobby` built by `tools/lobby_world.py`; walked in a playtest (pads, signs, a booth, every wall); `previews/Game/P21_*.jpg`, `previews/Lobby/`, `previews/Town/` |
+| Class looks: the other 15 | not started | Class cards show the class's signature item until its portrait exists |
 | The Ash Raider's detail pass (Landon, Nov 9) | ✅ in Studio 2026-11-10, Landon: "looks good" | Both raiders rebuilt (about 3,700 of 4,000 triangles), the club raider's own model, the rifle's own joint, Idle clips; sizes and pivots measured, every clip seen in a Run playtest; `previews/Monsters/Monster_AshRaider_review.jpg`, `previews/Game/P20_raiders_*.jpg` |
 | Landon's answers to the Prompt 18 questions | ✅ built and in the bible 2026-11-09 | Run playtests with real clicks and Enter: a fast team home a cycle early at a real dawn with the full trip's finds, unheard calls losing the team with no Radio Room, the screen's warning gone live when a Radio Room started working, a heard call with one; 107 data tests in both places; addendum in `game/reports/P18_Expeditions.md`, `previews/Game/P18_FastTeam*.jpg`, `P18_UnheardCall.jpg`, `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
@@ -43,7 +46,7 @@ Newest first. Every "verified" line says how it was checked.
 | A2 weapons and tools | ✅ in Studio 2026-11-09 | All 34 models set up in Run (size and pivot measured, sockets written): the first seven (Prompts 11 to 14) and the 27 of Prompt 20 (15 weapons, 4 throwables, 2 tools, 2 items, the lamp, barricade, turret and combat drone); 17 player clips (the 11 of Prompt 11 and 6 for two-handed weapons, heavy swings and throws); 32 item icons in one atlas; held, fired, swung and thrown in Run playtests (`previews/Game/P20_rifle_*.jpg`, `P20_fireaxe_swing.jpg`, `P20_*_art.jpg`) |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
-| A3, A7 to A11 | not started | |
+| A3, A7, A8, A9's cutscene set and Digby, A10, A11 | not started | |
 
 ## Ids
 
@@ -58,6 +61,8 @@ Newest first. Every "verified" line says how it was checked.
 | Prop_SupplyCrate | model 126356214563544 (version 2 is the right scale) |
 | R15_TestWave | animation 106072736219880 |
 | Game code (Model, a version per build) | 95026446991297 (`game/BUILD.json`) |
+| Class Shop Reroll (developer product, 99 Robux) | 3730189637; icon asset 99536971057169 |
+| The lobby world builder (tooling, a ModuleScript model) | 104368016773499 (`tools/lobby_world.py`) |
 | Weapon_PocketPistol | model 132352458683098 (revision 2: the v2 grip) |
 | Weapon_Wrench | model 73400938739387 |
 | UI atlas: items | decal 75294353899571, image 111680310007713 (Prompt 14: six icons; Prompt 13's was decal 116109976139787, image 99377896545998) |
@@ -80,6 +85,75 @@ Newest first. Every "verified" line says how it was checked.
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-10 (midday, Chicago): Prompt 21, the Lobby; the A9 lobby art
+
+Game code build `p21-a5fb2fb` (final): code asset 95026446991297 revision 90, installed in Lobby
+and Run: StructureCheck 0 errors (Lobby 352 checks, Run 534), 116 data tests passed in each. Report: `game/reports/P21_Lobby.md` (13 Bible Questions, a live-test list).
+
+**The lobby's systems.** `ClassShopService`, `PadService`, `RejoinService` (Lobby), `PartyService`
+(Run), `PurchaseService` (both), `Lib.RunLaunch`, `Lib.Rejoin`, `Rules.ClassShop`, `Rules.Lobby`,
+`Config.Pads`, three Lobby controllers and the Lobby screen. Verified in Lobby playtests with real
+key presses: the shop of the day, a purchase with Glowshards (Engineer, 122 to 82), the free reroll,
+the paid reroll through Roblox's own prompt as a Studio test purchase (receipt granted once; the
+same receipt again not granted twice), the wishlist forced in after 3 shop days, the free trial,
+the public pad (20 s; full), the private pad (leader, difficulty, invites, Start), the solo pad
+(3 s), a locked Hard pad's refusal, the rejoin card, a booth's prompt. The record chain: a private
+Hard pad with the Engineer wrote the Studio record and a Run playtest read it.
+Bugs found by the playtests and fixed: a reroll that moved the trial left the loadout on the old
+trial class (`ClassShop.Settle`), three footer actions overflowed The Frame's footer (two at most),
+a PadHold sent while a pad was launching was dropped, a repeated receipt announced itself twice.
+
+**The developer product.** "Class Shop Reroll", id 3730189637, 99 Robux, made through Open Cloud
+(`POST /developer-products/v2/universes/10775267993/developer-products`, multipart, scope
+`developer-product:write`); its icon is `ui/products/Product_ClassShopReroll.png` (asset
+99536971057169).
+
+**The A9 lobby art.** 28 models, 28 uploads, all set up in the Lobby place
+(`ServerStorage.Assets.Lobby` 18, `.Town` 10); ids:
+Lobby_Showroom 105906467378226, Lobby_ShowroomHall 108612506183250, Lobby_ShowroomFit
+116277038111164, Lobby_Frontage 84164000383196, Lobby_ElevatorPad 120668863892926, Lobby_ClassBooth
+93253527124311, Lobby_LoadoutBooth 126501239110641, Lobby_BunkerCutaway 76521202699995,
+Lobby_BlockBank 130294744214889, Lobby_BlockHardware 108904814349567, Lobby_BlockAtomic
+115168216568813, Lobby_BlockGazette 81722982225171, Lobby_BlockGas 73355127762274, Lobby_BlockDiner
+94946860613938, Lobby_BlockMarket 118438764863724, Lobby_BlockVista 72813136566217, Lobby_BlockHotel
+75774388841392, Lobby_BlockSoda 95399315930038, Town_CarSedan 97262179345505, Town_CarPickup
+79190684629929, Town_Bunting 135384608438925, Town_Barricade 108076082030269, Town_WelcomeBanner
+82957467163867, Town_TreeBig 117429258264741, Town_TreePine 114778673428716, Town_TreeClump
+136411536054327, Town_Hill 98208194138001, Town_WaterTower 83081579011647.
+* New kit: `generators/Town/townkit.py` (a Kit of boxes, prisms, lathes, lettering and wall faces
+  that merges everything into a few MeshParts per material), `buildings.py` (a parametric Main
+  Street building and five special ones), `props.py` (street furniture and two cars),
+  `generators/Lobby/` (the showroom in three assets, the pad, the booths, the cutaway, ten blocks
+  and the showroom's frontage; `street_plan.py` is where each block stands).
+* `studio/AssetSetup.lua` now builds a model's colliders (invisible boxes, the small ones tagged
+  CameraIgnore) and lights from its sidecar; `tools/setup_batch.py` sends them in Studio space.
+  The Lobby place got `ServerStorage.Assets` (the palette attributes) and `ArtPipeline`.
+* `tools/lobby_world.py` prints the builder of `workspace.Lobby`; it is stored as asset
+  104368016773499 (revision 2) and was run in the Lobby place: 1,019 parts, about 329,000 triangles.
+  It removed the blockout, the baseplate and the old spawn, and set the place's lighting (ClockTime
+  10, latitude -15, Brightness 2.6, exposure -0.2, Clouds).
+* Verified in Studio: every model's parts measured against its sidecar (0.01 studs); all 6 pads
+  adopted by PadService; walking onto the Private pad made the player its rider; the signs show on
+  the pads' boards (SurfaceGui); E at the Class Shop booth opened the shop; a character sent
+  walking at 11 places along the edges (both street ends and their corners, both alleys, the gas
+  station's back and side, the diner's gap) was stopped at each.
+* Findings: (1) a merged decoration mesh cut in pieces kept every vertex of the whole in each
+  piece, so the sidecar's sizes were the whole asset's and AssetSetup refused 5 models: the cut
+  now drops loose vertices and marks faces with a layer (`steadfast.DECOR_CAP`); (2) an FBX carries
+  its export time, so re-exporting the same model gives a new hash: don't re-export what is already
+  uploaded unless it changed; (3) `InsertService:LoadAsset(id)` in Edit returns the model with no
+  PackageLink, so a batch of 27 was inserted in one `execute_luau`; (4) chunks near 20 KB (the
+  batch setup, the UI build, the world builder) went up as ModuleScript models
+  (`tools/chunk_module.py`): four short calls instead of a paste; (5) Edit-mode `screen_capture`
+  came back at 270 by 151 this session (play mode: 554 by 311), too small to judge art: the Blender
+  sheets and play-mode captures were used; (6) with the lobby's bright sky the hall's lamps washed
+  the floor out: the builder dims the showroom's lights to 45%; (7) Studio reported its Assistant
+  plugin changed version mid-session and asked for a restart; nothing failed.
+
+**Not verified:** reserved servers and teleports (pad to run, the party gate, rejoin, Play Again,
+Return to Lobby), a second player, touch, a real controller, the lobby on a phone. The 15 class
+looks aren't made.
 
 ## 2026-11-10 (morning, Chicago): Prompt 20, the classes; the A2 art; the Ash Raider's detail pass
 

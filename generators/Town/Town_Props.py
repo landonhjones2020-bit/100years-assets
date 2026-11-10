@@ -32,7 +32,7 @@ def car_pickup(k):
 
 def bunting(k):
     P.bunting(k, span=68.0, sag=5.0, n=26)
-    return {"views": [("across", (34, -60, 14), (34, 0, -3), 62)]}
+    return {"views": [("across", (34, -58, 4), (34, 0, -3), 64)]}
 
 
 def barricade(k):
@@ -181,5 +181,5 @@ if __name__ == "__main__":
         def build(k, fn=fn):
             out = fn(k) or {}
             return out
-        kw = {}
+        kw = {"ground": None} if name == "Bunting" else {}        # it hangs below its ends: no floor in its picture
         T.run(build, f"Town_{name}", "Town", budget=budget, res=(800, 520), **kw)

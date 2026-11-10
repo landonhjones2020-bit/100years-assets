@@ -130,7 +130,7 @@ def plan() -> dict:
     for x, y, side in both:
         if last and last[2] != side:
             ln = math.hypot(x - last[0], y - last[1])
-            if ln <= 76.0:
+            if ln <= 76.0 and min(abs(x), abs(last[0])) > 66.0:          # none across the showroom's front: its name must show
                 strings.append([last[0], last[1], SP.LAMP_TOP - 0.1, round(math.degrees(math.atan2(y - last[1], x - last[0])), 2), round(ln / 68.0, 4)])
         last = (x, y, side)
     d["bunting"] = strings
@@ -158,7 +158,7 @@ def plan() -> dict:
             ["Hill", FAR0 - 120.0, -80.0, 80, 2.8], ["Hill", FAR1 + 120.0, -110.0, 100, 2.8]]
     far.append(["WaterTower", TOWER[0], TOWER[1], 12, 1.0])
     d["far"] = [[f[0]] + [round(v, 2) for v in f[1:]] for f in far]
-    d["spawns"] = [[-7.5, N - 6.0], [-2.5, N - 6.0], [2.5, N - 6.0], [7.5, N - 6.0]]
+    d["spawns"] = [[-4.5, N - 5.0], [-1.5, N - 5.0], [1.5, N - 5.0], [4.5, N - 5.0]]
     return d
 
 
@@ -333,11 +333,14 @@ for _, f in @FAR@ do
 	local c = m:FindFirstChild("Colliders")
 	if c then c:Destroy() end
 end
-for _, d in beyond:GetDescendants() do
-	if d:IsA("BasePart") then
-		d.CanCollide = false
-		d.CanQuery = false
-		d.CanTouch = false
+for _, m in beyond:GetChildren() do
+	for _, d in m:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+			if m.Name == "Town_Hill" then d.CastShadow = false end      -- a hill's shadow would cover half the town's shadow map
+		end
 	end
 end
 task.wait()
@@ -363,14 +366,14 @@ end
 -- a sunny morning ----------------------------------------------------------------------------------
 Lighting.ClockTime = 10            -- with this latitude the sun stands over the south side and lights the showroom's front
 Lighting.GeographicLatitude = -15
-Lighting.Brightness = 3.2
-Lighting.Ambient = Color3.fromRGB(112, 118, 132)
-Lighting.OutdoorAmbient = Color3.fromRGB(150, 158, 172)
+Lighting.Brightness = 2.6
+Lighting.Ambient = Color3.fromRGB(70, 76, 90)
+Lighting.OutdoorAmbient = Color3.fromRGB(124, 132, 148)
 Lighting.ColorShift_Top = Color3.fromRGB(255, 244, 224)
 Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
-Lighting.EnvironmentDiffuseScale = 1
+Lighting.EnvironmentDiffuseScale = 0.8
 Lighting.EnvironmentSpecularScale = 0.6
-Lighting.ExposureCompensation = 0.15
+Lighting.ExposureCompensation = -0.2
 Lighting.ShadowSoftness = 0.25
 Lighting.GlobalShadows = true
 Lighting.FogEnd = 100000
@@ -385,16 +388,22 @@ if atmo then
 end
 local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
 if bloom then
-	bloom.Intensity = 0.35
+	bloom.Intensity = 0.2
 	bloom.Size = 20
-	bloom.Threshold = 1.6
+	bloom.Threshold = 2
 end
 local dof = Lighting:FindFirstChildOfClass("DepthOfFieldEffect")
 if dof then dof.Enabled = false end
 local rays = Lighting:FindFirstChildOfClass("SunRaysEffect")
 if rays then
-	rays.Intensity = 0.06
+	rays.Intensity = 0.04
 	rays.Spread = 0.6
+end
+-- the hall's lamps were set for a dark render: under this sky they wash the floor out
+for _, holder in { show, pads } do
+	for _, l in holder:GetDescendants() do
+		if l:IsA("Light") then l.Brightness *= 0.45 end
+	end
 end
 local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds") or Instance.new("Clouds")
 clouds.Cover = 0.42

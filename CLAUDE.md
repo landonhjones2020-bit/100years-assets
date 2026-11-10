@@ -23,7 +23,8 @@ Start the install in the background and do other work while it downloads.
 | Upload creator | `{"creator": {"userId": "9768530298"}}`: everything is uploaded under the game's owner, or animations won't play |
 | Import folder (Landon's PC) | `C:\Users\lando\OneDrive\Documentos\100Years-Import`, connected to the Claude desktop app and approved in Studio's Assistant Settings → MCP Permissions |
 | Palette images | colour `rbxassetid://131636360909441`, metalness `rbxassetid://92929300444943`, roughness `rbxassetid://133306500207344` (also attributes on `ServerStorage.Assets` in Run) |
-| Asset folders in Run | `ServerStorage.Assets.Pipeline` (landing zone) → `ServerStorage.Assets.<Category>` |
+| Asset folders (Run and Lobby) | `ServerStorage.Assets.Pipeline` (landing zone) → `ServerStorage.Assets.<Category>`. The Lobby place has `Assets.Lobby` and `Assets.Town` |
+| Developer products | Class Shop Reroll 3730189637 (99 Robux). New ones: `POST /developer-products/v2/universes/10775267993/developer-products` (multipart: name, description, isForSale, price, `imageFile`; scope `developer-product:write`) |
 
 ## 3. Making an asset
 
@@ -42,6 +43,18 @@ plays over it (NPCAnimator), so the monster keeps its stance between attacks. A 
 attribute in play is its monster type (`Config.Monsters` key), so clips are keyed by that.
 Never run two preview renders at once into the same `previews/<Category>` folder. Re-exporting a model that is already in `manifest.csv` resets
 its `status` to `exported`: put the real status back before committing.
+
+Buildings, streets and rooms seen from inside (the town, the lobby): `generators/Town/townkit.py`.
+A `Kit` collects boxes, prisms, lathes, lettering (`text`, fonts in `generators/Town/fonts/`) and
+wall `Face`s and merges them into a few MeshParts per material with no collision; what players
+bump into is `k.collider(...)` boxes and its lamps are `k.light(...)`, both in the sidecar
+(`meta.colliders`, `meta.lights`), built in Studio by AssetSetup. `T.run(build, asset, category,
+budget=...)` is the entry: `SF_FAST=1` renders small and rough, `SF_VIEW=a,b` only those views,
+`SF_NORENDER=1` none. A merged mesh over 12,000 triangles is cut in pieces (`Decor`, `Decor2`).
+`buildings.py` is Main Street's buildings by parameter, `props.py` its furniture and cars,
+`generators/Lobby/street_plan.py` where the lobby's blocks stand. Letters cost triangles (about 45
+each; `flat=True` for painted lettering). An FBX carries its export time: re-exporting an
+unchanged model gives a new hash, so don't re-export what is already uploaded.
 
 Weapons, tools and devices: `generators/Weapons/_gunkit.py` (the shared pieces, `exports(...)`,
 `t(...)` to tag a part). Every long gun's `Support` socket is `_gunkit.SUPPORT` (1 stud ahead of
@@ -64,6 +77,8 @@ A setup chunk over about 20 KB: `python3 tools/chunk_module.py <Name> <file.lua>
    * image (icons, UI kit): `POST`, `assetType` `Decal`, `image/png`. The response id is the **decal**; get the image id with `InsertService:LoadAsset(decalId)` → the Decal's `Texture`. Decals can't be updated.
 4. Poll `GET /assets/v1/operations/<operationId>` until `done`; the response has `assetId`.
 5. `insert_asset` with `parentPath` `game.ServerStorage.Assets.Pipeline`. FBX models arrive as packages.
+   For a batch, one `execute_luau` (Edit) does it: `InsertService:LoadAsset(id)` returns a Model
+   holding the asset's model (no PackageLink); name it and parent it to `Pipeline` (2026-11-10, 27 at once).
 6. `python3 tools/setup_code.py <Asset> <assetId>` prints Luau; send it with `execute_luau` (Edit). It checks size and pivot (0.01 studs), removes the PackageLink, sets collision and the palette SurfaceAppearance, writes attributes and sockets, and moves the model to `ServerStorage.Assets.<Category>`. Rigs (`doc.rig`) are refused there; the rig step builds Motor6Ds.
 7. Put the id and `status` (`uploaded`, `in_studio`, `verified`, `approved`) in `manifest.csv`, commit, push, add a line to `BUILD_LOG.md`.
 
@@ -76,6 +91,18 @@ then `require(InsertService:LoadAsset(id):FindFirstChildWhichIsA("ModuleScript",
 prints one chunk that finishes several inserted models at once (static and rigs). It uses
 `ServerStorage.ArtPipeline.AssetSetup`; add `--install` in a new place or after editing
 `studio/AssetSetup.lua`.
+
+## 4a. The lobby's world (Prompt 21)
+
+`workspace.Lobby` in the Lobby place is built by a script, never by hand:
+`python3 tools/lobby_world.py > /tmp/lobby_world.lua`, then
+`python3 tools/chunk_module.py LobbyWorld_P21 /tmp/lobby_world.lua`, `device_commit_files`,
+`PATCH /assets/v1/assets/104368016773499` (`model/x-rbxm`), and in the Lobby place (Edit):
+`return require(game:GetService("InsertService"):LoadAsset(104368016773499):FindFirstChildWhichIsA("ModuleScript", true))()`.
+It replaces `workspace.Lobby` (the showroom, pads with their `PadId`, booths and prompts, Main
+Street's blocks, the ground, cars, bunting, the town beyond, the invisible `Bounds`, the spawns)
+and sets the lighting. Where things stand is `generators/Lobby/street_plan.py` and the plan in
+`tools/lobby_world.py` (Blender space; the Luau turns it over: (x, y, z) → (-x, z, y), same yaw).
 
 ## 4b. UI kit (bible Section 18, STYLE.md section 3)
 
@@ -119,6 +146,11 @@ Design Notes and Delivery Reports: `game/reports/`.
    unbind it after. Landon's avatar uses AnimationConstraint joints (`Waist`), not Motor6Ds. A
    controller is plugged in on his PC, so the input type is often Gamepad (D-pad up: a tap
    pings, a hold heals). Review clones in `workspace` must be removed after the capture.
+   Captures leave out AlwaysOnTop BillboardGuis and CoreGui. They are scaled down: in Edit as
+   small as 270 by 151 (2026-11-10), in a playtest about 554 by 311, so judge art from the
+   Blender sheets and play-mode captures. Roblox's purchase prompt is in CoreGui
+   (`game.CoreGui.FoundationOverlay...Sheet.Content.Actions.1.BuyButton`, clickable by instance
+   path; a Studio purchase is a test purchase).
 
 ## 5. Rules
 

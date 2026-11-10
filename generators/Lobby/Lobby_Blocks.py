@@ -277,11 +277,16 @@ def street(k):
     for name, x, y, yaw in PLAN:
         with k.at((x, y, 0), yaw):
             BLOCKS[name](k)
-    # the roadway and pavements, as the Studio builder lays them
+    # the roadway and pavements, as the Studio builder lays them (tools/lobby_world.py), and grass
     x0, x1 = STREET_X
-    k.span("basalt", x0 - 40, x1 + 40, SOUTH_Y + WALK, NORTH_Y - WALK, -0.6, -0.5)
+    k.span("gunmetal", x0 - 60, x1 + 60, SOUTH_Y + WALK, NORTH_Y - WALK, -0.7, -0.5)
     for (a, b) in ((NORTH_Y - WALK, NORTH_Y), (SOUTH_Y, SOUTH_Y + WALK)):
-        k.span("ash", x0, x1, a, b, -0.6, 0.0)
+        k.span("ash", x0 - 60, x1 + 60, a, b, -0.7, 0.0)
+    k.span("leaf", x0 - 300, x1 + 300, SOUTH_Y - 400, NORTH_Y + 400, -0.9, -0.71)
+    for kind, x, y, yaw, paint in (("sedan", -92.0, -78.3, 270, "teal"), ("pickup", -52.0, -113.7, 90, "cream"), ("sedan", 34.0, -113.7, 90, "signal"),
+                                   ("sedan", 96.0, -78.3, 270, "blush"), ("sedan", 150.0, -113.7, 90, "skyblue")):
+        with k.at((x, y, -0.5), yaw):
+            (P.car_sedan if kind == "sedan" else P.pickup)(k, paint=paint)
 
 
 if __name__ == "__main__":
@@ -298,7 +303,7 @@ if __name__ == "__main__":
                 ("spawn", (0, -112, 8), (0, -40, 18), 70),
                 ("air", (60, -330, 190), (10, -80, 0), 44),
             ]}
-        T.run(build, "Lobby_Street", "Lobby", context=(Show.exterior, Hall.hall), res=(1200, 660), ground="#6E8F4E", ground_size=2000)
+        T.run(build, "Lobby_Street", "Lobby", context=(Show.exterior, Hall.hall, frontage), res=(1200, 660), ground=None)
         sys.exit(0)
     if "Frontage" in args:
         import Lobby_Showroom as Show

@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T14:08:17Z",
- "commit": "44f3171d318ad56410686703cf2a35686fa4c6c7",
- "label": "p21-44f3171",
+ "built": "2026-11-10T18:33:15Z",
+ "commit": "a5fb2fb5ea527494af4bb4dd4661a54be6826062",
+ "label": "p21-a5fb2fb",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -547,7 +547,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.PadController": {
     "Class": "ModuleScript",
     "From": "game/places/Lobby/client/Controllers/PadController.luau",
-    "Hash": "f1c4db82"
+    "Hash": "aa279099"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",

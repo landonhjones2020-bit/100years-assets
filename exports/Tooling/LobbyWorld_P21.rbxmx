@@ -155,7 +155,7 @@ for _, c in {{"CarSedan", -189.01, -78.3, -0.5, 270.76, "teal"}, {"CarSedan", -1
 	if paint and paint:IsA("BasePart") then paint.Color = Color3.fromHex(HEX[c[6]]) end
 end
 task.wait()
-for _, s in {{-187.5, -72.4, 16.9, -78.62, 0.708}, {-178, -119.6, 16.9, 63.53, 0.7754}, {-154.5, -72.4, 16.9, -77.46, 0.7111}, {-144, -119.6, 16.9, 65.51, 0.7627}, {-122.5, -72.4, 16.9, -81.56, 0.7017}, {-115.5, -119.6, 16.9, 63.05, 0.7787}, {-91.5, -72.4, 16.9, -79.2, 0.7066}, {-51, -119.6, 16.9, 88.18, 0.6945}, {-49.5, -72.4, 16.9, -58.88, 0.8108}, {-21, -119.6, 16.9, 84.55, 0.6973}, {-16.5, -72.4, 16.9, -55.86, 0.8386}, {15.5, -119.6, 16.9, 88.79, 0.6943}, {49.5, -72.4, 16.9, -79.2, 0.7066}, {58.5, -119.6, 16.9, 50.08, 0.9051}, {98, -72.4, 16.9, -86.97, 0.6951}, {141.5, -119.6, 16.9, 89.39, 0.6942}, {142, -72.4, 16.9, -50.08, 0.9051}, {181.5, -119.6, 16.9, 88.18, 0.6945}, {183, -72.4, 16.9, -51.53, 0.8865}, {220.5, -119.6, 16.9, 89.39, 0.6942}} do
+for _, s in {{-187.5, -72.4, 16.9, -78.62, 0.708}, {-178, -119.6, 16.9, 63.53, 0.7754}, {-154.5, -72.4, 16.9, -77.46, 0.7111}, {-144, -119.6, 16.9, 65.51, 0.7627}, {-122.5, -72.4, 16.9, -81.56, 0.7017}, {-115.5, -119.6, 16.9, 63.05, 0.7787}, {-91.5, -72.4, 16.9, -79.2, 0.7066}, {98, -72.4, 16.9, -86.97, 0.6951}, {141.5, -119.6, 16.9, 89.39, 0.6942}, {142, -72.4, 16.9, -50.08, 0.9051}, {181.5, -119.6, 16.9, 88.18, 0.6945}, {183, -72.4, 16.9, -51.53, 0.8865}, {220.5, -119.6, 16.9, 89.39, 0.6942}} do
 	place("Town", "Town_Bunting", B(s[1], s[2], s[3], s[4]), dressing, nil, s[5])
 end
 for _, s in {{-168, -96, 90, 0.8}, {204, -96, 90, 0.8}} do
@@ -185,7 +185,7 @@ task.wait()
 
 -- spawns: on the pavement, facing the showroom ----------------------------------------------------
 local spawns = folder("Spawns")
-for _, s in {{-7.5, -68}, {-2.5, -68}, {2.5, -68}, {7.5, -68}} do
+for _, s in {{-4.5, -67}, {-1.5, -67}, {1.5, -67}, {4.5, -67}} do
 	local sp = Instance.new("SpawnLocation")
 	sp.Name = "Spawn"
 	sp.Size = Vector3.new(4, 1, 4)
@@ -204,14 +204,14 @@ end
 -- a sunny morning ----------------------------------------------------------------------------------
 Lighting.ClockTime = 10            -- with this latitude the sun stands over the south side and lights the showroom's front
 Lighting.GeographicLatitude = -15
-Lighting.Brightness = 3.2
-Lighting.Ambient = Color3.fromRGB(112, 118, 132)
-Lighting.OutdoorAmbient = Color3.fromRGB(150, 158, 172)
+Lighting.Brightness = 2.6
+Lighting.Ambient = Color3.fromRGB(70, 76, 90)
+Lighting.OutdoorAmbient = Color3.fromRGB(124, 132, 148)
 Lighting.ColorShift_Top = Color3.fromRGB(255, 244, 224)
 Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
-Lighting.EnvironmentDiffuseScale = 1
+Lighting.EnvironmentDiffuseScale = 0.8
 Lighting.EnvironmentSpecularScale = 0.6
-Lighting.ExposureCompensation = 0.15
+Lighting.ExposureCompensation = -0.2
 Lighting.ShadowSoftness = 0.25
 Lighting.GlobalShadows = true
 Lighting.FogEnd = 100000
@@ -226,16 +226,22 @@ if atmo then
 end
 local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
 if bloom then
-	bloom.Intensity = 0.35
+	bloom.Intensity = 0.2
 	bloom.Size = 20
-	bloom.Threshold = 1.6
+	bloom.Threshold = 2
 end
 local dof = Lighting:FindFirstChildOfClass("DepthOfFieldEffect")
 if dof then dof.Enabled = false end
 local rays = Lighting:FindFirstChildOfClass("SunRaysEffect")
 if rays then
-	rays.Intensity = 0.06
+	rays.Intensity = 0.04
 	rays.Spread = 0.6
+end
+-- the hall's lamps were set for a dark render: under this sky they wash the floor out
+for _, holder in { show, pads } do
+	for _, l in holder:GetDescendants() do
+		if l:IsA("Light") then l.Brightness *= 0.45 end
+	end
 end
 local clouds = workspace.Terrain:FindFirstChildOfClass("Clouds") or Instance.new("Clouds")
 clouds.Cover = 0.42
