@@ -194,7 +194,7 @@ local function bodiesOf(): { Instance }
 	if monsters then
 		table.insert(list, monsters)
 	end
-	for _, name in { "ClassDevices", "Finds", "Rescues" } do
+	for _, name in { "ClassDevices", "Finds", "Rescues", "Dummies" } do -- Dummies: the dev command's targets
 		local folder = workspace:FindFirstChild(name)
 		if folder then
 			table.insert(list, folder)
