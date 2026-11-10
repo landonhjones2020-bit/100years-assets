@@ -37,7 +37,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 20: all 18 classes plus the Survivor (Run) | ✅ done 2026-11-10 | Run playtests with real Q taps and holds: every class's ability, refusals, options, class experience and levels saved; staggers, burning, barricades, the Warden's choices (Nov 9); two players, touch and a real controller still need a person; `game/reports/P20_Classes.md`, `previews/Game/P20_*.jpg` |
 | Prompt 21: the Lobby (Lobby and Run), with the 99 Robux reroll product | ✅ built 2026-11-10, waiting for the live test | Lobby and Run playtests with real key presses: the shop, buying, both rerolls (Roblox's own prompt as a Studio test purchase), the wishlist, the trial, all three pad kinds, the locked pad, the rejoin card, the record read by a Run playtest; reserved servers and teleports need the published game; `game/reports/P21_Lobby.md` |
 | A9 lobby art: the Steadfast showroom and Main Street | ✅ in Studio 2026-11-10 | 28 models set up in Lobby (size and position measured against their sidecars), `workspace.Lobby` built by `tools/lobby_world.py`; walked in a playtest (pads, signs, a booth, every wall); `previews/Game/P21_*.jpg`, `previews/Lobby/`, `previews/Town/` |
-| Class looks: the other 15 | not started | Class cards show the class's signature item until its portrait exists |
+| Class looks: the other 15 | ✅ in the game 2026-11-10 | 15 outfits on the resident rig, 19 portraits in three atlases; a Lobby playtest (K, a real click on ALL) read 19 class cards showing a portrait and none an icon; `previews/Residents/Outfit_*.png`, `Class_Portraits.jpg`, `previews/Game/P21_ClassShop_*.jpg` |
 | The Ash Raider's detail pass (Landon, Nov 9) | ✅ in Studio 2026-11-10, Landon: "looks good" | Both raiders rebuilt (about 3,700 of 4,000 triangles), the club raider's own model, the rifle's own joint, Idle clips; sizes and pivots measured, every clip seen in a Run playtest; `previews/Monsters/Monster_AshRaider_review.jpg`, `previews/Game/P20_raiders_*.jpg` |
 | Landon's answers to the Prompt 18 questions | ✅ built and in the bible 2026-11-09 | Run playtests with real clicks and Enter: a fast team home a cycle early at a real dawn with the full trip's finds, unheard calls losing the team with no Radio Room, the screen's warning gone live when a Radio Room started working, a heard call with one; 107 data tests in both places; addendum in `game/reports/P18_Expeditions.md`, `previews/Game/P18_FastTeam*.jpg`, `P18_UnheardCall.jpg`, `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
@@ -85,6 +85,58 @@ Newest first. Every "verified" line says how it was checked.
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-10 (afternoon, Chicago): the 15 class looks; Prompt 21 complete
+
+Game code build `p21-2c777a7` (final for Prompt 21): code asset 95026446991297 revision 91,
+installed in Lobby and Run: StructureCheck 0 errors (Lobby 352 checks, Run 534), 116 data tests
+passed in each. Only `Lib.UIKit` changed. The report's last section, "The class looks", has the
+table of all 15 and two more Bible Questions (14 and 15).
+
+| What | Ids | Status | Notes |
+|---|---|---|---|
+| UI atlas: portraits A | decal 81054758303340, image 131273406986644 | verified | `ui/atlas_portraits_a.png`: Security's large portrait and 7 classes |
+| UI atlas: portraits B | decal 84908156065476, image 129693903766204 | verified | `ui/atlas_portraits_b.png`: 9 classes |
+| UI atlas: portraits C | decal 111038995154131, image 117996816893853 | verified | `ui/atlas_portraits_c.png`: 3 classes |
+| LobbyWorld_P21 | 104368016773499, revision 3 | uploaded | the builder as the repo has it (hills cast no shadow); Studio's lobby already matched |
+
+The old single portraits atlas (image 76558516830406) is no longer used.
+
+**The bible is in step again** (it had been behind since Nov 9). Live doc rev 174, renamed "100
+Years Below — Game Bible v1.0": the title (Sections 1, 3 and 26, the decision log), Landon's 30
+answers to the Prompt 13, 14, 16 and 17 questions (Sections 6, 9, 10, 12, 14, 16, 23 and the
+Appendix's Ash Raider), RescueService and the nests' split in Section 23, and his Prompt 19 to 21
+answers (Sections 8, 12 and 21). Both project parts were rewritten from an export of the live doc
+(`tools/bible_parts.py`).
+
+**What was made.** Outfits, card poses and held items for the Survivor, Engineer, Medic,
+Firefighter, Cook, Scout, Radio Operator, Hazmat Tech, Exterminator, Marksman, Driller, Scavenger,
+Demolitionist, Spelunker and Tinkerer in `generators/Residents/outfits.py` (1,750 lines now), each
+rendered as `Portrait_<Class>` (340 by 290, 96 samples) and a review sheet
+(`previews/Residents/Outfit_<Class>.png`: the card, the front, the back).
+
+**Verified.** Each look on its Blender sheet. The atlases' image ids read in Studio with
+`InsertService:LoadAsset`. A Lobby playtest on build `p21-2c777a7`: K opened the Class Shop, a
+real click opened ALL; read from the cards, 19 show a `Portrait_` sprite and none an icon; the
+detail panel showed the Radio Operator's portrait; the console was clean.
+
+**Findings**
+* **Place a piece before binding it.** `P()`, `glow()` and `Body.prop()` parent an object to its
+  bone; a `.location` set after that is in the bone's space, so the piece lands somewhere else (a
+  feather, a pennant and six other pieces floated beside their owners). `flat_at()` builds a slab
+  in place.
+* **A helmet's crown is a half ball.** A whole squashed sphere poked through the head below the
+  brim as a jagged fringe; `dome()` is now a lathe that stops at the brim, and `crest()` lays a
+  stripe or a comb over it.
+* **The real items read better than stand-ins.** The first pass built props by hand (a wand for
+  the flamethrower, a cylinder for the drill); the game's own models in the hand
+  (`held_item()`) look better and match the hotbar icons. A pistol-grip tool is held "up and
+  ready" beside the head with its top away from the face; a prop across the face ruins the card.
+* **A wall of Neon blooms into one blob.** The Spelunker's crystals as six Neon shards washed the
+  card white; as plain crystal with a thin Neon seam down each they read as faceted crystal.
+* **The framing can shift sideways.** `OUTFITS[...]["framing"]` takes a third number (toward
+  image right) for a card whose held item sits off to one side.
+* The capture in this playtest came back at 1,096 by 617 (play mode), the largest so far.
 
 ## 2026-11-10 (midday, Chicago): Prompt 21, the Lobby; the A9 lobby art
 

@@ -174,11 +174,14 @@ for _, f in {{"TreeClump", -404, 41.59, -6.36, 1.17}, {"TreeClump", -409.83, -21
 	local c = m:FindFirstChild("Colliders")
 	if c then c:Destroy() end
 end
-for _, d in beyond:GetDescendants() do
-	if d:IsA("BasePart") then
-		d.CanCollide = false
-		d.CanQuery = false
-		d.CanTouch = false
+for _, m in beyond:GetChildren() do
+	for _, d in m:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+			if m.Name == "Town_Hill" then d.CastShadow = false end      -- a hill's shadow would cover half the town's shadow map
+		end
 	end
 end
 task.wait()

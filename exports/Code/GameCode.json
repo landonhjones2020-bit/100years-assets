@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T18:33:15Z",
- "commit": "a5fb2fb5ea527494af4bb4dd4661a54be6826062",
- "label": "p21-a5fb2fb",
+ "built": "2026-11-10T22:33:05Z",
+ "commit": "2c777a74e9796599af53e7cdd994ada295b9b890",
+ "label": "p21-2c777a7",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -492,7 +492,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "5db5f46b"
+    "Hash": "fd04a628"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -592,7 +592,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "d3a8467b"
+    "Hash": "b3a90fcf"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
@@ -1234,7 +1234,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "5db5f46b"
+    "Hash": "fd04a628"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -1374,7 +1374,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "d3a8467b"
+    "Hash": "b3a90fcf"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",

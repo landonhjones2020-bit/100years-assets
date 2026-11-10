@@ -56,6 +56,15 @@ budget=...)` is the entry: `SF_FAST=1` renders small and rough, `SF_VIEW=a,b` on
 each; `flat=True` for painted lettering). An FBX carries its export time: re-exporting an
 unchanged model gives a new hash, so don't re-export what is already uploaded.
 
+Class looks: `generators/Residents/outfits.py` holds every class's outfit (`build`), card pose,
+held items (`props`) and framing (`OUTFITS`); `generators/UI/UI_Portraits.py --check <Class>`
+writes `previews/Residents/Outfit_<Class>.png` (`SF_SAMPLES=12` for a rough one in 35 s) and
+`UI_Portraits.py Portrait_<Class>` renders the card. A class holds its real item: `held_item()`
+and `item()` build the game's own model (`generators/Weapons`, `generators/Props`) into the pose.
+Place a piece before binding it (`P`, `glow` and `H.prop` parent it to a bone, and a location set
+afterwards is in the bone's space: 2026-11-10); keep a held item clear of the face; keep Neon to
+small pieces and seams (a wall of it blooms into one blob).
+
 Weapons, tools and devices: `generators/Weapons/_gunkit.py` (the shared pieces, `exports(...)`,
 `t(...)` to tag a part). Every long gun's `Support` socket is `_gunkit.SUPPORT` (1 stud ahead of
 the `Grip`: R15 arms are short), so one pair of player clips fits them all; those clips are solved
@@ -109,7 +118,8 @@ and sets the lighting. Where things stand is `generators/Lobby/street_plan.py` a
 1. `python3 generators/UI/UI_Kit.py [Piece ...]` and `python3 generators/UI/UI_Portraits.py`
    render sprites to `ui/sprites/` (class portraits are the resident dressed in its class
    outfit from `generators/Residents/outfits.py`; `UI_Portraits.py --check <Class>` writes a
-   review sheet); `python3 tools/pack_ui.py` packs `ui/atlas_*.png`, writes
+   review sheet); `python3 tools/pack_ui.py` packs `ui/atlas_*.png` (portraits at 332 by 283,
+   three across: `portraits_a` to `_c`), writes
    `ui/kit.json` (keeps ids of unchanged atlases) and `previews/UI/UI_Kit_sheet.jpg`.
 2. Upload each changed atlas as a Decal (section 4, step 3), get the image ids with
    `InsertService:LoadAsset`, and put `decalId` and `imageId` in `ui/kit.json`.
@@ -151,6 +161,14 @@ Design Notes and Delivery Reports: `game/reports/`.
    Blender sheets and play-mode captures. Roblox's purchase prompt is in CoreGui
    (`game.CoreGui.FoundationOverlay...Sheet.Content.Actions.1.BuyButton`, clickable by instance
    path; a Studio purchase is a test purchase).
+
+## 4d. The bible
+
+The master copy is the live Claude Doc (https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU;
+load the docs skill, then `guide`, before any docs call). Landon's answers go into the doc as
+small edits marked "(Landon)", by quoting the words to change (`find` targets). Then refresh the
+project's two parts: `tools/bible_parts.py` (its docstring has the steps). A report's Bible
+Questions stay in the report until Landon answers them.
 
 ## 5. Rules
 

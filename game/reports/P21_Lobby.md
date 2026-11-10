@@ -3,8 +3,8 @@
 The Lobby place is now Brightwater's Main Street on a sunny morning, with the Steadfast Shelter Co.
 showroom in the middle of it. Players spawn on the pavement in front of the showroom, walk in, pick
 a class at the Class Shop or Loadout booth and step onto one of six elevator pads to start a run.
-Built and tested on 2026-11-10. The final build is `p21-a5fb2fb` (code asset 95026446991297,
-revision 90), installed in Lobby and Run: StructureCheck 0 errors (Lobby 352 checks, Run 534), 116
+Built and tested on 2026-11-10. The final build is `p21-2c777a7` (code asset 95026446991297,
+revision 91), installed in Lobby and Run: StructureCheck 0 errors (Lobby 352 checks, Run 534), 116
 data tests.
 
 What is in it:
@@ -21,12 +21,11 @@ What is in it:
 * **Rejoin your run**: a card in the lobby while your run is still going.
 * **The lobby itself (art step A9, the lobby half)**: 28 models made in Blender, 330,000 triangles
   in the place, built by one script.
+* **Every class's look**: all 19 class cards and the detail panel show the class's portrait (15
+  new looks; "The class looks" at the end).
 
-Captures: `previews/Game/P21_*.jpg`. Blender sheets: `previews/Lobby/` and `previews/Town/`.
-
-**Not done: the 15 class looks.** Class cards show the class's signature item until its portrait
-exists (4 of 19 exist: Security, Quartermaster, Warden, Mad Scientist). Portraits drop in with no
-code change (`Lib.ClassArt` uses `Portrait_<Class>` when the UI kit has it).
+Captures: `previews/Game/P21_*.jpg`. Blender sheets: `previews/Lobby/`, `previews/Town/` and
+`previews/Residents/` (`Class_Portraits.jpg` is all 19 cards' portraits on one sheet).
 
 **Needs Landon: a live test.** Studio can't reserve servers or teleport, so the trip from a pad to
 a Run server and back has only been tested up to the record (see "Live test" below).
@@ -103,7 +102,6 @@ a Run server and back has only been tested up to the record (see "Live test" bel
     the walls, the spawns and the daylight). Re-running it replaces the lobby.
 
 **Scope Risks**
-* The 15 class looks (see the top).
 * The Loadout has only its Class tab until talents, Legends and cosmetics exist (Prompt 27).
 * The lobby has no people in it but players: no townsfolk, no Digby (Prompt 31), no sound
   (Prompt 32).
@@ -233,6 +231,9 @@ Lobby playtests on 2026-11-10 in Studio, with real key presses:
 * [x] The walls: a character sent walking at both street ends, both end corners, both alleys, the
       gas station's back and side, the diner's side gap: stopped every time.
 * [x] Every art model's size and position checked in Studio against its sidecar (0.01 studs).
+* [x] The class portraits (build `p21-2c777a7`): a Lobby playtest with the real K key and a real
+      click on ALL. Read from the cards: 19 with a portrait, none with an icon; the detail panel
+      shows the selected class's portrait. Captures `previews/Game/P21_ClassShop_*.jpg`.
 * [ ] Not seen: reserved servers and teleports (see below), a second player (the party gate with
       a stranger, invites between two people, a leader handing on), touch, a real controller.
 
@@ -271,3 +272,64 @@ generated: change `street_plan.py` or a generator and re-run the builder.
 All 28 are in the Lobby place under `ServerStorage.Assets.Lobby` and `.Town`; ids are in
 `manifest.csv`. The world builder is asset 104368016773499 (tooling); run it in the Lobby place
 with `require(game:GetService("InsertService"):LoadAsset(104368016773499):FindFirstChildWhichIsA("ModuleScript", true))()`.
+
+## The class looks (2026-11-10, afternoon)
+
+The last piece of the prompt: the 15 classes that had no look. With Security, Quartermaster, Warden
+and the Mad Scientist from Nov 8, all 19 classes now have an outfit on the resident rig and a
+portrait on their card. They follow Landon's rarity rule (bible Section 19): a Common is a clean
+work outfit, a Rare adds a signature piece and an accent colour, an Epic changes the silhouette,
+a Legendary is one of a kind.
+
+| Class | Tier | The look | On the card |
+|---|---|---|---|
+| Survivor | Free | The Steadfast coveralls as issued, a red neckerchief, a canvas satchel | The Wrench, raised |
+| Engineer | Common | A hi-vis vest, a hard hat with a lamp, a tool belt | The Welder, lit; a roll of blueprints |
+| Medic | Common | A white coat with mint cuffs, a stethoscope, a head mirror, her hair in a bun | A Medkit, held up |
+| Firefighter | Common | A turnout coat with hazard bands and brass clasps, a red helmet with a brass shield | The Fire Axe over his shoulder |
+| Cook | Common | Double-breasted whites, a red neckerchief, a tall toque | A frying pan with breakfast and a pancake mid-flip |
+| Scout | Common | A khaki shirt, a green neckerchief, a campaign hat, binoculars | A Flare, struck (his Flare Ping) |
+| Radio Operator | Rare | A headset with a boom microphone, the field set on his back with its whip antenna and pennant, a remote on his chest strap | A hand to the headset; the set transmitting |
+| Hazmat Tech | Rare | The yellow suit, hood and respirator, an air tank | The Geiger counter, its needle over |
+| Exterminator | Rare | Grey coveralls with the firm's badge (a bug, struck out), a red cap with goggles, twin tanks | The Flamethrower, burning |
+| Marksman | Rare | A hunting jacket, a bandolier, the sheathed Hunting Knife, a red plaid cap with a feather | The Lever Rifle, a glint off its scope |
+| Driller | Rare | Bib and braces, a beard, a copper helmet with a big lamp, ear defenders | The Drill, bit up |
+| Scavenger | Rare | A patched jacket, a long scarf, goggles, a pack with a bedroll, a pan and somebody's bear | A magnet with scrap flying to it (his Magnet Sweep) |
+| Demolitionist | Epic | A quilted blast suit with a standing blast collar, a steel helmet with its visor up, a bandolier of dynamite | The Grenade Launcher and an armed plunger box (his Breaching Charge) |
+| Spelunker | Epic | A caver's helmet with a carbide lamp, a braid, a climbing harness and rope, a pack loaded with glowing crystal | The Grapple, aimed at the roof |
+| Tinkerer | Legendary | Ginger spikes, a welding mask tipped back, a leather apron of tools, a boiler rig with two arms of his own making (a torch and a claw) | The Power Wrench; his drone at his shoulder |
+
+**Decisions**
+1. **A class holds its real item.** The item in a card's hand is the game's own model
+   (`generators/Weapons`, `generators/Props`), built into the pose by `item()` and `held_item()`
+   in `generators/Residents/outfits.py`: the Wrench, Welder, Medkit, Fire Axe, Flare,
+   Flamethrower, Lever Rifle, Hunting Knife, Drill, Grenade Launcher, Grapple, Power Wrench and
+   the combat drone. The card, the hotbar icon and the thing in the player's hand are one model.
+2. **Where a class has no item of its own to show, the card shows its ability**: the Scout's
+   Flare Ping, the Scavenger's Magnet Sweep, the Demolitionist's Breaching Charge, the Radio
+   Operator's set transmitting. The Cook's pan and the Hazmat Tech's counter facing the camera
+   are made for the card.
+3. **Looks are portraits for now.** The outfits are built on the resident rig, so they can become
+   the class cosmetics (bible Section 19: "class outfits are optional cosmetics"; art step A11);
+   nothing is worn in a run yet.
+4. **Three atlases.** Portraits are rendered at 340 by 290 and packed at 332 by 283, three across
+   (`tools/pack_ui.py`): 19 portraits and Security's large one in three uploads. No code change:
+   `Lib.ClassArt` already used `Portrait_<Class>` when the kit had it.
+
+**Bible Questions**
+14. **The class looks.** Any of the 15 can change: the review sheets are
+    `previews/Residents/Outfit_<Class>.png` and all 19 cards are on
+    `previews/Residents/Class_Portraits.jpg`. The Medic and the Spelunker are women, the other 13
+    men; say if any should swap.
+15. **The Cook's frying pan.** His kit is a Lead Pipe and a Pocket Pistol (Section 14), so the pan
+    is only on his card. Should the Cook's melee weapon be a frying pan?
+
+**Files**: `generators/Residents/outfits.py` (the 15 looks, shared pieces, `item()`),
+`generators/UI/UI_Portraits.py` (a sideways framing offset, `SF_SAMPLES`), `tools/pack_ui.py`
+(`PACK_SIZE["portraits"]`), `ui/atlas_portraits_a.png` to `_c.png`, `ui/kit.json`,
+`game/client/Lib/UIKit.luau`, `studio/ui/UIKit.lua`.
+
+**Verified**: each look judged on its Blender sheet (card view, front, back); the three atlases
+uploaded and their image ids read in Studio; build `p21-2c777a7` installed in both places; the
+Lobby playtest in the checklist above. Not seen: the cards on a phone.
+

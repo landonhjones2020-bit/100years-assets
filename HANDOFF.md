@@ -1,10 +1,10 @@
 # 100 Years Below: handoff for the next chat
 
-Written 2026-11-10 (afternoon, Chicago), after Prompt 21. The game was called 100 Years Of Fallout
-until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
+Written 2026-11-10 (late afternoon, Chicago), after Prompt 21. The game was called 100 Years Of
+Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
-here, with one warning: **the bible does not yet hold Landon's decisions of Nov 9 and 10** (see
-"The bible is behind").
+here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
+refreshed from it the same day).
 
 ## Start here
 
@@ -18,8 +18,8 @@ here, with one warning: **the bible does not yet hold Landon's decisions of Nov 
 
 ## Where things stand
 
-* **Prompts 0 to 21 are built and tested in Studio.** Code build `p21-a5fb2fb` (code asset
-  95026446991297, revision 90) is installed in both places: StructureCheck 0 errors (Lobby 352
+* **Prompts 0 to 21 are built and tested in Studio.** Code build `p21-2c777a7` (code asset
+  95026446991297, revision 91) is installed in both places: StructureCheck 0 errors (Lobby 352
   checks, Run 534), 116 data tests.
 * **Prompt 21 (the Lobby).** The Lobby place is Brightwater's Main Street on a sunny morning with
   the Steadfast showroom in the middle (`workspace.Lobby`, built by the script
@@ -28,7 +28,8 @@ here, with one warning: **the bible does not yet hold Landon's decisions of Nov 
   Daily Class Shop (four classes a day, Glowshards, one free reroll, the 99 Robux reroll as a real
   developer product, the wishlist, the free trial), the loadout, pads that reserve a Run server
   and write the run's record and rejoin records to MemoryStore, the Run place's party gate, and
-  "Rejoin your run". Report: `game/reports/P21_Lobby.md` (13 Bible Questions, a live-test list).
+  "Rejoin your run". Every class card shows its portrait. Report: `game/reports/P21_Lobby.md`
+  (15 Bible Questions, a live-test list).
 * **Prompt 20 (classes).** All 19 classes play: kits, passives, the ability on Q, levels 2 and 3,
   class experience. Report: `game/reports/P20_Classes.md` (15 Bible Questions).
 * **Prompt 19 (the blueprint draft).** A three-card draft after every Surge, voted under the
@@ -37,7 +38,9 @@ here, with one warning: **the bible does not yet hold Landon's decisions of Nov 
 * **Art in Studio.** Run place: A1 bunker kit, A2 (all 34 weapons, tools and devices), A4 Mines
   monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
   detail pass. Lobby place: A9's lobby half, 28 models (`ServerStorage.Assets.Lobby` and `.Town`).
-  Class looks: 4 of 19 (Security, Quartermaster, Warden, Mad Scientist).
+  Class looks: all 19 (outfits on the resident rig in `generators/Residents/outfits.py`,
+  portraits on the class cards; `previews/Residents/Class_Portraits.jpg`). They are portraits
+  only: nothing is worn in a run yet (class cosmetics are art step A11).
 * **The art kit for towns.** `generators/Town/townkit.py`, `buildings.py` and `props.py` build
   1950s Main Street buildings from parameters, as merged decoration with collider boxes and
   lights in the sidecar. STYLE.md ("Buildings and streets") has the rules. This is the kit for the
@@ -45,36 +48,24 @@ here, with one warning: **the bible does not yet hold Landon's decisions of Nov 
 
 ## Open work, in order
 
-1. **The 15 class looks** (Prompt 21's last piece): Survivor, Engineer, Medic, Firefighter, Cook,
-   Scout, Radio Operator, Hazmat Tech, Exterminator, Marksman, Driller, Scavenger, Demolitionist,
-   Spelunker, Tinkerer. `generators/Residents/outfits.py` (an outfit, a pose, held props, framing
-   per class; the rarer the class the further the look goes: bible Section 19) and
-   `generators/UI/UI_Portraits.py` (`--check <Class>` for a review sheet). Then `tools/pack_ui.py`,
-   upload the changed atlases as Decals, `pack_ui.py --luau`, rebuild the code. `Lib.ClassArt`
-   shows `Portrait_<Class>` as soon as the kit has it; no other code changes.
-2. **The bible is behind.** Not yet in the live doc or the project parts:
-   * the title, 100 Years Below (Section 3 still calls it the fallback);
-   * Landon's 30 answers to the Prompt 13, 14, 16 and 17 questions (tables in those reports'
-     addenda; four changed the game: Surges also bring cave-ins, and floods and gas leaks from Era
-     II; a respawn keeps half its radiation; a third of Ash Raiders fight hand to hand; ore veins
-     need a Drill or a Pickaxe);
-   * RescueService in Section 23's list, and the nests' split between DigService and DeepService;
-   * his Prompt 19 to 21 answers: the draft's cards show under the year clock; a found blueprint
-     joins the next draft; the 99 Robux reroll exists now; the surface town is about 1,400 by
-     1,100 studs with about 25 places to enter; only Main Street is walkable in the lobby.
-   Edit the live doc first, then rewrite both project parts from it.
-3. **Brightwater Ruins as a large, real town** (Landon, Nov 9: "The town is a fine place holder
+1. **Brightwater Ruins as a large, real town** (Landon, Nov 9: "The town is a fine place holder
    right now but needs to be much more detailed. I want it to feel like a large town that was
    actually real"; "make the town parts in your own blender environment it needs to actually look
    good"). His numbers: about 1,400 by 1,100 studs, about 120 buildings, about 25 to enter. The
    lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
    (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
    survivors, the raider camp, the checkpoint and the storms all hang off that map).
-4. **Prompts 22, 23 and 24** (prep below).
+2. **Prompts 22, 23 and 24** (prep below).
+
+The bible was brought up to date on Nov 10 (it had been behind since Nov 9): the title, Landon's
+30 answers to the Prompt 13, 14, 16 and 17 questions, RescueService and the nests' split in
+Section 23, and his Prompt 19 to 21 answers (the draft's cards under the year clock, found
+blueprints, the size of the surface town, the lobby's Main Street). The doc is now named "100
+Years Below — Game Bible v1.0".
 
 ## Landon's decisions since the last handoff
 
-* Nov 9: 43 answers (see "The bible is behind"), and the title: **100 Years Below**, on his
+* Nov 9: 43 answers (all in the bible now), and the title: **100 Years Below**, on his
   lawyer's advice. `Constants.GAME_NAME` and the repo's docs carry it.
 * Nov 9: the Fire Axe's clip sheet looked broken (it was the sheet's renderer, fixed); the Ash
   Raider needed more detail ("Not up to our standards"). Nov 10, after the detail pass: "looks
@@ -160,9 +151,10 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * **The live test of Prompt 21** in the published game (the list is in `game/reports/P21_Lobby.md`):
   a pad to a real Run server, rejoin, Play Again, Return to Lobby, a friend on a private pad, one
   real 99 Robux reroll.
-* His answers to the Bible Questions of Prompt 19 (7), Prompt 20 (15) and Prompt 21 (13).
-* His look at the lobby (`previews/Game/P21_*.jpg`, or the Lobby place itself) and at the town's
-  names (Prompt 21, question 11).
+* His answers to the Bible Questions of Prompt 19 (7), Prompt 20 (15) and Prompt 21 (15).
+* His look at the lobby (`previews/Game/P21_*.jpg`, or the Lobby place itself), at the town's
+  names (Prompt 21, question 11) and at the 15 new class looks
+  (`previews/Residents/Class_Portraits.jpg`; questions 14 and 15).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
 
 ## Testing tips
@@ -176,7 +168,7 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   it. To test a wall, `Humanoid:MoveTo` past it and read where the character stopped.
 * **Captures.** In a playtest bind a `ShotCam` render step on the client that sets the camera
   every frame, then `screen_capture`. Edit-mode captures came back at 270 by 151 on Nov 10; play
-  mode gives about 554 by 311. Captures leave out AlwaysOnTop billboards (prompts) and CoreGui.
+  mode gives 554 by 311 to 1,096 by 617. Captures leave out AlwaysOnTop billboards (prompts) and CoreGui.
 * **Lobby and Run records in Studio.** A pad that leaves in a Lobby playtest writes the run's
   record under the Studio key; a Run playtest started within 10 minutes reads it (`party`, `run`).
 * Expeditions: `exp` (trips out, their logs, whether a Radio Room hears calls), `exp.send
@@ -226,8 +218,10 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * Two playtests at once (Run and Lobby) share one profile lock: the second is kicked.
 * A Luau chunk near 20 KB goes up as a ModuleScript model instead of a paste
   (`tools/chunk_module.py`, then `require(InsertService:LoadAsset(id)...)()`).
-* The project's bible parts are markdown copies of the live doc: after editing the live doc,
-  rewrite the part that changed (`project_read` it first, then `project_write`).
+* The project's bible parts are markdown copies of the live doc. After editing the live doc:
+  export its tab as markdown with the Docs `export` tool (the result is saved to a file),
+  `python3 tools/bible_parts.py <file> "<what changed>"`, Read each part in full, then
+  `project_write` it with `local_path` (the tool only takes a file this session has read).
 
 ## Small bugs seen, for later prompts
 
