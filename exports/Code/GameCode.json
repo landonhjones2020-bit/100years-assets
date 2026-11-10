@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T02:31:31Z",
- "commit": "8d08d50fd716c182f17ff4e70ce46174d1704e99",
- "label": "p20-8d08d50",
+ "built": "2026-11-10T13:11:52Z",
+ "commit": "92251ef31e1cd9ff4302a7f5731c72108ae5df0c",
+ "label": "p20-92251ef",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -12,7 +12,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "374bd652"
+    "Hash": "820e1793"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -97,7 +97,7 @@
    "ReplicatedStorage.Shared.Config.Items": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Items.luau",
-    "Hash": "26e5a6af"
+    "Hash": "9dca2721"
    },
    "ReplicatedStorage.Shared.Config.Leaderboards": {
     "Class": "ModuleScript",
@@ -122,7 +122,7 @@
    "ReplicatedStorage.Shared.Config.Monsters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Monsters.luau",
-    "Hash": "e05e905d"
+    "Hash": "630fe942"
    },
    "ReplicatedStorage.Shared.Config.MoraleStates": {
     "Class": "ModuleScript",
@@ -402,7 +402,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "400dc27c"
+    "Hash": "db973d4a"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -472,7 +472,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "5695a888"
+    "Hash": "3c01bbc2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
@@ -487,7 +487,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/NPCAnimator.luau",
-    "Hash": "07e6652f"
+    "Hash": "e0eb2ec2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",
@@ -527,7 +527,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "3dc459be"
+    "Hash": "d3a8467b"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
@@ -544,7 +544,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "374bd652"
+    "Hash": "820e1793"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -629,7 +629,7 @@
    "ReplicatedStorage.Shared.Config.Items": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Items.luau",
-    "Hash": "26e5a6af"
+    "Hash": "9dca2721"
    },
    "ReplicatedStorage.Shared.Config.Leaderboards": {
     "Class": "ModuleScript",
@@ -654,7 +654,7 @@
    "ReplicatedStorage.Shared.Config.Monsters": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Monsters.luau",
-    "Hash": "e05e905d"
+    "Hash": "630fe942"
    },
    "ReplicatedStorage.Shared.Config.MoraleStates": {
     "Class": "ModuleScript",
@@ -934,7 +934,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "400dc27c"
+    "Hash": "db973d4a"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -954,7 +954,7 @@
    "ServerScriptService.Lib.ClassAbilities": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Lib/ClassAbilities.luau",
-    "Hash": "2011a074"
+    "Hash": "1f00403b"
    },
    "ServerScriptService.Lib.Hazards": {
     "Class": "ModuleScript",
@@ -1129,7 +1129,7 @@
    "ServerScriptService.Services.WeaponService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/WeaponService.luau",
-    "Hash": "2c0d1772"
+    "Hash": "ca5c046a"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
@@ -1159,7 +1159,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CombatController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/CombatController.luau",
-    "Hash": "d68089c8"
+    "Hash": "88180049"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
@@ -1194,7 +1194,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/HUDController.luau",
-    "Hash": "5695a888"
+    "Hash": "3c01bbc2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.InputController": {
     "Class": "ModuleScript",
@@ -1209,7 +1209,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.NPCAnimator": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/NPCAnimator.luau",
-    "Hash": "07e6652f"
+    "Hash": "e0eb2ec2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.PromptController": {
     "Class": "ModuleScript",
@@ -1269,7 +1269,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "3dc459be"
+    "Hash": "d3a8467b"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
