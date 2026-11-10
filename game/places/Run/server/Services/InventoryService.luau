@@ -239,7 +239,11 @@ function InventoryService:Give(player: Player, drops: { Loot.Drop }): ({ Loot.Dr
 				took = weapons:GiveThrowable(player, drop.Item, drop.Count)
 			end
 		elseif drop.Special then
+			-- a handler may put something in the pack itself (Prompt 19: a blueprint's card), so it
+			-- sees the pack as it is now, and this loop carries on from what it left
+			packs[player] = pack
 			took = InventoryService:GiveSpecial(player, drop.Special, drop.Count)
+			pack = packs[player] or pack
 		end
 		if took > 0 then
 			table.insert(given, { Resource = drop.Resource, Item = drop.Item, Special = drop.Special, Count = took })

@@ -12,7 +12,7 @@ for i = 1, 4 do
 		aspect = 400 / 440, dom = "H" })
 	text(card, "Title", "CARD NAME", { pos = { 0.07, 0.585 }, size = { 0.86, 0.1 }, font = F.title, color = COL.navy,
 		alignX = CENTER, max = 30 })
-	text(card, "Text", "What the card does.", { pos = { 0.08, 0.705 }, size = { 0.84, 0.19 }, font = F.body,
+	text(card, "Text", "What the card does.", { pos = { 0.08, 0.705 }, size = { 0.84, 0.17 }, font = F.body,
 		color = COL.ink, alignX = CENTER, alignY = Enum.TextYAlignment.Top, wrap = true, max = 22 })
 	-- picks so far: a navy chip in the window's top right corner
 	local chip = new("ImageLabel", card, "Votes", { pos = { 0.93, 0.06 }, anchor = { 1, 0 }, size = { 0.24, 0.1 },
@@ -29,10 +29,10 @@ for i = 1, 4 do
 	-- the winner, once the draft closes
 	local won = new("Frame", card, "Won", { pos = { 0, 0 }, size = { 1, 1 }, visible = false, z = 5 })
 	stroke(won, 6, COL.glow)
-	-- a found blueprint: the stamp over the window and who found it under the text
-	new("ImageLabel", card, "Found", { pos = { 0.57, 0.33 }, size = { 0.4, 0.2 }, sprite = "Stamp_Found", rot = -8,
+	-- a found blueprint: the FOUND stamp across the window and the finder's name under the text
+	new("ImageLabel", card, "Found", { pos = { 0.05, 0.16 }, size = { 0.54, 0.27 }, sprite = "Stamp_Found", rot = -10,
 		visible = false, z = 4 })
-	text(card, "FoundBy", "FOUND BY", { pos = { 0.06, 0.9 }, size = { 0.88, 0.06 }, font = F.typed, color = COL.rust,
+	text(card, "FoundBy", "LANDON", { pos = { 0.06, 0.885 }, size = { 0.88, 0.075 }, font = F.typed, color = COL.rust,
 		alignX = CENTER, visible = false })
 end
 -- the Mad Scientist's free reroll (level 3, one per era): where YES and NO are during other votes,

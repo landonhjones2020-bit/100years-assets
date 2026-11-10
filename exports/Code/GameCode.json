@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T01:02:17Z",
- "commit": "56bf1065c431cfa3318afbd14692ffe489efaa89",
- "label": "p19-56bf106",
+ "built": "2026-11-10T01:08:49Z",
+ "commit": "4163c7f9c8e332809e107e41fdb6823161a5c8fa",
+ "label": "p19-4163c7f",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -497,7 +497,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "4c3d3e06"
+    "Hash": "ba00c819"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",
@@ -1019,7 +1019,7 @@
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/InventoryService.luau",
-    "Hash": "f5052f76"
+    "Hash": "a325585f"
    },
    "ServerScriptService.Services.MonsterService": {
     "Class": "ModuleScript",
@@ -1084,7 +1084,7 @@
    "ServerScriptService.Services.SurfaceService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/SurfaceService.luau",
-    "Hash": "164f45b4"
+    "Hash": "ea7fc47e"
    },
    "ServerScriptService.Services.ThreatDirector": {
     "Class": "ModuleScript",
@@ -1214,7 +1214,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/VoteController.luau",
-    "Hash": "4c3d3e06"
+    "Hash": "ba00c819"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.Fade": {
     "Class": "ModuleScript",

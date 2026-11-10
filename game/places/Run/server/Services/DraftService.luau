@@ -320,7 +320,7 @@ local function optionFor(id: string, found: Found?): any
 		Kind = face.Kind,
 		Label = face.Label,
 		Text = face.Text,
-		Found = if found then `FOUND BY {string.upper(found.By)}` else nil,
+		Found = if found then string.upper(found.By) else nil, -- the card's FOUND stamp says the rest
 	}
 end
 
