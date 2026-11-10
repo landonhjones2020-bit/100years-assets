@@ -42,6 +42,7 @@ local Surface = require(Shared.Rules.Surface)
 local Deep = require(Shared.Rules.Deep)
 local Expeditions = require(Shared.Rules.Expeditions)
 local Draft = require(Shared.Rules.Draft)
+local Classes = require(Shared.Rules.Classes)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -2539,6 +2540,108 @@ test("Draft: what found blueprints and the cards need (Landon, Prompt 19)", func
 end)
 
 -- Runner ---------------------------------------------------------------------------------
+
+test("Classes: abilities, uses, durations and options (Section 14; Prompt 20)", function()
+	-- every class has an ability that waits on something
+	for _, class in all("Classes") do
+		local a = class.Ability
+		expect(a.CooldownSeconds or a.CooldownCycles or a.Uses, `{class.Id}'s ability waits on a cooldown or uses`)
+	end
+	expectEqual(Classes.UsesFor("Survivor", 1), 1, "Second Wind: once per Surge")
+	expectEqual(Classes.UsesPer("Survivor"), "Surge")
+	expectEqual(Classes.UsesFor("RadioOperator", 1), 1, "Supply Call: once an era")
+	expectEqual(Classes.UsesFor("RadioOperator", 2), 2, "the Radio Operator's level 2: twice")
+	expectEqual(Classes.UsesFor("Quartermaster", 3), 1, "Emergency Requisition: once a cycle")
+	expectEqual(Classes.UsesFor("Engineer", 1), nil, "a cooldown, not uses")
+	expectEqual(Classes.Duration("Engineer", 1), 45, "a turret for 45 s")
+	expectEqual(Classes.Duration("Engineer", 3), 90, "level 3: twice as long")
+	expectEqual(Classes.Duration("Security", 2), 8, "Hold the Line: 8 s")
+	expectEqual(Classes.Duration("Survivor", 1), 0, "instant")
+	expectEqual(Classes.OptionName("MadScientist", 2), "Teleport Beacon")
+	expectEqual(Classes.OptionIndex("MadScientist", 4), 1, "options wrap")
+	expectEqual(Classes.OptionName("Medic", 1), nil, "no options")
+	expect(Classes.OwnCooldowns("MadScientist"), "the gadgets keep a cooldown each")
+	expect(not Classes.OwnCooldowns("Tinkerer"), "drone modes share one")
+	expectEqual(Classes.WaitText(12.2, nil), "13 S")
+	expectEqual(Classes.WaitText(nil, 2), "2 CYCLES")
+	expectEqual(Classes.WaitText(0, nil), "READY")
+end)
+
+test("Classes: levels from experience, about 3 runs and 10 runs (Section 14; Prompt 20)", function()
+	local t = Classes.Tuning()
+	local runs = Config.Get("Tuning", "ClassShop").ClassLevelRuns
+	expectEqual(Classes.LevelXP(1), 0)
+	expectEqual(Classes.LevelXP(2), runs[1] * t.TypicalRunYears * t.XPPerYear)
+	expectEqual(Classes.LevelXP(3), runs[2] * t.TypicalRunYears * t.XPPerYear)
+	expectEqual(Classes.LevelFor(Classes.LevelXP(2) - 1), 1)
+	expectEqual(Classes.LevelFor(Classes.LevelXP(2)), 2)
+	expectEqual(Classes.LevelFor(Classes.LevelXP(3) + 999), 3, "never past 3")
+	expectEqual(Classes.RunXP(37, 12), 25 * t.XPPerYear, "only the years not paid yet (Keep Going)")
+	expectEqual(Classes.RunXP(10, 20), 0)
+	expectEqual(t.LevelMax, 3, "levels 1 to 3, as the profile keeps them")
+	local data = ProfileSchema.Default()
+	data.Classes.Medic = { Level = 3, XP = Classes.LevelXP(3) }
+	expect(ProfileSchema.Validate(data), "a level 3 class saves")
+end)
+
+test("Classes: a level's modifier replaces the passive's, and players carry theirs (Prompt 20)", function()
+	expectEqual(Modifiers.ClassValue("Quartermaster", "BuildCost", 1), 0.9, "the passive's -10%")
+	expectEqual(Modifiers.ClassValue("Quartermaster", "BuildCost", 3), 0.8, "level 3's -20% replaces it")
+	expectEqual(Modifiers.ClassValue("Scout", "BackpackSlots", 1), 0)
+	expectEqual(Modifiers.ClassValue("Scout", "BackpackSlots", 2), 5, "the Scout's level 2: +5")
+	expectEqual(Modifiers.ClassValue("Exterminator", "FuelUse", 2), 0.7)
+	expectEqual(Modifiers.ClassValue("Tinkerer", "DroneGuns", 2), 2)
+	expectEqual(Modifiers.ClassValue("Security", "MaxHealth", 1), 30)
+	local medbay = 0
+	for _, m in Modifiers.ClassModifiers("Medic", 2) do
+		if m.Key == "RoomOutput" and m.Room == "Medbay" then
+			medbay = m.Value
+		end
+	end
+	expectEqual(medbay, 1.25, "the Medic's level 2 Medbay +25%")
+	local holder = Instance.new("Folder")
+	holder:SetAttribute("Class", "Scout")
+	holder:SetAttribute("ClassLevel", 3)
+	expectEqual(Modifiers.PlayerValue(holder, "RadiationGain"), 0.5, "a level 3 Scout's radiation")
+	holder:SetAttribute("ClassLevel", 1)
+	expectEqual(Modifiers.PlayerValue(holder, "RadiationGain"), 1, "not at level 1")
+	expectEqual(Modifiers.PlayerValue(nil, "RadiationGain"), 1, "nobody: neutral")
+	holder:Destroy()
+end)
+
+test("Classes: what the abilities rest on (Prompt 20)", function()
+	-- the Quartermaster's costs round up, the flame gun's tank costs less fuel, the Warden's tie-break
+	local costs = Construction.CostsAt("Kitchen", 1, 1, 0.9)
+	for id, amount in Config.Get("Rooms", "Kitchen").Costs[1] do
+		expectEqual(costs[id], math.max(1, math.ceil(amount * 0.9 - 1e-6)), `{id} at -10%`)
+	end
+	local magazine, carried = Combat.Reload(0, 200, "Flamethrower", 0.7)
+	expectEqual(magazine, 100, "a full tank")
+	expectEqual(carried, 130, "for 70 ammo, not 100")
+	expectEqual(select(2, Combat.Reload(0, 200, "Flamethrower")), 100, "everyone else: 100")
+	local pick = Votes.Winner({ A = 1, B = 1, C = 0 }, { "A", "B", "C" }, Random.new(1), "B")
+	expectEqual(pick, "B", "a tie goes to the Warden's pick")
+	expectEqual(Votes.Winner({ A = 2, B = 1 }, { "A", "B" }, Random.new(1), "B"), "A", "no tie: the Warden's pick doesn't matter")
+	expectEqual(#Votes.Tied({ A = 1, B = 1, C = 0 }, { "A", "B", "C" }), 2)
+	-- every class's ability has a handler (Run place only)
+	local lib = game:GetService("ServerScriptService"):FindFirstChild("Lib")
+	local module = lib and lib:FindFirstChild("ClassAbilities")
+	if module and module:IsA("ModuleScript") then
+		local Abilities = require(module) :: any
+		for _, id in Config.Ids("Classes") do
+			expect(Abilities.Has(id), `{id} has an ability handler`)
+		end
+	end
+	-- the tuning names a real loot table and every class level effect's key exists
+	expect(Config.Find("LootTables", Classes.Tuning().CrateLoot), "Supply Call's crate loot")
+	for _, class in all("Classes") do
+		for _, part in { class.Passive, class.Level2, class.Level3 } do
+			for _, m in (part and part.Modifiers) or {} do
+				expect(Config.Find("Modifiers", m.Key), `{class.Id}: {m.Key} is a modifier`)
+			end
+		end
+	end
+end)
 
 local DataTests = {}
 

@@ -101,8 +101,7 @@ local function myRoot(): BasePart?
 end
 
 local function classValue(key: string): number?
-	local class = player:GetAttribute("Class")
-	return Modifiers.ClassValue(if type(class) == "string" then class else nil, key)
+	return Modifiers.PlayerValue(player, key) -- at the class level (Prompt 20)
 end
 
 local function storming(): boolean

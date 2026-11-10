@@ -44,6 +44,7 @@
 
 	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map(), CrewWhere(),
 	DistressSpot() (Prompt 18: where an expedition radioing for help is pinned down, and the place's name),
+	SearchNear(player, position, radius) (Prompt 20: the Scavenger's Magnet Sweep),
 	SetLootBoost(multiplier) and SetStormEarly(seconds) (Prompt 19, Salvage Rights: containers give that many
 	times the loot until the next storm, and the next storm hits that many seconds before its Surge;
 	Tuning.Draft.StormEarlyWarnSeconds of warning for players up top).
@@ -165,8 +166,7 @@ local function alive(player: Player): boolean
 end
 
 local function classValue(player: Player, key: string): number?
-	local class = player:GetAttribute("Class")
-	return Modifiers.ClassValue(if type(class) == "string" then class else nil, key)
+	return Modifiers.PlayerValue(player, key) -- at the player's class level (Prompt 20)
 end
 
 local function eraNumber(): number
@@ -1106,6 +1106,22 @@ local function registerCommands(dev: any)
 			return placeFind() or "no free find spot"
 		end,
 	})
+end
+
+-- Magnet Sweep (Prompt 20): every unsearched, unlocked container within `radius` of `position` is
+-- searched into the player's backpack, as if they held SEARCH at each. Returns how many.
+function SurfaceService:SearchNear(player: Player, position: Vector3, radius: number): number
+	local n = 0
+	for _, c in containers do
+		if not c.Looted and not c.Locked then
+			local at = c.Model:GetPivot().Position
+			if (at - position).Magnitude <= radius then
+				search(c, player)
+				n += 1
+			end
+		end
+	end
+	return n
 end
 
 -- Salvage Rights (Prompt 19): containers give `multiplier` times the loot until the next storm.

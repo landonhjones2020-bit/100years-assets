@@ -144,8 +144,7 @@ local function standing(player: Player): boolean
 end
 
 local function classValue(player: Player?, key: string): number
-	local class = if player then player:GetAttribute("Class") else nil
-	return Modifiers.ClassValue(if type(class) == "string" then class else nil, key) or 1
+	return Modifiers.PlayerValue(player, key) or 1 -- at the leader's class level (Prompt 20)
 end
 
 local function setActivity(r: Rescue, activity: string)

@@ -86,7 +86,14 @@ local TOUCH_ACTIONS = {
 	Shoulder = "SwapShoulder",
 	Heal = "Heal", -- Landon, 2026-11-08
 }
-local ABILITY_ICONS: { [string]: string } = { Security = "Icon_Shield" } -- more with the class icons (A11)
+-- The ability's icon: Ability_<Class> once the UI kit has it (Prompt 20's art), else a stand-in.
+local ABILITY_ICONS: { [string]: string } = {
+	Survivor = "Icon_Medkit", Engineer = "Icon_Welder", Medic = "Icon_Medkit", Firefighter = "Icon_Extinguisher",
+	Cook = "Icon_Food", Security = "Icon_Shield", Scout = "Icon_Ping", Quartermaster = "Icon_Scrap",
+	RadioOperator = "Icon_Radio", HazmatTech = "Icon_Radiation", Exterminator = "Icon_Fire", Marksman = "Icon_Aim",
+	Driller = "Icon_Drill", Scavenger = "Icon_Backpack", Warden = "Icon_Crew", Demolitionist = "Icon_Fire",
+	Spelunker = "Icon_Route", MadScientist = "Icon_Power", Tinkerer = "Icon_Wrench",
+}
 local MAX_ALERTS = 3
 local FLIP_SECONDS = 0.07
 local TICK_SECONDS = 0.1
@@ -392,7 +399,7 @@ function HUDController:SetClass(id: string, level: number?)
 	part("Vitals.AbilityName").Text = string.upper(class.Ability.Name)
 	part("Vitals.Class").Text = `{string.upper(class.Name)}  ·  LV {classLevel}`
 	local icon = part("Vitals.Ability.Icon")
-	local sprite = ABILITY_ICONS[id]
+	local sprite = if KitRuntime.Has(`Ability_{id}`) then `Ability_{id}` else ABILITY_ICONS[id]
 	icon.Visible = sprite ~= nil
 	if sprite then
 		KitRuntime.SetSprite(icon, sprite)
@@ -400,6 +407,32 @@ function HUDController:SetClass(id: string, level: number?)
 	local touchIcon = part("Touch.Ability.Content.Icon")
 	if sprite then
 		KitRuntime.SetSprite(touchIcon, sprite)
+	end
+end
+
+-- The ability's state (Prompt 20, ClassController): the wait over the cooldown shade, uses left,
+-- the option it will use, and a glowing ring while its effect is in play.
+export type AbilityInfo = { Wait: string?, Uses: string?, Option: string?, Active: boolean? }
+function HUDController:SetAbility(info: AbilityInfo)
+	if not gui then
+		return
+	end
+	local waiting = info.Wait ~= nil
+	part("Vitals.Ability.Cooldown").Visible = waiting
+	local wait = part("Vitals.Ability.Wait")
+	wait.Visible = waiting
+	wait.Text = info.Wait or ""
+	part("Vitals.Ability.Uses").Visible = info.Uses ~= nil
+	part("Vitals.Ability.Uses.Text").Text = info.Uses or ""
+	part("Vitals.Ability.Active").Visible = info.Active == true
+	local class = Config.Find("Classes", classId)
+	part("Vitals.AbilityName").Text = string.upper(info.Option or (if class then class.Ability.Name else ""))
+end
+
+-- The Teleport Beacon's chip (Prompt 20): shown while a teammate's beacon stands.
+function HUDController:SetBeacon(on: boolean)
+	if gui then
+		part("Beacon").Visible = on
 	end
 end
 
@@ -541,6 +574,10 @@ local function refreshDevice()
 	local healKey = if device == "Gamepad" then "UP" elseif device == "Keyboard" then "H" else ""
 	part("Medkits.Key").Visible = healKey ~= ""
 	part("Medkits.Key.Text").Text = healKey
+	-- the Teleport Beacon's key (Prompt 20): T, or a hold of D-pad down
+	local beaconKey = if device == "Gamepad" then "DOWN" elseif device == "Keyboard" then "T" else ""
+	part("Beacon.Key").Visible = beaconKey ~= ""
+	part("Beacon.Key.Text").Text = beaconKey
 end
 
 local function setSprintToggle(on: boolean)

@@ -38,6 +38,7 @@ export type Context = {
 	Stock: { [string]: number }?, -- the stockpile; nil skips the cost check
 	Research: number?, -- Lab research so far; nil skips the research check
 	Reserved: { [string]: boolean }?, -- cell keys in open votes or under construction
+	CostMultiplier: number?, -- build and upgrade costs times this (the Quartermaster, Prompt 20)
 }
 export type Plan = {
 	Action: Action,
@@ -75,21 +76,25 @@ function Construction.Rate(helpers: number): number
 end
 
 -- A room type's costs at `level` (1 to 3) for `span` cells (Config.Rooms costs are per cell,
--- like HP and power, so a merged room pays for every cell it upgrades).
-function Construction.CostsAt(roomType: string, level: number, span: number?): { [string]: number }
+-- like HP and power, so a merged room pays for every cell it upgrades), times `multiplier` (the
+-- Quartermaster's BuildCost, Prompt 20; rounded up, never below 1 of anything it costs).
+function Construction.CostsAt(roomType: string, level: number, span: number?, multiplier: number?): { [string]: number }
 	local costs = {}
+	local m = multiplier or 1
 	for id, amount in Config.Get("Rooms", roomType).Costs[level] or {} do
-		costs[id] = amount * (span or 1)
+		local cost = amount * (span or 1)
+		costs[id] = if m ~= 1 and cost > 0 then math.max(1, math.ceil(cost * m - 1e-6)) else cost
 	end
 	return costs
 end
 
 -- What tearing a room down gives back: a share (Tuning.Rooms.TearDownRefund) of every level's
--- cost so far, per cell, rounded down. Lab research isn't given back.
-function Construction.Refund(roomType: string, level: number, span: number): { [string]: number }
+-- cost so far (at today's BuildCost, `multiplier`), per cell, rounded down. Lab research isn't
+-- given back.
+function Construction.Refund(roomType: string, level: number, span: number, multiplier: number?): { [string]: number }
 	local total: { [string]: number } = {}
 	for l = 1, level do
-		for id, amount in Construction.CostsAt(roomType, l, span) do
+		for id, amount in Construction.CostsAt(roomType, l, span, multiplier) do
 			total[id] = (total[id] or 0) + amount
 		end
 	end
@@ -196,7 +201,7 @@ function Construction.Plan(bunker: any, proposal: Proposal, context: Context): (
 		end
 		plan = {
 			Action = "Build", Floor = floor, Column = column, Span = 1, RoomType = roomType,
-			Costs = Construction.CostsAt(roomType, 1), Label = string.upper(info.Name),
+			Costs = Construction.CostsAt(roomType, 1, 1, context.CostMultiplier), Label = string.upper(info.Name),
 		}
 	else
 		local room = bunker:RoomAt(floor, column)
@@ -214,7 +219,7 @@ function Construction.Plan(bunker: any, proposal: Proposal, context: Context): (
 			local level = room.Level + 1
 			plan = {
 				Action = "Upgrade", Floor = room.Floor, Column = room.Column, Span = room.Span, RoomType = room.Type,
-				RoomId = room.Id, Level = level, Costs = Construction.CostsAt(room.Type, level, room.Span),
+				RoomId = room.Id, Level = level, Costs = Construction.CostsAt(room.Type, level, room.Span, context.CostMultiplier),
 				Research = Construction.ResearchFor(room.Type, level), Label = `{string.upper(name)} TO LEVEL {level}`,
 			}
 			local needs = plan.Research or 0
@@ -245,7 +250,7 @@ function Construction.Plan(bunker: any, proposal: Proposal, context: Context): (
 			end
 			plan = {
 				Action = "TearDown", Floor = room.Floor, Column = room.Column, Span = room.Span, RoomType = room.Type,
-				RoomId = room.Id, Costs = {}, Refund = Construction.Refund(room.Type, room.Level, room.Span),
+				RoomId = room.Id, Costs = {}, Refund = Construction.Refund(room.Type, room.Level, room.Span, context.CostMultiplier),
 				Label = `TEAR DOWN {string.upper(name)}`,
 			}
 		else

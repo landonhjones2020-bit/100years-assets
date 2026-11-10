@@ -122,15 +122,17 @@ function Combat.Spread(seed: number, direction: Vector3, itemId: string): { Vect
 end
 
 -- Whole shots loaded from carried ammo: the new magazine and what is left carried.
-function Combat.Reload(magazine: number, carried: number, itemId: string): (number, number)
+-- A reload: the magazine filled from carried ammo, AmmoPerShot a shot (times `use`: the
+-- Exterminator's FuelUse on a flame gun, Prompt 20; whole ammo, rounded up).
+function Combat.Reload(magazine: number, carried: number, itemId: string, use: number?): (number, number)
 	local gun = Combat.Gun(itemId)
 	if not gun then
 		return magazine, carried
 	end
-	local per = math.max(gun.AmmoPerShot, 1)
+	local per = math.max(gun.AmmoPerShot, 1) * math.max(use or 1, 0.01)
 	local room = math.max(gun.Magazine - magazine, 0)
-	local shots = math.min(room, math.floor(carried / per))
-	return magazine + shots, carried - shots * per
+	local shots = math.min(room, math.floor(carried / per + 1e-6))
+	return magazine + shots, carried - math.min(carried, math.ceil(shots * per - 1e-6))
 end
 
 -- Hits -------------------------------------------------------------------------------------

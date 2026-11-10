@@ -161,9 +161,7 @@ end
 -- The Spelunker's eye ---------------------------------------------------------------------------
 
 local function revealing(): boolean
-	local class = player:GetAttribute("Class")
-	local level = player:GetAttribute("ClassLevel")
-	local value = Modifiers.ClassValue(if type(class) == "string" then class else nil, "RevealCaveLayouts", if type(level) == "number" then level else nil)
+	local value = Modifiers.PlayerValue(player, "RevealCaveLayouts")
 	return value ~= nil and value ~= 0
 end
 

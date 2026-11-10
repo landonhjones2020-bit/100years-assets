@@ -56,6 +56,7 @@
 		MonsterService:Clear()
 		MonsterService:Despawn(id)                              -- fades one away (the surface's leftovers)
 		MonsterService:ZoneOf(id): string?
+		MonsterService:Taunt(sourceId, position, radius, seconds): number -- Hold the Line (Prompt 20)
 	Dev: monster, monsters, monsters.clear.
 ]]
 
@@ -125,6 +126,7 @@ type Monster = {
 	Path: Path?,
 	CircleUntil: number, -- a PackRunner circles its target until then (os.clock)
 	CircleAngle: number,
+	Taunt: { Id: string, Until: number }?, -- Hold the Line (Prompt 20): this player comes first until then
 }
 
 local combat: any = nil
@@ -541,6 +543,17 @@ local function playerTarget(m: Monster): Target?
 end
 
 local function chooseTarget(m: Monster)
+	-- Hold the Line (Prompt 20): a taunting Security comes before everything while they stand
+	local taunt = m.Taunt
+	if taunt then
+		local c = combat:Get(taunt.Id)
+		if os.clock() < taunt.Until and c and c.State == "Alive" and reachable(m, c.Root.Position) then
+			m.Target = { Kind = "Players", Id = c.Id, Position = c.Root.Position }
+			m.TargetAt = os.clock()
+			return
+		end
+		m.Taunt = nil
+	end
 	local found: { [string]: Target } = {}
 	local available: { [string]: boolean } = {}
 	for _, kind in m.Spec.Targets do
@@ -563,6 +576,22 @@ local function chooseTarget(m: Monster)
 		m.Target = if kind then found[kind] else nil
 	end
 	m.TargetAt = os.clock()
+end
+
+-- Hold the Line (Prompt 20): monsters within `radius` of `position` go after the combatant
+-- `sourceId` for `seconds` (Runners too), whatever else is near. Returns how many.
+function MonsterService:Taunt(sourceId: string, position: Vector3, radius: number, seconds: number): number
+	local n = 0
+	for _, m in monsters do
+		if (m.Root.Position - position).Magnitude <= radius and reachable(m, position) then
+			m.Taunt = { Id = sourceId, Until = os.clock() + seconds }
+			m.Aggro[sourceId] = os.clock() + seconds
+			m.Asleep = false
+			m.TargetAt = 0
+			n += 1
+		end
+	end
+	return n
 end
 
 local function targetPosition(target: Target): Vector3?

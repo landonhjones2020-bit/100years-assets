@@ -11,17 +11,22 @@
 	  level and the run log.
 	* The main action: Assign (an idle resident goes to the free job that suits their best stat,
 	  Section 7's Auto-Assign rule for one person) or Take off the job. The footer: Auto-Assign
-	  (every idle resident).
+	  (every idle resident), and for a level 2 Warden (Section 11: "a level 2 Warden chooses the stat
+	  instead"; Prompt 20) LEVELS: the stat residents raise when they level, a press for the next
+	  (their job's, then each stat in turn; ChooseLevelStat).
 	Everything comes from the Residents and Rooms collections; the server checks every change.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
 local Log = require(Shared.Utilities.Log)
+local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
+local RunState = require(Shared.RunState)
 local UIKit = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("UIKit"))
 
 local log = Log.new("ResidentsController")
@@ -36,6 +41,7 @@ local replica: any = nil
 local page: any = nil
 local selected: string? = nil
 local tab = "All"
+local footer: () -> () -- below
 
 local STATS = { "Strength", "Smarts", "Grit", "Speed", "Charm" }
 
@@ -253,6 +259,28 @@ function ResidentsController:Init(registry)
 	replica = registry.ReplicaController
 end
 
+-- The footer: Auto-Assign, and a level 2 Warden's LEVELS (Prompt 20).
+footer = function()
+	local actions = {
+		{ Label = "Auto-Assign", OnPress = function()
+			Remotes.FireServer("AutoAssign")
+		end },
+	}
+	if Modifiers.PlayerValue(Players.LocalPlayer, "ChoosesLevelStat") then
+		local current = RunState.Get("LevelStat")
+		local order = { "" }
+		for _, stat in STATS do
+			table.insert(order, stat)
+		end
+		local at = table.find(order, if type(current) == "string" then current else "") or 1
+		local nextStat = order[at % #order + 1]
+		table.insert(actions, { Label = `Levels: {if at > 1 then order[at] else "Job"}`, OnPress = function()
+			Remotes.FireServer("ChooseLevelStat", nextStat)
+		end })
+	end
+	ui:SetFooterActions(actions)
+end
+
 function ResidentsController:Start()
 	if Constants.PlaceKind() ~= "Run" then
 		return
@@ -272,11 +300,7 @@ function ResidentsController:Start()
 		OnOpen = function(p: Frame)
 			page = p
 			tab = "All"
-			ui:SetFooterActions({
-				{ Label = "Auto-Assign", OnPress = function()
-					Remotes.FireServer("AutoAssign")
-				end },
-			})
+			footer()
 			fill()
 		end,
 		OnTab = function(tabId: string, p: Frame)
@@ -288,6 +312,15 @@ function ResidentsController:Start()
 			page = nil
 		end,
 	})
+	-- a level 2 Warden's LEVELS button follows the choice and the class
+	for _, signal in { RunState.Changed("LevelStat"), Players.LocalPlayer:GetAttributeChangedSignal("Class"),
+		Players.LocalPlayer:GetAttributeChangedSignal("ClassLevel") } do
+		signal:Connect(function()
+			if page then
+				footer()
+			end
+		end)
+	end
 	local pending = false
 	replica:Changed("Residents"):Connect(function()
 		if page and not pending then

@@ -196,6 +196,38 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 3, PerSecond = 2 },
 		Doc = "Throw one of the held slot's throwables toward the aim (Landon, 2026-11-08: Fire throws).",
 	},
+	UseAbility = {
+		To = "Server",
+		Place = "Run",
+		Args = {
+			Check.integer(0, 4), -- the option (0: the one selected)
+			Check.vector3(20000), -- where the camera is
+			Check.vector3(1.01), -- where it looks (a unit vector)
+		},
+		Rate = { Burst = 4, PerSecond = 2 },
+		Doc = "Use the class ability (Q; Prompt 20): ClassService checks the class, cooldown or uses, and what is aimed at.",
+	},
+	PickAbilityOption = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.integer(1, 4) },
+		Rate = { Burst = 6, PerSecond = 3 },
+		Doc = "Pick the ability's option (a hold of Q: the Gadget Belt's gadget, the drone's mode; Prompt 20).",
+	},
+	TeleportToBeacon = {
+		To = "Server",
+		Place = "Run",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.5 },
+		Doc = "Teleport to the team's Teleport Beacon (the Mad Scientist's Gadget Belt; Prompt 20).",
+	},
+	ChooseLevelStat = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(16, { pattern = "^%a*$" }) },
+		Rate = { Burst = 4, PerSecond = 1 },
+		Doc = "A level 2 Warden picks the stat residents raise when they level (\"\" for their job's; Prompt 20).",
+	},
 	UseMedkit = {
 		To = "Server",
 		Place = "Run",
@@ -261,6 +293,23 @@ local DEFINITIONS: { [string]: Definition } = {
 		To = "Client",
 		Place = "Run",
 		Doc = "A breach is coming (Section 10): floor, column, seconds of warning, where (text), how many monsters, and the room id if it is a vent (BreachService).",
+	},
+	ArcZap = {
+		To = "Client",
+		Place = "Run",
+		Unreliable = true,
+		Doc = "An Arc Rifle's arc jumping from one point to another (Prompt 20): every client draws the bolt.",
+	},
+	AbilityFx = {
+		To = "Client",
+		Place = "Run",
+		Unreliable = true,
+		Doc = "A class ability went off (Prompt 20): the user's UserId, the class, the effect's kind and where; clients draw it.",
+	},
+	Grapple = {
+		To = "Client",
+		Place = "Run",
+		Doc = "Grapple Line (Prompt 20): zip the character to a point (the Spelunker, or a teammate they pull).",
 	},
 	HitConfirmed = {
 		To = "Client",

@@ -4,8 +4,9 @@
 	reloads, ammo and the server's hit checks). Run place only; Prompt 11.
 
 	Loadouts
-	* Each player carries their class kit (Config.Classes): the Survivor until the Lobby sends a
-	  loadout (Prompt 21); /dev class switches it. Kit items are Standard rarity.
+	* Each player carries their class kit (Config.Classes): ClassService gives it (SetClass, Prompt
+	  20: the run record's class, or /dev class), the Survivor's until then. Kit items are Standard
+	  rarity; the Demolitionist's level 2 adds ExtraFragGrenades Frag Grenades.
 	* Section 9's loadout is two guns, one melee weapon, one tool and two throwables. The hotbar
 	  holds the guns (slots 1 and 2), the tool (3) and the throwables (4 and 5); the melee weapon
 	  has its own button. A kit with no melee weapon punches (Tuning.Combat.Unarmed).
@@ -27,7 +28,14 @@
 	  and near where the target was over the last LagSeconds. Only monsters can be hit.
 	* A flame gun (Cone) burns every monster in its cone each tick; a Projectile gun's round
 	  flies under gravity, run by the server, and bursts on what it touches (BlastRadius;
-	  players' explosives never damage the bunker).
+	  players' explosives never damage the bunker). Explosions take the thrower's ExplosiveDamage
+	  and ExplosiveRadius (the Demolitionist, Prompt 20). An arc gun's hit jumps to ChainTargets
+	  more monsters within Tuning.Classes.ArcChainRange, each jump ArcChainFalloff as strong (the
+	  Mad Scientist's level 2: ArcChainTargets). Reloading a flame gun costs FuelUse of its ammo
+	  (the Exterminator's level 2).
+	* Steady Shot (Prompt 20): ClassService's shot hook (SetShotHook) may make a shot pierce (every
+	  monster on the pellet's line, checked by the server) and crit (times CritMultiplier; how
+	  "crit").
 	* HitConfirmed tells the shooter what each hit did (hit markers, damage numbers).
 
 	Melee, dodge, sprint, stamina (Section 9)
@@ -66,8 +74,11 @@
 	GiveThrowable(player, itemId, count): number (Prompt 14: caches); signals Foamed, ToolTick,
 	Swung (Prompt 13) and Exploded (Prompt 14: explosives raise Disturbance);
 	SetHitModifier(fn) (Prompt 15: a boss's armour and weak points scale hits and may rename them,
-	"weakpoint").
-	Dev: class, give, ammo, medkits, loadout, stamina.
+	"weakpoint"); Prompt 20: SetClass(player, classId, level), AddHitModifier(name, fn) (class
+	damage: the Exterminator's CreatureDamage), SetShotHook(fn), Explode(player, at, radius, damage),
+	and the Hit signal (player, target id, damage done, how, point) for what a hit sets off
+	(burning, a boss stagger, a kill's Disturbance).
+	Dev: give, ammo, medkits, loadout, stamina (class moved to ClassService).
 ]]
 
 local Players = game:GetService("Players")
@@ -81,6 +92,7 @@ local Combat = require(Shared.Rules.Combat)
 local Config = require(Shared.Config)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
+local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Utilities.Signal)
 
@@ -112,6 +124,7 @@ type Loadout = {
 	DodgeReadyAt: number,
 	Medkits: number,
 	MedkitCap: number,
+	Level: number, -- the class level (Prompt 20)
 	HealEndsAt: number,
 	HealToken: number,
 	LastThrowAt: number,
@@ -130,6 +143,8 @@ local WeaponService = {
 	Swung = Signal.new() :: Signal.Signal<Player, CFrame, number, number, number, string, boolean>,
 	-- A player's explosive went off: where, its radius, whose (Prompt 14: explosives raise Disturbance).
 	Exploded = Signal.new() :: Signal.Signal<Vector3, number, Player>,
+	-- A player's hit landed (Prompt 20): who, the target's combatant id, the damage done, how, where.
+	Hit = Signal.new() :: Signal.Signal<Player, string, number, string, Vector3?>,
 }
 
 local combat: any = nil
@@ -262,7 +277,7 @@ local function firstSlot(state: Loadout): number
 	return 0
 end
 
-local function newLoadout(player: Player, classId: string, carried: number?): Loadout
+local function newLoadout(player: Player, classId: string, carried: number?, level: number?): Loadout
 	local slots, melee, medkits = kitOf(classId)
 	local p = Config.Get("Tuning", "Player")
 	local state: Loadout = {
@@ -289,6 +304,7 @@ local function newLoadout(player: Player, classId: string, carried: number?): Lo
 		HealToken = 0,
 		LastThrowAt = -math.huge,
 		ToolOn = nil,
+		Level = level or 1,
 	}
 	player:SetAttribute("ToolInUse", nil)
 	state.Selected = firstSlot(state)
@@ -460,10 +476,11 @@ local function bodies(): { Instance }
 	return list
 end
 
-local function confirm(player: Player, targetId: string, done: number, point: Vector3?)
+local function confirm(player: Player, targetId: string, done: number, point: Vector3?, how: string?)
 	local target = combat:Get(targetId)
 	local killed = target == nil or target.State == "Dead"
 	Remotes.FireClient("HitConfirmed", player, targetId, done, killed, point)
+	WeaponService.Hit:Fire(player, targetId, done, how or "hit", point)
 end
 
 -- Guns ---------------------------------------------------------------------------------------
@@ -471,7 +488,21 @@ end
 -- A boss's armour and weak points (Prompt 15): BossService's hook scales a hit and may rename it.
 local hitModifier: ((target: any, point: Vector3?, how: string, player: Player) -> (number, string?))? = nil
 
+-- Steady Shot (Prompt 20): fn(player, itemId) -> { Pierce, Crit }? for each shot fired.
+local shotHook: ((Player, string) -> any)? = nil
+
+-- Class damage (Prompt 20): fn(target, point, how, player) -> multiplier, by name.
+local hitModifiers: { { Name: string, Fn: (any, Vector3?, string, Player) -> number } } = {}
+
 local function modified(target: any, amount: number, point: Vector3?, how: string, player: Player): (number, string)
+	for _, entry in hitModifiers do
+		local ok, multiplier = pcall(entry.Fn, target, point, how, player)
+		if ok and type(multiplier) == "number" and multiplier == multiplier then
+			amount *= multiplier
+		elseif not ok then
+			log:Warn("hit modifier %s: %s", entry.Name, tostring(multiplier))
+		end
+	end
 	local fn = hitModifier
 	if fn then
 		local ok, multiplier, newHow = pcall(fn, target, point, how, player)
@@ -485,6 +516,9 @@ local function modified(target: any, amount: number, point: Vector3?, how: strin
 end
 
 local function explode(player: Player, at: Vector3, radius: number, damage: number, shooterId: string)
+	-- the Demolitionist's explosives (Prompt 20)
+	radius *= Modifiers.PlayerValue(player, "ExplosiveRadius") or 1
+	damage *= Modifiers.PlayerValue(player, "ExplosiveDamage") or 1
 	WeaponService.Exploded:Fire(at, radius, player)
 	local blast = Instance.new("Explosion")
 	blast.BlastPressure = 0 -- visual only: players' explosives never damage the bunker (Section 9)
@@ -500,7 +534,7 @@ local function explode(player: Player, at: Vector3, radius: number, damage: numb
 			local amount, how = modified(c, damage * scale, at, "blast", player)
 			local done = combat:Damage(c.Id, amount, shooterId, how)
 			if done > 0 then
-				confirm(player, c.Id, done, c.Root.Position)
+				confirm(player, c.Id, done, c.Root.Position, how)
 			end
 		end
 	end
@@ -792,11 +826,35 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 				local amount, how = modified(c, damage, nil, "burned", player)
 				local done = combat:Damage(c.Id, amount, shooter.Id, how)
 				if done > 0 then
-					confirm(player, c.Id, done, c.Root.Position)
+					confirm(player, c.Id, done, c.Root.Position, how)
 				end
 			end
 		end
 		return
+	end
+	-- Steady Shot (Prompt 20): this shot may pierce and crit
+	local bonus: { Pierce: boolean?, Crit: number? }? = nil
+	local hook = shotHook
+	if hook then
+		local ok, got = pcall(hook, player, held.Item)
+		if ok and type(got) == "table" then
+			bonus = got
+		elseif not ok then
+			log:Warn("shot hook: %s", tostring(got))
+		end
+	end
+	local crit = if bonus and type(bonus.Crit) == "number" and bonus.Crit > 1 then bonus.Crit else nil
+	local hitOnce: { [string]: boolean } = {}
+	local function land(target: any, point: Vector3, scale: number)
+		local amount, how = modified(target, damage * scale * (crit or 1), point, if crit then "crit" else "shot", player)
+		if crit and how == "shot" then
+			how = "crit"
+		end
+		local done = combat:Damage(target.Id, amount, shooter.Id, how)
+		if done > 0 then
+			confirm(player, target.Id, done, point, how)
+		end
+		hitOnce[target.Id] = true
 	end
 	local pellets = Combat.Spread(Combat.ShotSeed(state.Salt, shot), aim, held.Item)
 	local used: { [number]: boolean } = {}
@@ -810,13 +868,50 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 				ok, why = false, "the line of sight is blocked"
 			end
 			if ok then
-				local amount, how = modified(target, damage, claim.Point, "shot", player)
-				local done = combat:Damage(target.Id, amount, shooter.Id, how)
-				if done > 0 then
-					confirm(player, target.Id, done, claim.Point)
+				land(target, claim.Point, 1)
+				-- an arc jumps on to the nearest monsters (the Arc Rifle; the Mad Scientist's level 2)
+				local chains = math.max(gun.ChainTargets or 0, if (gun.ChainTargets or 0) > 0
+					then Modifiers.PlayerValue(player, "ArcChainTargets") or 0 else 0)
+				if chains > 0 then
+					local ct = Config.Get("Tuning", "Classes")
+					local from_ = target.Root.Position
+					local scale = 1
+					for _ = 1, chains do
+						local best, bestDistance = nil, ct.ArcChainRange
+						for _, c in combat:All("Monsters") do
+							if not hitOnce[c.Id] and c.State == "Alive" then
+								local d = (c.Root.Position - from_).Magnitude - c.Reach
+								if d <= bestDistance and not blocked(from_, c.Root.Position, ignore) then
+									best, bestDistance = c, d
+								end
+							end
+						end
+						if not best then
+							break
+						end
+						scale *= ct.ArcChainFalloff
+						local zapFrom = from_
+						from_ = best.Root.Position
+						land(best, from_, scale)
+						Remotes.FireAllClients("ArcZap", zapFrom, from_)
+					end
 				end
 			else
 				log:Debug("%s: a hit on %s refused: %s", player.Name, claim.Id, tostring(why))
+			end
+		end
+	end
+	-- a piercing shot hits everything on each pellet's line, past the first (the server's own check)
+	if bonus and bonus.Pierce then
+		for _, direction in pellets do
+			local unit = direction.Unit
+			for _, c in combat:All("Monsters") do
+				if not hitOnce[c.Id] and c.State == "Alive" then
+					local off, along = Combat.RayDistance(origin, unit, c.Root.Position)
+					if along > 0 and along <= gun.Range and off <= c.Reach + 1 and not blocked(origin, c.Root.Position, ignore) then
+						land(c, origin + unit * along, 1)
+					end
+				end
 			end
 		end
 	end
@@ -832,7 +927,8 @@ local function onReload(player: Player)
 	if not held or not gun or now() < state.ReloadEndsAt then
 		return
 	end
-	if (held.Magazine or 0) >= gun.Magazine or state.Carried < gun.AmmoPerShot then
+	local perShot = gun.AmmoPerShot * (if gun.Cone then Modifiers.PlayerValue(player, "FuelUse") or 1 else 1)
+	if (held.Magazine or 0) >= gun.Magazine or state.Carried < perShot then
 		return
 	end
 	state.ReloadToken += 1
@@ -846,7 +942,9 @@ local function onReload(player: Player)
 		state.ReloadEndsAt = 0
 		player:SetAttribute("ReloadEndsAt", nil)
 		if state.Slots[state.Selected] == held then
-			held.Magazine, state.Carried = Combat.Reload(held.Magazine or 0, state.Carried, held.Item)
+			-- the Exterminator's level 2: a flame gun's tank costs FuelUse of its ammo (Prompt 20)
+			local use = if gun.Cone then Modifiers.PlayerValue(player, "FuelUse") or 1 else 1
+			held.Magazine, state.Carried = Combat.Reload(held.Magazine or 0, state.Carried, held.Item, use)
 			player:SetAttribute(`Mag{state.Selected}`, held.Magazine)
 			player:SetAttribute("CarriedAmmo", state.Carried)
 		end
@@ -1027,7 +1125,7 @@ local function onSwing(player: Player, heavy: boolean, facing: Vector3)
 				local amount, how = modified(c, damage, swingPoint, if heavy then "smashed" else "struck", player)
 				local done = combat:Damage(c.Id, amount, attacker.Id, how)
 				if done > 0 then
-					confirm(player, c.Id, done, c.Root.Position)
+					confirm(player, c.Id, done, c.Root.Position, how)
 					if melee.Knockback and not c.Root.Anchored then
 						local push = (c.Root.Position - root.Position) * Vector3.new(1, 0, 1)
 						if push.Magnitude > 0.1 then
@@ -1348,6 +1446,38 @@ function WeaponService:AddMedkits(player: Player, count: number): number
 	return count
 end
 
+-- The class kit (Prompt 20: ClassService, from the run record or /dev class): a fresh loadout of
+-- the class at its level, keeping the carried ammo; the Demolitionist's level 2 adds Frag Grenades.
+function WeaponService:SetClass(player: Player, classId: string, level: number?)
+	local old = loadouts[player]
+	local state = newLoadout(player, classId, if old then old.Carried else nil, level)
+	local extra = math.floor(Modifiers.ClassValue(classId, "ExtraFragGrenades", level) or 0)
+	if extra > 0 then
+		WeaponService:GiveThrowable(player, "FragGrenade", extra)
+	end
+	refreshHeld(player, state)
+end
+
+function WeaponService:AddHitModifier(name: string, fn: (any, Vector3?, string, Player) -> number)
+	for i, entry in hitModifiers do
+		if entry.Name == name then
+			table.remove(hitModifiers, i)
+			break
+		end
+	end
+	table.insert(hitModifiers, { Name = name, Fn = fn })
+end
+
+function WeaponService:SetShotHook(fn: ((Player, string) -> any)?)
+	shotHook = fn
+end
+
+-- A player's explosion (Prompt 20: the Breaching Charge): their explosive modifiers apply.
+function WeaponService:Explode(player: Player, at: Vector3, radius: number, damage: number)
+	local attacker = combat:PlayerCombatant(player)
+	explode(player, at, radius, damage, if attacker then attacker.Id else `P{player.UserId}`)
+end
+
 -- The rarity of each weapon a player holds (guns by slot, then melee): dev and tests.
 function WeaponService:Rarities(player: Player): { string }
 	local state = loadouts[player]
@@ -1376,23 +1506,6 @@ function WeaponService:Init(registry)
 		Usage = "loadout",
 		Run = function(player): string?
 			return if player then describe(player) else "players only"
-		end,
-	})
-	dev:Register("class", {
-		Description = "Take a class's kit (until the Lobby's loadouts, Prompt 21).",
-		Usage = "class <ClassId>",
-		Run = function(player, args): string?
-			if not player then
-				return "players only"
-			end
-			local id = tostring(args[1] or "")
-			if not Config.Find("Classes", id) then
-				return `no class {id}`
-			end
-			local old = loadouts[player]
-			local state = newLoadout(player, id, if old then old.Carried else nil)
-			refreshHeld(player, state)
-			return describe(player)
 		end,
 	})
 	dev:Register("give", {

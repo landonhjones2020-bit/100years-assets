@@ -34,6 +34,7 @@
 	  the pack as a stack of its own (the card's id, one a slot). Unloading hands the cards home
 	  (CardsHome) for the next draft, like any loot that only counts once hauled.
 
+	CollectBags(player, position, radius) (Prompt 20: Magnet Sweep, the drone) picks up dropped packs nearby.
 	Signals: Unloaded(player, delivered: { [resource]: number }), Delivered(player, kind, given),
 	CardsHome(player, card ids).
 	Dev: pack, pack.add <resource> <n>, pack.clear, pills <n>, find [kind], finds.
@@ -132,13 +133,8 @@ local function rootOf(player: Player): BasePart?
 	return if root and root:IsA("BasePart") then root else nil
 end
 
-local function classOf(player: Player): string?
-	local class = player:GetAttribute("Class")
-	return if type(class) == "string" then class else nil
-end
-
 local function slotsOf(player: Player): number
-	return Surface.Slots(Modifiers.ClassValue(classOf(player), "BackpackSlots") or 0)
+	return Surface.Slots(Modifiers.PlayerValue(player, "BackpackSlots") or 0) -- the Scout's level 2 too (Prompt 20)
 end
 
 local function publish(player: Player)
@@ -745,6 +741,19 @@ local function pickUpBag(bag: Bag, player: Player)
 	end
 end
 
+-- Magnet Sweep and the Tinkerer's drone (Prompt 20): dropped packs within `radius` of `position`
+-- go into the player's pack (what doesn't fit stays in the bag). Returns how many were reached.
+function InventoryService:CollectBags(player: Player, position: Vector3, radius: number): number
+	local n = 0
+	for _, bag in table.clone(bags) do
+		if (bag.Model:GetPivot().Position - position).Magnitude <= radius then
+			pickUpBag(bag, player)
+			n += 1
+		end
+	end
+	return n
+end
+
 local function dropBag(player: Player, at: Vector3)
 	local pack = packs[player]
 	if not pack or #pack == 0 then
@@ -754,6 +763,7 @@ local function dropBag(player: Player, at: Vector3)
 	local id = `B{counter}`
 	local model = makeBagModel()
 	model.Name = `LootBag_{id}`
+	model:SetAttribute("Bag", id) -- the Scout's Flare Ping outlines it (Prompt 20)
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
 			part.Anchored = true
@@ -835,7 +845,7 @@ local function onDowned(combatantId: string)
 	end
 	letGo(player, nil)
 	local root = rootOf(player)
-	if root and Surface.Zone(root.Position) ~= "Bunker" and not Modifiers.ClassValue(classOf(player), "KeepBackpackWhenDowned") then
+	if root and Surface.Zone(root.Position) ~= "Bunker" and not Modifiers.PlayerValue(player, "KeepBackpackWhenDowned") then
 		dropBag(player, root.Position)
 	end
 end

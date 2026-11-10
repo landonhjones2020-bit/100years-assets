@@ -12,17 +12,21 @@
 	  (their health stays with ResidentService). Monsters come with Prompt 12; until then a dev
 	  dummy stands in.
 	* Damage(targetId, amount, sourceId?, how?): no friendly fire (Section 9), and a dodge's
-	  invulnerable moment takes nothing. Heal(id, amount).
+	  invulnerable moment takes nothing. Damage filters (AddDamageFilter, Prompt 20) scale it
+	  first: Hold the Line halves what a Security takes, residents near one hit harder.
+	  Heal(id, amount).
 	* Signals: Damaged(id, amount, sourceId?, how?), Downed(id), Revived(id, byUserId?),
 	  Died(id). Dead monsters dissolve into glowing dust (Section 3); a combatant registered with
 	  KeepModel (a boss, Prompt 15) is left for its own service, which calls Dissolve(model).
 
 	Players (Section 9)
-	* Health: Tuning.Player.Health (classes add theirs with Prompt 20). Roblox's own
-	  regeneration is removed: health comes back only by healing.
+	* Health: Tuning.Player.Health, or what SetMaxHealthFn says (Prompt 20: the Security's +30,
+	  Hearty Meal's +20%); RefreshMaxHealth(player) applies a change at once (a raised max adds
+	  its difference, a lowered one caps). Roblox's own regeneration is removed: health comes back
+	  only by healing.
 	* At 0 health a player is Downed for DownedSeconds and crawls (CrawlSpeed). Teammates see a
-	  revive prompt: hold Interact for ReviveSeconds (the Medic's 1 s comes with Prompt 20). A
-	  revived player gets up with ReviveHealthFraction of their health.
+	  revive prompt: hold Interact for ReviveSeconds (a Medic's client holds it for their own 1 s,
+	  Prompt 20). A revived player gets up with ReviveHealthFraction of their health.
 	* Not revived in time: dead. RespawnSeconds later they come back at the nearest working
 	  Medbay (not wrecked, not dark), or in the Blast Door hall when no Medbay works.
 	* Each player's life shows as attributes on the Player: Life ("Alive", "Downed", "Dead"),
@@ -97,6 +101,9 @@ local residents: any = nil
 local dev: any = nil
 
 local combatants: { [string]: Combatant } = {}
+-- Prompt 20: classes scale damage (fn(target, amount, source?, how?) -> amount) and set max health
+local filters: { { Name: string, Fn: (Combatant, number, Combatant?, string?) -> number } } = {}
+local maxHealthFn: ((Player) -> number)? = nil
 local byModel: { [Model]: string } = {}
 local monsterCount = 0
 local fellAt: { [Player]: Vector3 } = {} -- where a player went down, for the respawn choice
@@ -447,11 +454,11 @@ local function watchCharacter(player: Player, character: Model)
 	end
 	character.ChildAdded:Connect(dropRegen)
 
-	local p = Config.Get("Tuning", "Player")
+	local maxHealth = CombatService:MaxHealthOf(player)
 	h.BreakJointsOnDeath = false
 	h.RequiresNeck = false
-	h.MaxHealth = p.Health
-	h.Health = p.Health
+	h.MaxHealth = maxHealth
+	h.Health = maxHealth
 	local spawnAt = respawnAt[player]
 	respawnAt[player] = nil
 	if spawnAt then
@@ -470,7 +477,7 @@ local function watchCharacter(player: Player, character: Model)
 		Kind = "Player",
 		Team = "Survivors",
 		Root = root,
-		Health = p.Health,
+		Health = maxHealth,
 		Player = player,
 		Id = playerId(player),
 	})
@@ -512,6 +519,17 @@ function CombatService:Damage(targetId: string, amount: number, sourceId: string
 		return 0 -- no friendly fire (Section 9)
 	end
 	if now() < target.InvulnerableUntil then
+		return 0
+	end
+	for _, filter in filters do
+		local ok, scaled = pcall(filter.Fn, target, amount, source, how)
+		if ok and type(scaled) == "number" and scaled == scaled then
+			amount = math.max(scaled, 0)
+		elseif not ok then
+			log:Warn("damage filter %s: %s", filter.Name, tostring(scaled))
+		end
+	end
+	if amount <= 0 then
 		return 0
 	end
 	local done = amount
@@ -574,6 +592,57 @@ function CombatService:Heal(id: string, amount: number): number
 	target.Health = math.min(target.Health + amount, target.MaxHealth)
 	target.Model:SetAttribute("Health", target.Health)
 	return target.Health - before
+end
+
+-- Classes (Prompt 20) -----------------------------------------------------------------------------
+
+-- A filter every hit passes through before it lands; a later Add with the same name replaces it.
+function CombatService:AddDamageFilter(name: string, fn: (Combatant, number, Combatant?, string?) -> number)
+	for i, filter in filters do
+		if filter.Name == name then
+			table.remove(filters, i)
+			break
+		end
+	end
+	table.insert(filters, { Name = name, Fn = fn })
+end
+
+function CombatService:SetMaxHealthFn(fn: ((Player) -> number)?)
+	maxHealthFn = fn
+end
+
+function CombatService:MaxHealthOf(player: Player): number
+	local base = Config.Get("Tuning", "Player").Health
+	local fn = maxHealthFn
+	if fn then
+		local ok, value = pcall(fn, player)
+		if ok and type(value) == "number" and value >= 1 then
+			return math.floor(value + 0.5)
+		elseif not ok then
+			log:Warn("max health: %s", tostring(value))
+		end
+	end
+	return base
+end
+
+-- A player's max health changed (a class, Hearty Meal): a higher max adds the difference, a lower
+-- one caps their health. A downed player keeps the 1 their Humanoid holds.
+function CombatService:RefreshMaxHealth(player: Player)
+	local record = CombatService:PlayerCombatant(player)
+	local h = if record then humanoidOf(record) else nil
+	if not record or not h then
+		return
+	end
+	local new = CombatService:MaxHealthOf(player)
+	local old = h.MaxHealth
+	if math.abs(new - old) < 0.5 then
+		return
+	end
+	h.MaxHealth = new
+	record.MaxHealth = new
+	if record.State == "Alive" then
+		h.Health = if new > old then math.min(h.Health + (new - old), new) else math.min(h.Health, new)
+	end
 end
 
 -- Residents' bodies ------------------------------------------------------------------------------

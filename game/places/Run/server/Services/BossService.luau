@@ -38,6 +38,7 @@
 	API:
 		BossService:BeginFight(bossId): (boolean, string?) -- a fight now (CycleClock's boss Surge; DevTools)
 		BossService:Active(): string?
+		BossService:Stun(combatId, why): boolean       -- Prompt 20: crits and explosions of the class levels
 		BossService:IsBoss(combatId): boolean           -- the boss itself, not an egg sac
 		BossService:IsEggSac(combatId): boolean         -- one of its egg sacs (a broken sac isn't a kill)
 		BossService.Started: Signal<string>             -- bossId
@@ -807,6 +808,23 @@ function BossService:BeginFight(bossId: string): (boolean, string?)
 	return true, nil
 end
 
+-- Crits (the Marksman's level 3) and explosions (the Demolitionist's level 3) stagger the boss
+-- (Prompt 20), at most every Tuning.Classes.BossStunCooldown seconds and never while she is busy.
+local lastStun = -math.huge
+function BossService:Stun(combatId: string, why: string): boolean
+	local f = fight
+	if not f or f.CombatId ~= combatId or f.State ~= "Fighting" or os.clock() < f.Busy then
+		return false
+	end
+	if os.clock() - lastStun < Config.Get("Tuning", "Classes").BossStunCooldown then
+		return false
+	end
+	lastStun = os.clock()
+	stagger(f)
+	log:Info("%s staggered by %s", f.Name, why)
+	return true
+end
+
 function BossService:Active(): string?
 	return if fight then fight.BossId else nil
 end
@@ -914,7 +932,7 @@ local function hitModifier(target: any, point: Vector3?, how: string, player: Pl
 				end
 			end
 		end
-		local classValue = Modifiers.ClassValue(player:GetAttribute("Class") :: string?, "WeakPointMultiplier")
+		local classValue = Modifiers.PlayerValue(player, "WeakPointMultiplier")
 		return Boss.HitMultiplier(weak, classValue), if weak then "weakpoint" else nil
 	end
 	if f.Sacs[target.Id] and how == "burned" then

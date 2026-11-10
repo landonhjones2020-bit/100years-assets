@@ -8,7 +8,8 @@
 	  * WholeTeamMajority: more than half of the whole team says yes.
 	  * TwoThirdsOfOthers: a kick needs two thirds of the other players.
 	  * MostVotes: a draft goes to the most votes, ties picked at random (Winner).
-	* Not voting is abstaining. Ties fail, unless a tie-breaker (the Warden, Prompt 20) says yes.
+	* Not voting is abstaining. Ties fail, unless a tie-breaker (the Warden, Prompt 20) says yes;
+	  a draft's tie goes to the Warden's pick when it is one of the tied.
 	  A whole-team vote ties when the team splits evenly (2 yes and 2 no of 4).
 	* Everyone saying yes passes a vote at once (Tuning.Votes.PassEarlyWhenAllYes).
 	* Spending more than BigSpendFraction (40%) of any stock needs a majority of the whole team.
@@ -90,9 +91,8 @@ function Votes.NeedText(rule: Rule, team: number): string
 	return "MOST VOTES WINS"
 end
 
--- A MostVotes vote: the option with the most votes, ties picked at random. `order` lists the
--- options (so ties break the same way for the same Random); nil when there are none.
-function Votes.Winner(counts: { [string]: number }, order: { string }, random: Random): string?
+-- A MostVotes vote's leaders: the options with the most votes, in `order`.
+function Votes.Tied(counts: { [string]: number }, order: { string }): { string }
 	local best, tied = -1, {}
 	for _, option in order do
 		local n = counts[option] or 0
@@ -102,8 +102,19 @@ function Votes.Winner(counts: { [string]: number }, order: { string }, random: R
 			table.insert(tied, option)
 		end
 	end
+	return tied
+end
+
+-- A MostVotes vote: the option with the most votes, ties picked at random, unless `breaker` (a
+-- Warden's pick, Prompt 20) is one of the tied. `order` lists the options (so ties break the same
+-- way for the same Random); nil when there are none.
+function Votes.Winner(counts: { [string]: number }, order: { string }, random: Random, breaker: string?): string?
+	local tied = Votes.Tied(counts, order)
 	if #tied == 0 then
 		return nil
+	end
+	if breaker and #tied > 1 and table.find(tied, breaker) then
+		return breaker
 	end
 	return tied[random:NextInteger(1, #tied)]
 end

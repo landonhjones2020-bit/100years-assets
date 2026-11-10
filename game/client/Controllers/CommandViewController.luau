@@ -620,7 +620,7 @@ local function showRoom(roomId: string)
 	local order = 1
 	if room.Level < 3 then
 		local nextLevel = room.Level + 1
-		local costs = Construction.CostsAt(room.Type, nextLevel, room.Span)
+		local costs = Construction.CostsAt(room.Type, nextLevel, room.Span, RunState.Get("BuildCost")) -- the Quartermaster (Prompt 20)
 		local value, affordable = costLine(costs)
 		local research = Construction.ResearchFor(room.Type, nextLevel)
 		local have = RunState.Get("Research") or 0
@@ -648,7 +648,7 @@ local function showRoom(roomId: string)
 	end
 	local canRemove, why = b:CanRemove(roomId)
 	local can = canRemove and not openVote
-	local refund = Construction.Refund(room.Type, room.Level, room.Span)
+	local refund = Construction.Refund(room.Type, room.Level, room.Span, RunState.Get("BuildCost"))
 	local gives = if next(refund) then `{Construction.CostText(refund)} BACK` else "Its cells become open cells again"
 	optionRow(order, "Tear down", if canRemove then gives else sentence(why or ""), can,
 		if can then { Action = "TearDown", Floor = room.Floor, Column = room.Column, RoomId = roomId } else nil)
@@ -744,7 +744,7 @@ local function showOpenCell(floor: number, column: number)
 	local order = 1
 	for _, entry in available do
 		local info = Config.Get("Rooms", entry.Type)
-		local value, affordable = costLine(Construction.CostsAt(entry.Type, 1))
+		local value, affordable = costLine(Construction.CostsAt(entry.Type, 1, 1, RunState.Get("BuildCost")))
 		optionRow(order, info.Name, value, affordable,
 			if affordable then { Action = "Build", Floor = floor, Column = column, RoomType = entry.Type } else nil)
 		order += 1

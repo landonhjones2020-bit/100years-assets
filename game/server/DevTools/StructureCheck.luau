@@ -63,6 +63,7 @@ local SKELETON: { { string } } = {
 	{ "ServerScriptService.Services", "Folder" },
 	{ "ServerScriptService.Lib", "Folder" },
 	{ "ServerScriptService.Lib.ProfileSchema", "ModuleScript" },
+	{ "ServerScriptService.Lib.RunRecord", "ModuleScript" }, -- Prompt 20 reads it, Prompt 21 writes it
 	{ "ServerScriptService.DevTools", "Folder" },
 	{ "ServerScriptService.DevTools.StructureCheck", "ModuleScript" },
 	{ "ServerScriptService.DevTools.DataTests", "ModuleScript" },
@@ -130,6 +131,10 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.DeepController", "ModuleScript" },
 		{ "ServerScriptService.Services.ExpeditionService", "ModuleScript" }, -- Prompt 18
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.ExpeditionsController", "ModuleScript" },
+		{ "ServerScriptService.Services.DraftService", "ModuleScript" }, -- Prompt 19
+		{ "ServerScriptService.Services.ClassService", "ModuleScript" }, -- Prompt 20
+		{ "ServerScriptService.Lib.ClassAbilities", "ModuleScript" },
+		{ "StarterPlayer.StarterPlayerScripts.Controllers.ClassController", "ModuleScript" },
 		{ "StarterGui.HUD.BossBar", "ImageLabel" },
 		{ "StarterGui.Reticle.Sight.Hit", "Frame" },
 		{ "StarterGui.Reticle.Sight.Kill", "Frame" },

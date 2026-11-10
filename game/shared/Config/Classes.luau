@@ -286,11 +286,13 @@ return {
 				Name = "Drone Mode",
 				Text = "Guard (shields you), Assault (damage) or Repair (fixes rooms).",
 				CooldownSeconds = 20,
+				DurationSeconds = 12,
 				Options = { "Guard", "Assault", "Repair" },
 			},
 			Level2 = { Text = "The drone gets a second gun.", Modifiers = { mod("DroneGuns", 2) } },
 			Level3 = { Text = "The drone revives you once per Surge.", Modifiers = { mod("DroneRevivesPerSurge", 1) } },
 			Talentable = false,
+			Notes = "Drone Mode's 12 s is provisional",
 		},
 	},
 }

@@ -16,7 +16,8 @@
 	* Cave-in: rubble blocks a doorway, or fills a dug cell (a tunnel), and can trap residents
 	  (Lib.Hazards blocks the passages; routes go around; residents with no way round are
 	  trapped). Anyone under it is hurt. Melee smashes it (WeaponService.Swung; the Fire Axe and
-	  the Sledgehammer three times as hard) and a Drill or a Pickaxe digs through it in one hold.
+	  the Sledgehammer three times as hard; a level 3 Firefighter's Fire Axe at once, Prompt 20)
+	  and a Drill or a Pickaxe digs through it in one hold.
 	  Digging and Tremors (Prompt 14) bring cave-ins: CaveIn(floor, column, side?).
 	* The meltdown (Section 10's Reactor overload; Landon, 2026-11-08): a Reactor Core at 0 HP
 	  (BunkerGrid.Wrecked), or an overclocked one (Prompt 19), starts a 60-second meltdown. Three
@@ -377,7 +378,7 @@ local function tickFires(dt: number, t: number, inside: { [string]: { any } })
 			if c.Kind == "Resident" then
 				combat:Damage(c.Id, Disasters.FireResidentDamage(fire.Strength, dt), nil, "fire")
 			elseif c.Kind == "Player" and c.Player then
-				local taken = Modifiers.ClassValue(c.Player:GetAttribute("Class") :: string?, "FireFloodDamageTaken") or 1
+				local taken = Modifiers.PlayerValue(c.Player, "FireFloodDamageTaken") or 1
 				combat:Damage(c.Id, Disasters.FirePlayerDamage(fire.Strength, dt, taken), nil, "fire")
 			end
 		end
@@ -414,7 +415,7 @@ local function onToolTick(player: Player, tool: string, at: CFrame, dt: number)
 	end
 	player:SetAttribute("Spraying", target or "")
 	if target then
-		local speed = Modifiers.ClassValue(player:GetAttribute("Class") :: string?, "ExtinguishSpeed") or 1
+		local speed = Modifiers.PlayerValue(player, "ExtinguishSpeed") or 1
 		DisasterService:Extinguish(target, f.ExtinguisherPerSecond * speed * dt, "Extinguisher", player)
 	end
 end
@@ -827,6 +828,10 @@ local function onSwung(player: Player, at: CFrame, reach: number, arc: number, d
 		for _, point in r.Points do
 			if Combat.InArc(at, point, reach, arc, 4) then
 				r.HP -= Disasters.RubbleDamage(item, damage)
+				-- the Firefighter's level 3: the Fire Axe clears rubble at once (Prompt 20)
+				if item == "FireAxe" and Modifiers.PlayerValue(player, "RubbleClearInstant") then
+					r.HP = 0
+				end
 				if r.HP <= 0 then
 					DisasterService:ClearRubble(id, "Smashed", player)
 				else

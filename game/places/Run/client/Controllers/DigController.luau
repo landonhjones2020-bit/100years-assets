@@ -216,7 +216,7 @@ local function drillBays(): number
 end
 
 local function sight(): number
-	return Modifiers.ClassValue(player:GetAttribute("Class") :: string?, "OreSightCells") or 0
+	return Modifiers.PlayerValue(player, "OreSightCells") or 0
 end
 
 local function eraNumber(): number

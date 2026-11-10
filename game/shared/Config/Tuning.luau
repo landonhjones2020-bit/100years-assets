@@ -209,6 +209,36 @@ local Schemas: { [string]: Check.Checker } = {
 		Cards = I, FoundPerDraft = I, RerollRestartsTimer = Check.boolean(), OverloadDelay = F.Range,
 		BountyAlertEvery = I, StormEarlyWarnSeconds = S,
 	}),
+	Classes = shape({ -- Prompt 20
+		XPPerYear = N, TypicalRunYears = N, LevelMax = I, HoldSeconds = S, AimRange = N,
+		OwnCooldownClasses = Check.map(Check.ref("Classes"), Check.boolean(), 19),
+		SecondWindFraction = Fr,
+		Turret = shape({ Range = N, Damage = N, FireSeconds = S, ShockSeconds = S, PlaceDistance = N }),
+		TouchHealRange = N, TouchHealPerSecond = N, TriageRadius = N, TriageHeal = N,
+		FoamRange = N, MealHealFraction = Fr,
+		TauntRadius = N, HoldDamageTaken = Fr, NearbyResidentRange = N,
+		FlareRadius = N,
+		RequisitionScrap = I, RequisitionFoodWater = I,
+		CrateDistance = N, CrateLoot = Check.ref("LootTables"),
+		DeconRadius = N,
+		Napalm = shape({ Length = N, Width = N, DamagePerSecond = N }),
+		Burn = shape({ Seconds = S, DamagePerSecond = N, SpreadRadius = N }),
+		KillDisturbance = N,
+		SteadyShots = I, CritMultiplier = N,
+		OverdriveCells = I,
+		MagnetRadius = N,
+		RallyFloors = I, RallyDamage = N, RallyReach = N,
+		Breaching = shape({ Damage = N, Radius = N, Range = N }),
+		Grapple = shape({ Range = N, Speed = N }),
+		Trap = shape({ Radius = N, StunSeconds = S, Seconds = S }),
+		BeaconSeconds = S,
+		GravityWell = shape({ Radius = N, Seconds = S, Pull = N }),
+		Drone = shape({
+			Range = N, Damage = N, FireSeconds = S, GuardDamageTaken = Fr, AssaultMultiplier = N, RepairPerSecond = N,
+			RepairRange = N, PickupRange = N, ReviveSeconds = S,
+		}),
+		BossStunCooldown = S, ArcChainRange = N, ArcChainFalloff = Fr,
+	}),
 	Legends = shape({ StartLevel = I, RenownMax = I, RenownStatBonus = I, StarterLegend = Check.ref("Legends") }),
 	ClassShop = shape({
 		Slots = I, ResetHourUTC = I, FreeRerolls = I, VIPFreeRerolls = I, RerollRobux = I, WishlistDays = I,
@@ -536,6 +566,46 @@ return {
 			-- the surface crew's raider camp: its guards come out when a player is this close, and go back
 			-- in when nobody has been near for CampSleepSeconds
 			CampWakeRange = 110, CampSleepSeconds = 60,
+		},
+		Classes = { -- Section 14's abilities, passives and levels; every number here is Prompt 20's, prov.
+			-- class levels: a year reached is 1 experience; a level is ClassShop.ClassLevelRuns runs of this many years
+			XPPerYear = 1, TypicalRunYears = 50, LevelMax = 3,
+			-- holding the ability key this long picks the next option instead of using it
+			HoldSeconds = 0.4,
+			-- aimed abilities (Grapple Line, Breaching Charge, the gadgets) reach this far from the camera
+			AimRange = 80,
+			OwnCooldownClasses = { MadScientist = true }, -- "Gadget Belt: 40 s each"
+			SecondWindFraction = 0.25, -- Section 14: heal 25%
+			Turret = { Range = 50, Damage = 9, FireSeconds = 0.3, ShockSeconds = 0.6, PlaceDistance = 4 },
+			TouchHealRange = 6, TouchHealPerSecond = 4, TriageRadius = 24, TriageHeal = 40, -- TriageHeal: Section 14
+			FoamRange = 40, -- Foam Burst: the room you stand in, else the nearest burning room this close
+			MealHealFraction = 1, -- the Cook's level 2: Hearty Meal heals everyone fully
+			TauntRadius = 40, HoldDamageTaken = 0.5, NearbyResidentRange = 20, -- HoldDamageTaken: Section 14
+			FlareRadius = 60, -- Section 14
+			RequisitionScrap = 100, RequisitionFoodWater = 10, -- Section 14
+			CrateDistance = 5, CrateLoot = "SupplyCall",
+			DeconRadius = 22, -- Decon Field away from rooms (the surface, the caves)
+			Napalm = { Length = 24, Width = 6, DamagePerSecond = 18 },
+			Burn = { Seconds = 3, DamagePerSecond = 6, SpreadRadius = 7 },
+			KillDisturbance = 1, -- the Exterminator's level 3: Disturbance off for each kill
+			SteadyShots = 3, CritMultiplier = 2, -- SteadyShots: Section 14
+			-- Section 14: Overdrive digs 3 cells (each adds its Disturbance, Section 10); a Breaching Charge's blast
+			-- adds an explosive's and the cell it clears a dug cell's
+			OverdriveCells = 3,
+			MagnetRadius = 30, -- Section 14
+			RallyFloors = 2, RallyDamage = 1.3, RallyReach = 7, -- RallyFloors and RallyDamage: Section 14
+			Breaching = { Damage = 220, Radius = 16, Range = 40 },
+			Grapple = { Range = 60, Speed = 90 },
+			Trap = { Radius = 8, StunSeconds = 3, Seconds = 30 },
+			BeaconSeconds = 45,
+			GravityWell = { Radius = 16, Seconds = 4, Pull = 30 },
+			Drone = {
+				Range = 45, Damage = 7, FireSeconds = 0.4, GuardDamageTaken = 0.5, AssaultMultiplier = 2, RepairPerSecond = 40,
+				RepairRange = 30, PickupRange = 20, ReviveSeconds = 2,
+			},
+			-- a crit (Marksman 3) or an explosion (Demolitionist 3) staggers a boss at most this often
+			BossStunCooldown = 8,
+			ArcChainRange = 18, ArcChainFalloff = 0.7, -- the Arc Rifle's arc jumps this far, each jump this much weaker
 		},
 		Legends = { StartLevel = 5, RenownMax = 5, RenownStatBonus = 1, StarterLegend = "RosieKowalski" }, -- Section 15
 		ClassShop = { -- Section 14

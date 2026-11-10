@@ -35,8 +35,8 @@
 		EconomyService:Crew(roomId): Crew?
 		EconomyService:SetPowered(dark)                 -- PowerService: the dark rooms
 		EconomyService:Rate(roomId): (number, string?, string?)  -- per cycle, what, why idle
-		EconomyService:SetModifier(source, key, value?, room?)   -- bunker-wide; nil clears
-		EconomyService:Multiplier(key, roomType?), :OutputMultiplier(roomType)
+		EconomyService:SetModifier(source, key, value?, room?)   -- bunker-wide; nil clears; room: a type or a room id
+		EconomyService:Multiplier(key, roomType?, roomId?), :OutputMultiplier(roomType, roomId?)
 		EconomyService.Changed: Signal<string>            -- a resource id, or "Research"
 		EconomyService.CrewChanged: Signal<()>            -- crews or output modifiers changed
 		EconomyService.Ate: Signal<number, taken, missing>       -- cycle, what was taken, what was short
@@ -185,25 +185,27 @@ end
 
 -- Modifiers ------------------------------------------------------------------------------------
 
--- The product of bunker-wide modifiers with `key`; RoomOutput only where its Room matches.
-function EconomyService:Multiplier(key: string, roomType: string?): number
+-- The product of bunker-wide modifiers with `key`; RoomOutput only where its Room matches the
+-- room type, or the room's own id (Prompt 20: the Cook's Kitchen while they stand in it).
+function EconomyService:Multiplier(key: string, roomType: string?, roomId: string?): number
 	local value = 1
 	for _, modifier in modifiers do
-		if modifier.Key == key and (modifier.Room == nil or modifier.Room == roomType) then
+		if modifier.Key == key and (modifier.Room == nil or modifier.Room == roomType or (roomId ~= nil and modifier.Room == roomId)) then
 			value *= modifier.Value
 		end
 	end
 	return value
 end
 
--- Everything bunker-wide on a room type's output (power included): RoomOutput and AllOutput.
-function EconomyService:OutputMultiplier(roomType: string): number
-	return EconomyService:Multiplier("RoomOutput", roomType) * EconomyService:Multiplier("AllOutput")
+-- Everything bunker-wide on a room's output (power included): RoomOutput and AllOutput.
+function EconomyService:OutputMultiplier(roomType: string, roomId: string?): number
+	return EconomyService:Multiplier("RoomOutput", roomType, roomId) * EconomyService:Multiplier("AllOutput")
 end
 
 local recompute: () -> () -- below
 
 -- A bunker-wide modifier from `source` (a draft card, a class, a Legend); a nil value clears it.
+-- `room` is a room type, or one room's id ("R4").
 function EconomyService:SetModifier(source: string, key: string, value: number?, room: string?)
 	assert(table.find(MODIFIER_KEYS, key), `EconomyService: {key} isn't a modifier it applies`)
 	modifiers[`{source}|{key}|{room or "*"}`] = if value then { Key = key, Value = value, Room = room } else nil
@@ -281,7 +283,7 @@ local function rateOf(room: any): RoomRate?
 	elseif workers <= 0 or Economy.CrewFactor(crew) <= 0 then
 		idle = "NoCrew"
 	end
-	local multiplier = EconomyService:OutputMultiplier(room.Type)
+	local multiplier = EconomyService:OutputMultiplier(room.Type, room.Id)
 	if kind == "Resource" then
 		multiplier *= resourceMultiplier()
 	end

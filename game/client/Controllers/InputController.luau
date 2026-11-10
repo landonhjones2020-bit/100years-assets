@@ -53,13 +53,16 @@ local BINDINGS: { [string]: { Enum.KeyCode | Enum.UserInputType } } = {
 	Ping = { Enum.KeyCode.G }, -- and a tap of D-pad up (TAP_HOLD)
 	Heal = { Enum.KeyCode.H }, -- Landon, 2026-11-08: and a hold of D-pad up (TAP_HOLD)
 	CommandView = { Enum.KeyCode.Tab, Enum.KeyCode.ButtonSelect },
-	Ready = { Enum.KeyCode.Z, Enum.KeyCode.DPadDown }, -- Landon, 2026-11-08: Ready gets its own key
+	Ready = { Enum.KeyCode.Z }, -- Landon, 2026-11-08: Ready gets its own key; and a tap of D-pad down (TAP_HOLD)
+	Beacon = { Enum.KeyCode.T }, -- Prompt 20: teleport to a Teleport Beacon; and a hold of D-pad down (TAP_HOLD)
 	Vote = { Enum.KeyCode.ButtonY }, -- Landon, 2026-11-08: votes on a controller (tap yes, hold no)
 }
 -- One gamepad button, two actions: a tap does one, a hold past TapHoldSeconds the other.
--- D-pad up pings on a tap (Section 9's controls) and heals on a hold (Landon, 2026-11-08).
+-- D-pad up pings on a tap (Section 9's controls) and heals on a hold (Landon, 2026-11-08); D-pad
+-- down is Ready on a tap and, Prompt 20, the Teleport Beacon on a hold.
 local TAP_HOLD: { [Enum.KeyCode]: { Tap: string, Hold: string } } = {
 	[Enum.KeyCode.DPadUp] = { Tap = "Ping", Hold = "Heal" },
+	[Enum.KeyCode.DPadDown] = { Tap = "Ready", Hold = "Beacon" },
 }
 local PRIORITY = Enum.ContextActionPriority.High.Value + 10
 local NEVER_BLOCKED: { [string]: boolean } = { CommandView = true, Vote = true } -- a vote can be answered from any screen

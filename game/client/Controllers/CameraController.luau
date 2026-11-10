@@ -68,6 +68,7 @@ local input: any = nil
 local replica: any = nil
 local t: { [string]: any } = {}
 local aimFieldOfView = 50
+local aimZoom = 1 -- the Marksman's level 2 (AimZoom, Prompt 20): aiming zooms this much further
 local inRun = false
 
 local yaw = 0
@@ -426,7 +427,10 @@ local function step(dt: number)
 	local position = focus - look * distance
 	camera.CFrame = CFrame.new(position) * rotation * shakeOffset()
 	camera.Focus = CFrame.new(focus)
-	camera.FieldOfView = t.FieldOfView + (aimFieldOfView - t.FieldOfView) * aimBlend
+	local aimFov = if aimZoom ~= 1
+		then math.deg(2 * math.atan(math.tan(math.rad(aimFieldOfView) / 2) / aimZoom))
+		else aimFieldOfView
+	camera.FieldOfView = t.FieldOfView + (aimFov - t.FieldOfView) * aimBlend
 
 	-- Wall fade: between the camera and the character, and touching the camera
 	local fades: { [BasePart]: number } = {}
@@ -536,6 +540,11 @@ end
 function CameraController:SetLook(yawDegrees: number, pitchDegrees: number)
 	yaw = math.rad(yawDegrees)
 	pitch = CameraRig.ClampPitch(math.rad(pitchDegrees))
+end
+
+-- Prompt 20: the Marksman's level 2 zooms further when aiming (1 is the usual zoom).
+function CameraController:SetAimZoom(multiplier: number)
+	aimZoom = math.clamp(multiplier, 0.25, 4)
 end
 
 function CameraController:SetZoom(studs: number)

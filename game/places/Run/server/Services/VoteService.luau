@@ -16,7 +16,8 @@
 	  * a build passes with more yes than no after 15 s;
 	  * spending more than 40% of a stock needs a majority of the whole team;
 	  * everyone yes passes at once;
-	  * ties fail. A tie-breaker (the Warden, Prompt 20) can pass one: SetTieBreaker.
+	  * ties fail. A tie-breaker (the Warden, Prompt 20: SetTieBreaker) decides one: it gets the
+	    vote's ballots and answers with a ballot ("Yes", "No", a draft card's id) or nil.
 	* Each player has at most one open proposal (queued or live). A failed one gives that
 	  player a 20 s cooldown.
 	* Solo runs have no votes: a proposal is checked again and applies at once.
@@ -42,7 +43,7 @@
 		VoteService:CanPropose(player): (boolean, string?)
 		VoteService:Reserved(exceptId?): { [string]: boolean }  -- cell keys held by open votes
 		VoteService:TeamSize(): number
-		VoteService:SetTieBreaker(fn: (voteId) -> boolean)
+		VoteService:SetTieBreaker(fn: (voteId, ballots) -> string?)
 		VoteService.Opened: Signal<string>, VoteService.Closed: Signal<string, boolean, string?>
 ]]
 
@@ -109,7 +110,7 @@ local votes: { [string]: Vote } = {}
 local queue: { string } = {} -- open votes in order; the first is live
 local cooldowns: { [number]: number } = {} -- UserId -> os.clock() it ends
 local nextId = 0
-local tieBreaker: ((string) -> boolean)? = nil
+local tieBreaker: ((string, { [number]: string }) -> string?)? = nil
 local pickRandom = Random.new() -- draft ties
 local bots: { [number]: Ballot | false } = {} -- Studio: pretend voters (-1, -2, ...); false abstains
 
@@ -331,19 +332,35 @@ local function close(vote: Vote, passed: boolean, reason: string?, pick: string?
 end
 
 local function decide(vote: Vote)
+	local function broken(): string?
+		local fn = tieBreaker
+		if not fn then
+			return nil
+		end
+		local ok, pick = pcall(fn, vote.Id, vote.Ballots)
+		if not ok then
+			log:Warn("tie-breaker: %s", tostring(pick))
+		end
+		return if ok and type(pick) == "string" then pick else nil
+	end
 	if vote.Spec.Options then
-		-- a draft: the most picks wins, ties (none picked included) at random
+		-- a draft: the most picks wins, ties (none picked included) at random, or a Warden's pick
 		local counts = tallyOptions(vote)
-		local winner = Votes.Winner(counts, optionIds(vote), pickRandom)
+		local order = optionIds(vote)
+		local breaker = if #Votes.Tied(counts, order) > 1 then broken() else nil
+		local winner = Votes.Winner(counts, order, pickRandom, breaker)
 		close(vote, winner ~= nil, if winner then nil else "nothing to pick", winner)
 		return
 	end
 	local yes, no, size = count(vote)
 	local result = Votes.Outcome(vote.Rule, yes, no, size)
-	if result == "Tie" and tieBreaker then
-		local ok, pass = pcall(tieBreaker :: any, vote.Id)
-		if ok and pass == true then
+	if result == "Tie" then
+		local pick = broken()
+		if pick == "Yes" then
 			close(vote, true, nil)
+			return
+		elseif pick == "No" then
+			close(vote, false, "the Warden broke the tie")
 			return
 		end
 	end
@@ -503,7 +520,7 @@ function VoteService:Live(): (string?, Spec?)
 	return nil, nil
 end
 
-function VoteService:SetTieBreaker(fn: (string) -> boolean)
+function VoteService:SetTieBreaker(fn: ((string, { [number]: string }) -> string?)?)
 	tieBreaker = fn
 end
 

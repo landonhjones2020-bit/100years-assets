@@ -28,7 +28,11 @@
 	  them (Wound: never below 1 health), teach them (GainXP), write in their log (Note) or lose
 	  them (Lose: gone at once, no revive). Home again (SetAway off) they are Alive with no job.
 	* Replication: the Residents collection, id -> { Name, First, Last, Age, Tier, Level, XP,
-	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, Trapped, DownUntil }.
+	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, Trapped, DownUntil,
+	  Weapon }.
+	* Classes (Prompt 20): experience is times the bunker's ResidentXP (the Warden); a level goes
+	  into the stat a level 2 Warden picked (SetLevelStat), else their job's. Armed residents (a
+	  Weapon; gear and how they get one are Prompt 26) answer the Warden's Rally Call.
 
 	API:
 		ResidentService:All(): { Resident }, :Get(id), :Workers(roomId)
@@ -42,6 +46,10 @@
 		ResidentService:Wound(id, amount): number, :GainXP(id, xp), :Note(id, text), :Lose(id, how)
 		ResidentService:AddLevels(n, why): number      -- every resident n levels up now (Prompt 19: Field Training)
 		ResidentService:AddMorale(amount, why): number -- every resident's morale now (Prompt 19: Morale Broadcast)
+		ResidentService:Heal(id, amount): number       -- Prompt 20: the Medic's touch, Triage Pulse, Hearty Meal
+		ResidentService:SetModifier(source, "ResidentXP", value?) -- Prompt 20: the Warden's +20% experience
+		ResidentService:SetLevelStat(stat?)            -- Prompt 20: a level 2 Warden picks the stat levels raise
+		ResidentService:Arm(id, itemId?)               -- the weapon a resident carries (gear is Prompt 26; DevTools)
 		ResidentService.Changed: Signal<string>         -- a resident's data changed
 		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
 		ResidentService.Died: Signal<string, string>    -- resident, how
@@ -133,9 +141,61 @@ local function publish(resident: Resident)
 		Hungry = resident.Hungry,
 		Trapped = resident.Trapped == true,
 		DownUntil = downUntil[resident.Id],
+		Weapon = resident.Weapon,
 		Log = table.clone(resident.Log),
 	})
 	ResidentService.Changed:Fire(resident.Id)
+end
+
+-- Classes (Prompt 20) -----------------------------------------------------------------------------
+
+local xpModifiers: { [string]: number } = {} -- source -> ResidentXP multiplier
+local levelStat: string? = nil -- a level 2 Warden's pick (Section 11)
+
+local function xpMultiplier(): number
+	local value = 1
+	for _, v in xpModifiers do
+		value *= v
+	end
+	return value
+end
+
+function ResidentService:SetModifier(source: string, key: string, value: number?)
+	assert(key == "ResidentXP", `ResidentService:SetModifier: {key} isn't a resident modifier`)
+	xpModifiers[source] = value
+end
+
+function ResidentService:SetLevelStat(stat: string?)
+	assert(stat == nil or Config.Find("Stats", stat), `ResidentService:SetLevelStat: no stat {tostring(stat)}`)
+	levelStat = stat
+end
+
+function ResidentService:LevelStat(): string?
+	return levelStat
+end
+
+-- Health back (never past their max; nobody down or away). Returns what it gave.
+function ResidentService:Heal(id: string, amount: number): number
+	local resident = residents[id]
+	if not resident or resident.State ~= "Alive" or amount <= 0 or resident.Health >= resident.MaxHealth then
+		return 0
+	end
+	local before = resident.Health
+	resident.Health = math.min(resident.MaxHealth, resident.Health + amount)
+	publish(resident)
+	return resident.Health - before
+end
+
+-- The weapon a resident carries (nil: none). Gear and how residents get it are Prompt 26; until
+-- then DevTools arms them, to try the Warden's Rally Call.
+function ResidentService:Arm(id: string, itemId: string?): boolean
+	local resident = residents[id]
+	if not resident or (itemId ~= nil and not Config.Find("Items", itemId)) then
+		return false
+	end
+	resident.Weapon = itemId
+	publish(resident)
+	return true
 end
 
 -- Queries ------------------------------------------------------------------------------------------
@@ -450,7 +510,7 @@ function ResidentService:GainXP(id: string, xp: number)
 		return
 	end
 	local room = if resident.Job then grid:Room(resident.Job) else nil
-	local levels = Residents.AddXP(resident, xp, if room then Residents.JobStat(room.Type) else nil)
+	local levels = Residents.AddXP(resident, xp * xpMultiplier(), levelStat or (if room then Residents.JobStat(room.Type) else nil))
 	if levels > 0 then
 		logLine(resident, `reached level {resident.Level}`)
 		announce("Info", `{string.upper(Residents.Name(resident))} REACHED LEVEL {resident.Level}`)
@@ -466,7 +526,7 @@ function ResidentService:AddLevels(n: number, why: string): number
 	for _, resident in residents do
 		if resident.State ~= "Dead" and resident.Level < maxLevel then
 			local room = if resident.Job then grid:Room(resident.Job) else nil
-			local stat = if room then Residents.JobStat(room.Type) else nil
+			local stat = levelStat or (if room then Residents.JobStat(room.Type) else nil)
 			local gained = 0
 			for _ = 1, n do
 				if resident.Level >= maxLevel then
@@ -577,7 +637,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 			logLine(resident, note)
 		end
 		if room and jobStat then
-			local levels = Residents.AddXP(resident, t.XPPerWorkCycle, jobStat)
+			local levels = Residents.AddXP(resident, t.XPPerWorkCycle * xpMultiplier(), levelStat or jobStat)
 			if levels > 0 then
 				logLine(resident, `reached level {resident.Level}`)
 				announce("Info", `{string.upper(Residents.Name(resident))} REACHED LEVEL {resident.Level}`)

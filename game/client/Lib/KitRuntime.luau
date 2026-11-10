@@ -168,6 +168,11 @@ function KitRuntime.SetSprite(image: ImageLabel | ImageButton, name: string)
 	scaleOne(image, heightOf(gui or image) / 1080)
 end
 
+-- Whether the kit has a sprite by this name (Prompt 20: ability icons stand in until they exist).
+function KitRuntime.Has(name: string): boolean
+	return UIKit.Sprites[name] ~= nil
+end
+
 -- Greys a push-button out (its Disabled sprite when it has one) or brings it back.
 function KitRuntime.SetEnabled(button: ImageButton, on: boolean)
 	button:SetAttribute("Disabled", if on then nil else true)

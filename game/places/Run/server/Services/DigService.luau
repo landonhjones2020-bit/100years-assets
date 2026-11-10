@@ -181,7 +181,7 @@ local function classValue(player: Player?, key: string): number
 	if not player then
 		return 1
 	end
-	return Modifiers.ClassValue(player:GetAttribute("Class") :: string?, key) or 1
+	return Modifiers.PlayerValue(player, key) or 1 -- at the player's class level (Prompt 20)
 end
 
 local function holder(): Folder?

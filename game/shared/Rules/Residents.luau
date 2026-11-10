@@ -45,6 +45,7 @@ export type Resident = {
 	State: State,
 	Hungry: boolean, -- missed the last meal
 	Trapped: boolean?, -- cave-in rubble cuts them off from where they need to be (Prompt 13)
+	Weapon: string?, -- the weapon they carry (Section 11's gear, Prompt 26): armed residents answer rally calls
 	Log: { string }, -- the run log (Section 11)
 }
 export type Crew = { Workers: number, StatSum: number, Morale: number, Multiplier: number? }
@@ -54,6 +55,11 @@ local Residents = {}
 
 local function tuning(): { [string]: any }
 	return Config.Get("Tuning", "Residents")
+end
+
+-- Armed residents defend their room and answer rally calls (Section 11; the Warden's Rally Call).
+function Residents.Armed(resident: Resident): boolean
+	return resident.Weapon ~= nil
 end
 
 function Residents.StatIds(): { string }

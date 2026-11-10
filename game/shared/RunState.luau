@@ -27,6 +27,10 @@
 	(SurfaceService and InventoryService).
 	The Deep (DeepService, Prompt 17): Caves and CryoPods.
 	Expeditions (ExpeditionService, Prompt 18): RadioWorks.
+	Classes (Prompt 20): BuildCost (BuildService), LevelStat, BeaconUntil and BeaconBy (ClassService).
+	Players also carry Class, ClassLevel and the ability's AbilityReadyAt, AbilityReadyCycle,
+	AbilityUses, AbilityMax, AbilityOption, AbilityOptionReadyAt, AbilityActiveUntil and
+	SteadyShots (ClassService).
 ]]
 
 local RunService = game:GetService("RunService")
@@ -37,7 +41,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
-	| "DisasterService" | "DigService" | "SurfaceService" | "DeepService" | "ExpeditionService"
+	| "DisasterService" | "DigService" | "SurfaceService" | "DeepService" | "ExpeditionService" | "BuildService" | "ClassService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -116,6 +120,12 @@ local FIELDS: { [string]: Field } = {
 
 	-- ExpeditionService (Prompt 18): whether the bunker can hear a distress call
 	RadioWorks = { Type = "boolean", By = "ExpeditionService", Doc = "a Radio Room is staffed and powered, so an expedition's distress call is heard (Landon, Prompt 18: unheard, the team is lost)" },
+
+	-- Classes (Prompt 20)
+	BuildCost = { Type = "number", By = "BuildService", Doc = "build and upgrade costs times this (the Quartermaster); nil is 1" },
+	LevelStat = { Type = "string", By = "ClassService", Doc = "the stat residents raise when they level, a level 2 Warden's choice (Section 11); nil: their job's" },
+	BeaconUntil = { Type = "number", By = "ClassService", Doc = "server time the Mad Scientist's Teleport Beacon stands until; nil: none" },
+	BeaconBy = { Type = "string", By = "ClassService", Doc = "who placed the Teleport Beacon (their display name)" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount

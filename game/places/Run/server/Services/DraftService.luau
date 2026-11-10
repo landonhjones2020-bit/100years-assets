@@ -336,10 +336,7 @@ local function optionsOf(c: Current): { any }
 end
 
 local function freeRerolls(player: Player): number
-	local class = player:GetAttribute("Class")
-	local level = player:GetAttribute("ClassLevel")
-	local per = Modifiers.ClassValue(if type(class) == "string" then class else nil, "FreeDraftRerollsPerEra",
-		if type(level) == "number" then level else 1) or 0
+	local per = Modifiers.PlayerValue(player, "FreeDraftRerollsPerEra") or 0
 	local used = (rerollsUsed[player.UserId] or {})[clock:Era()] or 0
 	return math.max(math.floor(per) - used, 0)
 end

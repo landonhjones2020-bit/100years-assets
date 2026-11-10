@@ -37,9 +37,18 @@
 	speed from their Speed stat. A resident stuck for STUCK_SECONDS steps to their next waypoint.
 	Residents pass through each other and through players (collision groups).
 
+	* Rally (Prompt 20; Section 14's Rally Call, Section 11: armed residents answer rally calls):
+	  Rally(ids, leader, seconds, bonus, instant?) sends residents to a player for `seconds`: they
+	  walk to them (instant: they are there at once, the Security's level 3) and fight any monster
+	  within Tuning.Classes.RallyReach beside them, with their weapon's melee damage (or a swat),
+	  times `bonus` (RallyBonus, read by ClassService's damage filter). A rally ends early when the
+	  leader falls or leaves the bunker. It comes before fleeing: rallied, they stand their ground.
+
 	API:
 		ResidentBrain:Body(id): Model?
 		ResidentBrain:Activity(id): string?
+		ResidentBrain:Rally(ids, leader, seconds, bonus, instant?): number
+		ResidentBrain:RallyBonus(id): number
 ]]
 
 local Players = game:GetService("Players")
@@ -94,6 +103,7 @@ local grid: any = nil
 local clock: any = nil
 local combat: any = nil
 local fleeing: { [string]: { Until: number, Room: string? } } = {}
+local rallies: { [string]: { Until: number, Leader: Player, Bonus: number } } = {} -- Prompt 20
 local swattedAt: { [string]: number } = {}
 local bodies: { [string]: Body } = {}
 local folder: Folder? = nil
@@ -383,6 +393,44 @@ end
 
 local routine: (id: string, order: number, resident: any) -> (string, string?, CFrame?, string)
 
+local function leaderRoot(player: Player): BasePart?
+	if player.Parent ~= Players or player:GetAttribute("Life") ~= "Alive" then
+		return nil
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	return if root and root:IsA("BasePart") then root else nil
+end
+
+-- A rallied resident (Prompt 20): fight the nearest monster in reach beside the leader, else go to them.
+local function rallyPlan(id: string, order: number): (string?, string?, CFrame?, string?)
+	local rally = rallies[id]
+	local body = bodies[id]
+	if not rally or not body then
+		return nil
+	end
+	local root = leaderRoot(rally.Leader)
+	local unit = if root then unitAt(root.Position) else nil
+	if os.clock() >= rally.Until or not root or not unit then
+		rallies[id] = nil
+		return nil
+	end
+	local reach = Config.Get("Tuning", "Classes").RallyReach
+	local best, bestDistance = nil, reach * 2
+	for _, c in combat:All("Monsters") do
+		local d = (c.Root.Position - body.Root.Position).Magnitude - c.Reach
+		if d <= bestDistance and (c.Root.Position - root.Position).Magnitude <= reach * 3 then
+			best, bestDistance = c, d
+		end
+	end
+	if best then
+		return `RallyFight:{best.Id}`, nil, nil, "Fight"
+	end
+	local angle = order * 2.4
+	local spot = CFrame.new(root.Position + Vector3.new(math.cos(angle) * 4, -2.5, math.sin(angle) * 2))
+	return `Rally:{rally.Leader.UserId}:{unit}`, unit, spot, "Idle"
+end
+
 local function plan(id: string, order: number): (string, string?, CFrame?, string)
 	local resident = residents:Get(id)
 	if not resident then
@@ -400,6 +448,10 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 			return "Leave", door.Id, CFrame.new(socket.Position), "Walk"
 		end
 		return "Leave", nil, nil, "Walk"
+	end
+	local rallyGoal, rallyRoom, rallySpot, rallyActivity = rallyPlan(id, order)
+	if rallyGoal then
+		return rallyGoal, rallyRoom, rallySpot, rallyActivity :: string
 	end
 	local threatGoal, threatRoom, threatSpot, threatActivity = danger(id)
 	if threatGoal then
@@ -569,6 +621,29 @@ local function step(body: Body, order: number)
 	if math.abs(body.Humanoid.WalkSpeed - speed) > 0.05 then
 		body.Humanoid.WalkSpeed = speed
 	end
+	if string.sub(goal, 1, 11) == "RallyFight:" then
+		-- rallied (Prompt 20): fight it beside the leader, with the weapon they carry
+		local monster = combat:Get(string.sub(goal, 12))
+		if monster and monster.State == "Alive" then
+			local t = Config.Get("Tuning", "MonsterAI")
+			local reach = Config.Get("Tuning", "Classes").RallyReach
+			local flat = Vector3.new(monster.Root.Position.X, body.Root.Position.Y, monster.Root.Position.Z)
+			if (flat - body.Root.Position).Magnitude > math.max(reach - 2, 3) + monster.Reach then
+				body.Humanoid:MoveTo(flat)
+			else
+				body.Humanoid:MoveTo(body.Root.Position)
+				if os.clock() - (swattedAt[body.Id] or 0) >= t.ResidentSwatSeconds then
+					swattedAt[body.Id] = os.clock()
+					local resident = residents:Get(body.Id)
+					local melee = resident and resident.Weapon and Config.Find("Items", resident.Weapon)
+					local damage = if melee and melee.Melee then melee.Melee.Damage else t.ResidentSwatDamage
+					combat:Damage(monster.Id, damage, body.Id, "rallied")
+				end
+			end
+			setActivity(body, "Fight")
+		end
+		return
+	end
 	if string.sub(goal, 1, 5) == "Swat:" then
 		-- a lone Burrow Tick: stand and swat it (Section 11)
 		local tickId = string.sub(goal, 6)
@@ -627,6 +702,34 @@ local function step(body: Body, order: number)
 end
 
 -- Lifecycle -----------------------------------------------------------------------------------------
+
+-- The Warden's Rally Call (Prompt 20). Returns how many answer.
+function ResidentBrain:Rally(ids: { string }, leader: Player, seconds: number, bonus: number, instant: boolean?): number
+	local root = leaderRoot(leader)
+	if not root or not unitAt(root.Position) then
+		return 0
+	end
+	local n = 0
+	for i, id in ids do
+		local body = bodies[id]
+		if body and not body.Lying then
+			rallies[id] = { Until = os.clock() + seconds, Leader = leader, Bonus = bonus }
+			fleeing[id] = nil
+			if instant then
+				local angle = i * 2.4
+				body.Root.CFrame = CFrame.new(root.Position + Vector3.new(math.cos(angle) * 4, 0, math.sin(angle) * 2))
+				body.Goal = nil
+			end
+			n += 1
+		end
+	end
+	return n
+end
+
+function ResidentBrain:RallyBonus(id: string): number
+	local rally = rallies[id]
+	return if rally and os.clock() < rally.Until then rally.Bonus else 1
+end
 
 function ResidentBrain:Body(id: string): Model?
 	local body = bodies[id]

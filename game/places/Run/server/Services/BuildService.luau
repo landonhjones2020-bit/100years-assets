@@ -25,6 +25,9 @@
 	  1), Helpers, Seconds }. In the world they stand in workspace.Bunker.Sites (BunkerKit.Site).
 	* Rooms won from blueprint drafts and cryo pods: Unlock(roomType) (Prompts 17 and 19). They
 	  replicate in the Unlocked collection (room type -> true) for the Command View's menu.
+	* Class modifiers (Prompt 20): SetModifier(source, "BuildCost" | "BuildSpeed", value?). Build
+	  and upgrade costs (and tear-down refunds) take the BuildCost product (the Quartermaster;
+	  RunState BuildCost tells the Command View); sites build BuildSpeed times as fast (the Warden).
 	* Repairs (Prompt 13; Section 6: at 0 HP a room is wrecked and stops until repaired with the
 	  Welder; residents slowly repair the room they work in; Section 11: Smarts is repair speed):
 	  * the Welder: a player using it (WeaponService.ToolTick) repairs the first damaged room in
@@ -43,6 +46,7 @@
 		BuildService:Reserved(exceptVoteId?): { [string]: boolean }  -- votes' and sites' cells
 		BuildService:FinishSite(id): boolean                           -- DevTools
 		BuildService:Repair(roomId, amount, how, player?): number      -- HP it added (fractions carry)
+		BuildService:SetModifier(source, key, value?)                  -- BuildCost, BuildSpeed (Prompt 20)
 		BuildService.Proposed: Signal<Player, string>   -- proposer, action (first-run objective 2)
 		BuildService.Built: Signal<string, string>      -- room id, action (Build, Upgrade, Merge)
 		BuildService.TornDown: Signal<string, string>   -- room id, room type
@@ -141,6 +145,28 @@ function BuildService:Reserved(exceptVoteId: string?): { [string]: boolean }
 	return cells
 end
 
+-- Class modifiers (Prompt 20): key -> source -> value.
+local modifiers: { [string]: { [string]: number } } = {}
+local setRun = RunState.Writer("BuildService")
+
+local function product(key: string): number
+	local value = 1
+	for _, v in modifiers[key] or {} do
+		value *= v
+	end
+	return value
+end
+
+function BuildService:SetModifier(source: string, key: string, value: number?)
+	assert(key == "BuildCost" or key == "BuildSpeed", `BuildService:SetModifier: {key} isn't a build modifier`)
+	modifiers[key] = modifiers[key] or {}
+	modifiers[key][source] = value
+	if key == "BuildCost" then
+		local cost = product("BuildCost")
+		setRun("BuildCost", if math.abs(cost - 1) > 1e-6 then cost else nil)
+	end
+end
+
 local function context(exceptVoteId: string?): Construction.Context
 	return {
 		Era = table.find(Config.Ids("Eras"), RunState.Get("Era") or "") or 1,
@@ -149,6 +175,7 @@ local function context(exceptVoteId: string?): Construction.Context
 		Stock = economy:Stock(),
 		Research = economy:Research(),
 		Reserved = BuildService:Reserved(exceptVoteId),
+		CostMultiplier = product("BuildCost"),
 	}
 end
 
@@ -278,7 +305,7 @@ end
 local function tick(dt: number)
 	for _, site in sites do
 		site.Helpers = helpersAt(site)
-		site.Done += dt * Construction.Rate(site.Helpers)
+		site.Done += dt * Construction.Rate(site.Helpers) * product("BuildSpeed")
 		if site.Done >= site.Seconds then
 			finishSite(site)
 		else
@@ -508,7 +535,7 @@ local function onToolTick(player: Player, tool: string, at: CFrame, dt: number)
 	local roomId, needs = weldTarget(at)
 	player:SetAttribute("Welding", if roomId and needs then roomId else "")
 	if roomId and needs then
-		local speed = Modifiers.ClassValue(player:GetAttribute("Class") :: string?, "RepairSpeed") or 1
+		local speed = Modifiers.PlayerValue(player, "RepairSpeed") or 1
 		BuildService:Repair(roomId, Disasters.WelderPerSecond(speed) * dt, "Welder", player)
 		local entry = repairing[roomId] or { Welders = 0, Residents = 0 }
 		entry.Welders += 1

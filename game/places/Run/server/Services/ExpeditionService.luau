@@ -239,9 +239,7 @@ local function bunkerValue(key: string): number
 	local add = info.Unit == "Add"
 	local best = if add then 0 else 1
 	for _, player in Players:GetPlayers() do
-		local class = player:GetAttribute("Class")
-		local level = player:GetAttribute("ClassLevel")
-		local value = Modifiers.ClassValue(if type(class) == "string" then class else nil, key, if type(level) == "number" then level else nil)
+		local value = Modifiers.PlayerValue(player, key)
 		if value then
 			best = math.max(best, value)
 		end

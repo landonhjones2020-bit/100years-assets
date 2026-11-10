@@ -52,7 +52,8 @@
 	  times LightRadius, the Spelunker's double); a fall past FallDamageFrom studs hurts
 	  (NoFallDamage). The Deep's lighting is the client's (SurfaceController).
 
-	API: Caves(): number, CaveAt(position): string?, Pods(): number; Prompt 18: DistressSpot(): (CFrame?, string?),
+	API: Caves(): number, CaveAt(position): string?, Pods(): number, OpenNear(player, position, radius) (Prompt 20:
+	Magnet Sweep); Prompt 18: DistressSpot(): (CFrame?, string?),
 	CrewCall(): (logId?, where?) and PlayLog(player, logId, hint?) for the Radio Room.
 	Signals: CaveOpened(cellKey, band, pieces), CrewHome(objectiveId, leader?), Thawed(residentId, tier),
 	ChestOpened(player, glowshards).
@@ -211,11 +212,9 @@ local function eraNumber(): number
 	return Threat.EraNumber(clock:Era())
 end
 
--- A class modifier at the player's class level (class levels come with Prompt 20).
+-- A class modifier at the player's class level (Prompt 20).
 local function classValue(player: Player?, key: string): number?
-	local class = if player then player:GetAttribute("Class") else nil
-	local level = if player then player:GetAttribute("ClassLevel") else nil
-	return Modifiers.ClassValue(if type(class) == "string" then class else nil, key, if type(level) == "number" then level else nil)
+	return Modifiers.PlayerValue(player, key)
 end
 
 local function holder(): Folder
@@ -1036,6 +1035,18 @@ end
 -- Plays a radio log (Config.RadioLogs) for a player, with a hint.
 function DeepService:PlayLog(player: Player, id: string, hint: string?)
 	playLog(player, id, hint)
+end
+
+-- Magnet Sweep (Prompt 20): the caches within `radius` of `position` open into the player's pack.
+function DeepService:OpenNear(player: Player, position: Vector3, radius: number): number
+	local n = 0
+	for _, f in table.clone(finds) do
+		if f.Kind == "Cache" and (f.Model:GetPivot().Position - position).Magnitude <= radius then
+			onFind(f, player)
+			n += 1
+		end
+	end
+	return n
 end
 
 function DeepService:CaveAt(position: Vector3): string?

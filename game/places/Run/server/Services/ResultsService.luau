@@ -28,7 +28,9 @@
 	DeepestFloor, Band, Team = { MonstersKilled, CellsDug, RoomsBuilt, ResidentsAlive, ResidentsLost,
 	Disasters, Hauled, Rescued, Bosses }, Stories = { string }, MVP = user id (string) or nil, Players = { [user id]
 	= { Name, Class, Damage, Kills, BossDamage, Revives, CellsDug, Repairs, Hauled, Rescues, Score, Glowshards,
-	Lines = { { Text, Amount } }, XP, Level, LevelUp, Paid } }, At }.
+	Lines = { { Text, Amount } }, XP, Level, LevelUp, ClassXP, ClassLevel, ClassLevelUp, Paid } }, At }.
+	Class experience (Prompt 20): the run's new years pay the player's class (ClassService:RunXP; an owned
+	class only), and a class level up is put in play at once (ClassService:Refresh).
 
 	Dev: results, results.pay.
 ]]
@@ -40,6 +42,7 @@ local TeleportService = game:GetService("TeleportService")
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
+local Classes = require(Shared.Rules.Classes)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
@@ -54,8 +57,8 @@ local ResultsService = {
 	Dependencies = {
 		"RunDirector", "CycleClock", "SessionService", "ProfileService", "CombatService", "MonsterService", "ResidentService",
 		"BuildService", "DigService", "DisasterService", "ObjectiveService", "BossService", "BunkerGrid", "VoteService",
-		"InventoryService", "RescueService", "DeepService", "ExpeditionService", "DraftService", "ReplicationService",
-		"DevService",
+		"InventoryService", "RescueService", "DeepService", "ExpeditionService", "DraftService", "ClassService",
+		"ReplicationService", "DevService",
 	},
 }
 
@@ -70,6 +73,7 @@ local residents: any = nil
 local objectives: any = nil
 local grid: any = nil
 local votes: any = nil
+local classes: any = nil
 local collection: any = nil
 
 local stats: { [number]: { [string]: number } } = {} -- user id -> stats
@@ -185,9 +189,21 @@ local function pay(player: Player, summary: any, run: Results.Run): { [string]: 
 	local payout = Results.Payout(run, paid, { FirstWinToday = firstWinToday })
 	local xp = Results.AccountXP(run.Year, paid.Years)
 	local level, levelUp = if profile then profile.AccountLevel else 1, false
+	-- class experience (Prompt 20): the run's new years, for an owned class
+	local classId, classXP = classes:RunXP(player, run.Year, paid.Years)
+	local classLevel, classLevelUp, classPaid = nil, false, 0
 	local ok = true
 	if profile then
 		ok = profiles:Update(player, function(data)
+			local entry = if classId then data.Classes[classId] else nil
+			if entry and classXP > 0 then
+				entry.XP += classXP
+				local newLevel = math.max(entry.Level, Classes.LevelFor(entry.XP))
+				classLevelUp = newLevel > entry.Level
+				entry.Level = newLevel
+				classPaid = classXP
+			end
+			classLevel = if entry then entry.Level else nil
 			data.Glowshards += payout.Total
 			local newLevel, newXP = Results.LevelUp(data.AccountLevel, data.AccountXP, xp)
 			levelUp = newLevel > data.AccountLevel
@@ -219,9 +235,15 @@ local function pay(player: Player, summary: any, run: Results.Run): { [string]: 
 		paidKills[userId] = s.Kills or 0
 		counted[userId] = true
 		log:Info("%s paid %d Glowshards and %d experience (%s)", player.Name, payout.Total, xp, summary.Outcome or "?")
+		if classPaid > 0 then
+			log:Info("%s's %s: +%d class experience, level %s", player.Name, tostring(classId), classPaid, tostring(classLevel))
+		end
 		task.spawn(function()
 			profiles:SaveNow(player)
 		end)
+		if classLevelUp then
+			classes:Refresh(player)
+		end
 	else
 		log:Warn("%s: the payout couldn't be written", player.Name)
 	end
@@ -239,6 +261,9 @@ local function pay(player: Player, summary: any, run: Results.Run): { [string]: 
 		XP = xp,
 		Level = level,
 		LevelUp = levelUp,
+		ClassXP = if ok then classPaid else 0,
+		ClassLevel = classLevel,
+		ClassLevelUp = ok and classLevelUp,
 		Paid = ok and profile ~= nil,
 	}
 	for _, key in STAT_KEYS do
@@ -450,6 +475,7 @@ function ResultsService:Init(registry)
 	objectives = registry.ObjectiveService
 	grid = registry.BunkerGrid
 	votes = registry.VoteService
+	classes = registry.ClassService
 	services.Build = registry.BuildService
 	services.Dig = registry.DigService
 	services.Disaster = registry.DisasterService
