@@ -6,7 +6,8 @@
 
 	* Signs: every pad model (a `PadId` attribute) with a `Sign` part gets a board over it
 	  (Lobby.Templates.PadSign): its kind, how many are on it, its difficulty (a band in the
-	  difficulty's colour) and its countdown, or what it is waiting for.
+	  difficulty's colour) and its countdown, or what it is waiting for. A pad whose difficulty this
+	  player hasn't unlocked says how to unlock it instead.
 	* The panel (Lobby.Pad) shows while the Player's `Pad` attribute names a pad: the title, the
 	  countdown, the riders (the leader's lamp is orange; each rider's class), and the buttons this
 	  rider can use: LOADOUT (L, D-pad down: LobbyController's key), DIFFICULTY (H, D-pad right: a
@@ -29,6 +30,7 @@ local SocialService = game:GetService("SocialService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
+local Lobby = require(Shared.Rules.Lobby)
 local Remotes = require(Shared.Remotes)
 local Lib = script.Parent.Parent:WaitForChild("Lib")
 local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
@@ -84,19 +86,29 @@ local function capacity(kind: string): number
 	return if kind == "Solo" then 1 else Config.Get("Tuning", "Lobby").PartyMax
 end
 
--- What a pad is doing, in a few words.
-local function timerText(pad: any): string
+-- This player's own stats (difficulty unlocks), from their profile.
+local function myStats(): { [string]: number }?
+	local found = replica:Get("Profiles", tostring(player.UserId))
+	return if type(found) == "table" and type(found.Stats) == "table" then found.Stats else nil
+end
+
+-- What a pad is doing, in a few words (`mine`: for the pad's own riders, not its sign).
+local function timerText(pad: any, mine: boolean?): string
 	local riders = #pad.Riders
 	if pad.Phase == "Launching" then
 		return "GOING DOWN"
 	elseif pad.Phase == "Counting" and type(pad.LeavesAt) == "number" then
 		if pad.Hold then
-			return "WAITING FOR YOUR LOADOUT"
+			return if mine then "WAITING FOR YOUR LOADOUT" else "WAITING"
 		end
 		return string.format("LEAVES IN %d", math.max(0, math.ceil(pad.LeavesAt - workspace:GetServerTimeNow())))
 	elseif pad.Phase == "Waiting" then
-		return "ITS LEADER STARTS IT"
+		return if mine and pad.Leader == player.UserId then "START WHEN YOU'RE READY" else "ITS LEADER STARTS IT"
 	elseif riders == 0 then
+		if not mine and not Lobby.Unlocked(myStats(), pad.Difficulty) then
+			local difficulty = Config.Find("Difficulties", pad.Difficulty)
+			return string.upper(if difficulty then `Unlocks {string.lower(difficulty.Unlock)}` else "Locked")
+		end
 		return if pad.Kind == "Private" then "STEP ON TO LEAD" else "STEP ON TO START"
 	end
 	return ""
@@ -208,7 +220,7 @@ local function fillPanel()
 	local spec = Config.Find("Pads", id)
 	local leader = pad.Leader == player.UserId
 	part("Pad.Title").Text = string.upper(`{if spec then spec.Name else pad.Kind} PAD  ·  {pad.Difficulty}`)
-	part("Pad.Timer").Text = timerText(pad)
+	part("Pad.Timer").Text = timerText(pad, true)
 	for i = 1, 6 do
 		local slot = part(`Pad.Riders.Slot{i}`)
 		local rider = pad.Riders[i]
@@ -243,7 +255,7 @@ local function fillHint()
 	local id, pad = myPad()
 	if id and pad and ui:IsOpen() then
 		local spec = Config.Find("Pads", id)
-		local line = timerText(pad)
+		local line = timerText(pad, true)
 		hinted = true
 		ui:SetHint(string.upper(`{if spec then spec.Name else pad.Kind} pad  ·  {pad.Difficulty}  ·  {#pad.Riders}/{capacity(pad.Kind)} aboard`
 			.. (if line ~= "" then `  ·  {line}` else "")))
@@ -404,7 +416,7 @@ function PadController:Start()
 			end
 			local _id, pad = myPad()
 			if pad and gui then
-				part("Pad.Timer").Text = timerText(pad)
+				part("Pad.Timer").Text = timerText(pad, true)
 			end
 			fillHint()
 		end

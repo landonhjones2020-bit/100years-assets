@@ -2745,6 +2745,9 @@ test("ClassShop: rerolls, the wishlist within 3 days, buying and the free trial 
 	expectEqual((ClassShop.Loadout(profile, 11)), "Survivor", "not on another day")
 	profile.ClassShop.TrialUsed = true
 	expectEqual((ClassShop.Loadout(profile, 10)), "Survivor", "nor after the trial run has left")
+	expect(ClassShop.Settle(profile, 10) and profile.Loadout.Class == "Survivor", "the loadout settles on a class that can be played")
+	expect(not ClassShop.Settle(profile, 10), "and stays there")
+	profile.Loadout = { Class = "Warden" }
 	profile.Classes.Warden = { Level = 2, XP = 0 }
 	class, trial = ClassShop.Loadout(profile, 10)
 	expect(class == "Warden" and not trial, "an owned class is no trial")

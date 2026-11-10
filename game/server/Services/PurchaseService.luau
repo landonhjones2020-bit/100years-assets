@@ -11,7 +11,7 @@
 	* The Class Shop reroll's grant is the shared rule (Rules.ClassShop.Reroll), so it works in the
 	  Run place too if the receipt arrives there.
 	* Prompt(player, name) opens Roblox's purchase prompt; Granted(player, name) fires after a grant
-	  is saved (the lobby's Class Shop tells the buyer).
+	  is saved (the lobby's Class Shop tells the buyer), once per receipt.
 
 	Dev (Studio): purchase.test <Product> runs the grant with a made-up receipt, as a real purchase
 	would; products lists them.
@@ -55,6 +55,7 @@ local PRODUCTS: { Product } = {
 			local used = data.ClassShop.RerollsUsed
 			ClassShop.Reroll(data.ClassShop, data.Classes, day, rng)
 			data.ClassShop.RerollsUsed = used
+			ClassShop.Settle(data, day) -- the trial moved with the new classes
 		end,
 	},
 }
@@ -78,12 +79,16 @@ local function byId(productId: number): Product?
 end
 
 local function grant(player: Player, product: Product, receiptId: string): Enum.ProductPurchaseDecision
+	local fresh = false
 	local decision = profiles:GrantPurchase(player, receiptId, function(data: any)
+		fresh = true -- runs once per receipt: a repeated receipt is confirmed, never granted again
 		product.Grant(player, data)
 	end)
 	if decision == Enum.ProductPurchaseDecision.PurchaseGranted then
-		log:Info("%s: %s granted (receipt %s)", player.Name, product.Name, receiptId)
-		PurchaseService.Granted:Fire(player, product.Name)
+		log:Info("%s: %s %s (receipt %s)", player.Name, product.Name, if fresh then "granted" else "confirmed again, not granted twice", receiptId)
+		if fresh then
+			PurchaseService.Granted:Fire(player, product.Name)
+		end
 	else
 		log:Warn("%s: %s not granted yet (receipt %s)", player.Name, product.Name, receiptId)
 	end

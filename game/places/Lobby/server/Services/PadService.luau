@@ -417,8 +417,10 @@ local function onInvite(player: Player, userId: number, invited: boolean)
 end
 
 local function onHold(player: Player, hold: boolean)
-	local live = leaderPad(player, { "Solo" })
-	if live and live.Hold ~= hold then
+	-- kept whatever the pad is doing (a hold sent while a launch is retrying still counts after it)
+	local id = riding[player]
+	local live = if id then pads[id] else nil
+	if live and live.Pad.Kind == "Solo" and live.Pad.Riders[1] == player.UserId and live.Hold ~= hold then
 		live.Hold = hold
 		if not hold and live.Pad.Phase == "Counting" then
 			startCount(live)

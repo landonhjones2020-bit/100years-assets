@@ -11,8 +11,10 @@
 	  the Glowshards still needed), or TRY IT FREE equips the trial.
 	* OWNED: every class the player owns, with its level. The main action equips.
 	* ALL: the whole catalogue. A class not in today's shop can be wishlisted (the main action).
-	* Chips: Glowshards, and the time to the daily reset. Footer: REROLL (free while one is left,
-	  then the Robux price) and LOADOUT.
+	* Chips: Glowshards, and the time to the daily reset. Footer (two buttons at most: the Frame's
+	  footer has room for no more beside its hint): TRY IT FREE TODAY on the day's trial class, else
+	  WISHLIST on a class in the shop the player can't or won't buy yet; then REROLL on the TODAY
+	  tab (free while one is left, then the Robux price), else LOADOUT.
 
 	Loadout (class only until talents, Legends and cosmetics arrive with their prompts)
 	* The classes the player can bring: owned ones, and today's free trial. EQUIP sets it
@@ -120,7 +122,7 @@ end
 
 -- The Class Shop ------------------------------------------------------------------------------------
 
-local function shopAction(page: Frame, classId: string)
+local function shopAction(page: Frame, classId: string, tabId: string)
 	local data = profile()
 	if not data then
 		return
@@ -131,10 +133,12 @@ local function shopAction(page: Frame, classId: string)
 	local owned = data.Classes[classId]
 	local trial = ClassShop.Trial(shop, data.Classes, day)
 	local inShop = shop.Day == day and table.find(shop.Slots, classId) ~= nil
-	local sub = string.format("%s  ·  %s", string.upper(class.Tier), if owned then `LEVEL {owned.Level}` elseif class.Price > 0 then `{class.Price} GLOWSHARDS` else "FREE")
+	local equipped = data.Loadout and data.Loadout.Class == classId
+	local sub = string.format("%s  ·  %s", string.upper(class.Tier), if owned then `LEVEL {owned.Level}`
+		elseif trial == classId then (if equipped then "FREE TRIAL · EQUIPPED" else "TODAY'S FREE TRIAL")
+		elseif class.Price > 0 then `{class.Price} GLOWSHARDS` else "FREE")
 	showDetail(page, classId, if owned then owned.Level else nil, sub)
 	if owned then
-		local equipped = data.Loadout and data.Loadout.Class == classId
 		ui:SetMainAction({
 			Label = if equipped then "Equipped" else "Equip",
 			Enabled = not equipped,
@@ -163,30 +167,30 @@ local function shopAction(page: Frame, classId: string)
 			end,
 		})
 	end
-	local footer = {} -- three at most: the footer has room for no more
-	if trial == classId then
-		local equipped = data.Loadout and data.Loadout.Class == classId
-		table.insert(footer, {
-			Label = if equipped then "TRIAL EQUIPPED" else "TRY IT FREE TODAY",
-			OnPress = function()
-				Remotes.FireServer("SetLoadoutClass", classId)
-			end,
-		})
+	local footer = {} -- two at most: the footer has room for no more beside its hint
+	if trial == classId and not equipped then
+		table.insert(footer, { Label = "TRY IT FREE TODAY", OnPress = function()
+			Remotes.FireServer("SetLoadoutClass", classId)
+		end })
 	elseif inShop and not owned and shop.Wishlist ~= classId then
 		table.insert(footer, { Label = "WISHLIST", OnPress = function()
 			Remotes.FireServer("ShopWish", classId)
 		end })
 	end
-	local free = ClassShop.FreeLeft(shop, player:GetAttribute("VIP") == true)
-	table.insert(footer, {
-		Label = if free > 0 then `REROLL · {free} FREE` else `REROLL · R$ {Config.Get("Tuning", "ClassShop").RerollRobux}`,
-		OnPress = function()
-			Remotes.FireServer("ShopReroll")
-		end,
-	})
-	table.insert(footer, { Label = "LOADOUT", OnPress = function()
-		ui:Open("Loadout")
-	end })
+	if tabId == "Today" then
+		local free = ClassShop.FreeLeft(shop, player:GetAttribute("VIP") == true)
+		table.insert(footer, {
+			Label = if free > 0 then `REROLL · {free} FREE` else `REROLL · R$ {Config.Get("Tuning", "ClassShop").RerollRobux}`,
+			OnPress = function()
+				Remotes.FireServer("ShopReroll")
+			end,
+		})
+	end
+	if #footer < 2 then
+		table.insert(footer, { Label = "LOADOUT", OnPress = function()
+			ui:Open("Loadout")
+		end })
+	end
 	ui:SetFooterActions(footer)
 end
 
@@ -227,7 +231,7 @@ local function fillShop(page: Frame, tabId: string)
 			for id, other in cards do
 				ui:SetSprite(other.Lamp, if id == classId then "Lamp_Orange" else "Lamp_Off")
 			end
-			shopAction(page, classId)
+			shopAction(page, classId, tabId)
 		end)
 	end
 	content.Empty.Visible = #ids == 0
@@ -238,7 +242,7 @@ local function fillShop(page: Frame, tabId: string)
 	selected.ClassShop = pick
 	if pick then
 		ui:SetSprite(cards[pick].Lamp, "Lamp_Orange")
-		shopAction(page, pick)
+		shopAction(page, pick, tabId)
 	else
 		ui:SetMainAction({ Label = "Buy", Enabled = false })
 		ui:SetFooterActions({ { Label = "LOADOUT", OnPress = function()

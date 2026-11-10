@@ -89,7 +89,7 @@ local function refresh(player: Player): boolean
 	end
 	local ok = profiles:Update(player, function(data: any)
 		ClassShop.Refresh(data.ClassShop, data.Classes, day, rng)
-		data.Loadout.Class = (ClassShop.Loadout(data, day))
+		ClassShop.Settle(data, day)
 	end)
 	player:SetAttribute("ShopDay", day)
 	if ok and stale then
@@ -125,7 +125,7 @@ local function onBuy(player: Player, classId: string)
 		return
 	end
 	log:Info("%s bought %s for %d Glowshards", player.Name, classId, class.Price)
-	alert(player, "Info", string.upper(`{class.Name} IS YOURS · EQUIP IT IN THE LOADOUT`))
+	alert(player, "Info", string.upper(`{class.Name} IS YOURS`))
 	task.spawn(function()
 		profiles:SaveNow(player)
 	end)
@@ -143,12 +143,14 @@ local function onReroll(player: Player)
 		return
 	end
 	if ClassShop.FreeLeft(profile.ClassShop, isVIP(player)) > 0 then
+		local unequipped = false
 		local ok = profiles:Update(player, function(data: any)
 			ClassShop.Reroll(data.ClassShop, data.Classes, day, rng)
+			unequipped = ClassShop.Settle(data, day) -- the trial moved with the new classes
 		end)
 		if ok then
 			log:Info("%s rerolled the shop (free): %s", player.Name, table.concat(profiles:Get(player).ClassShop.Slots, ", "))
-			alert(player, "Info", "THE SHOP HAS NEW CLASSES")
+			alert(player, "Info", if unequipped then "THE SHOP HAS NEW CLASSES · YOUR FREE TRIAL CHANGED WITH THEM" else "THE SHOP HAS NEW CLASSES")
 		end
 		return
 	end
@@ -221,6 +223,7 @@ end
 function ClassShopService:UseTrial(player: Player)
 	profiles:Update(player, function(data: any)
 		data.ClassShop.TrialUsed = true
+		ClassShop.Settle(data, today())
 	end)
 	task.spawn(function()
 		profiles:SaveNow(player)
@@ -297,6 +300,7 @@ local function registerCommands(dev: any)
 				profiles:Update(who, function(data: any)
 					data.ClassShop.TrialUsed = nil
 				end)
+				-- (the loadout stays where the used trial left it: equip the trial again to test it)
 			end
 			refresh(who)
 			return describe(who)

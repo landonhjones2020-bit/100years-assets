@@ -17,6 +17,8 @@
 	* "Free trial: one run a day with a random class from your shop that you don't own yet": each
 	  day's roll picks the trial class among the slots; TrialUsed is set when a run leaves with it.
 	* Only today's slots can be bought (CanBuy); owned classes and the trial can be played (CanPlay).
+	* Settle puts the profile's loadout back on a class that can be played, after anything that may
+	  have taken the trial away (a new day, a reroll that moved it, the trial run leaving).
 ]]
 
 local Config = require(script.Parent.Parent.Config)
@@ -214,6 +216,19 @@ function ClassShop.Loadout(profile: any, day: number): (string, boolean)
 		end
 	end
 	return "Survivor", false
+end
+
+-- Puts the loadout on a class the profile can play now. True when it had to change.
+function ClassShop.Settle(profile: any, day: number): boolean
+	local class = ClassShop.Loadout(profile, day)
+	if type(profile.Loadout) ~= "table" then
+		profile.Loadout = { Class = class }
+		return true
+	elseif profile.Loadout.Class ~= class then
+		profile.Loadout.Class = class
+		return true
+	end
+	return false
 end
 
 return table.freeze(ClassShop)
