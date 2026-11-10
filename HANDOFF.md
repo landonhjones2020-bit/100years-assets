@@ -88,8 +88,8 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
     `DeepService`, `DigService`, `InventoryService` and `ExpeditionService`.
 * For the Design Notes, not to invent: what a blueprint found in loot or on an expedition does
   (the bible lists blueprints as finds and the trader sells blueprint cards, but never says);
-  whether the draft also follows a boss Surge; the draft's screen (Section 18 lists no draft
-  screen and the banner "never blocks the screen").
+  the draft's screen (Section 18 lists no draft screen and the banner "never blocks the
+  screen").
 * Art: none needed. Room cards can show the room's graybox until A7 (remaining rooms); card
   frames per rarity are in the UI kit.
 * Testing: real Surge ends on the clock, a vote with a pretend voter (Prompt 8's way), a solo
