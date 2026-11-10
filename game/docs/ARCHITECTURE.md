@@ -1162,4 +1162,6 @@ ClassShop, Account, Lobby).
   Expeditions screen, distress markers and edge arrows), Config.ExpeditionLogs; residents Away
   (ResidentService, ResidentBrain), residents already in the run as rescues (RescueService),
   distress spots (SurfaceService, DeepService), the Residents screen's AWAY tab, expedition
-  stories in the results; HUD.Templates.Distress.
+  stories in the results; HUD.Templates.Distress. Landon's answers (same day): fast teams home a
+  cycle early (`Rules.Expeditions.Fast`/`Trip`, `Tuning.Expeditions.FastSpeed`), unheard calls
+  lose the team (`RunState.RadioWorks`), the `Early` and `Unheard` log lines.
