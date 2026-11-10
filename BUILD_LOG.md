@@ -33,6 +33,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 16: the surface (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, presses and clicks: the elevator both ways, searching, a survivor freed, followed home and joined, generator parts carried and delivered, unloading at the hall, a jackal shot dead into the pack, raider rifle hits, a dropped bag picked up, radiation death and a clean respawn, a Decon Room, the checkpoint opening in Era III, the Scout's outline and storm warning; Lobby start check; `game/reports/P16_Surface.md`, `previews/Game/P16_*.jpg` |
 | Prompt 17: the Deep (Run) | ✅ done 2026-11-09 | Run playtests with real W, E holds and presses and shotgun clicks: walking into a cave through the opened back wall, the Deep's lighting and the player's light, a radio log and its crew hint, an ore vein mined, a cache and a Glowshard chest opened (the profile and the results), the Mines' crew freed and led out of its cave (Lost Crew done), the raider camp's guards waking and going back to sleep and the surface crew riding home (Lost Crew done), a cryo pod found, carried, delivered and thawed into a Rare resident, a fall's damage and the Spelunker's none, the Spelunker's eye, a cave nest destroyed into the pack, a monster's drop in a cave, a monster walking out of a cave; Lobby start check; `game/reports/P17_Deep.md`, `previews/Game/P17_*.jpg` |
 | Prompt 18: resident expeditions and distress calls (Run) | ✅ done 2026-11-09 | Run playtests with real E presses and holds, clicks and Enter: the Expeditions screen opened at the Blast Door guard's radio and a Radio Room, teams sent to the surface and the Deep, residents walking out and coming home to their jobs, a real dawn's cycle away, distress calls (forced and rolled) with the radio card, alert, flare, plate countdown and edge arrow, members reached and led home from the town and from a cave, the deadline on the real clock losing the pinned, losses and a Medkit's save, the Radio Room's recruits (rate, the Radio Operator, a Rare recruit) and a crew call, the Residents screen's AWAY tab, the run's stories; Lobby start check; `game/reports/P18_Expeditions.md`, `previews/Game/P18_*.jpg` |
+| Landon's answers to the Prompt 18 questions | ✅ built and in the bible 2026-11-09 | Run playtests with real clicks and Enter: a fast team home a cycle early at a real dawn with the full trip's finds, unheard calls losing the team with no Radio Room, the screen's warning gone live when a Radio Room started working, a heard call with one; 107 data tests in both places; addendum in `game/reports/P18_Expeditions.md`, `previews/Game/P18_FastTeam*.jpg`, `P18_UnheardCall.jpg`, `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
 | A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
@@ -75,6 +76,28 @@ Newest first. Every "verified" line says how it was checked.
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (late night): Landon's answers to the Prompt 18 questions; the bible; ready for Prompts 19 to 21
+
+Game code builds `p18-ce988e5` and `p18-9e6cd5a` (final): code asset 95026446991297 revisions 75
+and 76, installed in Run and Lobby: StructureCheck 0 errors (Run 461 checks, Lobby 254), 107 data
+tests passed in each.
+
+**Done**
+* Landon answered the eight Prompt 18 Bible Questions. Six approve what was built (supplies, the
+  deadline, hold HELP and lead home, Deep call spots, losses with no revive, one recruit a trip).
+  Two changed the build:
+  * Speed and length: a team averaging Speed 8+ (`Tuning.Expeditions.FastSpeed`) comes home a
+    cycle early, never under 1, with the full trip's finds (`Rules.Expeditions.Fast` and `Trip`).
+  * The Radio Room: a distress call needs a working Radio Room (staffed and powered); unheard, the
+    team and its finds are lost (`RunState.RadioWorks`; the screen warns before SEND).
+* Playtest fixes: the unheard alert shortened (the names ran past the alert box); the screen's
+  no-Radio-Room warning in its own section (appended to the risk line it shrank to unreadable).
+* All eight answers in the bible's Section 12, marked "(Landon, Prompt 18)": the live doc and the
+  project's part 1.
+* The handoff for a new chat and Prompts 19 to 21: `HANDOFF.md` and the project doc.
+
+**Verified in Studio**: the addendum in `game/reports/P18_Expeditions.md`.
 
 ## 2026-11-09 (night): Prompt 18, resident expeditions and distress calls
 

@@ -150,7 +150,8 @@ The Radio Room also brings in recruits and picks up the Lost Crews' calls. Built
 * The Radio Room's art is A7. Until then it is a graybox room with the radio recorder on the floor.
 * Not tested: four players, touch, and a surface trip answered during a storm.
 
-**Bible Questions**
+**Bible Questions** (Landon answered all eight on 2026-11-09: see "Addendum: Landon's answers" at
+the end; 1 and 6 changed the build)
 1. **Speed and length.** Section 11 says Speed affects "expedition length". Built: the players
    choose the length, Speed and Grit lower the danger, and Strength carries the finds. Should a
    fast team come home sooner, or go further?
@@ -324,3 +325,62 @@ screen, and the Residents screen's AWAY tab.
   `ExpeditionLogs`, and a branch in `live`.
 * New destinations (Update 2's Interstate 9, Update 3's Fungal Depths) mean a loot table, a
   `Danger` entry, log lines and a distress spot source.
+
+## Addendum: Landon's answers (2026-11-09)
+
+| # | Question | Landon's answer | Build |
+|---|---|---|---|
+| 1 | Speed and length | "Fast teams come home sooner": the players still pick 1 to 3 cycles; a team whose average Speed is 8 or more comes back a cycle early (never under 1) with the full trip's finds | changed (below) |
+| 2 | Supplies | Yes: Food and Water for every member for every cycle, Medkits optional | as built |
+| 3 | The deadline | Yes: the end of the day of the cycle after the call | as built |
+| 4 | Reaching them | "Hold Help and lead home" | as built |
+| 5 | Deep calls | Yes: in an opened cave, else at the rock face | as built |
+| 6 | The Radio Room | "Yes, unheard calls lose the team": with no working Radio Room (staffed and powered) nobody hears the call, and the team and its finds are lost. Its recruits (Rare 15%) and the crew calls every 2 cycles stay | changed (below) |
+| 7 | Losses | Yes: gone at once, no revive | as built |
+| 8 | Finds and recruits | Yes: at most one recruit a trip | as built |
+
+All eight are in the bible's Section 12 (live doc and project part 1), marked "(Landon, Prompt 18)".
+
+**What changed**
+* `Tuning.Expeditions.FastSpeed = 8`; `Rules.Expeditions.Fast(team)` and `Trip(cycles, team)`.
+* `ExpeditionService`: each expedition keeps `Cycles` (picked) and `Trip` (the cycles away). At the
+  end of `Trip` a fast team rolls the finds of the cycles it skipped, logs an `Early` line ("covered
+  the town fast and turned for home a cycle early") and comes home. The Food and Water of the
+  skipped cycle come back with them (they were packed, not eaten). The set-out alert says "BACK IN 1
+  CYCLE (A FAST TEAM)".
+* A distress call checks for a working Radio Room (one that makes recruits: staffed and powered)
+  when the call comes in. Unheard: an `Unheard` log line, every member still out is lost at once
+  (quietly: one alert, "THE SURFACE EXPEDITION IS LOST: NO RADIO ROOM HEARD ITS CALL"), the finds
+  with them, and no radio card or marker.
+* `RunState.RadioWorks` (written by ExpeditionService). The Expeditions screen shows a "NO RADIO
+  ROOM WORKING" section ("Nobody would hear a distress call: the team would be lost.") and drops it
+  as soon as a Radio Room starts working. The plan's Length line names a fast team ("A fast team
+  (average Speed 8+): 3 cycles of finds in 2 cycles, back at the start of cycle 3."), and the
+  active card counts the cycles of the trip ("AWAY · CYCLE 1 OF 1").
+* Data tests: `Fast`, `Trip` (never under 1) and the `Early` and `Unheard` lines for both
+  destinations.
+
+**Tested in Studio (2026-11-09, builds `p18-ce988e5` and `p18-9e6cd5a`, two Run playtests)**
+* A fast team (Speed 9 and 8), 2 cycles, picked by clicking the cards and the LENGTH footer button,
+  sent with Enter at the guard desk's radio: the screen said "2 cycles of finds in 1 cycle, back at
+  the start of cycle 2", the card "AWAY · CYCLE 1 OF 1". At the next real dawn (the clock's own
+  `CycleStarted`) they came home with two cycles' finds (+18 Water, +180 Scrap), the unused 2 Food
+  and 2 Water, 40 XP each (one cycle lived), and the Early line in their run logs.
+* Unheard, twice: two residents (the natural call 63 running seconds after the dawn, x10 clock) and
+  one (`exp.call`), no Radio Room. All lost at once (0 health, "lost: no Radio Room heard their
+  call"), the finds not added, the expedition gone. The first alert ran past the alert box's two
+  lines (the names), so it was shortened; the second read in full.
+* The screen's warning: shown with a powered but unstaffed Radio Room, gone live when a resident
+  was assigned to it (`RunState.Changed`).
+* Heard: a fast 3-cycle team (2 away) sent with Enter, a forced Distress event, the natural call
+  82 running seconds later with a staffed, powered Radio Room: both pinned at the rail yard with a
+  deadline, the radio card and the alert as in Prompt 18.
+* StructureCheck 0 errors (Run 461 checks, Lobby 254), 107 data tests in each place; no errors on
+  the server or the client.
+* Captures: `previews/Game/P18_FastTeamPlan.jpg`, `P18_FastTeamActive.jpg`, `P18_UnheardCall.jpg`,
+  `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg`.
+* While the clock ran at x10 in the first playtest, a breach at the Medbay ("BREACH IN 10 S:
+  MEDBAY · 1 MONSTER") let monsters in during the day; one hurt Viola Russo (130 to 47 health) and
+  `monsters.clear` removed 5. Not looked into: a testing artifact of the fast clock or the threat
+  director's own day breach, not the expedition code.
+
