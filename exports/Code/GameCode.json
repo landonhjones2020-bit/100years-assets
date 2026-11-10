@@ -1,7 +1,7 @@
 {
- "built": "2026-11-09T22:00:43Z",
- "commit": "9427693e209b05df2b057c96da57065ba49430f6",
- "label": "p18-9427693",
+ "built": "2026-11-10T00:01:38Z",
+ "commit": "ce988e56e7f10a0227c7b6f96fd8944c79be99b8",
+ "label": "p18-ce988e5",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -72,7 +72,7 @@
    "ReplicatedStorage.Shared.Config.ExpeditionLogs": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/ExpeditionLogs.luau",
-    "Hash": "eab2ac1f"
+    "Hash": "3da43bce"
    },
    "ReplicatedStorage.Shared.Config.GamePasses": {
     "Class": "ModuleScript",
@@ -197,7 +197,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "142e7b5d"
+    "Hash": "6155e90c"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -282,7 +282,7 @@
    "ReplicatedStorage.Shared.Rules.Expeditions": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Expeditions.luau",
-    "Hash": "7df1df16"
+    "Hash": "aeb8ea15"
    },
    "ReplicatedStorage.Shared.Rules.Grid": {
     "Class": "ModuleScript",
@@ -332,7 +332,7 @@
    "ReplicatedStorage.Shared.RunState": {
     "Class": "ModuleScript",
     "From": "game/shared/RunState.luau",
-    "Hash": "fae60c0c"
+    "Hash": "aaf5b6ca"
    },
    "ReplicatedStorage.Shared.Types": {
     "Class": "ModuleScript",
@@ -392,7 +392,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "27fc846b"
+    "Hash": "04a3fc7c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -432,7 +432,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "33865017"
+    "Hash": "cffcc0bb"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -589,7 +589,7 @@
    "ReplicatedStorage.Shared.Config.ExpeditionLogs": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/ExpeditionLogs.luau",
-    "Hash": "eab2ac1f"
+    "Hash": "3da43bce"
    },
    "ReplicatedStorage.Shared.Config.GamePasses": {
     "Class": "ModuleScript",
@@ -714,7 +714,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "142e7b5d"
+    "Hash": "6155e90c"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -799,7 +799,7 @@
    "ReplicatedStorage.Shared.Rules.Expeditions": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Expeditions.luau",
-    "Hash": "7df1df16"
+    "Hash": "aeb8ea15"
    },
    "ReplicatedStorage.Shared.Rules.Grid": {
     "Class": "ModuleScript",
@@ -849,7 +849,7 @@
    "ReplicatedStorage.Shared.RunState": {
     "Class": "ModuleScript",
     "From": "game/shared/RunState.luau",
-    "Hash": "fae60c0c"
+    "Hash": "aaf5b6ca"
    },
    "ReplicatedStorage.Shared.Types": {
     "Class": "ModuleScript",
@@ -909,7 +909,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "27fc846b"
+    "Hash": "04a3fc7c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -999,7 +999,7 @@
    "ServerScriptService.Services.ExpeditionService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ExpeditionService.luau",
-    "Hash": "707c43b1"
+    "Hash": "3cd6f549"
    },
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
@@ -1089,7 +1089,7 @@
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
     "From": "game/docs/ARCHITECTURE.md",
-    "Hash": "33865017"
+    "Hash": "cffcc0bb"
    },
    "StarterPlayer.StarterPlayerScripts.ClientBootstrap": {
     "Class": "LocalScript",
@@ -1139,7 +1139,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.ExpeditionsController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/ExpeditionsController.luau",
-    "Hash": "183872b6"
+    "Hash": "e87023d2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",

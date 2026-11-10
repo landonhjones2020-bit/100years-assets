@@ -241,8 +241,7 @@ local function showPlan(detail: any)
 	if #records > 0 then
 		local odds = Expeditions.Odds(destination, stats)
 		section(body, 4, "Risk each cycle", `{Expeditions.RiskLabel(odds)}: hurt {percent(odds.Hurt)} · distress call {percent(odds.Distress)}`
-			.. ` · lost {percent(odds.Lost)}. Grit and Speed lower it; Medkits patch them up.`
-			.. (if RunState.Get("RadioWorks") then "" else " No Radio Room is working: a distress call would go unheard, and they'd be lost."))
+			.. ` · lost {percent(odds.Lost)}. Grit and Speed lower it; Medkits patch them up.`)
 		local expected = Expeditions.Expected(destination, Expeditions.Team(stats, nil), if band then band.Ore else nil,
 			{ Gear = true, Blueprint = true })
 		local parts = {}
@@ -252,9 +251,13 @@ local function showPlan(detail: any)
 				table.insert(parts, `{math.floor(amount + 0.5)} {Config.Get("Resources", id).Name}`)
 			end
 		end
-		section(body, 5, "Finds each cycle", `About {if #parts > 0 then table.concat(parts, ", ") else "nothing"}; sometimes a recruit.`)
+		section(body, 6, "Finds each cycle", `About {if #parts > 0 then table.concat(parts, ", ") else "nothing"}; sometimes a recruit.`)
 	else
 		section(body, 4, "Risk each cycle", "Tougher, faster residents (Grit, Speed) run into less trouble; stronger ones carry more home.")
+	end
+	if not RunState.Get("RadioWorks") then
+		-- Landon (Prompt 18): only a staffed, powered Radio Room hears a distress call
+		section(body, 5, "No Radio Room working", "Nobody would hear a distress call: the team would be lost.")
 	end
 	local candidatesNow = {}
 	for _, record in records do
@@ -676,8 +679,7 @@ function ExpeditionsController:Start()
 		end
 	end)
 	local pending = false
-	local function changed()
-		syncMarkers()
+	local function later()
 		if page and not pending then
 			pending = true
 			task.delay(0.3, function()
@@ -686,16 +688,12 @@ function ExpeditionsController:Start()
 			end)
 		end
 	end
-	replica:Changed("Expeditions"):Connect(changed)
-	replica:Changed("Residents"):Connect(function()
-		if page and not pending then
-			pending = true
-			task.delay(0.3, function()
-				pending = false
-				render()
-			end)
-		end
+	replica:Changed("Expeditions"):Connect(function()
+		syncMarkers()
+		later()
 	end)
+	replica:Changed("Residents"):Connect(later)
+	RunState.Changed("RadioWorks"):Connect(later) -- the screen's no-Radio-Room warning
 	syncMarkers()
 	RunService.RenderStepped:Connect(updateMarkers)
 	log:Debug("Expeditions screen registered")

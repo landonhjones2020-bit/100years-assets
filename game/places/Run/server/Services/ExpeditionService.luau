@@ -658,7 +658,8 @@ local function call(e: Expedition)
 		for _, m in pinned do
 			lose(e, m, "lost: no Radio Room heard their call", true)
 		end
-		alertAll("Danger", `NO RADIO ROOM HEARD THE {string.upper(e.Destination)} EXPEDITION'S CALL: {string.upper(names)} {if #pinned == 1 then "IS" else "ARE"} LOST`)
+		-- short: the alert box shows two lines (the names are in the logs)
+		alertAll("Danger", `THE {string.upper(e.Destination)} EXPEDITION IS LOST: NO RADIO ROOM HEARD ITS CALL`)
 		log:Info("%s radioed from %s, unheard: lost", e.Id, where)
 		finish(e, "Lost")
 		return
