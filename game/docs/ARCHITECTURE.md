@@ -895,6 +895,44 @@ and ExpeditionDeep.
   tells their stories). Dev: `exp`, `exp.send`, `exp.cycle`, `exp.call`, `exp.home`,
   `exp.deadline`, `recruit`, `radio [call]`.
 
+## The blueprint draft (Run place)
+
+Bible Section 8 and the Appendix's card pool; Prompt 19. `Shared.Rules.Draft` (pure: the pool,
+weighted draws with EarlyWeight in Era I, a card's face, tallies, a controller's next pick),
+`Config.DraftCards` (each card's kind, modifiers, weights, `Short` face text), `Tuning.Draft`.
+
+* `VoteService` runs draft votes: a spec with `Options` is a MostVotes vote. Players pick with the
+  `CastPick` remote (changeable until it closes); time up, the most picks wins, ties at random;
+  everyone having picked closes it. Solo runs vote too (the player's pick closes it). `SetOptions`
+  swaps an open draft's cards (a reroll: picks cleared, the time restarted). `Live()` gives the vote
+  on the banner. The Votes collection carries `Options` (with each one's `Votes`), `Picked` and
+  `Winner`.
+* `DraftService` opens a draft at every `CycleClock.SurgeEnded` (not after the final Surge), draws 3
+  cards from the usable pool (every modifier has a handler in its HANDLERS; a room card's room not
+  yet unlocked; the Steel Blast Door below level 3) plus the first found blueprint waiting, and
+  applies the winner through each owning service's hook:
+  `BuildService:Unlock`, `BunkerGrid:SetHPModifier`, `DisasterService:SetModifier`,
+  `BreachService:SetModifier` (DarkSpawnBonus), `BunkerGrid:SetLevel` (the Blast Door),
+  `ResidentService:AddLevels`/`AddMorale`, `ExpeditionService:Recruit`,
+  `WeaponService:SetModifier` (WeaponRarityUp, StaminaMult) and `AddMedkits`,
+  `DigService:SetModifier`, `EconomyService:SetModifier` (RoomOutput), and its own Overclock
+  overload rolls (`DisasterService:StartMeltdown`), Bounty Contract kills (`MonsterService.Died`)
+  and Salvage Rights (`SurfaceService:SetLootBoost`, `SetStormEarly`).
+* Found blueprints: InventoryService's `Blueprint` special draws a card; on the surface or in the
+  Deep it goes into the pack (`InventoryService:GiveCard`, its own slot) and comes home when
+  unloaded (`InventoryService.CardsHome`); in the bunker it is home at once; expeditions bring
+  theirs home (`ExpeditionService.BlueprintsHome`). `AddFound` queues a card that's home; the next
+  draft shows it as a fourth card (FoundPerDraft), stamped FOUND with the finder's name.
+* Rerolls: the `RerollDraft` remote uses a free reroll (FreeDraftRerollsPerEra: the level 3 Mad
+  Scientist, one per era; players carry `DraftRerolls`). `Reroll(player, "Paid")` is for Prompt 28.
+* `VoteController` shows a draft as the telegram ("BLUEPRINT DRAFT · PICK A CARD", picks, timer)
+  with the cards below it (`StarterGui.Votes.Draft`, sprites `Draft_<Kind>` and `Stamp_Found` from
+  the draft atlases): click or tap a card, or Y (tap: the next card; hold: the one before); REROLL
+  where YES and NO sit for a player with a free reroll. It preloads the draft atlases.
+* Signals: `DraftService.Drafted(card, how)` (ResultsService tells it in the story),
+  `FoundHome(card, by)`. Dev: draft, draft.open, draft.take, draft.found, draft.reroll [paid],
+  draft.cards, bounty [kills], vote.pick <n|id> [voter], pack.add Blueprint.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -1016,7 +1054,7 @@ ClassShop, Account, Lobby).
 | Run | PowerService | service | BunkerGrid, EconomyService, SessionService, ReplicationService, DevService | the power balance, dark rooms (lights, fittings, alerts), blackouts' dark units |
 | Run | ResidentService | service | BunkerGrid, EconomyService, PowerService, CycleClock, RunDirector, SessionService, ReplicationService, DevService | residents: records, jobs, needs, levels, death |
 | Run | ResidentBrain | service | ResidentService, BunkerGrid, CycleClock, DevService | residents' bodies, routines, walking (Lib.PathGraph) |
-| Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, the Votes collection |
+| Run | VoteService | service | SessionService, ReplicationService, DevService | votes: the live vote and the queue, ballots, rules, solo, cooldowns, draft votes with options (Prompt 19), the Votes collection |
 | Run | BuildService | service | BunkerGrid, EconomyService, VoteService, SessionService, RunDirector, ReplicationService, WeaponService, CombatService, ResidentService, DevService | proposals, construction and upgrade sites, upgrades, merges, teardown and refunds, unlocks, repairs (the Welder, residents) |
 | Run | CombatService | service | SessionService, BunkerGrid, PowerService, ResidentService, DevService | everyone who can be hurt: combatants, history, damage, down, revive, death, respawn |
 | Run | WeaponService | service | CombatService, EconomyService, BunkerGrid, SessionService, DevService | loadouts, the hotbar, held items, shots and their checks, reloads, melee, dodge, sprint, stamina, restocking |
@@ -1026,12 +1064,13 @@ ClassShop, Account, Lobby).
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, InventoryService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests; cells with a fixed roll), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
 | Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
-| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ExpeditionService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
+| Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ExpeditionService, DraftService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
 | Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
 | Run | SurfaceService | service | SessionService, CycleClock, RunDirector, BunkerGrid, PowerService, CombatService, MonsterService, InventoryService, RescueService, DevService | the surface map, zones, the elevator, containers, storms, radiation, surface creatures, the raider camp and the surface's Lost Crew |
 | Run | DeepService | service | BunkerGrid, CycleClock, RunDirector, SessionService, DigService, InventoryService, RescueService, MonsterService, CombatService, ResidentService, ResidentBrain, EconomyService, BuildService, ObjectiveService, BreachService, ProfileService, SurfaceService, DevService | caves from the A6 pieces, finds, guards and cave nests, the Lost Crews, radio logs, Glowshard chests, cryo pods and thawing, the Deep's light and falls |
 | Run | ExpeditionService | service | BunkerGrid, CycleClock, RunDirector, SessionService, EconomyService, ResidentService, ResidentBrain, RescueService, SurfaceService, DeepService, ReplicationService, DevService | resident expeditions (sending, cycles away, finds, harm, losses, coming home), distress calls and their markers, the Radio Room's recruits and crew calls |
+| Run | DraftService | service | CycleClock, RunDirector, SessionService, VoteService, BuildService, BunkerGrid, EconomyService, DisasterService, DigService, BreachService, ResidentService, ExpeditionService, WeaponService, SurfaceService, MonsterService, InventoryService, DevService | the blueprint draft (Prompt 19): drawing cards, applying the winner, found blueprints, rerolls, the Bounty Contract and the Overclock's overloads |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -1039,7 +1078,7 @@ ClassShop, Account, Lobby).
 | both | HUDController | controller | InputController, UIController, CameraController, ReplicaController | the run HUD (Run; nothing in the Lobby yet) |
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
-| both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the Command View's vote and site ghosts, its Propose handlers |
+| both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the blueprint draft's cards (Prompt 19), the Command View's vote and site ghosts, its Propose handlers |
 | both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run); skips `ServerAnimated` models (bosses) |
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
@@ -1165,3 +1204,12 @@ ClassShop, Account, Lobby).
   stories in the results; HUD.Templates.Distress. Landon's answers (same day): fast teams home a
   cycle early (`Rules.Expeditions.Fast`/`Trip`, `Tuning.Expeditions.FastSpeed`), unheard calls
   lose the team (`RunState.RadioWorks`), the `Early` and `Unheard` log lines.
+* **Prompt 19 (2026-11-09)**: the blueprint draft (Run). Rules.Draft, DraftService (drafts after every
+  Surge, the usable pool, each card's effect through its owning service, found blueprints, rerolls,
+  the Bounty Contract, Overclock's overloads), draft votes with options in VoteService (`CastPick`,
+  `SetOptions`), the draft's cards under the telegram (VoteController, `StarterGui.Votes.Draft`, the
+  draft atlases), blueprints carried in packs and brought home by expeditions; modifier hooks in
+  BreachService, WeaponService, ResidentService and SurfaceService. With it, Landon's answers to the
+  Prompt 13, 14, 16 and 17 questions: Surges bring cave-ins (floods and gas leaks with Prompt 23), a
+  respawn keeps half its radiation, a third of Ash Raiders fight hand to hand, ore veins need a
+  Drill or a Pickaxe. The game is 100 Years Below (Constants.GAME_NAME).

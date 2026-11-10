@@ -250,3 +250,17 @@ and in the hotbar.
 * A new dig tool: add the item to `Tuning.Digging.Tools`.
 * A new depth band: a `Config.DepthBands` entry with its `DigSeconds`; add its first floor to
   `Tuning.Digging.PushDeeperFloors`.
+
+
+## Addendum: Landon's answers (2026-11-09)
+
+| # | Question | Landon's answer | Build |
+|---|---|---|---|
+| 1 | Cave-ins from digging | Sideways only | as built |
+| 2 | Nests | Keep | as built |
+| 3 | Cache loot | Keep | as built |
+| 4 | Building on finds | A cave opening stays open (can't be built on) | as built |
+| 5 | Hazard pockets | Empty until Prompt 23 | as built |
+| 6 | The Drill Bay's speed | Keep | as built |
+| 7 | The extra breach and the Tremor | Keep | as built |
+| 8 | Nests and DeepService | "Yes, that split": dug nests in DigService, cave nests in DeepService (Section 23 to say so) | as built |

@@ -33,6 +33,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 16: the surface (Run) | ✅ done 2026-11-09 | Run playtests with real E holds, presses and clicks: the elevator both ways, searching, a survivor freed, followed home and joined, generator parts carried and delivered, unloading at the hall, a jackal shot dead into the pack, raider rifle hits, a dropped bag picked up, radiation death and a clean respawn, a Decon Room, the checkpoint opening in Era III, the Scout's outline and storm warning; Lobby start check; `game/reports/P16_Surface.md`, `previews/Game/P16_*.jpg` |
 | Prompt 17: the Deep (Run) | ✅ done 2026-11-09 | Run playtests with real W, E holds and presses and shotgun clicks: walking into a cave through the opened back wall, the Deep's lighting and the player's light, a radio log and its crew hint, an ore vein mined, a cache and a Glowshard chest opened (the profile and the results), the Mines' crew freed and led out of its cave (Lost Crew done), the raider camp's guards waking and going back to sleep and the surface crew riding home (Lost Crew done), a cryo pod found, carried, delivered and thawed into a Rare resident, a fall's damage and the Spelunker's none, the Spelunker's eye, a cave nest destroyed into the pack, a monster's drop in a cave, a monster walking out of a cave; Lobby start check; `game/reports/P17_Deep.md`, `previews/Game/P17_*.jpg` |
 | Prompt 18: resident expeditions and distress calls (Run) | ✅ done 2026-11-09 | Run playtests with real E presses and holds, clicks and Enter: the Expeditions screen opened at the Blast Door guard's radio and a Radio Room, teams sent to the surface and the Deep, residents walking out and coming home to their jobs, a real dawn's cycle away, distress calls (forced and rolled) with the radio card, alert, flare, plate countdown and edge arrow, members reached and led home from the town and from a cave, the deadline on the real clock losing the pinned, losses and a Medkit's save, the Radio Room's recruits (rate, the Radio Operator, a Rare recruit) and a crew call, the Residents screen's AWAY tab, the run's stories; Lobby start check; `game/reports/P18_Expeditions.md`, `previews/Game/P18_*.jpg` |
+| Prompt 19: the blueprint draft (Run), with Landon's answers to the Prompt 13, 14, 16 and 17 questions | ✅ done 2026-11-09 | Run playtests with real clicks, E presses and Y: a draft after a real Surge, solo and team picks, a found card, the Mad Scientist's reroll, every usable card's effect, a blueprint hauled home; `game/reports/P19_BlueprintDraft.md`, `previews/Game/P19_*.jpg` |
 | Landon's answers to the Prompt 18 questions | ✅ built and in the bible 2026-11-09 | Run playtests with real clicks and Enter: a fast team home a cycle early at a real dawn with the full trip's finds, unheard calls losing the team with no Radio Room, the screen's warning gone live when a Radio Room started working, a heard call with one; 107 data tests in both places; addendum in `game/reports/P18_Expeditions.md`, `previews/Game/P18_FastTeam*.jpg`, `P18_UnheardCall.jpg`, `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
 | A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
@@ -71,11 +72,42 @@ Newest first. Every "verified" line says how it was checked.
 | A5 props | Prop_BurntTree 109228472383503, Prop_Cabinet 103949699846399, Prop_CarWreck_A 75526591155472, Prop_CarWreck_B 105808061470942, Prop_Debris 83482976617480, Prop_Locker 118990684990389, Prop_GeneratorParts 92467000818852, Prop_LootBag 72177580542444 |
 | A5 monsters (rigs) | Monster_AshJackal 121226055816229 (Walk 84332717499460, Attack 119698905968735), Monster_AshWraith 86571623522715 (Walk 101978077102714, Attack 95768211145275), Monster_AshRaider 89393935264400 (Walk 92909841950988, Attack 71659501687501) |
 | UI atlas: surface | decal 134611993314949, image 83031843710701 (eight surface icons) |
+| UI atlases: draft (Prompt 19) | draft_a decal 134612236369505, image 112284329107420; draft_b decal 129470720840671, image 116460585771656 |
 | A6 cave pieces (Mines) | Entry 140717306990902, Tunnel 125627570956077, Junction 110936005050325, Pocket 126495354568524, Chamber 118404370996473, Cavern 104525632291205, Drop 76505454786857, CrewPocket 133491070274137 |
 | A6 cave pieces (Flooded Caverns) | Entry 88005799323610, Tunnel 105408170372431, Junction 75060404030395, Pocket 75206193324335, Chamber 114211170875518, Cavern 119297962809184, Drop 130513581479117, CrewPocket 95172140422209 |
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-09 (evening, Chicago): Prompt 19, the blueprint draft; Landon's 43 answers; the title
+
+Game code builds `p19-4b18cca` to `p19-3205a3d` (final): code asset 95026446991297 revisions 77 to 80,
+installed in Run and Lobby: StructureCheck 0 errors (Run 507 checks, Lobby 255), 109 data tests
+passed in each. The vote telegram got `Votes.Draft` and `VoteBanner.Reroll` in Run
+(`studio/ui/patches/Votes_P19.lua`). New UI atlases: `draft_a` (decal 134612236369505, image
+112284329107420) and `draft_b` (decal 129470720840671, image 116460585771656): the five draft cards
+and the FOUND stamp.
+
+**Done**
+* Landon answered 43 questions at the start of the session: the repo push and import folder
+  permissions (granted), the bible's five open questions (100 years kept, aging kept, names and the
+  clock approved; the title: first "keep", then changed to **100 Years Below** on his lawyer's
+  advice), the 30 open Bible Questions of Prompts 13, 14, 16 and 17 (26 as built; four changes, built
+  here), and eight for Prompts 19 to 21 and the town (the draft's cards under the clock, found
+  blueprints join the next draft, the 99 Robux reroll made now, the town about 1,400 x 1,100 studs
+  with ~25 places to enter, the lobby's Main Street only walkable).
+* Prompt 19: `game/reports/P19_BlueprintDraft.md` (seven Bible Questions).
+* The four answers that changed things: Surge cave-ins (floods and gas leaks with Prompt 23), half
+  radiation through a respawn, a third of Ash Raiders melee, ore veins need a Drill or a Pickaxe.
+  Addenda in P13, P14, P16 and P17.
+* `Constants.GAME_NAME` is "100 Years Below"; the repo's docs carry the new name.
+
+**Verified in Studio**: the testing checklist in `game/reports/P19_BlueprintDraft.md`. Captures:
+`previews/Game/P19_*.jpg`, `previews/UI/P19_draft_cards.jpg`.
+
+**Open**
+* Not seen: real teammates, touch, a real wheel click on PC, a rolled Overclock overload, a blueprint
+  from a real container search.
 
 ## 2026-11-09 (late night): Landon's answers to the Prompt 18 questions; the bible; ready for Prompts 19 to 21
 

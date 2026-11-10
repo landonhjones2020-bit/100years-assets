@@ -260,3 +260,21 @@ and in the hotbar.
 * A new tool: an `Items` entry with Kind `Tool` and an `Asset`, a `ToolTick` listener on the
   server, an effect in `DisasterController`'s `startToolEffect`, and a model with Grip and Muzzle
   sockets.
+
+
+## Addendum: Landon's answers (2026-11-09)
+
+| # | Question | Landon's answer | Build |
+|---|---|---|---|
+| 1 | Blackouts | Ends after 60 s | as built |
+| 2 | Fire and the Shaft | Own floor only | as built |
+| 3 | Wrecked rooms | Works again at 25% | as built |
+| 4 | A Surge's disaster | "Add cave-ins and more": cave-ins from Era I; floods and gas leaks from Era II | changed (Prompt 19) |
+| 5 | Rubble | Keep | as built |
+| 6 | Electrical surges | Keep | as built |
+
+**What changed** (built with Prompt 19, `game/reports/P19_BlueprintDraft.md`): `Config.Disasters`
+gives CaveIn, Flood and GasLeak a Surge weight and "Surges" in their causes;
+`Rules.Disasters.SurgePick` takes the disasters a service can start (`DisasterService` starts Fire,
+Blackout and CaveIn; floods and gas leaks join with Prompt 23); a Surge's cave-in falls in a random
+doorway.

@@ -261,3 +261,20 @@ falls, the Spelunker's passives, and A6 (16 cave pieces, 5 props, the raider cam
   and `Tuning.Deep.CrewFloors`; radiation in the Deep.
 * Prompt 26: rare gear in caches; Prompt 29: the Codex keeps the radio logs; Prompt 30: placeable
   lamps.
+
+
+## Addendum: Landon's answers (2026-11-09)
+
+| # | Question | Landon's answer | Build |
+|---|---|---|---|
+| 1 | Glowshard chests | Everyone in the run | as built |
+| 2 | Ore veins | "Drill or Pickaxe" | changed (Prompt 19) |
+| 3 | A Lost Crew home | The first one home | as built |
+| 4 | Cave nests | Keep | as built |
+| 5 | Cryo pods | Keep | as built |
+| 6 | Where the crews hide | Keep | as built |
+| 7 | The Spelunker's eye | Outlines | as built |
+| 8 | Falls | The Deep only | as built |
+
+**What changed** (built with Prompt 19): `DeepService` mines an ore vein only for a player carrying a
+Drill or a Pickaxe, and its prompt says so.

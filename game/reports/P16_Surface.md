@@ -214,3 +214,22 @@ the run's results.
   prompt's rescue and big-find plumbing.
 * Prompt 18: expeditions leave from the Blast Door or the Radio Room and never walk the map.
 * Prompt 30: raids on the Blast Door and wanderers go in `SurfaceService`.
+
+
+## Addendum: Landon's answers (2026-11-09)
+
+| # | Question | Landon's answer | Build |
+|---|---|---|---|
+| 1 | RescueService | Add it to Section 23 | as built |
+| 2 | Backpack slots | Keep | as built |
+| 3 | Survivors | They follow | as built |
+| 4 | Generator parts | Scrap or Iron | as built |
+| 5 | Clear-Rad pills | Automatic | as built |
+| 6 | Radiation and death | "Keeps half": a respawn keeps half the radiation | changed (Prompt 19) |
+| 7 | Ash Raiders | "A third melee" | changed (Prompt 19) |
+| 8 | Monster drops | Keep | as built |
+
+**What changed** (built with Prompt 19): `SurfaceService` keeps half a player's radiation through a
+respawn; `Config.Monsters.AshRaiderMelee` and `Tuning.Surface.RaiderMeleeShare` (0.33) make about a
+third of the town's raiders and the camp's guards fight hand to hand (the rifle raider's model until
+the melee raider's art).

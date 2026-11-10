@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T01:08:49Z",
- "commit": "4163c7f9c8e332809e107e41fdb6823161a5c8fa",
- "label": "p19-4163c7f",
+ "built": "2026-11-10T01:11:33Z",
+ "commit": "3205a3d4ea04ecf25bdf973712a7d1a05c391d35",
+ "label": "p19-3205a3d",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -1004,7 +1004,7 @@
    "ServerScriptService.Services.DraftService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DraftService.luau",
-    "Hash": "19614dbc"
+    "Hash": "69951bb6"
    },
    "ServerScriptService.Services.EconomyService": {
     "Class": "ModuleScript",
@@ -1019,7 +1019,7 @@
    "ServerScriptService.Services.InventoryService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/InventoryService.luau",
-    "Hash": "a325585f"
+    "Hash": "68429a96"
    },
    "ServerScriptService.Services.MonsterService": {
     "Class": "ModuleScript",
