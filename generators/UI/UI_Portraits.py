@@ -181,7 +181,7 @@ def dress(cls):
     return o
 
 
-def _shoot(path, w, h, tz, half_h, yaw, pitch=0.06, samples=96):
+def _shoot(path, w, h, tz, half_h, yaw, pitch=0.06, samples=96, tx=0.0):
     """Place the card camera and lights for one view and render it."""
     sc = _render_setup(w, h, samples)
     for ob in [ob for ob in sc.objects if ob.type in ("CAMERA", "LIGHT")]:
@@ -189,10 +189,10 @@ def _shoot(path, w, h, tz, half_h, yaw, pitch=0.06, samples=96):
     lens = 85.0
     dist = half_h / math.tan(math.atan(12.0 / lens))
     a = math.radians(yaw)
-    target = Vector((0, 0, tz))
+    side = Vector((math.cos(a), math.sin(a), 0))          # the camera's right
+    target = Vector((0, 0, tz)) + side * tx               # tx: the frame moved toward image right
     fwd = Vector((math.sin(a), -math.cos(a), pitch))
     _camera(target + fwd * dist, target, lens)
-    side = Vector((math.cos(a), math.sin(a), 0))          # the camera's right
     _area("Key", target - side * 6 + fwd * 7 + Vector((0, 0, 6)), target, 900, 5)
     _area("Fill", target + side * 7 + fwd * 5 + Vector((0, 0, 1)), target, 260, 6)
     _area("Rim", target + side * 5 - fwd * 6 + Vector((0, 0, 5)), target + Vector((0, 0, 0.6)), 1100, 3)
@@ -204,22 +204,23 @@ def _shoot(path, w, h, tz, half_h, yaw, pitch=0.06, samples=96):
 def portrait(cls, w, h, out_name, framing=None, samples=96):
     o = dress(cls)
     _bloom()
-    tz, half_h = framing or o["framing"]
-    p = _shoot(os.path.join(K.SPRITES, f"{out_name}.png"), w, h, tz, half_h, O.CAM_YAW, samples=samples)
+    tz, half_h, *tx = framing or o["framing"]
+    p = _shoot(os.path.join(K.SPRITES, f"{out_name}.png"), w, h, tz, half_h, O.CAM_YAW, samples=samples, tx=tx[0] if tx else 0.0)
     print(f"[UI_Portraits] {out_name}")
     return p
 
 
-def check_sheet(cls, samples=48):
+def check_sheet(cls, samples=None):
     """previews/Residents/Outfit_<Class>.png: the card view, then the whole outfit from the
-    front and from behind, on grey, for reviewing the look."""
+    front and from behind, on grey, for reviewing the look. SF_SAMPLES=<n> for a rough pass."""
     from PIL import Image
+    samples = samples or int(os.environ.get("SF_SAMPLES", "48"))
     o = dress(cls)
     _bloom()
-    tmp = os.path.join(sf.REPO, "previews", "Residents", "_tmp")
+    tmp = os.path.join(sf.REPO, "previews", "Residents", f"_tmp_{cls}")
     os.makedirs(tmp, exist_ok=True)
-    tz, half_h = o["framing"]
-    shots = [_shoot(os.path.join(tmp, "a.png"), 340 * 2, 290 * 2, tz, half_h, O.CAM_YAW, samples=samples),
+    tz, half_h, *tx = o["framing"]
+    shots = [_shoot(os.path.join(tmp, "a.png"), 340 * 2, 290 * 2, tz, half_h, O.CAM_YAW, samples=samples, tx=tx[0] if tx else 0.0),
              _shoot(os.path.join(tmp, "b.png"), 440, 580, 3.25, 3.55, -30, 0.1, samples),
              _shoot(os.path.join(tmp, "c.png"), 440, 580, 3.25, 3.55, 150, 0.1, samples)]
     ims = [Image.open(p).convert("RGBA") for p in shots]

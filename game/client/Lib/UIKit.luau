@@ -121,11 +121,26 @@ UIKit.Sprites["Panel_Navy"] = {image = "rbxassetid://85214114089895", offset = V
 UIKit.Sprites["Panel_Teal"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(204, 532), size = Vector2.new(192, 192), slice = Rect.new(60, 60, 132, 132)}
 UIKit.Sprites["Paper"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(572, 532), size = Vector2.new(160, 160), slice = Rect.new(44, 44, 116, 116)}
 UIKit.Sprites["Plate_Cream"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(404, 772), size = Vector2.new(256, 96), slice = Rect.new(56, 40, 200, 56)}
-UIKit.Sprites["Portrait_MadScientist"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(492, 4), size = Vector2.new(340, 290), slice = nil}
-UIKit.Sprites["Portrait_Quartermaster"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 420), size = Vector2.new(340, 290), slice = nil}
-UIKit.Sprites["Portrait_Security"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(352, 420), size = Vector2.new(340, 290), slice = nil}
-UIKit.Sprites["Portrait_Security_Large"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 4), size = Vector2.new(480, 408), slice = nil}
-UIKit.Sprites["Portrait_Warden"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 718), size = Vector2.new(340, 290), slice = nil}
+UIKit.Sprites["Portrait_Cook"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(492, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Demolitionist"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(4, 420), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Driller"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(344, 420), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Engineer"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(684, 420), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Exterminator"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(4, 711), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Firefighter"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(344, 711), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_HazmatTech"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(684, 711), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_MadScientist"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(4, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Marksman"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(344, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Medic"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(684, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Quartermaster"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(4, 295), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_RadioOperator"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(344, 295), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Scavenger"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(684, 295), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Scout"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(4, 586), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Security"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(344, 586), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Security_Large"] = {image = "rbxassetid://131273406986644", offset = Vector2.new(4, 4), size = Vector2.new(480, 408), slice = nil}
+UIKit.Sprites["Portrait_Spelunker"] = {image = "rbxassetid://129693903766204", offset = Vector2.new(684, 586), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Survivor"] = {image = "rbxassetid://117996816893853", offset = Vector2.new(4, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Tinkerer"] = {image = "rbxassetid://117996816893853", offset = Vector2.new(344, 4), size = Vector2.new(332, 283), slice = nil}
+UIKit.Sprites["Portrait_Warden"] = {image = "rbxassetid://117996816893853", offset = Vector2.new(684, 4), size = Vector2.new(332, 283), slice = nil}
 UIKit.Sprites["Seismograph"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 732), size = Vector2.new(384, 128), slice = nil}
 UIKit.Sprites["Stamp_Found"] = {image = "rbxassetid://116460585771656", offset = Vector2.new(412, 4), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_FreeTrial"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(396, 732), size = Vector2.new(256, 128), slice = nil}

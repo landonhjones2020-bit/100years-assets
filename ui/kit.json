@@ -70,14 +70,34 @@
     960
    ]
   },
-  "portraits": {
-   "decalId": "96645914120696",
-   "file": "ui/atlas_portraits.png",
-   "imageId": "120657029267813",
-   "sha1": "38040bab35240be3ab9ac368512accf72870cdc0",
+  "portraits_a": {
+   "decalId": "81054758303340",
+   "file": "ui/atlas_portraits_a.png",
+   "imageId": "131273406986644",
+   "sha1": "9ab3ffd4540988a9176c2a3dfa07c7d682c52636",
    "size": [
     1024,
-    1012
+    998
+   ]
+  },
+  "portraits_b": {
+   "decalId": "84908156065476",
+   "file": "ui/atlas_portraits_b.png",
+   "imageId": "129693903766204",
+   "sha1": "052d3b8d09362b2b9b58f5a0a9b264b52e71835b",
+   "size": [
+    1024,
+    873
+   ]
+  },
+  "portraits_c": {
+   "decalId": "111038995154131",
+   "file": "ui/atlas_portraits_c.png",
+   "imageId": "117996816893853",
+   "sha1": "87a8ac9ebbad6e0fbc90ad81ad7920a1c5198b2a",
+   "size": [
+    1024,
+    291
    ]
   },
   "surface": {
@@ -1660,47 +1680,203 @@
     40
    ]
   },
-  "Portrait_MadScientist": {
-   "atlas": "portraits",
-   "note": "MadScientist class portrait (card window)",
+  "Portrait_Cook": {
+   "atlas": "portraits_a",
+   "note": "Cook class portrait (card window)",
    "offset": [
     492,
     4
    ],
    "size": [
-    340,
-    290
+    332,
+    283
    ],
    "slice": null
   },
-  "Portrait_Quartermaster": {
-   "atlas": "portraits",
-   "note": "Quartermaster class portrait (card window)",
+  "Portrait_Demolitionist": {
+   "atlas": "portraits_a",
+   "note": "Demolitionist class portrait (card window)",
    "offset": [
     4,
     420
    ],
    "size": [
-    340,
-    290
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Driller": {
+   "atlas": "portraits_a",
+   "note": "Driller class portrait (card window)",
+   "offset": [
+    344,
+    420
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Engineer": {
+   "atlas": "portraits_a",
+   "note": "Engineer class portrait (card window)",
+   "offset": [
+    684,
+    420
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Exterminator": {
+   "atlas": "portraits_a",
+   "note": "Exterminator class portrait (card window)",
+   "offset": [
+    4,
+    711
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Firefighter": {
+   "atlas": "portraits_a",
+   "note": "Firefighter class portrait (card window)",
+   "offset": [
+    344,
+    711
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_HazmatTech": {
+   "atlas": "portraits_a",
+   "note": "HazmatTech class portrait (card window)",
+   "offset": [
+    684,
+    711
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_MadScientist": {
+   "atlas": "portraits_b",
+   "note": "MadScientist class portrait (card window)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Marksman": {
+   "atlas": "portraits_b",
+   "note": "Marksman class portrait (card window)",
+   "offset": [
+    344,
+    4
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Medic": {
+   "atlas": "portraits_b",
+   "note": "Medic class portrait (card window)",
+   "offset": [
+    684,
+    4
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Quartermaster": {
+   "atlas": "portraits_b",
+   "note": "Quartermaster class portrait (card window)",
+   "offset": [
+    4,
+    295
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_RadioOperator": {
+   "atlas": "portraits_b",
+   "note": "RadioOperator class portrait (card window)",
+   "offset": [
+    344,
+    295
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Scavenger": {
+   "atlas": "portraits_b",
+   "note": "Scavenger class portrait (card window)",
+   "offset": [
+    684,
+    295
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Scout": {
+   "atlas": "portraits_b",
+   "note": "Scout class portrait (card window)",
+   "offset": [
+    4,
+    586
+   ],
+   "size": [
+    332,
+    283
    ],
    "slice": null
   },
   "Portrait_Security": {
-   "atlas": "portraits",
+   "atlas": "portraits_b",
    "note": "Security class portrait (card window)",
    "offset": [
-    352,
-    420
+    344,
+    586
    ],
    "size": [
-    340,
-    290
+    332,
+    283
    ],
    "slice": null
   },
   "Portrait_Security_Large": {
-   "atlas": "portraits",
+   "atlas": "portraits_a",
    "note": "detail panel portrait",
    "offset": [
     4,
@@ -1712,16 +1888,55 @@
    ],
    "slice": null
   },
-  "Portrait_Warden": {
-   "atlas": "portraits",
-   "note": "Warden class portrait (card window)",
+  "Portrait_Spelunker": {
+   "atlas": "portraits_b",
+   "note": "Spelunker class portrait (card window)",
    "offset": [
-    4,
-    718
+    684,
+    586
    ],
    "size": [
-    340,
-    290
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Survivor": {
+   "atlas": "portraits_c",
+   "note": "Survivor class portrait (card window)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Tinkerer": {
+   "atlas": "portraits_c",
+   "note": "Tinkerer class portrait (card window)",
+   "offset": [
+    344,
+    4
+   ],
+   "size": [
+    332,
+    283
+   ],
+   "slice": null
+  },
+  "Portrait_Warden": {
+   "atlas": "portraits_c",
+   "note": "Warden class portrait (card window)",
+   "offset": [
+    684,
+    4
+   ],
+   "size": [
+    332,
+    283
    ],
    "slice": null
   },

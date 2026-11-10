@@ -27,13 +27,21 @@ GUTTER = 4
 # Groups packed smaller than their sprite files: the item icons are rendered at 256 px and shown
 # in hotbar slots about 70 px across at 1080p, so 128 px keeps them sharp and fits every item in
 # one atlas (Prompt 20: 32 icons; at 256 px they took four uploads).
-PACK_SIZE = {"items": (128, 128)}
+# The class portraits are rendered at 340x290 and packed at 332x283 so three fit across an atlas
+# (Prompt 21: 19 classes in three uploads); a "_Large" one keeps its own size.
+PACK_SIZE = {"items": (128, 128), "portraits": (332, 283)}
+KEEP_SIZE = ("_Large",)
+
+
+def pack_size(name, group, size):
+    want = PACK_SIZE.get(group)
+    return tuple(size) if not want or name.endswith(KEEP_SIZE) else want
 
 
 def sprite_image(name, group):
     im = Image.open(os.path.join(SPRITES, f"{name}.png")).convert("RGBA")
-    want = PACK_SIZE.get(group)
-    if want and im.size != want:
+    want = pack_size(name, group, im.size)
+    if im.size != want:
         im = im.resize(want, Image.LANCZOS)
     return im
 
@@ -81,7 +89,7 @@ def main():
         if list(im.size) != spec["size"]:
             print(f"size mismatch {name}: {im.size} vs {spec['size']}", file=sys.stderr)
         g = group_of(name, spec)
-        w, h = PACK_SIZE.get(g, im.size)
+        w, h = pack_size(name, g, im.size)
         groups.setdefault(g, []).append((name, w, h))
     kit = {"version": 1, "scale": 2, "atlases": {}, "sprites": {}}
     for g, items in sorted(groups.items()):

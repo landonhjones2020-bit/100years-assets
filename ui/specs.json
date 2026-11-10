@@ -1053,6 +1053,62 @@
    40
   ]
  },
+ "Portrait_Cook": {
+  "note": "Cook class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Demolitionist": {
+  "note": "Demolitionist class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Driller": {
+  "note": "Driller class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Engineer": {
+  "note": "Engineer class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Exterminator": {
+  "note": "Exterminator class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Firefighter": {
+  "note": "Firefighter class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_HazmatTech": {
+  "note": "HazmatTech class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
  "Portrait_MadScientist": {
   "note": "MadScientist class portrait (card window)",
   "size": [
@@ -1061,8 +1117,48 @@
   ],
   "slice": null
  },
+ "Portrait_Marksman": {
+  "note": "Marksman class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Medic": {
+  "note": "Medic class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
  "Portrait_Quartermaster": {
   "note": "Quartermaster class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_RadioOperator": {
+  "note": "RadioOperator class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Scavenger": {
+  "note": "Scavenger class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Scout": {
+  "note": "Scout class portrait (card window)",
   "size": [
    340,
    290
@@ -1082,6 +1178,30 @@
   "size": [
    480,
    408
+  ],
+  "slice": null
+ },
+ "Portrait_Spelunker": {
+  "note": "Spelunker class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Survivor": {
+  "note": "Survivor class portrait (card window)",
+  "size": [
+   340,
+   290
+  ],
+  "slice": null
+ },
+ "Portrait_Tinkerer": {
+  "note": "Tinkerer class portrait (card window)",
+  "size": [
+   340,
+   290
   ],
   "slice": null
  },
