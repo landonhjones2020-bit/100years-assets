@@ -9,7 +9,9 @@
 	clip in Config.Animations whose Rig (the model's Rig attribute; residents are R15) and
 	Activity match its Activity attribute plays, looped as the clip says; any other activity
 	stops it. Fleeing and running use the walk when there is no clip of their own. A monster's
-	attack replays each time its AttackAt attribute changes. Today there are the residents' walk
+	attack replays each time its AttackAt attribute changes, on top of the rig's Idle when it has
+	one (the Ash Raiders), so between two blows or shots it stands in its stance instead of
+	dropping to its rest pose. Today there are the residents' walk
 	(A0) and the monsters' A4 clips; A3 adds working, eating and sleeping with no code change.
 	A model with the ServerAnimated attribute (a boss, Prompt 15) is left alone: the server plays it.
 ]]
@@ -29,7 +31,12 @@ local NPCAnimator = {
 	Dependencies = {},
 }
 
-type Watched = { Tracks: { [string]: AnimationTrack }, Playing: AnimationTrack?, Connections: { RBXScriptConnection } }
+type Watched = {
+	Tracks: { [string]: AnimationTrack },
+	Playing: AnimationTrack?, -- the looped clip of the model's activity
+	Action: AnimationTrack?, -- an attack: a one-shot over it
+	Connections: { RBXScriptConnection },
+}
 
 local watched: { [Model]: Watched } = {}
 local clips: { [string]: any } = {} -- "Rig:Activity" -> Config.Animations entry
@@ -86,7 +93,20 @@ local function apply(model: Model)
 		return
 	end
 	local activity = model:GetAttribute("Activity")
-	local track = if type(activity) == "string" then trackFor(model, state, activity) else nil
+	local track: AnimationTrack? = nil
+	if activity == "Attack" then
+		-- the attack itself plays from AttackAt (below); under it, the rig's Idle if it has one
+		if clips[`{rigOf(model)}:Idle`] then
+			track = trackFor(model, state, "Idle")
+		end
+	else
+		if type(activity) == "string" then
+			track = trackFor(model, state, activity)
+		end
+		if state.Action and state.Action.IsPlaying then
+			state.Action:Stop(0.2) -- it turned to something else mid-swing
+		end
+	end
 	if state.Playing and state.Playing ~= track then
 		state.Playing:Stop(0.2)
 		state.Playing = nil
@@ -104,7 +124,7 @@ local function watch(model: Instance)
 	if model:GetAttribute("ServerAnimated") == true then
 		return -- a boss: the server plays its clips (BossService, Prompt 15)
 	end
-	local state: Watched = { Tracks = {}, Playing = nil, Connections = {} }
+	local state: Watched = { Tracks = {}, Playing = nil, Action = nil, Connections = {} }
 	watched[model] = state
 	table.insert(state.Connections, model:GetAttributeChangedSignal("Activity"):Connect(function()
 		apply(model)
@@ -113,11 +133,8 @@ local function watch(model: Instance)
 	table.insert(state.Connections, model:GetAttributeChangedSignal("AttackAt"):Connect(function()
 		local track = trackFor(model, state, "Attack")
 		if track then
-			if state.Playing and state.Playing ~= track then
-				state.Playing:Stop(0.1)
-			end
-			track:Play(0.05)
-			state.Playing = track
+			track:Play(0.05) -- over the looped clip (Action priority); apply() settles what loops under it
+			state.Action = track
 		end
 	end))
 	table.insert(state.Connections, model.AncestryChanged:Connect(function(_, parent)
