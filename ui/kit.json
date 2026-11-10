@@ -10,6 +10,26 @@
     1016
    ]
   },
+  "draft_a": {
+   "decalId": "134612236369505",
+   "file": "ui/atlas_draft_a.png",
+   "imageId": "112284329107420",
+   "sha1": "de2f5e86f405b0fc15d807bda2f32d5101ba9f33",
+   "size": [
+    1024,
+    896
+   ]
+  },
+  "draft_b": {
+   "decalId": "129470720840671",
+   "file": "ui/atlas_draft_b.png",
+   "imageId": "116460585771656",
+   "sha1": "6e57c4b7c0942750f191f2ecb1f26b877d91547f",
+   "size": [
+    1024,
+    448
+   ]
+  },
   "hud": {
    "decalId": "113747766925760",
    "file": "ui/atlas_hud.png",
@@ -442,6 +462,71 @@
    "size": [
     48,
     128
+   ],
+   "slice": null
+  },
+  "Draft_BunkerPerk": {
+   "atlas": "draft_a",
+   "note": "blueprint draft card, BunkerPerk; window 344x176 at y 110; name and text below (Prompt 19)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    400,
+    440
+   ],
+   "slice": null
+  },
+  "Draft_PlayerBoon": {
+   "atlas": "draft_a",
+   "note": "blueprint draft card, PlayerBoon; window 344x176 at y 110; name and text below (Prompt 19)",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    400,
+    440
+   ],
+   "slice": null
+  },
+  "Draft_ResidentBoon": {
+   "atlas": "draft_a",
+   "note": "blueprint draft card, ResidentBoon; window 344x176 at y 110; name and text below (Prompt 19)",
+   "offset": [
+    4,
+    452
+   ],
+   "size": [
+    400,
+    440
+   ],
+   "slice": null
+  },
+  "Draft_RiskDeal": {
+   "atlas": "draft_a",
+   "note": "blueprint draft card, RiskDeal; window 344x176 at y 110; name and text below (Prompt 19)",
+   "offset": [
+    412,
+    452
+   ],
+   "size": [
+    400,
+    440
+   ],
+   "slice": null
+  },
+  "Draft_Room": {
+   "atlas": "draft_b",
+   "note": "blueprint draft card, Room; window 344x176 at y 110; name and text below (Prompt 19)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    400,
+    440
    ],
    "slice": null
   },
@@ -1311,6 +1396,19 @@
    ],
    "size": [
     384,
+    128
+   ],
+   "slice": null
+  },
+  "Stamp_Found": {
+   "atlas": "draft_b",
+   "note": "ink stamp",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    256,
     128
    ],
    "slice": null

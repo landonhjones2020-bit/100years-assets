@@ -39,7 +39,7 @@ def studio_sheet():
     W, H = ims[0].size
     CAP = 48
     sheet = Image.new("RGB", (2 * W + 3 * PAD, 2 * (H + CAP) + 3 * PAD + HEAD), BG)
-    header(sheet, "100 YEARS OF FALLOUT  ·  A0 STYLE TEST  ·  IN STUDIO",
+    header(sheet, "100 YEARS BELOW  ·  A0 STYLE TEST  ·  IN STUDIO",
            "Run place, 2026-11-08. Every model, clip and UI image here came through the art repo and Open Cloud.")
     for i, ((f, t), im) in enumerate(zip(shots, ims)):
         x = PAD + (i % 2) * (W + PAD)

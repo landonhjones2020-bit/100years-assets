@@ -99,12 +99,14 @@ end
 
 -- Section 5: every Surge brings one disaster. A weighted pick among the disasters with a
 -- SurgeWeight, of era `era` and before, whose ThreatCost `budget` covers; nil when none fits.
-function Disasters.SurgePick(era: number, budget: number, rng: Random): string?
+-- `startable` (optional) narrows it to the disasters whose systems exist (floods and gas leaks:
+-- Prompt 23; Landon, Prompt 13: Surges bring cave-ins from Era I, floods and gas leaks from Era II).
+function Disasters.SurgePick(era: number, budget: number, rng: Random, startable: { [string]: boolean }?): string?
 	local options: { string } = {}
 	local total = 0
 	for _, id in Config.Ids("Disasters") do
 		local d = Config.Get("Disasters", id)
-		if (d.SurgeWeight or 0) > 0 and d.Era <= era and d.ThreatCost <= budget then
+		if (d.SurgeWeight or 0) > 0 and d.Era <= era and d.ThreatCost <= budget and (not startable or startable[id]) then
 			table.insert(options, id)
 			total += d.SurgeWeight
 		end

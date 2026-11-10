@@ -1,5 +1,6 @@
-# Runbook for Claude sessions: 100 Years Of Fallout (art and game code)
+# Runbook for Claude sessions: 100 Years Below (art and game code)
 
+The game is **100 Years Below** (Landon renamed it on 2026-11-09; it was 100 Years Of Fallout).
 The game bible (claude.ai Project "100 Years Of Fallout", docs
 `claude/100-years-of-fallout-game-bible-part-1.md` and `part-2.md`, master copy in the live
 Claude Doc) wins over everything here. Section 19 is the art pipeline, Section 24 the

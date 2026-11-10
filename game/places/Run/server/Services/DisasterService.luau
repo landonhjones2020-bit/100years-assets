@@ -1012,6 +1012,10 @@ end
 
 -- The Surge's disaster (Section 5) ------------------------------------------------------------------------
 
+-- The Surge disasters this service can start (Landon, Prompt 13: cave-ins too; floods and gas
+-- leaks join with Prompt 23).
+local SURGE_STARTS: { [string]: boolean } = { Fire = true, Blackout = true, CaveIn = true }
+
 local function startKind(kind: string, cause: string): string?
 	if kind == "Fire" then
 		local options = {}
@@ -1024,6 +1028,15 @@ local function startKind(kind: string, cause: string): string?
 			return nil
 		end
 		return DisasterService:StartFire(options[rng:NextInteger(1, #options)], cause)
+	elseif kind == "CaveIn" then
+		-- Landon (Prompt 13): a Surge can bring a cave-in, at any doorway in the bunker
+		local doorways = Disasters.Doorways(grid:Bunker())
+		if #doorways == 0 then
+			return nil
+		end
+		local pick = doorways[rng:NextInteger(1, #doorways)]
+		local id = DisasterService:CaveIn(pick.Floor, pick.Column, pick.Side, cause)
+		return id
 	elseif kind == "Blackout" then
 		local floors: { number } = {}
 		for _, room in grid:Rooms() do
@@ -1041,7 +1054,7 @@ end
 -- ThreatDirector: picks and pays for the Surge's one disaster; returns its ThreatCost (0: none).
 function DisasterService:SurgeDisaster(budget: number, pick: Random?): number
 	local era = table.find(Config.Ids("Eras"), clock:Era()) or 1
-	local kind = Disasters.SurgePick(era, budget, pick or rng)
+	local kind = Disasters.SurgePick(era, budget, pick or rng, SURGE_STARTS)
 	if not kind then
 		return 0
 	end

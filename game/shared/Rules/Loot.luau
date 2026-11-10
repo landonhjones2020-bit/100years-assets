@@ -105,12 +105,17 @@ function Loot.Roll(tableId: string, rng: Random, context: Context?): { Drop }
 end
 
 -- "62 SCRAP · 1 FLARE" for alerts.
+local SPECIAL_NAMES: { [string]: string } = {
+	Blueprint = "blueprint", RadioLog = "radio log", Glowshards = "Glowshards", Gear = "gear", Recruit = "recruit",
+	BandOre = "ore",
+}
+
 function Loot.Text(drops: { Drop }): string
 	local parts = {}
 	for _, drop in drops do
 		local name = if drop.Resource then Config.Get("Resources", drop.Resource).Name
 			elseif drop.Item then Config.Get("Items", drop.Item).Name
-			else drop.Special or "?"
+			else SPECIAL_NAMES[drop.Special or ""] or drop.Special or "?"
 		table.insert(parts, `{drop.Count} {string.upper(name)}`)
 	end
 	return table.concat(parts, " · ")

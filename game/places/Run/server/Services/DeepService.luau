@@ -89,7 +89,7 @@ local DeepService = {
 	Dependencies = {
 		"BunkerGrid", "CycleClock", "RunDirector", "SessionService", "DigService", "InventoryService", "RescueService",
 		"MonsterService", "CombatService", "ResidentService", "ResidentBrain", "EconomyService", "BuildService",
-		"ObjectiveService", "BreachService", "ProfileService", "SurfaceService", "DevService",
+		"ObjectiveService", "BreachService", "ProfileService", "SurfaceService", "WeaponService", "DevService",
 	},
 	CaveOpened = Signal.new() :: Signal.Signal<string, string, number>,
 	CrewHome = Signal.new() :: Signal.Signal<string, Player?>,
@@ -99,7 +99,7 @@ local DeepService = {
 
 local CAMERA_IGNORE_TAG = "CameraIgnore"
 -- loot nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18), the Lamp (placeables)
-local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Lamp = true }
+local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Lamp = true } -- blueprints: Prompt 19 (DraftService)
 local LANTERN: { [string]: Color3 } = {
 	Mines = Color3.fromRGB(255, 178, 104),
 	FloodedCaverns = Color3.fromRGB(150, 232, 214),
@@ -108,7 +108,7 @@ local LANTERN: { [string]: Color3 } = {
 local OWN_LIGHT = Color3.fromRGB(255, 236, 206)
 local PLUG_SCALE = 1.45 -- the doorway rubble (8 x 10) over a cave's 14 x 12 opening
 local FIND_PROMPT: { [string]: { Action: string, Object: string, Hold: string } } = {
-	OreVein = { Action = "MINE", Object = "Ore vein", Hold = "MineSeconds" },
+	OreVein = { Action = "MINE", Object = "Ore vein · Drill or Pickaxe", Hold = "MineSeconds" },
 	Cache = { Action = "OPEN", Object = "Cache", Hold = "OpenSeconds" },
 	RadioLog = { Action = "LISTEN", Object = "Radio log", Hold = "ListenSeconds" },
 	GlowshardChest = { Action = "OPEN", Object = "Glowshard chest", Hold = "ChestSeconds" },
@@ -153,6 +153,7 @@ local director: any = nil
 local session: any = nil
 local dig: any = nil
 local inventory: any = nil
+local weapons: any = nil -- Landon (Prompt 17): ore veins need a Drill or a Pickaxe
 local rescue: any = nil
 local monsterService: any = nil
 local combat: any = nil
@@ -440,6 +441,11 @@ local function onFind(f: Find, player: Player)
 		return
 	end
 	if f.Kind == "OreVein" then
+		-- Landon (Prompt 17): only with a digging tool, as digging needs
+		if not (weapons:Carries(player, "Drill") or weapons:Carries(player, "Pickaxe")) then
+			alert(player, "Warning", "YOU NEED A DRILL OR A PICKAXE TO MINE THE VEIN")
+			return
+		end
 		takeLoot(f, player, "OreVein", "MINED")
 	elseif f.Kind == "Cache" then
 		takeLoot(f, player, "Cache", "THE CACHE")
@@ -1388,6 +1394,7 @@ function DeepService:Init(registry)
 	session = registry.SessionService
 	dig = registry.DigService
 	inventory = registry.InventoryService
+	weapons = registry.WeaponService
 	rescue = registry.RescueService
 	monsterService = registry.MonsterService
 	combat = registry.CombatService

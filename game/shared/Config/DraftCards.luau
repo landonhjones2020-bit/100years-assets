@@ -20,23 +20,60 @@ local function mod(key: string, value: number, extra: { [string]: any }?): { [st
 end
 
 local function roomCard(room: string, name: string): { [string]: any }
-	return { Name = name, Kind = "Room", Room = room, Text = `Unlocks the {name} for the run.`, Weight = 10, EarlyWeight = 20 }
+	return {
+		Name = name, Kind = "Room", Room = room, Text = `Unlocks the {name} for the run.`, Short = `Unlocks the {name}.`,
+		Weight = 10, EarlyWeight = 20,
+	}
 end
 
 local function card(kind: string, name: string, text: string, modifiers: { any }, weight: number?): { [string]: any }
 	return { Name = name, Kind = kind, Text = text, Modifiers = modifiers, Weight = weight or 8 }
 end
 
-return {
+-- Prompt 19: the short line a card's face shows under the vote telegram (phones fit about 45
+-- characters); Text stays the bible's words.
+local SHORT: { [string]: string } = {
+	ReinforcedWalls = "+25% room HP.",
+	Sprinklers = "Fire spreads 50% slower.",
+	SumpPumps = "Floods drain twice as fast.",
+	InsulatedGrid = "Blackouts last half as long.",
+	DeepLamps = "Half the extra spawns in dark rooms.",
+	SteelBlastDoor = "Blast Door +1 level.",
+	GasFilters = "Gas leaks 50% weaker.",
+	FieldTraining = "Every resident +1 level.",
+	MoraleBroadcast = "+15 morale for everyone.",
+	RadioBooster = "Two recruits arrive now.",
+	VeteranRecruit = "A Rare resident joins.",
+	ArmoryShipment = "Every player's weapons +1 rarity.",
+	MedCache = "+2 Medkits for every player.",
+	AmmoPress = "Ammo crafting costs 30% less.",
+	FieldRations = "+20% stamina for the rest of the run.",
+	DeepCharges = "Dig twice as fast; +50% Disturbance.",
+	Overclock = "Reactor +50% power; it may overload.",
+	BlackMarket = "The trader now: rare stock, +50% prices.",
+	BountyContract = "30 kills before the next Surge: 500 Scrap.",
+	SalvageRights = "2x loot next trip; the storm hits 30 s early.",
+}
+
+local definition = {
 	Schema = Check.shape({
 		Name = F.Name,
 		Kind = Check.enum({ "Room", "BunkerPerk", "ResidentBoon", "PlayerBoon", "RiskDeal" }),
 		Text = F.Text,
+		Short = Check.string(48, { min = 1 }),
 		Room = Check.optional(Check.ref("Rooms")),
 		Modifiers = Check.optional(F.Modifiers),
 		Weight = F.NonNegative,
 		EarlyWeight = Check.optional(F.NonNegative),
 	}),
+	Order = {
+		"ArmoryCard", "RadioRoomCard", "LoungeCard", "LabCard", "DrillBayCard", "GreenhouseCard", "TrainingRoomCard",
+		"TradingPostCard", "MemorialCard",
+		"ReinforcedWalls", "Sprinklers", "SumpPumps", "InsulatedGrid", "DeepLamps", "SteelBlastDoor", "GasFilters",
+		"FieldTraining", "MoraleBroadcast", "RadioBooster", "VeteranRecruit",
+		"ArmoryShipment", "MedCache", "AmmoPress", "FieldRations",
+		"DeepCharges", "Overclock", "BlackMarket", "BountyContract", "SalvageRights",
+	},
 	Entries = {
 		ArmoryCard = roomCard("Armory", "Armory"),
 		RadioRoomCard = roomCard("RadioRoom", "Radio Room"),
@@ -89,3 +126,9 @@ return {
 		}, 5),
 	},
 }
+
+for id, entry in definition.Entries :: { [string]: { [string]: any } } do
+	entry.Short = entry.Short or SHORT[id]
+end
+
+return definition

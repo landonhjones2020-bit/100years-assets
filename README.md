@@ -1,6 +1,6 @@
 # 100years-assets
 
-Art for **100 Years Of Fallout** (working title), the Roblox co-op bunker game. Every
+Art for **100 Years Below** (the title since 2026-11-09; the working title was 100 Years Of Fallout), the Roblox co-op bunker game. Every
 model, clip, icon and UI texture here is made by a Python generator running Blender
 headless, then uploaded to Roblox and set up in Studio by Claude (bible Section 19).
 Generated files are committed; Blender files are not, because the generators rebuild them.

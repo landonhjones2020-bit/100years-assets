@@ -84,6 +84,20 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 6, PerSecond = 2 },
 		Doc = "Vote yes or no on the vote on the banner (VoteService); a player can change their vote until it closes.",
 	},
+	CastPick = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^V%d+$", min = 2 }), Check.string(32, { pattern = "^%a[%w_]*$", min = 1 }) },
+		Rate = { Burst = 8, PerSecond = 3 },
+		Doc = "Pick one of a draft vote's cards (VoteService, Prompt 19); a pick can be changed until the vote closes.",
+	},
+	RerollDraft = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^V%d+$", min = 2 }) },
+		Rate = { Burst = 2, PerSecond = 0.5 },
+		Doc = "Use a free blueprint reroll (the level 3 Mad Scientist's, one per era) on the live draft (DraftService, Prompt 19).",
+	},
 
 	AssignResident = {
 		To = "Server",

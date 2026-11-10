@@ -31,6 +31,11 @@ UIKit.Sprites["Close_Down"] = {image = "rbxassetid://108416061266181", offset = 
 UIKit.Sprites["Close_Up"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(140, 4), size = Vector2.new(128, 128), slice = nil}
 UIKit.Sprites["Dial_Cycle"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 412), size = Vector2.new(768, 112), slice = nil}
 UIKit.Sprites["Dial_Pointer"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(516, 276), size = Vector2.new(48, 128), slice = nil}
+UIKit.Sprites["Draft_BunkerPerk"] = {image = "rbxassetid://112284329107420", offset = Vector2.new(4, 4), size = Vector2.new(400, 440), slice = nil}
+UIKit.Sprites["Draft_PlayerBoon"] = {image = "rbxassetid://112284329107420", offset = Vector2.new(412, 4), size = Vector2.new(400, 440), slice = nil}
+UIKit.Sprites["Draft_ResidentBoon"] = {image = "rbxassetid://112284329107420", offset = Vector2.new(4, 452), size = Vector2.new(400, 440), slice = nil}
+UIKit.Sprites["Draft_RiskDeal"] = {image = "rbxassetid://112284329107420", offset = Vector2.new(412, 452), size = Vector2.new(400, 440), slice = nil}
+UIKit.Sprites["Draft_Room"] = {image = "rbxassetid://116460585771656", offset = Vector2.new(4, 4), size = Vector2.new(400, 440), slice = nil}
 UIKit.Sprites["Flip_Tile"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(412, 276), size = Vector2.new(96, 128), slice = nil}
 UIKit.Sprites["Gauge_Glass"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Gauge_Health"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}
@@ -96,6 +101,7 @@ UIKit.Sprites["Portrait_Security"] = {image = "rbxassetid://120657029267813", of
 UIKit.Sprites["Portrait_Security_Large"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 4), size = Vector2.new(480, 408), slice = nil}
 UIKit.Sprites["Portrait_Warden"] = {image = "rbxassetid://120657029267813", offset = Vector2.new(4, 718), size = Vector2.new(340, 290), slice = nil}
 UIKit.Sprites["Seismograph"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 732), size = Vector2.new(384, 128), slice = nil}
+UIKit.Sprites["Stamp_Found"] = {image = "rbxassetid://116460585771656", offset = Vector2.new(412, 4), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_FreeTrial"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(396, 732), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_Owned"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(660, 732), size = Vector2.new(256, 128), slice = nil}
 UIKit.Sprites["Stamp_Wishlist"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(4, 868), size = Vector2.new(256, 128), slice = nil}

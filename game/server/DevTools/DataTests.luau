@@ -41,6 +41,7 @@ local Results = require(Shared.Rules.Results)
 local Surface = require(Shared.Rules.Surface)
 local Deep = require(Shared.Rules.Deep)
 local Expeditions = require(Shared.Rules.Expeditions)
+local Draft = require(Shared.Rules.Draft)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -1659,12 +1660,25 @@ test("Disasters: a Surge's disaster is one Surges cause, of its era, within its 
 			seen[id] = true
 		end
 	end
-	expect(seen.Fire and seen.Blackout, "Era I Surges bring fires and blackouts")
+	expect(seen.Fire and seen.Blackout and seen.CaveIn, "Era I Surges bring fires, blackouts and cave-ins (Landon, Prompt 13)")
 	for id in seen do
-		expect(id == "Fire" or id == "Blackout", `only Era I Surge disasters ({id})`)
+		expect(id == "Fire" or id == "Blackout" or id == "CaveIn", `only Era I Surge disasters ({id})`)
 	end
 	expectEqual(Disasters.SurgePick(1, 5, rng), nil, "nothing under the cheapest's ThreatCost")
-	expectEqual(Disasters.SurgePick(1, 9, rng), "Blackout", "only the blackout fits 9")
+	for _ = 1, 20 do
+		local fits = Disasters.SurgePick(1, 9, rng)
+		expect(fits == "Blackout" or fits == "CaveIn", `only the blackout and the cave-in fit 9 ({fits})`)
+	end
+	local later: { [string]: boolean } = {}
+	for _ = 1, 300 do
+		later[Disasters.SurgePick(2, 100, rng) or ""] = true
+	end
+	expect(later.Flood and later.GasLeak, "Era II Surges can bring floods and gas leaks (Landon, Prompt 13)")
+	local startable = { Fire = true, Blackout = true, CaveIn = true }
+	for _ = 1, 100 do
+		local id = Disasters.SurgePick(2, 100, rng, startable)
+		expect(id == nil or startable[id] == true, `only startable disasters when asked ({id})`)
+	end
 	for _, d in all("Disasters") do
 		local caused = string.find(d.CausedBy, "Surges") ~= nil
 		expect(((d.SurgeWeight or 0) > 0) == caused, `{d.Id}: a Surge weight exactly when Surges cause it`)
@@ -2438,6 +2452,90 @@ end)
 test("Constants: this place knows what it is", function()
 	local kind = Constants.PlaceKind()
 	expect(kind == "Lobby" or kind == "Run", "Lobby or Run")
+end)
+
+test("Draft: three cards after every Surge, most picks wins, a card taken leaves the pool (Section 8)", function()
+	expectEqual(Draft.Tuning().Cards, 3, "three cards a draft")
+	local votes = Config.Get("Votes", "Draft")
+	expectEqual(votes.Seconds, 20, "20 seconds to pick")
+	expectEqual(votes.Rule, "MostVotes", "most picks wins")
+	expectEqual(#Config.Ids("DraftCards"), 29, "the Appendix's 29 cards")
+	for _, card in all("DraftCards") do
+		expect(Draft.KIND_LABEL[card.Kind] ~= nil, `{card.Id}: a kind tag`)
+		expect(#card.Short > 0 and #card.Short <= 48, `{card.Id}: a short face text that fits a card`)
+		if card.Kind == "Room" then
+			expect(card.Room ~= nil and Config.Get("Rooms", card.Room).Unlock.Kind ~= "Start", `{card.Id}: unlocks a room that isn't there from the start`)
+			expect((card.EarlyWeight or 0) > card.Weight, `{card.Id}: weighs more in Era I`)
+		end
+	end
+	-- the pool: taken and held-back cards are out; usable narrows it
+	local taken = { ArmoryCard = true }
+	local held = { LabCard = true }
+	local pool = Draft.Pool(taken, held, function(card)
+		return card.Kind ~= "RiskDeal"
+	end)
+	expect(not table.find(pool, "ArmoryCard") and not table.find(pool, "LabCard"), "taken and held cards stay out")
+	expect(not table.find(pool, "Overclock"), "unusable cards stay out")
+	expect(table.find(pool, "Sprinklers") ~= nil, "the rest are in")
+	-- draws: no repeats, n at most, and room cards come up more in Era I
+	local rng = Random.new(19)
+	local all19 = Draft.Pool({}, nil, nil)
+	for _ = 1, 50 do
+		local drawn = Draft.Draw(all19, 3, 1, rng)
+		expectEqual(#drawn, 3, "three drawn")
+		expect(drawn[1] ~= drawn[2] and drawn[2] ~= drawn[3] and drawn[1] ~= drawn[3], "no repeats in a draw")
+	end
+	expectEqual(#Draft.Draw({ "Sprinklers" }, 3, 1, rng), 1, "a small pool gives what it has")
+	local function roomShare(era: number): number
+		local rooms = 0
+		for _ = 1, 600 do
+			local id = Draft.Draw(all19, 1, era, rng)[1]
+			if Config.Get("DraftCards", id).Kind == "Room" then
+				rooms += 1
+			end
+		end
+		return rooms / 600
+	end
+	expect(roomShare(1) > roomShare(2) + 0.08, "room cards come up more in Era I")
+	-- tallies and a controller's Y
+	local counts = Draft.Tally({ [1] = "A", [2] = "B", [3] = "A", [4] = "Nope" }, { "A", "B", "C" })
+	expectEqual(counts.A, 2, "two picked A")
+	expectEqual(counts.B, 1, "one picked B")
+	expectEqual(counts.C, 0, "none picked C")
+	expectEqual(counts.Nope, nil, "a pick that isn't a card doesn't count")
+	expectEqual(Draft.NextPick({ "A", "B", "C" }, nil), "A", "Y with no pick takes the first card")
+	expectEqual(Draft.NextPick({ "A", "B", "C" }, "C"), "A", "Y wraps round")
+	expectEqual(Draft.NextPick({}, nil), nil, "no cards, no pick")
+	local winner = Votes.Winner({ A = 1, B = 1, C = 0 }, { "A", "B", "C" }, Random.new(1))
+	expect(winner == "A" or winner == "B", "a tie is picked at random between the tied")
+	expect(Votes.Winner({ A = 0, B = 0 }, { "A", "B" }, Random.new(2)) ~= nil, "a draft nobody picked in still gives a card")
+end)
+
+test("Draft: what found blueprints and the cards need (Landon, Prompt 19)", function()
+	expectEqual(Draft.Tuning().FoundPerDraft, 1, "a found blueprint joins a draft as one extra card")
+	for _, id in { "ExpeditionSurface", "HardwareStore", "RadioTower", "Cache" } do
+		local lines = Loot.Lines(id, {})
+		local has = false
+		for _, line in lines do
+			if line.Special == "Blueprint" then
+				has = true
+			end
+		end
+		expect(has, `{id} can hold a blueprint`)
+	end
+	local text = Loot.Text({ { Special = "Blueprint", Count = 1 } })
+	expectEqual(text, "1 BLUEPRINT", "a blueprint's name in alerts")
+	expect(string.find(Surface.Summary({ { Id = "LoungeCard", Count = 1 } }), "BLUEPRINT: LOUNGE") ~= nil, "a carried card's name in the pack")
+	-- modifiers of every card have a key in the vocabulary, and one-shot keys are Add or Multiplier
+	for _, card in all("DraftCards") do
+		for _, m in card.Modifiers or {} do
+			expect(Config.Find("Modifiers", m.Key) ~= nil, `{card.Id}: {m.Key} is a modifier`)
+		end
+	end
+	expectEqual(Config.Get("Monsters", "AshRaiderMelee").Name, "Ash Raider", "melee raiders are Ash Raiders too (Landon, Prompt 16)")
+	expect(table.find(Config.Get("Monsters", "AshRaiderMelee").Traits or {}, "Shoots") == nil, "melee raiders don't shoot")
+	local share = Config.Get("Tuning", "Surface").RaiderMeleeShare
+	expect(share > 0.3 and share < 0.36, "about a third of raiders fight hand to hand")
 end)
 
 -- Runner ---------------------------------------------------------------------------------

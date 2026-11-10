@@ -54,7 +54,8 @@ local ResultsService = {
 	Dependencies = {
 		"RunDirector", "CycleClock", "SessionService", "ProfileService", "CombatService", "MonsterService", "ResidentService",
 		"BuildService", "DigService", "DisasterService", "ObjectiveService", "BossService", "BunkerGrid", "VoteService",
-		"InventoryService", "RescueService", "DeepService", "ExpeditionService", "ReplicationService", "DevService",
+		"InventoryService", "RescueService", "DeepService", "ExpeditionService", "DraftService", "ReplicationService",
+		"DevService",
 	},
 }
 
@@ -457,6 +458,7 @@ function ResultsService:Init(registry)
 	services.Rescue = registry.RescueService
 	services.Deep = registry.DeepService
 	services.Expedition = registry.ExpeditionService
+	services.Draft = registry.DraftService
 	collection = registry.ReplicationService:Collection("Results")
 	registerCommands(registry.DevService)
 end
@@ -575,6 +577,12 @@ function ResultsService:Start()
 	end)
 	services.Expedition.Recruited:Connect(function(residentId: string, how: string)
 		story(`{residentName(residentId)} {how}`)
+	end)
+	-- Prompt 19: cards drafted
+	services.Draft.Drafted:Connect(function(cardId: string, how: string)
+		if how == "Draft" then
+			story(`the team drafted {Config.Get("DraftCards", cardId).Name}`)
+		end
 	end)
 	services.Deep.Thawed:Connect(function(residentId: string, tier: string)
 		story(`{residentName(residentId)} ({string.lower(tier)}) thawed out of a cryo pod`)

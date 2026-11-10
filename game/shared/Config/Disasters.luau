@@ -37,11 +37,11 @@ return {
 		},
 		Flood = {
 			Name = "Flood",
-			CausedBy = "Flooded Caverns hazards, Bloat Toads, The Deluge",
+			CausedBy = "Flooded Caverns hazards, Bloat Toads, The Deluge, Surges", -- Surges: Landon, Prompt 13
 			Effect = "Water rises in a room and pours down the Shaft.",
 			Fix = "Patch the burst pipe, then the room drains.",
 			BestClass = "Firefighter",
-			Era = 2, ThreatCost = 10, RoomDamagePerSecond = 3, SpreadSeconds = 20,
+			Era = 2, ThreatCost = 10, RoomDamagePerSecond = 3, SpreadSeconds = 20, SurgeWeight = 1, -- Surges start it from Prompt 23
 		},
 		Blackout = {
 			Name = "Blackout",
@@ -53,19 +53,19 @@ return {
 		},
 		CaveIn = {
 			Name = "Cave-in",
-			CausedBy = "Digging, Tremors",
+			CausedBy = "Digging, Tremors, Surges", -- Surges: Landon, Prompt 13 (from Era I)
 			Effect = "Rubble blocks a doorway or cell and can trap residents.",
 			Fix = "Dig or smash through the rubble.",
 			BestClass = "Driller",
-			Era = 1, ThreatCost = 8,
+			Era = 1, ThreatCost = 8, SurgeWeight = 1,
 		},
 		GasLeak = {
 			Name = "Gas leak",
-			CausedBy = "Hazard pockets in the Mines",
+			CausedBy = "Hazard pockets in the Mines, Surges", -- Surges: Landon, Prompt 13
 			Effect = "Poison gas fills a room, hurting everyone inside.",
 			Fix = "Seal the vent or air the room out.",
 			BestClass = "HazmatTech",
-			Era = 2, ThreatCost = 10, DurationSeconds = 90,
+			Era = 2, ThreatCost = 10, DurationSeconds = 90, SurgeWeight = 1, -- Surges start it from Prompt 23
 		},
 		ReactorOverload = {
 			Name = "Reactor overload",

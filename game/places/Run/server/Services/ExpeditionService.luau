@@ -90,10 +90,11 @@ local ExpeditionService = {
 	Distress = Signal.new() :: Signal.Signal<string, string>,
 	Reached = Signal.new() :: Signal.Signal<string, Player>,
 	Recruited = Signal.new() :: Signal.Signal<string, string>,
+	BlueprintsHome = Signal.new() :: Signal.Signal<number, string>, -- Prompt 19: count, destination
 }
 
 -- loot nothing hands out yet: gear (Prompt 26), blueprints (Prompt 19); recruits are this service's
-local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true }
+local SKIP: { [string]: boolean } = { Gear = true } -- blueprints come home for the draft (Prompt 19)
 local HALL = Vector3.new(0, 0, 6) -- from the Blast Door's Door socket into the hall (where the elevator lets out)
 local BLAST_CONSOLE = Vector3.new(-10, 2.5, 1) -- the hall's console without the art kit's GuardDesk: left of the door
 local RADIO_CONSOLE_BACK = 5 -- a Radio Room's console: this far in from its back wall (or its Console socket)
@@ -122,6 +123,7 @@ type Expedition = {
 	Medkits: number,
 	Finds: { [string]: number },
 	Recruits: number,
+	Blueprints: number, -- Prompt 19: found blueprints, each a card for the draft once home
 	Log: { string },
 	State: string, -- Away, Calling, Distress, Reached, Home, Lost
 	CallIn: number?, -- running seconds until the call (Calling)
@@ -311,6 +313,7 @@ local function publish(e: Expedition)
 		Log = table.clone(e.Log),
 		Finds = table.clone(e.Finds),
 		Recruits = e.Recruits,
+		Blueprints = e.Blueprints,
 		Food = e.Food,
 		Water = e.Water,
 		Medkits = e.Medkits,
@@ -321,7 +324,7 @@ local function publish(e: Expedition)
 	})
 end
 
-local function findsText(finds: { [string]: number }, recruits: number): string
+local function findsText(finds: { [string]: number }, recruits: number, blueprints: number?): string
 	local parts = {}
 	for _, id in Config.Ids("Resources") do
 		local amount = finds[id]
@@ -331,6 +334,9 @@ local function findsText(finds: { [string]: number }, recruits: number): string
 	end
 	if recruits > 0 then
 		table.insert(parts, if recruits == 1 then "A RECRUIT" else `{recruits} RECRUITS`)
+	end
+	if blueprints and blueprints > 0 then
+		table.insert(parts, if blueprints == 1 then "A BLUEPRINT" else `{blueprints} BLUEPRINTS`)
 	end
 	return if #parts > 0 then table.concat(parts, " · ") else "NOTHING FOUND"
 end
@@ -493,6 +499,7 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 		Medkits = medkits,
 		Finds = {},
 		Recruits = 0,
+		Blueprints = 0,
 		Log = {},
 		State = "Away",
 		CallIn = nil,
@@ -556,7 +563,12 @@ local function deliver(e: Expedition): string
 			recruits += 1
 		end
 	end
-	e.FindsText = findsText(got, recruits)
+	local blueprints = e.Blueprints
+	e.Blueprints = 0
+	if blueprints > 0 then
+		ExpeditionService.BlueprintsHome:Fire(blueprints, e.Destination)
+	end
+	e.FindsText = findsText(got, recruits, blueprints)
 	return e.FindsText :: string
 end
 
@@ -790,6 +802,8 @@ local function find(e: Expedition, away: { Member })
 			e.Finds[drop.Resource] = (e.Finds[drop.Resource] or 0) + drop.Count
 		elseif drop.Special == "Recruit" and e.Recruits < t().RecruitsMax then
 			e.Recruits += 1
+		elseif drop.Special == "Blueprint" then
+			e.Blueprints += 1
 		end
 	end
 end
@@ -837,7 +851,7 @@ local function live(e: Expedition, forced: string?)
 	else
 		note(e, line(e, "Quiet", { names = Expeditions.Names(namesOf(e, { Away = true })), place = place }), away)
 	end
-	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Trip, event, findsText(e.Finds, e.Recruits))
+	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Trip, event, findsText(e.Finds, e.Recruits, e.Blueprints))
 	if #membersWith(e, "Away") == 0 and e.State == "Away" then
 		publish(e)
 		settle(e)
@@ -1046,7 +1060,7 @@ local function describe(): string
 			e.Id, e.Destination, if e.Band then ` ({e.Band})` else "", table.concat(members, ", "), e.Done, e.Trip,
 			if e.Trip < e.Cycles then ` (a fast team: {e.Cycles} picked)` else "", e.LeftAt, e.State,
 			if e.CallIn then string.format(" in %.0fs", e.CallIn) elseif e.Deadline then ` deadline cycle {e.Deadline} at {e.Where}` else "",
-			e.Food, e.Water, e.Medkits, findsText(e.Finds, e.Recruits)))
+			e.Food, e.Water, e.Medkits, findsText(e.Finds, e.Recruits, e.Blueprints)))
 		for _, entry in e.Log do
 			table.insert(lines, `    {entry}`)
 		end

@@ -40,6 +40,8 @@
 		ResidentService:Count(): number                -- residents in the run (not dead; the away too)
 		ResidentService:SetAway(id, on, health?): (boolean, string?) -- an expedition sets out / comes home (Prompt 18)
 		ResidentService:Wound(id, amount): number, :GainXP(id, xp), :Note(id, text), :Lose(id, how)
+		ResidentService:AddLevels(n, why): number      -- every resident n levels up now (Prompt 19: Field Training)
+		ResidentService:AddMorale(amount, why): number -- every resident's morale now (Prompt 19: Morale Broadcast)
 		ResidentService.Changed: Signal<string>         -- a resident's data changed
 		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
 		ResidentService.Died: Signal<string, string>    -- resident, how
@@ -454,6 +456,53 @@ function ResidentService:GainXP(id: string, xp: number)
 		announce("Info", `{string.upper(Residents.Name(resident))} REACHED LEVEL {resident.Level}`)
 	end
 	publish(resident)
+end
+
+-- Every resident (the away too, not the dead) goes up n levels now, each level adding to their
+-- job's stat (or their best with no job), as levels always do (Prompt 19: Field Training).
+function ResidentService:AddLevels(n: number, why: string): number
+	local raised = 0
+	local maxLevel = Config.Get("Tuning", "Residents").LevelMax
+	for _, resident in residents do
+		if resident.State ~= "Dead" and resident.Level < maxLevel then
+			local room = if resident.Job then grid:Room(resident.Job) else nil
+			local stat = if room then Residents.JobStat(room.Type) else nil
+			local gained = 0
+			for _ = 1, n do
+				if resident.Level >= maxLevel then
+					break
+				end
+				gained += Residents.AddXP(resident, math.max(Residents.XPToLevel(resident.Level) - resident.XP, 0), stat)
+			end
+			if gained > 0 then
+				raised += 1
+				logLine(resident, `reached level {resident.Level} ({why})`)
+				publish(resident)
+			end
+		end
+	end
+	if raised > 0 then
+		announce("Info", `{string.upper(why)}: {raised} RESIDENTS LEVEL UP`)
+	end
+	economy:RefreshCrew()
+	return raised
+end
+
+-- Every resident's morale goes up (or down) by `amount` now (Prompt 19: Morale Broadcast).
+function ResidentService:AddMorale(amount: number, why: string): number
+	local reached = 0
+	for _, resident in residents do
+		if resident.State ~= "Dead" then
+			resident.Morale = math.clamp(resident.Morale + amount, 0, 100)
+			reached += 1
+			publish(resident)
+		end
+	end
+	if reached > 0 then
+		announce("Info", `{string.upper(why)}: {if amount >= 0 then "+" else ""}{math.floor(amount)} MORALE FOR EVERYONE`)
+	end
+	economy:RefreshCrew()
+	return reached
 end
 
 -- A line in a resident's run log (Section 11).

@@ -30,8 +30,12 @@
 	  stockpile. A player downed in the Deep drops their pack too (Prompt 17).
 	* Loot specials (Prompt 17): Give hands a Special to the handler its owner set (SetSpecial:
 	  DeepService plays radio logs and pays Glowshard chests); the rest are left over.
+	* Blueprints (Prompt 19): DraftService's Blueprint special draws a card and GiveCard puts it in
+	  the pack as a stack of its own (the card's id, one a slot). Unloading hands the cards home
+	  (CardsHome) for the next draft, like any loot that only counts once hauled.
 
-	Signals: Unloaded(player, delivered: { [resource]: number }), Delivered(player, kind, given).
+	Signals: Unloaded(player, delivered: { [resource]: number }), Delivered(player, kind, given),
+	CardsHome(player, card ids).
 	Dev: pack, pack.add <resource> <n>, pack.clear, pills <n>, find [kind], finds.
 ]]
 
@@ -61,11 +65,12 @@ local InventoryService = {
 	},
 	Unloaded = Signal.new() :: Signal.Signal<Player, { [string]: number }>,
 	Delivered = Signal.new() :: Signal.Signal<Player, string, { Loot.Drop }>,
+	CardsHome = Signal.new() :: Signal.Signal<Player, { string }>,
 }
 
--- Loot nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18), the Lamp
--- (placeables). Radio logs and Glowshards go to their handlers (SetSpecial, Prompt 17).
-local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Lamp = true }
+-- Loot nothing hands out yet: gear (Prompt 26), recruits (18), the Lamp (placeables). Radio
+-- logs, Glowshards (Prompt 17) and blueprints (Prompt 19) go to their handlers (SetSpecial).
+local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Lamp = true }
 local HALL_UNLOAD = Vector3.new(15, 0, 1) -- from the Blast Door's Door socket, towards the shaft: far enough from
 -- RIDE UP (at the socket) that one prompt never hides the other (playtest: at 9 studs the elevator won the E press)
 local UNLOAD_RANGE = 8
@@ -246,6 +251,20 @@ function InventoryService:Give(player: Player, drops: { Loot.Drop }): ({ Loot.Dr
 	packs[player] = pack
 	publish(player)
 	return given, left
+end
+
+-- A blueprint's card into the player's pack (Prompt 19): its own slot; false when the pack is full.
+function InventoryService:GiveCard(player: Player, cardId: string): boolean
+	if not Config.Find("DraftCards", cardId) then
+		return false
+	end
+	local pack, took = Surface.Fit(packs[player] or {}, slotsOf(player), cardId, 1)
+	if took < 1 then
+		return false
+	end
+	packs[player] = pack
+	publish(player)
+	return true
 end
 
 -- Loot specials (Prompt 17): who handles a Special, and handing one over (how many were taken).
@@ -567,6 +586,22 @@ end
 -- Unloading -------------------------------------------------------------------------------------
 
 function InventoryService:Unload(player: Player): { [string]: number }
+	-- blueprints (Prompt 19) come out first: home, they join the next draft
+	local cards: { string } = {}
+	local kept = {}
+	for _, stack in packs[player] or {} do
+		if Config.Find("DraftCards", stack.Id) then
+			for _ = 1, stack.Count do
+				table.insert(cards, stack.Id)
+			end
+		else
+			table.insert(kept, stack)
+		end
+	end
+	if #cards > 0 then
+		packs[player] = kept
+		InventoryService.CardsHome:Fire(player, cards)
+	end
 	local pack = packs[player] or {}
 	local room: { [string]: number } = {}
 	for _, stack in pack do

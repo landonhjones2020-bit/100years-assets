@@ -170,6 +170,10 @@ local function nameOf(id: string): string
 	if resource then
 		return resource.Name
 	end
+	local card = Config.Find("DraftCards", id) -- a blueprint (Prompt 19)
+	if card then
+		return `blueprint: {card.Name}`
+	end
 	local item = Config.Find("Items", id)
 	return if item then item.Name else id
 end

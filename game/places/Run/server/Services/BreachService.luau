@@ -26,6 +26,8 @@
 		BreachService:Pick(rng): point?                    -- weighted
 		BreachService:Open(pointId, groups, tag?): boolean
 		BreachService:SetExtraPoint(id, point?)            -- Prompt 14: cave openings and nests
+		BreachService:SetModifier(source, "DarkSpawnBonus", value?) -- Prompt 19: Deep Lamps scales the
+		                                                   -- extra weight of dark rooms (0.5 halves it)
 		BreachService.Opened: Signal<string, string?>      -- point id, tag (after the warning)
 	Dev: breaches, breach.
 ]]
@@ -74,6 +76,7 @@ local collection: any = nil
 
 local warnings: { [string]: { EndsAt: number, Tag: string? } } = {}
 local extra: { [string]: Point } = {} -- points other services add (Prompt 14: cave openings, nests)
+local darkBonus: { [string]: number } = {} -- source -> DarkSpawnBonus (Prompt 19: Deep Lamps)
 
 local function threatTuning(): { [string]: any }
 	return Config.Get("Tuning", "Threat")
@@ -98,7 +101,12 @@ local function roomPoint(room: any, dark: boolean): Point
 	-- monsters drop from the vent to the floor in front of it, a little into the room
 	local out = Vector3.new(source.X, cell.Y + 0.5, math.min(source.Z + 4, cell.Z + 4))
 	local t = threatTuning()
-	local weight = if dark then t.DarkRoomWeight else 1
+	-- a dark room's extra weight, scaled by DarkSpawnBonus (Deep Lamps halves it: 2 becomes 1.5)
+	local bonus = 1
+	for _, v in darkBonus do
+		bonus *= v
+	end
+	local weight = if dark then 1 + (t.DarkRoomWeight - 1) * bonus else 1
 	return {
 		Id = `V:{room.Id}`,
 		Kind = "Vent",
@@ -173,6 +181,11 @@ function BreachService:Points(): { Point }
 end
 
 -- A breach point another service owns (Prompt 14: a cave opening, a living nest); nil removes it.
+function BreachService:SetModifier(source: string, key: string, value: number?)
+	assert(key == "DarkSpawnBonus", `BreachService:SetModifier: {key} isn't a breach modifier`)
+	darkBonus[source] = value
+end
+
 function BreachService:SetExtraPoint(id: string, point: Point?)
 	extra[id] = point
 end

@@ -11,7 +11,7 @@ export type PlaceKind = "Lobby" | "Run"
 
 local Constants = {}
 
-Constants.GAME_NAME = "100 Years Of Fallout"
+Constants.GAME_NAME = "100 Years Below" -- Landon, 2026-11-09 (on legal advice; was 100 Years Of Fallout)
 Constants.UNIVERSE_ID = 10775267993
 Constants.OWNER_USER_ID = 9768530298
 

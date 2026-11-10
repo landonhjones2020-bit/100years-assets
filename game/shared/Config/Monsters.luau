@@ -176,6 +176,19 @@ return {
 			Traits = { "Fades", "Shoots" },
 			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider",
 		},
+		-- Landon (Prompt 16): "melee or rifles": about a third of raiders charge in with a club or
+		-- pipe (Tuning.Surface.RaiderMeleeShare). Same raider, close in, no rifle.
+		AshRaiderMelee = {
+			Name = "Ash Raider",
+			Where = { "Surface" },
+			Role = "Fighter",
+			Text = "The raiders who charge in with a club or a pipe instead of a rifle; collapses and fades when beaten.",
+			Health = 130, Damage = 14, AttackSeconds = 1.2, Range = 5, MoveSpeed = 17,
+			Targets = { "BlastDoor", "Residents", "Players", "Machines" },
+			ThreatCost = 5, Group = { Min = 2, Max = 5 },
+			Traits = { "Fades" },
+			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider",
+		},
 		AshJackal = {
 			Name = "Ash Jackal",
 			Where = { "Surface" },

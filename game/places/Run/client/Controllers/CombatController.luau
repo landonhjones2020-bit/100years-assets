@@ -142,6 +142,12 @@ local function stamina(): number
 	return if type(value) == "number" then value else p.Stamina
 end
 
+-- Max stamina: Tuning's, or more with Field Rations (Prompt 19: the StaminaMax attribute)
+local function staminaMax(): number
+	local value = player:GetAttribute("StaminaMax")
+	return if type(value) == "number" and value > 0 then value else p.Stamina
+end
+
 local function carried(): number
 	local value = player:GetAttribute("CarriedAmmo")
 	return if type(value) == "number" then value else 0
@@ -1077,7 +1083,7 @@ function CombatController:Start()
 		end
 	end)
 	player:GetAttributeChangedSignal("Stamina"):Connect(function()
-		hud:SetVital("Stamina", math.clamp(stamina() / p.Stamina, 0, 1))
+		hud:SetVital("Stamina", math.clamp(stamina() / staminaMax(), 0, 1))
 	end)
 	player:GetAttributeChangedSignal("Life"):Connect(applyLife)
 	Remotes.OnClient("HitConfirmed", function(targetId: any, damage: any, killed: any, point: any)
@@ -1109,7 +1115,7 @@ function CombatController:Start()
 		end
 		refreshHotbar()
 		refreshMedkits()
-		hud:SetVital("Stamina", math.clamp(stamina() / p.Stamina, 0, 1))
+		hud:SetVital("Stamina", math.clamp(stamina() / staminaMax(), 0, 1))
 	end)
 
 	local lastSecond = -1

@@ -1,4 +1,4 @@
-# 100 Years Of Fallout: art contract
+# 100 Years Below: art contract
 
 Every generator follows this file, and the bible (Sections 3, 18 and 19) wins where they
 differ. Library: `generators/lib/steadfast.py`. Treat the dimensions as an interface: the

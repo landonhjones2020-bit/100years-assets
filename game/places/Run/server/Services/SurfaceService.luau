@@ -25,7 +25,7 @@
 	  (RadiationPerSecond, StormRadiationPerSecond in a storm, times RadiationGain) and with each Ash
 	  Wraith hit (Radiates); a working Decon Room clears it (Section 6). At PillUseAt a carried
 	  Clear-Rad pill is taken by itself; at the max it drains health (RadiationHealthDrainPerSecond).
-	  A new life (a respawn) starts clean.
+	  A new life (a respawn) keeps half of it (Landon, Prompt 16).
 	* Creatures (Section 12; Config.Monsters, Where Surface): while players are on the surface, packs
 	  of Ash Jackals by day, Ash Raiders from RaiderMinEra and Ash Wraiths only in storms, at
 	  SpawnPoint markers SpawnDistance from the players, at most MaxMonsters at once (within the
@@ -43,7 +43,10 @@
 	  killed stay dead. CrewWhere() says where the camp is for the radio logs.
 
 	API: Zone(player), Storm(), Radiation(player), AddRadiation(player, amount, why), Map(), CrewWhere(),
-	DistressSpot() (Prompt 18: where an expedition radioing for help is pinned down, and the place's name).
+	DistressSpot() (Prompt 18: where an expedition radioing for help is pinned down, and the place's name),
+	SetLootBoost(multiplier) and SetStormEarly(seconds) (Prompt 19, Salvage Rights: containers give that many
+	times the loot until the next storm, and the next storm hits that many seconds before its Surge;
+	Tuning.Draft.StormEarlyWarnSeconds of warning for players up top).
 	Signals: ZoneChanged(player, zone), Searched(player, location, given).
 	Dev: surface, surface.up [player], surface.down [player], rad <n>, storm <on|off>, loot.refill,
 	surface.spawn <type> [n], survivor, surface.find.
@@ -79,7 +82,7 @@ local SurfaceService = {
 }
 
 -- loot nothing hands out yet (radio logs play through InventoryService's handler, Prompt 17)
-local SKIP: { [string]: boolean } = { Gear = true, Blueprint = true, Recruit = true, Glowshards = true, Lamp = true }
+local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Glowshards = true, Lamp = true } -- blueprints: Prompt 19
 local CAMP_TAG = "Camp"
 local CREW_TAG = "CrewSurface" -- the surface's Lost Crew (Config.Objectives)
 local SURFACE_TAG = "Surface"
@@ -131,6 +134,10 @@ local earlyWarned: { [Player]: number } = {} -- the cycle a Scout heard the stor
 local riding: { [Player]: boolean } = {}
 local creatures: { [string]: string } = {} -- surface monster id -> type
 local storm = false
+local lootBoost: number? = nil -- Prompt 19, Salvage Rights: loot times this until the next storm
+local stormEarly = 0 -- Prompt 19, Salvage Rights: the next storm hits this many seconds before its Surge
+local stormEarlyWarned = false
+local raiderKind: (string) -> string -- below: AshRaider or, a third of the time, AshRaiderMelee
 local emptySince = 0
 local nextAt: { [string]: number } = { AshJackal = 0, AshRaider = 0, AshWraith = 0 }
 local rng = Random.new()
@@ -418,7 +425,12 @@ local function search(c: Container, player: Player)
 	if not location then
 		return
 	end
-	local drops = c.Left or Loot.Roll(location.Loot, rng, { Skip = SKIP, ExtraRolls = classValue(player, "ExtraLootRolls") or 0 })
+	local extraRolls = classValue(player, "ExtraLootRolls") or 0
+	if lootBoost and lootBoost > 1 then
+		local lootTable = Config.Find("LootTables", location.Loot)
+		extraRolls += math.floor((if lootTable then lootTable.Rolls else 1) * (lootBoost - 1) + 0.5)
+	end
+	local drops = c.Left or Loot.Roll(location.Loot, rng, { Skip = SKIP, ExtraRolls = extraRolls })
 	local given, left = inventory:Give(player, drops)
 	if #left > 0 then
 		c.Left = left
@@ -730,7 +742,7 @@ local function campTick()
 			-- the guards come out at their posts (the ones still standing)
 			for i = 1, math.min(c.Left, #c.Posts) do
 				local post = c.Posts[i]
-				local id = monsterService:Spawn("AshRaider", post + Vector3.new(0, 3, 0), CAMP_TAG, { Guard = deep.GuardRange })
+				local id = monsterService:Spawn(raiderKind("AshRaider"), post + Vector3.new(0, 3, 0), CAMP_TAG, { Guard = deep.GuardRange })
 				if id then
 					c.Guards[id] = true
 				end
@@ -747,6 +759,17 @@ end
 -- Storms ----------------------------------------------------------------------------------------
 
 local function setStorm(on: boolean)
+	if on and lootBoost then
+		lootBoost = nil
+		log:Info("the salvage boost ends with the storm")
+	end
+	if on then
+		stormEarly = 0
+		stormEarlyWarned = false
+	end
+	if on == storm then
+		return
+	end
 	storm = on
 	set("Storm", on)
 	if on then
@@ -775,6 +798,21 @@ local function earlyWarnings()
 		return
 	end
 	local left = endsAt - now()
+	-- Salvage Rights (Prompt 19): this storm hits stormEarly seconds before its Surge
+	if stormEarly > 0 then
+		local warn = Config.Get("Tuning", "Draft").StormEarlyWarnSeconds
+		if not stormEarlyWarned and left <= stormEarly + warn then
+			stormEarlyWarned = true
+			for _, player in onSurface() do
+				alert(player, "Warning", `THE STORM IS COMING EARLY: {math.ceil(math.max(left - stormEarly, 0))} S`)
+			end
+		end
+		if left <= stormEarly then
+			log:Info("the storm hits %d s early", stormEarly)
+			setStorm(true)
+			return
+		end
+	end
 	local cycle = RunState.Get("Cycle") or 0
 	for _, player in onSurface() do
 		local extra = classValue(player, "StormWarningSeconds") or 0
@@ -786,6 +824,14 @@ local function earlyWarnings()
 end
 
 -- Creatures -------------------------------------------------------------------------------------
+
+-- Landon (Prompt 16): about a third of Ash Raiders fight hand to hand (RaiderMeleeShare).
+raiderKind = function(monsterType: string): string
+	if monsterType == "AshRaider" and rng:NextNumber() < (t().RaiderMeleeShare or 0) then
+		return "AshRaiderMelee"
+	end
+	return monsterType
+end
 
 local function spawnGroup(monsterType: string, range: { Min: number, Max: number }, room: number): number
 	local spec = Config.Find("Monsters", monsterType)
@@ -807,7 +853,7 @@ local function spawnGroup(monsterType: string, range: { Min: number, Max: number
 	for i = 1, count do
 		local angle = i / count * math.pi * 2
 		local at = (spot :: Vector3) + Vector3.new(math.cos(angle) * 3, 0, math.sin(angle) * 3)
-		monsterService:Spawn(monsterType, CFrame.new(at + Vector3.new(0, 3, 0)), SURFACE_TAG)
+		monsterService:Spawn(raiderKind(monsterType), CFrame.new(at + Vector3.new(0, 3, 0)), SURFACE_TAG)
 	end
 	log:Info("%d %s on the surface", count, monsterType)
 	return count
@@ -1060,6 +1106,18 @@ local function registerCommands(dev: any)
 	})
 end
 
+-- Salvage Rights (Prompt 19): containers give `multiplier` times the loot until the next storm.
+function SurfaceService:SetLootBoost(multiplier: number)
+	lootBoost = if multiplier > 1 then multiplier else nil
+	log:Info("loot x%.1f until the next storm", multiplier)
+end
+
+-- Salvage Rights (Prompt 19): the next storm hits `seconds` before its Surge.
+function SurfaceService:SetStormEarly(seconds: number)
+	stormEarly = math.max(stormEarly, seconds)
+	stormEarlyWarned = false
+end
+
 function SurfaceService:Init(registry)
 	clock = registry.CycleClock
 	director = registry.RunDirector
@@ -1088,6 +1146,9 @@ function SurfaceService:Start()
 	end)
 	clock.CycleStarted:Connect(newDay)
 	clock.SirenStarted:Connect(function()
+		if storm then
+			return -- it hit early (Salvage Rights)
+		end
 		local endsAt = RunState.Get("PhaseEndsAt")
 		if type(endsAt) == "number" then
 			set("StormAt", endsAt)
@@ -1139,10 +1200,11 @@ function SurfaceService:Start()
 		player:SetAttribute("Radiation", 0)
 		player:SetAttribute("Zone", "Bunker")
 		player.CharacterAdded:Connect(function()
-			-- a new life starts clean (a Bible Question: the bible doesn't say)
-			radiation[player] = 0
+			-- Landon (Prompt 16): a new life keeps half the radiation the last one had
+			local kept = math.floor((radiation[player] or 0) / 2 + 0.5)
+			radiation[player] = kept
 			warned[player] = 0
-			player:SetAttribute("Radiation", 0)
+			player:SetAttribute("Radiation", kept)
 		end)
 	end
 	for _, player in Players:GetPlayers() do

@@ -251,6 +251,51 @@
   ],
   "slice": null
  },
+ "Draft_BunkerPerk": {
+  "group": "draft",
+  "note": "blueprint draft card, BunkerPerk; window 344x176 at y 110; name and text below (Prompt 19)",
+  "size": [
+   400,
+   440
+  ],
+  "slice": null
+ },
+ "Draft_PlayerBoon": {
+  "group": "draft",
+  "note": "blueprint draft card, PlayerBoon; window 344x176 at y 110; name and text below (Prompt 19)",
+  "size": [
+   400,
+   440
+  ],
+  "slice": null
+ },
+ "Draft_ResidentBoon": {
+  "group": "draft",
+  "note": "blueprint draft card, ResidentBoon; window 344x176 at y 110; name and text below (Prompt 19)",
+  "size": [
+   400,
+   440
+  ],
+  "slice": null
+ },
+ "Draft_RiskDeal": {
+  "group": "draft",
+  "note": "blueprint draft card, RiskDeal; window 344x176 at y 110; name and text below (Prompt 19)",
+  "size": [
+   400,
+   440
+  ],
+  "slice": null
+ },
+ "Draft_Room": {
+  "group": "draft",
+  "note": "blueprint draft card, Room; window 344x176 at y 110; name and text below (Prompt 19)",
+  "size": [
+   400,
+   440
+  ],
+  "slice": null
+ },
  "Flip_Tile": {
   "note": "flip-counter tile (year): digit drawn live on top",
   "size": [
@@ -818,6 +863,15 @@
   "note": "Disturbance seismograph; paper spans x 14..346, pen at x 330",
   "size": [
    384,
+   128
+  ],
+  "slice": null
+ },
+ "Stamp_Found": {
+  "group": "draft",
+  "note": "ink stamp",
+  "size": [
+   256,
    128
   ],
   "slice": null

@@ -218,6 +218,137 @@ for _r in RARITY:
              card(_r))
 
 
+# Blueprint draft cards (Prompt 19): a shorter catalog card with a sunburst window in the card
+# kind's colour, an emblem in the window and the kind's enamel tag. The card's name and short
+# text are UI text on the paper below (VoteController fills them).
+# ------------------------------------------------------------------------------------------
+
+DRAFT_W, DRAFT_H = 400, 440
+DWIN_W, DWIN_H, DWIN_CY = 344, 176, 110     # emblem window (sprite px, centre y from card centre)
+# kind: (enamel, light ray, tag text colour, tag label)
+DRAFT_KINDS = {
+    "Room": ("#2F6F73", "#63A3A6", "#F2E6C9", "ROOM"),
+    "BunkerPerk": ("#3B5873", "#7395B2", "#F2E6C9", "BUNKER PERK"),
+    "ResidentBoon": ("#5C8A3C", "#93C06E", "#F2E6C9", "RESIDENT BOON"),
+    "PlayerBoon": ("#D0662F", "#F2A06A", "#1B2A3A", "PLAYER BOON"),
+    "RiskDeal": ("#9E3A26", "#D06A50", "#F2E6C9", "RISK DEAL"),
+}
+
+
+def _off(pts, dx, dy, s=1.0):
+    return [(x * s + dx, y * s + dy) for x, y in pts]
+
+
+def emblem_room(cy):
+    """A blueprint sheet with a room plan, one corner curling up."""
+    blue = mat("enamel", "#2E5C8E", rough=0.5)
+    white = mat("enamel", "#E8F0F6", rough=0.4)
+    K.rr_slab(150, 104, 4, 4, 7, blue, cy=cy, bevel=0.8, seg=1)
+    for gx in range(-60, 61, 15):
+        K.box(1.2, 96, 7, 7.4, mat("enamel", "#5E86B4"), cx=gx, cy=cy)
+    for gy in range(-40, 41, 15):
+        K.box(142, 1.2, 7, 7.4, mat("enamel", "#5E86B4"), cy=cy + gy)
+    # the plan: two rooms, a doorway and a stair
+    for (w, h, x, y) in ((96, 3, -6, 30), (96, 3, -6, -30), (3, 63, -54, 0), (3, 63, 42, 0), (3, 22, -6, 19),
+                         (3, 22, -6, -19)):
+        K.box(w, h, 7.4, 8.6, white, cx=x, cy=cy + y)
+    for i in range(5):
+        K.box(14, 2, 7.4, 8.6, white, cx=22, cy=cy - 20 + i * 9)
+    K.disc(9, 4, 12, mat("enamel", "#24496F", rough=0.5), cx=70, cy=cy + 46, n=24, bevel=1.2, seg=2)
+
+
+def emblem_perk(cy):
+    """A brass shield with a navy face and a star (as Icon_Shield), larger."""
+    def shield(sc):
+        pts = [(-40, 46), (40, 46), (40, 6)]
+        for i in range(1, 12):
+            t = i / 12
+            pts.append((40 * math.cos(t * math.pi / 2), 6 - 52 * math.sin(t * math.pi / 2) ** 1.4))
+        pts.append((0, -50))
+        for i in range(11, 0, -1):
+            t = i / 12
+            pts.append((-40 * math.cos(t * math.pi / 2), 6 - 52 * math.sin(t * math.pi / 2) ** 1.4))
+        pts.append((-40, 6))
+        return [(x * sc, y * sc + cy) for x, y in pts]
+    K.poly(shield(1.32), 2, 13, mat("metal", C["brass"], rough=0.22), bevel=2.8, seg=3)
+    K.poly(shield(1.03), 13, 14.5, mat("enamel", C["navy"]), bevel=0.8, seg=1)
+    star = []
+    for i in range(10):
+        r = 29 if i % 2 == 0 else 12
+        a = math.radians(90 + 36 * i)
+        star.append((r * math.cos(a), r * math.sin(a) + 3 + cy))
+    K.poly(star, 14.5, 20, mat("metal", C["brass"], rough=0.2), bevel=1.6, seg=2)
+
+
+def emblem_resident(cy):
+    """Two residents, one behind the other, with a level-up chevron."""
+    for (dx, dy, k, coat) in ((-30, 8, 0.82, "#3B6E68"), (14, -4, 1.0, C["teal"])):
+        K.disc(19 * k, 3, 3 + 20 * k, mat("enamel", C["cream"], rough=0.4), cx=dx, cy=cy + dy + 24 * k, n=48,
+               bevel=5 * k, seg=3)
+        K.sector(40 * k, 0, 0, 180, 3, 3 + 18 * k, mat("enamel", coat, rough=0.3), cx=dx, cy=cy + dy - 42 * k, n=48,
+                 bevel=5 * k, seg=3)
+    chev = [(0, 18), (22, -4), (14, -12), (0, 2), (-14, -12), (-22, -4)]
+    for i in range(2):
+        K.poly(_off(chev, 58, cy + 10 - i * 18, 1.0), 6, 16, mat("enamel", C["hazard"], rough=0.3), bevel=1.6, seg=2)
+
+
+def emblem_player(cy):
+    """A chrome badge with a brass star (Steadfast's own), on a ribbon."""
+    rib = mat("enamel", C["signal"], rough=0.35)
+    K.poly([(-22, cy - 10), (-6, cy - 10), (-14, cy - 72), (-26, cy - 60)], 2, 6, rib, bevel=0.8, seg=1)
+    K.poly([(6, cy - 10), (22, cy - 10), (26, cy - 60), (14, cy - 72)], 2, 6, rib, bevel=0.8, seg=1)
+    K.disc(48, 6, 14, mat("chrome", rough=0.18), cy=cy + 10, n=64, bevel=3.0, seg=3)
+    K.disc(38, 14, 15.5, mat("enamel", C["navy"]), cy=cy + 10, n=64, bevel=0.6, seg=1)
+    star = []
+    for i in range(10):
+        r = 30 if i % 2 == 0 else 13
+        a = math.radians(90 + 36 * i)
+        star.append((r * math.cos(a), r * math.sin(a) + cy + 10))
+    K.poly(star, 15.5, 21, mat("metal", C["brass"], rough=0.2), bevel=1.6, seg=2)
+
+
+def emblem_risk(cy):
+    """A hazard diamond with an exclamation mark, on black and yellow stripes."""
+    K.rr_slab(112, 112, 10, 2, 12, mat("enamel", C["navy"]), cy=cy, bevel=2.0, seg=2)
+    d = 54
+    K.poly([(0, cy + d), (d, cy), (0, cy - d), (-d, cy)], 12, 18, mat("enamel", C["hazard"], rough=0.3), bevel=1.8, seg=2)
+    K.box(11, 46, 18, 22, mat("enamel", C["navy"]), cy=cy + 8, bevel=1.2, seg=2)
+    K.disc(7, 18, 22, mat("enamel", C["navy"]), cy=cy - 28, n=24, bevel=1.2, seg=2)
+
+
+EMBLEMS = {"Room": emblem_room, "BunkerPerk": emblem_perk, "ResidentBoon": emblem_resident,
+           "PlayerBoon": emblem_player, "RiskDeal": emblem_risk}
+
+
+def draft_card(kind):
+    def build():
+        dark, light, txt, label = DRAFT_KINDS[kind]
+        K.rr_ring(DRAFT_W - 16, DRAFT_H - 16, 24, 10, 0, 9, mat("chrome"), bevel=4.0, seg=4)
+        K.rr_slab(DRAFT_W - 32, DRAFT_H - 32, 15, 0, 4, mat("paper", C["paper"]), bevel=0.8, seg=2)
+        img = P.sunburst(os.path.join(K.TMP, f"sun_draft_{kind}.png"), DWIN_W, DWIN_H, dark, light, cy=0.5)
+        K.plane_image(img, DWIN_W, DWIN_H, 4.3, cy=DWIN_CY, rough=0.7)
+        K.rr_ring(DWIN_W + 8, DWIN_H + 8, 13, 4.5, 3.6, 6.8, mat("chrome"), bevel=1.6, seg=3, cy=DWIN_CY)
+        EMBLEMS[kind](DWIN_CY + 4)
+        # the kind's tag straddling the window's bottom edge
+        tw = 70 + 15.5 * len(label)
+        tx, ty = -DWIN_W / 2 + 10 + tw / 2, DWIN_CY - DWIN_H / 2
+        K.rr_ring(tw + 6, 50, 11, 3.5, 6, 9.5, mat("chrome"), bevel=1.4, seg=3, cx=tx, cy=ty)
+        K.rr_slab(tw, 44, 9, 6, 9.0, mat("enamel", dark), bevel=1.2, seg=2, cx=tx, cy=ty)
+        K.text(label, tx, ty - 1, 9.05, 25, mat("ink", txt), spacing=1.1)
+        # printed rule under where the name sits
+        ink = mat("ink", C["ink"])
+        for i in range(41):
+            K.box(3.0, 3.0, 4, 4.25, ink, cx=-160 + i * 8, cy=-46)
+    return build
+
+
+for _k in DRAFT_KINDS:
+    register(f"Draft_{_k}", DRAFT_W, DRAFT_H, None,
+             f"blueprint draft card, {_k}; window {DWIN_W}x{DWIN_H} at y {DWIN_CY}; name and text below (Prompt 19)",
+             draft_card(_k))
+    SPECS[f"Draft_{_k}"]["group"] = "draft"  # their own atlas, so the uploaded ones stay as they are
+
+
 # ------------------------------------------------------------------------------------------
 # Instruments
 # ------------------------------------------------------------------------------------------
@@ -851,12 +982,14 @@ PRINTED = {
     "Stamp_FreeTrial": (256, 128, lambda p: P.stamp(p, "FREE TRIAL", C["rust"], rot=-7)),
     "Stamp_Owned": (256, 128, lambda p: P.stamp(p, "OWNED", C["teal"], rot=6, seed=5)),
     "Stamp_Wishlist": (256, 128, lambda p: P.stamp(p, "WISHLIST", C["navy"], rot=-5, seed=9)),
+    "Stamp_Found": (256, 128, lambda p: P.stamp(p, "FOUND", C["rust"], rot=-8, seed=12)),  # Prompt 19
     "Gauge_Glass": (256, 256, lambda p: P.glass(p, 256)),
     "Grid_Blueprint": (64, 64, lambda p: P.grid_tile(p)),
 }
 for _n, (_w, _h, _fn) in PRINTED.items():
     SPECS[_n] = {"size": [_w, _h], "slice": None,
                  "note": {"Gauge_Glass": "glass over every gauge face", "Grid_Blueprint": "tile: ScaleType Tile, mini-map paper"}.get(_n, "ink stamp")}
+SPECS["Stamp_Found"]["group"] = "draft"  # Prompt 19: with the draft cards
 
 
 # ------------------------------------------------------------------------------------------

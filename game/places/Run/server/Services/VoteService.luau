@@ -26,10 +26,19 @@
 	  vote stays ResultSeconds with PASSED or FAILED, then goes.
 	* Studio: `vote.bots <n> [yes|no|abstain]` adds pretend voters to the team, so the team
 	  rules can be tried in a one-player playtest.
+	* Draft votes (Prompt 19, the blueprint draft): a spec with Options is a MostVotes vote. Each
+	  player picks one option (CastPick) and can change it until the vote closes; when time is up
+	  the option with the most picks wins, ties picked at random (Rules.Votes.Winner), and OnPass
+	  gets the winner. Everyone having picked closes it at once. Solo runs vote too: the player's
+	  pick is the team's (Section 8, rule 6), and it closes the vote at once. SetOptions swaps the
+	  options of an open draft (a reroll): the picks are cleared and, with
+	  Tuning.Draft.RerollRestartsTimer, the time starts over.
 
 	API:
 		VoteService:Open(spec): (string?, string?)     -- the vote id ("solo" when it applied at once), or why not
-		VoteService:Cast(player, id, "Yes" | "No"): (boolean, string?)
+		VoteService:Cast(player, id, "Yes" | "No" | option id): (boolean, string?)
+		VoteService:SetOptions(id, options): boolean           -- a draft's new cards (a reroll)
+		VoteService:Live(): (string?, Spec?)                    -- the vote on the banner
 		VoteService:CanPropose(player): (boolean, string?)
 		VoteService:Reserved(exceptId?): { [string]: boolean }  -- cell keys held by open votes
 		VoteService:TeamSize(): number
@@ -51,6 +60,15 @@ local Votes = require(Shared.Rules.Votes)
 
 local log = Log.new("VoteService")
 
+export type Option = {
+	Id: string, -- what OnPass gets when it wins (a draft card's id)
+	Title: string, -- "REINFORCED WALLS"
+	Kind: string?, -- a draft card's kind (Room, BunkerPerk...)
+	Label: string?, -- its kind tag: "BUNKER PERK"
+	Text: string?, -- its short text
+	Found: string?, -- a found blueprint: who found it ("FOUND BY LANDON")
+}
+
 export type Spec = {
 	Kind: string, -- a Config.Votes id
 	Proposer: Player?, -- nil for votes the game opens
@@ -60,11 +78,12 @@ export type Spec = {
 	Subject: { Floor: number, Column: number, Span: number, Label: string }?, -- the ghost outline
 	Cells: { string }?, -- cell keys it holds while open
 	Check: (() -> (boolean, string?))?, -- run again when it passes
-	OnPass: () -> (),
+	Options: { Option }?, -- a MostVotes vote (Prompt 19's draft): one of these wins
+	OnPass: (pick: string?) -> (), -- a draft's winner (nil for a yes or no vote)
 	OnFail: ((reason: string) -> ())?,
 }
 
-type Ballot = "Yes" | "No"
+type Ballot = string -- "Yes" or "No", or a draft option's Id
 type Status = "Queued" | "Live" | "Passed" | "Failed"
 type Vote = {
 	Id: string,
@@ -74,6 +93,7 @@ type Vote = {
 	Ballots: { [number]: Ballot }, -- by UserId; pretend voters are negative
 	EndsAt: number?,
 	Result: string?,
+	Winner: string?, -- a draft's winning option
 }
 
 local VoteService = {
@@ -90,6 +110,7 @@ local queue: { string } = {} -- open votes in order; the first is live
 local cooldowns: { [number]: number } = {} -- UserId -> os.clock() it ends
 local nextId = 0
 local tieBreaker: ((string) -> boolean)? = nil
+local pickRandom = Random.new() -- draft ties
 local bots: { [number]: Ballot | false } = {} -- Studio: pretend voters (-1, -2, ...); false abstains
 
 local function now(): number
@@ -130,6 +151,31 @@ local function count(vote: Vote): (number, number, number)
 	return yes, no, #members
 end
 
+local function optionIds(vote: Vote): { string }
+	local ids = {}
+	for _, option in vote.Spec.Options or {} do
+		table.insert(ids, option.Id)
+	end
+	return ids
+end
+
+-- A draft's picks: votes per option, and how many of the team have picked.
+local function tallyOptions(vote: Vote): ({ [string]: number }, number)
+	local counts: { [string]: number } = {}
+	for _, option in vote.Spec.Options or {} do
+		counts[option.Id] = 0
+	end
+	local picked = 0
+	for _, id in team() do
+		local choice = vote.Ballots[id]
+		if choice and counts[choice] ~= nil then
+			counts[choice] += 1
+			picked += 1
+		end
+	end
+	return counts, picked
+end
+
 local function nameOf(player: Player?): string
 	return if player then string.upper(player.DisplayName) else "THE BUNKER"
 end
@@ -142,6 +188,25 @@ local function publish(vote: Vote)
 	end
 	local position = table.find(queue, vote.Id)
 	local spec = vote.Spec
+	local options: { any }? = nil
+	local picked = 0
+	if spec.Options then
+		local counts
+		counts, picked = tallyOptions(vote)
+		local list = {}
+		for _, option in spec.Options do
+			table.insert(list, {
+				Id = option.Id,
+				Title = option.Title,
+				Kind = option.Kind,
+				Label = option.Label,
+				Text = option.Text,
+				Found = option.Found,
+				Votes = counts[option.Id] or 0,
+			})
+		end
+		options = list
+	end
 	collection:Set(vote.Id, {
 		Kind = spec.Kind,
 		Title = spec.Title,
@@ -161,6 +226,9 @@ local function publish(vote: Vote)
 		Ballots = ballots,
 		Subject = spec.Subject,
 		Result = vote.Result,
+		Options = options, -- a draft's cards with their picks (Prompt 19)
+		Picked = if options then picked else nil,
+		Winner = vote.Winner,
 	})
 end
 
@@ -194,9 +262,11 @@ local function goLive()
 	-- the 40% rule against the stockpile as it is when the team votes
 	vote.Rule = Votes.RuleFor(vote.Spec.Kind, Votes.BigSpend(vote.Spec.Costs, stockNow()))
 	vote.EndsAt = now() + Config.Get("Votes", vote.Spec.Kind).Seconds
-	for botId, ballot in bots do
-		if ballot then
-			vote.Ballots[botId] = ballot
+	if not vote.Spec.Options then -- pretend voters pick draft cards only when told to (vote.pick)
+		for botId, stance in bots do
+			if stance then
+				vote.Ballots[botId] = stance
+			end
 		end
 	end
 	log:Info("%s live: %s (%s)", vote.Id, vote.Spec.Title, vote.Rule)
@@ -204,7 +274,16 @@ local function goLive()
 	publishQueue()
 end
 
-local function close(vote: Vote, passed: boolean, reason: string?)
+local function titleOf(vote: Vote, optionId: string?): string
+	for _, option in vote.Spec.Options or {} do
+		if option.Id == optionId then
+			return option.Title
+		end
+	end
+	return tostring(optionId)
+end
+
+local function close(vote: Vote, passed: boolean, reason: string?, pick: string?)
 	if vote.Status ~= "Live" and vote.Status ~= "Queued" then
 		return
 	end
@@ -215,14 +294,17 @@ local function close(vote: Vote, passed: boolean, reason: string?)
 		end
 	end
 	vote.Status = if passed then "Passed" else "Failed"
-	vote.Result = if passed then "PASSED" else `FAILED: {string.upper(reason or "not enough yes")}`
+	vote.Winner = if passed then pick else nil
+	vote.Result = if passed and pick then `PICKED: {titleOf(vote, pick)}`
+		elseif passed then "PASSED"
+		else `FAILED: {string.upper(reason or "not enough yes")}`
 	local index = table.find(queue, vote.Id)
 	if index then
 		table.remove(queue, index)
 	end
 	local spec = vote.Spec
 	if passed then
-		local ok, err = pcall(spec.OnPass)
+		local ok, err = pcall(spec.OnPass, pick)
 		if not ok then
 			log:Error("%s passed but OnPass failed: %s", vote.Id, tostring(err))
 		end
@@ -249,6 +331,13 @@ local function close(vote: Vote, passed: boolean, reason: string?)
 end
 
 local function decide(vote: Vote)
+	if vote.Spec.Options then
+		-- a draft: the most picks wins, ties (none picked included) at random
+		local counts = tallyOptions(vote)
+		local winner = Votes.Winner(counts, optionIds(vote), pickRandom)
+		close(vote, winner ~= nil, if winner then nil else "nothing to pick", winner)
+		return
+	end
 	local yes, no, size = count(vote)
 	local result = Votes.Outcome(vote.Rule, yes, no, size)
 	if result == "Tie" and tieBreaker then
@@ -311,14 +400,14 @@ function VoteService:Open(spec: Spec): (string?, string?)
 		end
 	end
 	-- Solo: no vote; check it and apply it at once (Section 8, rule 6).
-	if tuning().SoloSkipsVotes and VoteService:TeamSize() <= 1 then
+	if tuning().SoloSkipsVotes and VoteService:TeamSize() <= 1 and not spec.Options then
 		if spec.Check then
 			local ok, why = spec.Check()
 			if not ok then
 				return nil, why
 			end
 		end
-		local ok, err = pcall(spec.OnPass)
+		local ok, err = pcall(spec.OnPass, nil)
 		if not ok then
 			log:Error("solo: %s failed to apply: %s", spec.Title, tostring(err))
 			return nil, "That couldn't be done (see the server log)."
@@ -349,15 +438,25 @@ function VoteService:Open(spec: Spec): (string?, string?)
 	return id, nil
 end
 
-function VoteService:Cast(player: Player, id: string, ballot: Ballot): (boolean, string?)
-	local vote = votes[id]
-	if not vote or vote.Status ~= "Live" then
-		return false, "That vote isn't open."
+-- A ballot from voter `voterId` (a player's UserId, or a pretend voter's negative id).
+local function ballot(vote: Vote, voterId: number, choice: Ballot): (boolean, string?)
+	if vote.Spec.Options then
+		if not table.find(optionIds(vote), choice) then
+			return false, "That isn't one of the cards."
+		end
+		vote.Ballots[voterId] = choice
+		local _, picked = tallyOptions(vote)
+		if picked >= #team() then
+			decide(vote) -- everyone has picked
+		else
+			publish(vote)
+		end
+		return true, nil
 	end
-	if not session:IsReady(player) then
-		return false, "You're not in the run yet."
+	if choice ~= "Yes" and choice ~= "No" then
+		return false, "That vote is yes or no."
 	end
-	vote.Ballots[player.UserId] = ballot
+	vote.Ballots[voterId] = choice
 	local yes, _, size = count(vote)
 	if Votes.AllYes(yes, size) then
 		close(vote, true, nil)
@@ -365,6 +464,43 @@ function VoteService:Cast(player: Player, id: string, ballot: Ballot): (boolean,
 		publish(vote)
 	end
 	return true, nil
+end
+
+function VoteService:Cast(player: Player, id: string, choice: Ballot): (boolean, string?)
+	local vote = votes[id]
+	if not vote or vote.Status ~= "Live" then
+		return false, "That vote isn't open."
+	end
+	if not session:IsReady(player) then
+		return false, "You're not in the run yet."
+	end
+	return ballot(vote, player.UserId, choice)
+end
+
+-- A draft's new cards (a reroll): its picks are cleared and, with RerollRestartsTimer, the time
+-- starts over. False when the vote isn't an open draft.
+function VoteService:SetOptions(id: string, options: { Option }): boolean
+	local vote = votes[id]
+	if not vote or not vote.Spec.Options or (vote.Status ~= "Live" and vote.Status ~= "Queued") or #options == 0 then
+		return false
+	end
+	vote.Spec.Options = options
+	table.clear(vote.Ballots)
+	if vote.Status == "Live" and Config.Get("Tuning", "Draft").RerollRestartsTimer then
+		vote.EndsAt = now() + Config.Get("Votes", vote.Spec.Kind).Seconds
+	end
+	publish(vote)
+	return true
+end
+
+-- The vote on the banner now, and its spec.
+function VoteService:Live(): (string?, Spec?)
+	local id = queue[1]
+	local vote = if id then votes[id] else nil
+	if vote and vote.Status == "Live" then
+		return vote.Id, vote.Spec
+	end
+	return nil, nil
 end
 
 function VoteService:SetTieBreaker(fn: (string) -> boolean)
@@ -385,9 +521,18 @@ local function describe(): string
 	for _, id in queue do
 		local vote = votes[id]
 		if vote then
-			local yes, no, size = count(vote)
 			local left = if vote.EndsAt then string.format(", %.0f s left", math.max(0, vote.EndsAt - now())) else ""
-			table.insert(lines, `{id} {vote.Status} {vote.Spec.Title}: {yes} yes, {no} no of {size} ({vote.Rule}{left})`)
+			if vote.Spec.Options then
+				local counts, picked = tallyOptions(vote)
+				local parts = {}
+				for i, option in vote.Spec.Options do
+					table.insert(parts, `{i} {option.Id} {counts[option.Id] or 0}`)
+				end
+				table.insert(lines, `{id} {vote.Status} {vote.Spec.Title}: {table.concat(parts, ", ")}; {picked} of {#team()} picked ({vote.Rule}{left})`)
+			else
+				local yes, no, size = count(vote)
+				table.insert(lines, `{id} {vote.Status} {vote.Spec.Title}: {yes} yes, {no} no of {size} ({vote.Rule}{left})`)
+			end
 		end
 	end
 	return table.concat(lines, "\n")
@@ -396,8 +541,19 @@ end
 function VoteService:Init(registry)
 	session = registry.SessionService
 	collection = registry.ReplicationService:Collection("Votes")
-	Remotes.OnServer("CastVote", function(player: Player, id: string, ballot: string)
-		local ok, why = VoteService:Cast(player, id, ballot :: Ballot)
+	Remotes.OnServer("CastVote", function(player: Player, id: string, choice: string)
+		local ok, why = VoteService:Cast(player, id, choice)
+		if not ok and why then
+			alert(player, "Info", why)
+		end
+	end)
+	Remotes.OnServer("CastPick", function(player: Player, id: string, option: string)
+		local vote = votes[id]
+		if vote and not vote.Spec.Options then
+			alert(player, "Info", "That vote is yes or no.")
+			return
+		end
+		local ok, why = VoteService:Cast(player, id, option)
 		if not ok and why then
 			alert(player, "Info", why)
 		end
@@ -410,10 +566,10 @@ function VoteService:Init(registry)
 			return describe()
 		end,
 	})
-	for _, ballot in { "Yes", "No" } do
-		dev:Register(`vote.{string.lower(ballot)}`, {
-			Description = `Vote {string.lower(ballot)} on the live vote, as you or as pretend voter n.`,
-			Usage = `vote.{string.lower(ballot)} [n]`,
+	for _, choice in { "Yes", "No" } do
+		dev:Register(`vote.{string.lower(choice)}`, {
+			Description = `Vote {string.lower(choice)} on the live vote, as you or as pretend voter n.`,
+			Usage = `vote.{string.lower(choice)} [n]`,
 			Run = function(player: Player?, args): string?
 				local id = queue[1]
 				local vote = if id then votes[id] else nil
@@ -425,12 +581,9 @@ function VoteService:Init(registry)
 					if bots[-bot] == nil then
 						return `no pretend voter {bot}`
 					end
-					vote.Ballots[-bot] = ballot :: Ballot
-					local yes, _, size = count(vote)
-					if Votes.AllYes(yes, size) then
-						close(vote, true, nil)
-					else
-						publish(vote)
+					local ok, why = ballot(vote, -bot, choice)
+					if not ok then
+						return why
 					end
 				else
 					-- from Studio's server tools there's no caller: vote as the first player in the run
@@ -438,12 +591,50 @@ function VoteService:Init(registry)
 					if not who then
 						return "nobody is in the run to vote as"
 					end
-					VoteService:Cast(who, id :: string, ballot :: Ballot)
+					local ok, why = VoteService:Cast(who, id :: string, choice)
+					if not ok then
+						return why
+					end
 				end
 				return describe()
 			end,
 		})
 	end
+	dev:Register("vote.pick", {
+		Description = "Pick a card on the live draft (its number or id), as you or as pretend voter n (Prompt 19).",
+		Usage = "vote.pick <card number|card id> [n]",
+		Run = function(player: Player?, args): string?
+			local id = queue[1]
+			local vote = if id then votes[id] else nil
+			if not vote or vote.Status ~= "Live" or not vote.Spec.Options then
+				return "no live draft"
+			end
+			local options = vote.Spec.Options :: { Option }
+			local which = tostring(args[1] or "")
+			local option = options[tonumber(which) or 0]
+			local choice = if option then option.Id else which
+			local bot = tonumber(args[2])
+			if bot then
+				if bots[-bot] == nil then
+					return `no pretend voter {bot}`
+				end
+				local ok, why = ballot(vote, -bot, choice)
+				if not ok then
+					return why
+				end
+			else
+				local who = player or session:ReadyPlayers()[1]
+				if not who then
+					return "nobody is in the run to pick as"
+				end
+				local ok, why = VoteService:Cast(who, id :: string, choice)
+				if not ok then
+					return why
+				end
+			end
+			return describe()
+		end,
+	})
 	dev:Register("vote.test", {
 		Description = "Open a vote the game proposes (no proposer, no effect), to try the queue and the telegram.",
 		Usage = "vote.test [title]",

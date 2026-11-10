@@ -28,6 +28,15 @@
 	  Propose remote. BuildService answers on the telegram, or with an alert when it refuses.
 	* Chimes: SoundService.VoteOpen and SoundService.VotePassed, when they exist (Prompt 32's
 	  audio).
+	* The blueprint draft (Prompt 19; Landon: "3 small catalog cards drop under the clock; tap one
+	  to vote; you can still move and fight"): a vote with Options. The telegram names the draft,
+	  counts the picks and runs the timer; the cards (Votes.Draft, up to four: three drawn and a
+	  found blueprint stamped FOUND) hang below it, each in its kind's colours with its name, its
+	  short text and its picks so far. Click or tap a card to pick it (PC: free the cursor first);
+	  your pick has an orange frame, and you can change it until the draft closes. On a controller
+	  a tap of Y moves your pick to the next card, a hold to the one before. When it closes the
+	  winner glows for a moment. A player with a free reroll (the level 3 Mad Scientist's
+	  DraftRerolls attribute) gets REROLL where YES and NO are.
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -41,6 +50,7 @@ local Config = require(Shared.Config)
 local Constants = require(Shared.Constants)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
+local Draft = require(Shared.Rules.Draft)
 local Lib = script.Parent.Parent:WaitForChild("Lib")
 local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
 
@@ -72,6 +82,7 @@ local showKeys: () -> () -- below
 local bindVoteNow: (pending: boolean) -> () -- below
 local gui: ScreenGui? = nil
 local banner: any = nil
+local draftFrame: any = nil -- Votes.Draft (Prompt 19)
 local shownId: string? = nil -- the vote on the telegram
 local shownStatus: string? = nil
 local resultUntil = 0
@@ -127,6 +138,53 @@ local function anotherLive(except: string?): boolean
 	return false
 end
 
+local function optionIds(vote: any): { string }
+	local ids = {}
+	for _, option in (if type(vote.Options) == "table" then vote.Options else {}) do
+		table.insert(ids, option.Id)
+	end
+	return ids
+end
+
+local function isDraft(vote: any): boolean
+	return type(vote) == "table" and type(vote.Options) == "table"
+end
+
+-- The draft's cards under the telegram (Prompt 19).
+local function renderDraft(vote: any?)
+	if not draftFrame then
+		return
+	end
+	if not vote or not isDraft(vote) then
+		draftFrame.Visible = false
+		return
+	end
+	draftFrame.Visible = true
+	local mine = myBallot(vote)
+	local row = draftFrame.Cards
+	for i = 1, 4 do
+		local card = row:FindFirstChild(`Card{i}`)
+		if card then
+			local option = vote.Options[i]
+			card.Visible = option ~= nil
+			if option then
+				local sprite = `Draft_{option.Kind or "Room"}`
+				if card:GetAttribute("Sprite") ~= sprite then
+					KitRuntime.SetSprite(card, sprite)
+				end
+				card.Title.Text = option.Title or option.Id
+				card.Text.Text = option.Text or ""
+				card.Votes.Count.Text = tostring(option.Votes or 0)
+				card.Pick.Visible = vote.Status == "Live" and mine == option.Id
+				card.Won.Visible = vote.Status == "Passed" and vote.Winner == option.Id
+				card.Found.Visible = option.Found ~= nil
+				card.FoundBy.Visible = option.Found ~= nil
+				card.FoundBy.Text = option.Found or ""
+			end
+		end
+	end
+end
+
 local function render()
 	if not banner then
 		return
@@ -144,6 +202,7 @@ local function render()
 		shownStatus = status
 	end
 	local id, vote = pick()
+	renderDraft(vote)
 	if not id or not vote then
 		banner.Visible = false
 		shownId, shownStatus = nil, nil
@@ -159,13 +218,45 @@ local function render()
 		end
 	end
 	banner.Visible = true
+	local yes, no = banner.Yes, banner.No
+	local fill = banner.Timer.Fill
+	local drafting = isDraft(vote)
+	yes.Visible = not drafting
+	no.Visible = not drafting
+	local reroll = banner:FindFirstChild("Reroll")
+	if reroll then
+		local free = Players.LocalPlayer:GetAttribute("DraftRerolls")
+		reroll.Visible = drafting and vote.Status == "Live" and type(free) == "number" and free > 0
+	end
+	if drafting then
+		-- the blueprint draft (Prompt 19): the cards below are the buttons
+		banner.Proposal.Text = `{vote.Title}  ·  PICK A CARD`
+		if vote.Status == "Live" then
+			local left = math.max(0, (vote.EndsAt or 0) - workspace:GetServerTimeNow())
+			local waiting = waitingCount()
+			local key = if input:Device() == "Gamepad" then "  ·  Y: NEXT CARD" else ""
+			banner.Tally.Text = `{vote.Picked or 0} OF {vote.Team or 1} PICKED  ·  {math.ceil(left)} S{key}`
+				.. (if waiting > 0 then `  ·  {waiting} WAITING` else "")
+			banner.Tally.TextColor3 = INK
+			fill.Size = UDim2.fromScale(math.clamp(left / math.max(vote.Seconds or 1, 1), 0, 1), 1)
+			local ballot = myBallot(vote)
+			bindVoteNow(ballot == nil)
+			yVotes = ballot == nil or not input:IsBlocked()
+		else
+			banner.Tally.Text = tostring(vote.Result or vote.Status)
+			banner.Tally.TextColor3 = if vote.Status == "Passed" then LEAF else RUST
+			fill.Size = UDim2.fromScale(0, 1)
+			bindVoteNow(false)
+			yVotes = false
+		end
+		showKeys()
+		return
+	end
 	-- line 1: what and what it costs; line 2: who, the tally, the time and what it needs
 	local cost = if type(vote.Cost) == "string" and vote.Cost ~= "" and vote.Cost ~= "FREE" then `  ·  {vote.Cost}`
 		elseif type(vote.Refund) == "string" then `  ·  {vote.Refund} BACK`
 		else ""
 	banner.Proposal.Text = `{vote.Title}{cost}`
-	local yes, no = banner.Yes, banner.No
-	local fill = banner.Timer.Fill
 	if vote.Status == "Live" then
 		local left = math.max(0, (vote.EndsAt or 0) - workspace:GetServerTimeNow())
 		local waiting = waitingCount()
@@ -199,9 +290,34 @@ end
 
 local function cast(ballot: string)
 	local id, vote = pick()
-	if id and vote and vote.Status == "Live" then
+	if id and vote and vote.Status == "Live" and not isDraft(vote) then
 		Remotes.FireServer("CastVote", id, ballot)
 	end
+end
+
+-- A draft pick (Prompt 19): a card's option id.
+local function castPick(optionId: string?)
+	local id, vote = pick()
+	if optionId and id and vote and vote.Status == "Live" and isDraft(vote) then
+		Remotes.FireServer("CastPick", id, optionId)
+	end
+end
+
+-- A controller's Y on a draft: the next card (a tap) or the one before (a hold).
+local function stepPick(back: boolean)
+	local _, vote = pick()
+	if not vote or not isDraft(vote) then
+		return
+	end
+	local ids = optionIds(vote)
+	if back then
+		local reversed = {}
+		for i = #ids, 1, -1 do
+			table.insert(reversed, ids[i])
+		end
+		ids = reversed
+	end
+	castPick(Draft.NextPick(ids, myBallot(vote)))
 end
 
 -- Ghost outlines in the Command View: open proposals and construction sites.
@@ -246,6 +362,8 @@ function VoteController:State(): { [string]: any }
 		Proposal = if banner then banner.Proposal.Text else nil,
 		Tally = if banner then banner.Tally.Text else nil,
 		Mine = if vote then myBallot(vote) else nil,
+		Draft = if vote and isDraft(vote) then table.concat(optionIds(vote), ",") else nil,
+		DraftShown = draftFrame ~= nil and draftFrame.Visible,
 		Ghosts = (function()
 			local keys = {}
 			for key in ghosts do
@@ -277,9 +395,18 @@ local function yBegan()
 	yHeld = false
 end
 
+local function drafting(): boolean
+	local _, vote = pick()
+	return isDraft(vote)
+end
+
 local function yEnded()
 	if yDownAt and not yHeld then
-		cast("Yes")
+		if drafting() then
+			stepPick(false)
+		else
+			cast("Yes")
+		end
 	end
 	yDownAt = nil
 	yHeld = false
@@ -288,7 +415,11 @@ end
 local function checkHold()
 	if yDownAt and not yHeld and os.clock() - yDownAt >= HOLD_SECONDS then
 		yHeld = true
-		cast("No")
+		if drafting() then
+			stepPick(true)
+		else
+			cast("No")
+		end
 	end
 end
 
@@ -351,6 +482,33 @@ function VoteController:Start()
 	banner.No.Activated:Connect(function()
 		cast("No")
 	end)
+	-- the blueprint draft (Prompt 19)
+	draftFrame = found:FindFirstChild("Draft")
+	if draftFrame then
+		for i = 1, 4 do
+			local card = draftFrame.Cards:FindFirstChild(`Card{i}`)
+			if card then
+				card.Activated:Connect(function()
+					local _, vote = pick()
+					if vote and isDraft(vote) then
+						local option = vote.Options[i]
+						castPick(if option then option.Id else nil)
+					end
+				end)
+			end
+		end
+	else
+		log:Warn("the Votes ScreenGui has no Draft: the blueprint draft can't show (studio/ui/patches/Votes_P19.lua)")
+	end
+	local reroll = banner:FindFirstChild("Reroll")
+	if reroll then
+		reroll.Activated:Connect(function()
+			local id, vote = pick()
+			if id and vote and isDraft(vote) and vote.Status == "Live" then
+				Remotes.FireServer("RerollDraft", id)
+			end
+		end)
+	end
 	input:On("Vote", yBegan, yEnded)
 	input.DeviceChanged:Connect(showKeys)
 	showKeys()

@@ -1,4 +1,4 @@
-# BUILD LOG: 100 Years Of Fallout art
+# BUILD LOG: 100 Years Below (art and code; the working title was 100 Years Of Fallout)
 
 Newest first. Every "verified" line says how it was checked.
 

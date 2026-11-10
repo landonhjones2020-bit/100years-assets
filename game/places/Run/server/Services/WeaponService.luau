@@ -146,6 +146,33 @@ end
 
 -- Loadouts --------------------------------------------------------------------------------
 
+-- Team modifiers from draft cards (Prompt 19): WeaponRarityUp (every player's weapons, now and in
+-- every loadout made later) and StaminaMult (max stamina). Key -> source -> value.
+local teamMods: { [string]: { [string]: number } } = {}
+
+local function teamSum(key: string): number
+	local total = 0
+	for _, v in teamMods[key] or {} do
+		total += v
+	end
+	return total
+end
+
+local function staminaMax(): number
+	local value = Config.Get("Tuning", "Player").Stamina
+	for _, v in teamMods.StaminaMult or {} do
+		value *= v
+	end
+	return value
+end
+
+-- A rarity `steps` ranks up (or down), within Config.ItemRarities' order.
+local function raised(rarity: string, steps: number): string
+	local order = Config.Ids("ItemRarities")
+	local at = table.find(order, rarity) or table.find(order, "Standard") or 1
+	return order[math.clamp(at + math.floor(steps), 1, #order)]
+end
+
 local function kitOf(classId: string): (
 	{ [number]: Held? },
 	Held,
@@ -189,7 +216,18 @@ local function kitOf(classId: string): (
 			slots[3 + i] = { Item = throwables[i], Rarity = "Standard", Count = counts[i] }
 		end
 	end
-	return slots, { Item = melee or Combat.UNARMED, Rarity = "Standard" }, medkits
+	-- Armory Shipment and the like (Prompt 19): kit weapons start that many rarities up
+	local bonus = teamSum("WeaponRarityUp")
+	if bonus ~= 0 then
+		for i = 1, GUN_SLOTS do
+			local held = slots[i]
+			if held then
+				held.Rarity = raised(held.Rarity, bonus)
+			end
+		end
+	end
+	local meleeRarity = if melee and bonus ~= 0 then raised("Standard", bonus) else "Standard"
+	return slots, { Item = melee or Combat.UNARMED, Rarity = meleeRarity }, medkits
 end
 
 local function publish(player: Player, state: Loadout)
@@ -233,7 +271,7 @@ local function newLoadout(player: Player, classId: string, carried: number?): Lo
 		Melee = melee,
 		Selected = 0,
 		Carried = carried or Combat.Tuning().CarriedAmmo.Start,
-		Stamina = p.Stamina,
+		Stamina = staminaMax(),
 		SpentAt = 0,
 		Sprinting = false,
 		Salt = Random.new():NextInteger(1, 2 ^ 30),
@@ -256,6 +294,7 @@ local function newLoadout(player: Player, classId: string, carried: number?): Lo
 	state.Selected = firstSlot(state)
 	loadouts[player] = state
 	player:SetAttribute("Stamina", state.Stamina)
+	player:SetAttribute("StaminaMax", if math.abs(staminaMax() - p.Stamina) > 1e-6 then staminaMax() else nil)
 	publish(player, state)
 	return state
 end
@@ -1039,10 +1078,10 @@ local function onSprint(player: Player, on: boolean)
 end
 
 local function staminaLoop()
-	local p = Config.Get("Tuning", "Player")
 	local dt = 1 / STAMINA_HZ
 	while true do
 		task.wait(dt)
+		local max = staminaMax() -- Field Rations (Prompt 19) raises it
 		for player, state in loadouts do
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -1053,7 +1092,7 @@ local function staminaLoop()
 			end
 			local sprinting = state.Sprinting and moving and state.Stamina > 0
 			local before = state.Stamina
-			state.Stamina = Combat.Stamina(state.Stamina, p.Stamina, dt, sprinting, os.clock() - state.SpentAt)
+			state.Stamina = Combat.Stamina(state.Stamina, max, dt, sprinting, os.clock() - state.SpentAt)
 			if sprinting then
 				state.SpentAt = os.clock()
 			end
@@ -1062,7 +1101,7 @@ local function staminaLoop()
 			end
 			if math.abs(state.Stamina - before) > 1e-6 then
 				local shown = player:GetAttribute("Stamina")
-				if type(shown) ~= "number" or math.abs(shown - state.Stamina) >= 1 or state.Stamina == 0 or state.Stamina == p.Stamina then
+				if type(shown) ~= "number" or math.abs(shown - state.Stamina) >= 1 or state.Stamina == 0 or state.Stamina == max then
 					player:SetAttribute("Stamina", math.floor(state.Stamina * 10 + 0.5) / 10)
 				end
 			end
@@ -1266,6 +1305,66 @@ function WeaponService:Loadout(player: Player): Loadout?
 	return loadouts[player]
 end
 
+-- Draft cards' team modifiers (Prompt 19): WeaponRarityUp raises every player's guns and melee
+-- weapon now (and kits made later); StaminaMult raises max stamina. A nil value clears a source's.
+function WeaponService:SetModifier(source: string, key: string, value: number?)
+	assert(key == "WeaponRarityUp" or key == "StaminaMult", `WeaponService:SetModifier: {key} isn't a weapon modifier`)
+	local before = teamSum("WeaponRarityUp")
+	teamMods[key] = teamMods[key] or {}
+	teamMods[key][source] = value
+	if key == "WeaponRarityUp" then
+		local delta = teamSum("WeaponRarityUp") - before
+		if delta ~= 0 then
+			for player, state in loadouts do
+				for i = 1, GUN_SLOTS do
+					local held = state.Slots[i]
+					if held then
+						held.Rarity = raised(held.Rarity, delta)
+					end
+				end
+				if state.Melee.Item ~= Combat.UNARMED then
+					state.Melee.Rarity = raised(state.Melee.Rarity, delta)
+				end
+				publish(player, state)
+			end
+		end
+	else
+		local max = staminaMax()
+		local base = Config.Get("Tuning", "Player").Stamina
+		for player in loadouts do
+			player:SetAttribute("StaminaMax", if math.abs(max - base) > 1e-6 then max else nil)
+		end
+	end
+end
+
+-- Medkits handed to a player now (Prompt 19: Med Cache), on top of what they carry.
+function WeaponService:AddMedkits(player: Player, count: number): number
+	local state = loadouts[player]
+	if not state or count <= 0 then
+		return 0
+	end
+	state.Medkits += count
+	publish(player, state)
+	return count
+end
+
+-- The rarity of each weapon a player holds (guns by slot, then melee): dev and tests.
+function WeaponService:Rarities(player: Player): { string }
+	local state = loadouts[player]
+	if not state then
+		return {}
+	end
+	local out = {}
+	for i = 1, GUN_SLOTS do
+		local held = state.Slots[i]
+		if held then
+			table.insert(out, `{held.Item}:{held.Rarity}`)
+		end
+	end
+	table.insert(out, `{state.Melee.Item}:{state.Melee.Rarity}`)
+	return out
+end
+
 function WeaponService:Init(registry)
 	combat = registry.CombatService
 	economy = registry.EconomyService
@@ -1359,7 +1458,7 @@ function WeaponService:Init(registry)
 			if not player or not state then
 				return "players only"
 			end
-			state.Stamina = math.clamp(tonumber(args[1]) or 100, 0, Config.Get("Tuning", "Player").Stamina)
+			state.Stamina = math.clamp(tonumber(args[1]) or 100, 0, staminaMax())
 			player:SetAttribute("Stamina", state.Stamina)
 			return describe(player)
 		end,

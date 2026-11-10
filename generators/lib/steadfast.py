@@ -1,5 +1,5 @@
 """
-steadfast — the shared Blender library for 100 Years Of Fallout (bible Section 19).
+steadfast — the shared Blender library for 100 Years Below (bible Section 19).
 
 Every generator in generators/<Category>/ imports this module:
 

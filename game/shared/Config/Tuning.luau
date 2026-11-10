@@ -193,7 +193,7 @@ local Schemas: { [string]: Check.Checker } = {
 		FreeSeconds = S, SurvivorChancePerDay = Fr, MaxTrapped = I, RareSurvivorChance = Fr, SurvivorLevel = F.Range,
 		SurvivorHealth = I, FollowDistance = N, SurvivorWalkSpeed = N,
 		MaxMonsters = I, SpawnDistance = F.Range, JackalEverySeconds = F.Range, RaiderEverySeconds = F.Range,
-		RaiderMinEra = Check.integer(1, 4), WraithEverySeconds = F.Range, WraithDistance = F.Range, DespawnSeconds = S,
+		RaiderMinEra = Check.integer(1, 4), RaiderMeleeShare = Fr, WraithEverySeconds = F.Range, WraithDistance = F.Range, DespawnSeconds = S,
 	}),
 	Deep = shape({ -- Prompt 17
 		CavePieces = F.Range, PlannerTries = I, Margin = N, GridBack = F.Number, LowestY = F.Number,
@@ -204,6 +204,10 @@ local Schemas: { [string]: Check.Checker } = {
 		ThawPoints = N, LegendaryChance = Fr, CryoLevel = F.Range, MinerRareChance = Fr, MinerLevel = F.Range,
 		CrewLevel = F.Range, CrewFloors = Check.map(Check.ref("DepthBands"), F.Range, 4), CrewMinDepth = I,
 		HintChance = Fr, NestBudget = N, RevealRange = N, CampWakeRange = N, CampSleepSeconds = S,
+	}),
+	Draft = shape({ -- Prompt 19
+		Cards = I, FoundPerDraft = I, RerollRestartsTimer = Check.boolean(), OverloadDelay = F.Range,
+		BountyAlertEvery = I, StormEarlyWarnSeconds = S,
 	}),
 	Legends = shape({ StartLevel = I, RenownMax = I, RenownStatBonus = I, StarterLegend = Check.ref("Legends") }),
 	ClassShop = shape({
@@ -472,6 +476,19 @@ return {
 			-- cycle) with the full trip's finds; a distress call needs a working Radio Room to be heard
 			FastSpeed = 8,
 		},
+		Draft = { -- Section 8 (three cards after every Surge); the rest is Prompt 19, prov.
+			Cards = 3,
+			-- Landon (Prompt 19): a found blueprint joins the next draft as an extra choice, this many a draft
+			FoundPerDraft = 1,
+			-- a reroll (the Mad Scientist's free one, the paid boost) starts the 20 s over with no votes cast
+			RerollRestartsTimer = true,
+			-- Overclock: when its chance comes up, the overload starts this many seconds into the Surge
+			OverloadDelay = { Min = 10, Max = 50 },
+			-- Bounty Contract: a progress alert every this many kills
+			BountyAlertEvery = 10,
+			-- Salvage Rights: players on the surface hear the early storm coming this long before it hits
+			StormEarlyWarnSeconds = 10,
+		},
 		Surface = { -- Section 12; rates prov. The rest is Prompt 16, prov.
 			StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era",
 			-- the surface is everything above ZoneY (the bunker's floor 1 is at -120, the town's ground at 200)
@@ -488,7 +505,7 @@ return {
 			SurvivorLevel = { Min = 1, Max = 3 }, SurvivorHealth = 60, FollowDistance = 6, SurvivorWalkSpeed = 15,
 			-- creatures: jackal packs by day, raiders from RaiderMinEra, wraiths only in storms
 			MaxMonsters = 8, SpawnDistance = { Min = 70, Max = 160 }, JackalEverySeconds = { Min = 30, Max = 55 },
-			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, WraithEverySeconds = { Min = 10, Max = 18 },
+			RaiderEverySeconds = { Min = 50, Max = 80 }, RaiderMinEra = 2, RaiderMeleeShare = 0.33, -- Landon (Prompt 16): a third of raiders fight hand to hand WraithEverySeconds = { Min = 10, Max = 18 },
 			WraithDistance = { Min = 35, Max = 70 }, DespawnSeconds = 20,
 		},
 		Deep = { -- Section 12 (Prompt 17), all prov.
