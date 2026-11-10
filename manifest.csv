@@ -129,9 +129,9 @@ AshJackal_Attack,Animations/AshJackal,clip,,,,,,in_studio,119698905968735,
 Monster_AshWraith,Monsters,model,A5,4.711x7.829x4.203,4000,1968,ash;basalt;cream;glow;stone,verified,86571623522715,
 AshWraith_Walk,Animations/AshWraith,clip,,,,,,in_studio,101978077102714,
 AshWraith_Attack,Animations/AshWraith,clip,,,,,,in_studio,95768211145275,
-Monster_AshRaider,Monsters,model,A5,3.211x6.753x5.84,4000,3716,basalt;brass;chrome;cream;forest;gunmetal;hazard;leather;olive;pine;rubber;rust;sandstone;signal;steel;teal;walnut,in_studio,89393935264400,
-AshRaider_Walk,Animations/AshRaider,clip,,,,,,uploaded,82004984617465,
-AshRaider_Attack,Animations/AshRaider,clip,,,,,,uploaded,77468723648840,
+Monster_AshRaider,Monsters,model,A5,3.211x6.753x5.84,4000,3716,basalt;brass;chrome;cream;forest;gunmetal;hazard;leather;olive;pine;rubber;rust;sandstone;signal;steel;teal;walnut,verified,89393935264400,
+AshRaider_Walk,Animations/AshRaider,clip,,,,,,verified,82004984617465,
+AshRaider_Attack,Animations/AshRaider,clip,,,,,,verified,77468723648840,
 Cave_Mines_Entry,Caves,model,A6,34.61x20.657x37.589,8000,3714,ash;basalt;brass;gunmetal;hazard;pine;sandstone;steel;stone;walnut,verified,140717306990902,A6 (Prompt 17): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio; Prompt 17 playtest: walked through its opening into the cave
 Cave_Flooded_Chamber,Caves,model,A6,54.873x28.633x56.131,8000,4108,ash;avocado;basalt;brass;copper;crystal;forest;glow;gunmetal;murk;rust;skyblue;stone,in_studio,114211170875518,A6 (Prompt 17): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
 Cave_Mines_Chamber,Caves,model,A6,54.034x28.605x53.957,8000,4282,ash;basalt;brass;gunmetal;hazard;pine;rust;sandstone;steel;stone;teal;walnut,verified,118404370996473,A6 (Prompt 17): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio; Prompt 17 playtest: its guards woke; a crew led through it
@@ -187,8 +187,8 @@ R15_RifleReload,Animations/R15,clip,P20,,,,,uploaded,106450019697392,Prompt 20 p
 R15_HeavySwing1,Animations/R15,clip,P20,,,,,uploaded,92422746632862,Prompt 20 player clip: a two-handed chop from over the right shoulder down to the left (Action3; the hit at 40%); generators/Clips/R15_LongGuns.py (both arms solved onto the weapon's Grip and Support sockets)
 R15_HeavySwing2,Animations/R15,clip,P20,,,,,uploaded,137173117337988,Prompt 20 player clip: a two-handed sweep back from the left hip out to the right (Action3; the hit at 40%); generators/Clips/R15_LongGuns.py (both arms solved onto the weapon's Grip and Support sockets)
 R15_Throw,Animations/R15,clip,P20,,,,,uploaded,124031410096479,"Prompt 20 player clip: an overhand throw, the release at 40% (Action3); generators/Clips/R15_LongGuns.py (both arms solved onto the weapon's Grip and Support sockets)"
-Monster_AshRaider_Melee,Monsters,model,P20,3.422x6.753x4.37,4000,3818,basalt;brass;chrome;cream;forest;gunmetal;hazard;leather;olive;pine;rubber;rust;sandstone;signal;steel;teal;walnut,in_studio,91768193324120,
-AshRaiderMelee_Walk,Animations/AshRaiderMelee,clip,,,,,,uploaded,77331770551937,
-AshRaiderMelee_Attack,Animations/AshRaiderMelee,clip,,,,,,uploaded,115642778216092,
-AshRaider_Idle,Animations/AshRaider,clip,,,,,,uploaded,110323527317126,
-AshRaiderMelee_Idle,Animations/AshRaiderMelee,clip,,,,,,uploaded,113251330254817,
+Monster_AshRaider_Melee,Monsters,model,P20,3.422x6.753x4.37,4000,3818,basalt;brass;chrome;cream;forest;gunmetal;hazard;leather;olive;pine;rubber;rust;sandstone;signal;steel;teal;walnut,verified,91768193324120,
+AshRaiderMelee_Walk,Animations/AshRaiderMelee,clip,,,,,,verified,77331770551937,
+AshRaiderMelee_Attack,Animations/AshRaiderMelee,clip,,,,,,verified,115642778216092,
+AshRaider_Idle,Animations/AshRaider,clip,,,,,,verified,110323527317126,
+AshRaiderMelee_Idle,Animations/AshRaiderMelee,clip,,,,,,verified,113251330254817,
