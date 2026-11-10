@@ -116,7 +116,6 @@ export type Context = {
 	SetBeacon: (until_: number?, by: string?) -> (),
 }
 
-type Result = (boolean, string?, string?, number?)
 type Turret = { Owner: Player, Model: Model, Until: number, NextShot: number, Shock: boolean }
 type Drone = { Owner: Player, Part: BasePart, Align: AlignPosition, Turn: AlignOrientation, NextShot: number, NextPickup: number }
 type Strip = { Owner: Player, Part: BasePart, CFrame: CFrame, Size: Vector3, Until: number }
@@ -399,7 +398,7 @@ end
 
 -- Survivor ------------------------------------------------------------------------------------------
 
-local function secondWind(state: State): Result
+local function secondWind(state: State): (boolean, string?, string?, number?)
 	local c = ctx.Combat:PlayerCombatant(state.Player)
 	if not c then
 		return false, "YOU NEED TO BE STANDING"
@@ -446,7 +445,7 @@ local function removeTurret(player: Player)
 	end
 end
 
-local function deployTurret(state: State, _origin: Vector3, _look: Vector3): Result
+local function deployTurret(state: State, _origin: Vector3, _look: Vector3): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -640,7 +639,7 @@ end
 
 -- Medic ------------------------------------------------------------------------------------------------
 
-local function triagePulse(state: State): Result
+local function triagePulse(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -697,7 +696,7 @@ end
 
 -- Firefighter ------------------------------------------------------------------------------------------
 
-local function foamBurst(state: State): Result
+local function foamBurst(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -748,7 +747,7 @@ local function endMeal()
 	end
 end
 
-local function heartyMeal(state: State): Result
+local function heartyMeal(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local ability = Config.Get("Classes", "Cook").Ability
 	local seconds = Config.Get("Tuning", "Clock").CycleSeconds / math.max(ctx.Clock:TimeScale(), 0.01)
@@ -833,7 +832,7 @@ end
 
 -- Security -----------------------------------------------------------------------------------------------
 
-local function holdTheLine(state: State): Result
+local function holdTheLine(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -878,7 +877,7 @@ local function outline(model: Model, colour: Color3, seconds: number)
 	Debris:AddItem(glow, seconds)
 end
 
-local function flarePing(state: State): Result
+local function flarePing(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -928,7 +927,7 @@ end
 
 -- Quartermaster -------------------------------------------------------------------------------------------
 
-local function requisition(state: State, option: number): Result
+local function requisition(state: State, option: number): (boolean, string?, string?, number?)
 	local tt = t()
 	local name = Classes.OptionName(state.Class, option) or "Scrap"
 	local given: { string } = {}
@@ -967,7 +966,7 @@ local function crateGraybox(): Model
 	return model
 end
 
-local function supplyCall(state: State): Result
+local function supplyCall(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1042,7 +1041,7 @@ end
 
 -- Hazmat Tech ---------------------------------------------------------------------------------------------
 
-local function deconField(state: State): Result
+local function deconField(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1070,7 +1069,7 @@ end
 
 -- Exterminator ---------------------------------------------------------------------------------------------
 
-local function napalmLine(state: State): Result
+local function napalmLine(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1127,7 +1126,7 @@ end
 
 -- Marksman ----------------------------------------------------------------------------------------------------
 
-local function steadyShot(state: State): Result
+local function steadyShot(state: State): (boolean, string?, string?, number?)
 	state.Shots = t().SteadyShots
 	state.Player:SetAttribute("SteadyShots", state.Shots)
 	return true, `STEADY SHOT: THE NEXT {state.Shots} SHOTS PIERCE AND CRIT`
@@ -1146,7 +1145,7 @@ end
 
 -- Driller --------------------------------------------------------------------------------------------------------
 
-local function overdrive(state: State, _origin: Vector3, look: Vector3): Result
+local function overdrive(state: State, _origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1197,7 +1196,7 @@ end
 
 -- Scavenger --------------------------------------------------------------------------------------------------------
 
-local function magnetSweep(state: State): Result
+local function magnetSweep(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1216,7 +1215,7 @@ end
 
 -- Warden ----------------------------------------------------------------------------------------------------------------
 
-local function rallyCall(state: State): Result
+local function rallyCall(state: State): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root or not unitAt(root.Position) then
@@ -1246,7 +1245,7 @@ end
 
 -- Demolitionist ----------------------------------------------------------------------------------------------------------
 
-local function breachingCharge(state: State, origin: Vector3, look: Vector3): Result
+local function breachingCharge(state: State, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1270,7 +1269,7 @@ end
 
 -- Spelunker ----------------------------------------------------------------------------------------------------------
 
-local function grappleLine(state: State, origin: Vector3, look: Vector3): Result
+local function grappleLine(state: State, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local player = state.Player
 	local root = rootOf(player)
 	if not root then
@@ -1310,7 +1309,7 @@ local function gadgetSpot(player: Player, origin: Vector3, look: Vector3): Vecto
 	return ground(at)
 end
 
-local function shockTrap(state: State, origin: Vector3, look: Vector3): Result
+local function shockTrap(state: State, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local at = gadgetSpot(state.Player, origin, look)
 	if not at then
 		return false, "YOU NEED TO BE STANDING"
@@ -1354,7 +1353,7 @@ local function tickTraps()
 	end
 end
 
-local function teleportBeacon(state: State, origin: Vector3, look: Vector3): Result
+local function teleportBeacon(state: State, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local at = gadgetSpot(state.Player, origin, look)
 	if not at then
 		return false, "YOU NEED TO BE STANDING"
@@ -1412,7 +1411,7 @@ function Abilities.Teleport(player: Player): (boolean, string?)
 	return true, nil
 end
 
-local function gravityWell(state: State, origin: Vector3, look: Vector3): Result
+local function gravityWell(state: State, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local at = gadgetSpot(state.Player, origin, look)
 	if not at then
 		return false, "YOU NEED TO BE STANDING"
@@ -1449,7 +1448,7 @@ local function tickWells()
 	end
 end
 
-local GADGETS: { [string]: (State, Vector3, Vector3) -> Result } = {
+local GADGETS: { [string]: (State, Vector3, Vector3) -> (boolean, string?, string?, number?) } = {
 	["Shock Trap"] = shockTrap,
 	["Teleport Beacon"] = teleportBeacon,
 	["Gravity Well"] = gravityWell,
@@ -1611,7 +1610,7 @@ local function tickDrones()
 	end
 end
 
-local function droneMode(state: State, option: number): Result
+local function droneMode(state: State, option: number): (boolean, string?, string?, number?)
 	if not drones[state.Player] then
 		spawnDrone(state.Player)
 	end
@@ -1645,7 +1644,7 @@ end
 
 -- Dispatch ---------------------------------------------------------------------------------------------------------
 
-local HANDLERS: { [string]: (State, number, Vector3, Vector3) -> Result } = {
+local HANDLERS: { [string]: (State, number, Vector3, Vector3) -> (boolean, string?, string?, number?) } = {
 	Survivor = function(state)
 		return secondWind(state)
 	end,
@@ -1713,7 +1712,7 @@ function Abilities.Has(classId: string): boolean
 	return HANDLERS[classId] ~= nil
 end
 
-function Abilities.Use(state: State, option: number, origin: Vector3, look: Vector3): Result
+function Abilities.Use(state: State, option: number, origin: Vector3, look: Vector3): (boolean, string?, string?, number?)
 	local handler = HANDLERS[state.Class]
 	if not handler then
 		return false, "THIS CLASS HAS NO ABILITY YET"
