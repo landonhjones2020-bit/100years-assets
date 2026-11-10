@@ -1,0 +1,122 @@
+{
+ "asset": "Prop_Turret",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  2.252,
+  2.74,
+  3.075
+ ],
+ "tris": 904,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Turret",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "hazard",
+    "olive",
+    "rubber",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    1.37,
+    0.0
+   ],
+   "size": [
+    2.252,
+    2.74,
+    3.075
+   ],
+   "tris": 564
+  },
+  {
+   "name": "Turret_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "gunmetal"
+   ],
+   "offset": [
+    0.0,
+    2.15,
+    -1.068
+   ],
+   "size": [
+    0.5,
+    0.2,
+    0.85
+   ],
+   "tris": 240
+  },
+  {
+   "name": "SensorEye",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "signal"
+   ],
+   "offset": [
+    -0.119,
+    2.57,
+    0.145
+   ],
+   "size": [
+    0.466,
+    0.24,
+    0.944
+   ],
+   "tris": 100
+  }
+ ],
+ "meta": {
+  "kind": "Device",
+  "class": [
+   "Engineer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Muzzle": {
+   "p": [
+    0.0,
+    2.15,
+    -1.543
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "d59dee348e4f07d8"
+}

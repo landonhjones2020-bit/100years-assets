@@ -1,0 +1,70 @@
+{
+ "asset": "Throwable_FoamGrenade",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.352,
+  0.685,
+  0.375
+ ],
+ "tris": 272,
+ "pivot": [
+  0.0,
+  0.29,
+  0.003
+ ],
+ "parts": [
+  {
+   "name": "Foam",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "porcelain",
+    "rubber",
+    "rust",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.052,
+    -0.003
+   ],
+   "size": [
+    0.352,
+    0.685,
+    0.375
+   ],
+   "tris": 272
+  }
+ ],
+ "meta": {
+  "kind": "Throwable",
+  "class": [
+   "Firefighter"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "1abca6b6b18f63be"
+}

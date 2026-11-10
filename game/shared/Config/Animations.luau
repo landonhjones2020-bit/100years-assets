@@ -19,6 +19,7 @@ return {
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
 			"Dodge", "Downed", "Revive", -- players (CombatController, Prompt 11)
+			"RifleHold", "RifleAim", "RifleReload", "HeavySwing1", "HeavySwing2", "Throw", -- players, A2's weapons (Prompt 20)
 			"Attack", "Run", "Stunned", "Latched", "Fight", "Flee", -- monsters and residents in danger (Prompt 12)
 			"Roar", "LayEggs", "Stagger", "Death", -- bosses (A4: the Brood Mother; played from Prompt 15)
 		}),
@@ -227,5 +228,19 @@ return {
 			Looped = true,
 			Text = "Kneeling over someone, working (Prompt 11, R15_Revive)",
 		},
+		-- A2's two-handed weapons and throwables (Prompt 20; generators/Clips/R15_LongGuns.py: both
+		-- arms are solved onto the weapon's Grip and Support sockets). An item's Hold picks them.
+		PlayerRifleHold = { Rig = "R15", Activity = "RifleHold", AssetId = "rbxassetid://77956165790685", Looped = true,
+			Text = "Both hands on a long gun, level in front of the right hip (Prompt 20, R15_RifleHold)" },
+		PlayerRifleAim = { Rig = "R15", Activity = "RifleAim", AssetId = "rbxassetid://85830803451075", Looped = true,
+			Text = "A long gun shouldered in a bladed stance (Prompt 20, R15_RifleAim)" },
+		PlayerRifleReload = { Rig = "R15", Activity = "RifleReload", AssetId = "rbxassetid://106450019697392", Looped = false,
+			Text = "The left hand works a long gun's action (sped to its ReloadSeconds) (Prompt 20, R15_RifleReload)" },
+		PlayerHeavySwing1 = { Rig = "R15", Activity = "HeavySwing1", AssetId = "rbxassetid://92422746632862", Looped = false,
+			Text = "A two-handed chop from the right shoulder, a Heavy weapon's first hit (Prompt 20, R15_HeavySwing1)" },
+		PlayerHeavySwing2 = { Rig = "R15", Activity = "HeavySwing2", AssetId = "rbxassetid://137173117337988", Looped = false,
+			Text = "A two-handed sweep back from the left, a Heavy weapon's second hit (Prompt 20, R15_HeavySwing2)" },
+		PlayerThrow = { Rig = "R15", Activity = "Throw", AssetId = "rbxassetid://124031410096479", Looped = false,
+			Text = "An overhand throw, the release at 40% (Prompt 20, R15_Throw)" },
 	},
 }

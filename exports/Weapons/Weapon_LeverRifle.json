@@ -1,0 +1,90 @@
+{
+ "asset": "Weapon_LeverRifle",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.31,
+  1.725,
+  3.794
+ ],
+ "tris": 1492,
+ "pivot": [
+  0.0,
+  0.655,
+  0.808
+ ],
+ "parts": [
+  {
+   "name": "Rifle",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "crystal",
+    "gunmetal",
+    "rubber",
+    "steel",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    0.207,
+    -0.808
+   ],
+   "size": [
+    0.31,
+    1.725,
+    3.794
+   ],
+   "tris": 1492
+  }
+ ],
+ "meta": {
+  "kind": "Gun",
+  "hold": "TwoHanded",
+  "ammoPerShot": 2,
+  "class": [
+   "Scout",
+   "Marksman"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.6,
+    -2.73
+   ],
+   "yaw": 0.0
+  },
+  "Support": {
+   "p": [
+    0.0,
+    0.2,
+    -1.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "9f258abceee9cfef"
+}

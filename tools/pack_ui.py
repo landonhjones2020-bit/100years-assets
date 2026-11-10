@@ -24,6 +24,18 @@ SPRITES = os.path.join(UI, "sprites")
 KIT = os.path.join(UI, "kit.json")
 ATLAS = 1024
 GUTTER = 4
+# Groups packed smaller than their sprite files: the item icons are rendered at 256 px and shown
+# in hotbar slots about 70 px across at 1080p, so 128 px keeps them sharp and fits every item in
+# one atlas (Prompt 20: 32 icons; at 256 px they took four uploads).
+PACK_SIZE = {"items": (128, 128)}
+
+
+def sprite_image(name, group):
+    im = Image.open(os.path.join(SPRITES, f"{name}.png")).convert("RGBA")
+    want = PACK_SIZE.get(group)
+    if want and im.size != want:
+        im = im.resize(want, Image.LANCZOS)
+    return im
 
 
 def group_of(name, spec=None):
@@ -68,7 +80,9 @@ def main():
         im = Image.open(path)
         if list(im.size) != spec["size"]:
             print(f"size mismatch {name}: {im.size} vs {spec['size']}", file=sys.stderr)
-        groups.setdefault(group_of(name, spec), []).append((name, im.width, im.height))
+        g = group_of(name, spec)
+        w, h = PACK_SIZE.get(g, im.size)
+        groups.setdefault(g, []).append((name, w, h))
     kit = {"version": 1, "scale": 2, "atlases": {}, "sprites": {}}
     for g, items in sorted(groups.items()):
         packs = shelf_pack(items)
@@ -76,7 +90,7 @@ def main():
             aname = g if len(packs) == 1 and g != "kit" else f"{g}_{chr(ord('a') + i)}"
             sheet = Image.new("RGBA", (ATLAS, ATLAS), (0, 0, 0, 0))
             for name, (x, y) in pack.items():
-                im = Image.open(os.path.join(SPRITES, f"{name}.png")).convert("RGBA")
+                im = sprite_image(name, g)
                 sheet.paste(im, (x, y))
                 spec = specs[name]
                 kit["sprites"][name] = {"atlas": aname, "offset": [x, y], "size": [im.width, im.height],
@@ -125,6 +139,8 @@ def contact_sheet(kit):
     dr = ImageDraw.Draw(sheet)
     for n, x, y in places:
         im = Image.open(os.path.join(SPRITES, f"{n}.png")).convert("RGBA")
+        if list(im.size) != list(kit["sprites"][n]["size"]):
+            im = im.resize(tuple(kit["sprites"][n]["size"]), Image.LANCZOS)
         sheet.alpha_composite(im, (x, y))
         dr.text((x, y + im.height + 4), n, fill=(245, 240, 228), font=f)
     out = os.path.join(REPO, "previews", "UI")

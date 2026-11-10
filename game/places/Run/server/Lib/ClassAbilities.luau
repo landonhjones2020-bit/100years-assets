@@ -117,7 +117,7 @@ export type Context = {
 }
 
 type Turret = { Owner: Player, Model: Model, Until: number, NextShot: number, Shock: boolean, Shots: number }
-type Drone = { Owner: Player, Part: BasePart, Align: AlignPosition, Turn: AlignOrientation, NextShot: number, NextPickup: number }
+type Drone = { Owner: Player, Part: BasePart, Align: AlignPosition, Turn: AlignOrientation, NextShot: number, NextPickup: number, Shots: number }
 type Strip = { Owner: Player, Part: BasePart, CFrame: CFrame, Size: Vector3, Until: number }
 type Well = { Owner: Player, Part: BasePart, At: Vector3, Until: number }
 type Trap = { Owner: Player, Part: BasePart, At: Vector3, Until: number }
@@ -318,6 +318,11 @@ local function device(category: string, asset: string, graybox: () -> Model): Mo
 end
 
 local function socketOf(model: Model, name: string): Vector3?
+	-- the art's sockets are Socket_<Name> attributes, relative to the model's pivot (AssetSetup)
+	local socket = model:GetAttribute(`Socket_{name}`)
+	if typeof(socket) == "CFrame" then
+		return (model:GetPivot() * socket).Position
+	end
 	local found = model:FindFirstChild(name, true)
 	if found and found:IsA("Attachment") then
 		return found.WorldPosition
@@ -1512,7 +1517,11 @@ local function spawnDrone(player: Player)
 	model.Name = `Drone_{player.UserId}`
 	model:SetAttribute("Owner", player.UserId)
 	model:SetAttribute("Mode", "Escort")
-	local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") :: BasePart
+	local body = model:FindFirstChild("Drone") -- the art's body (Prop_CombatDrone); the graybox names its own
+	local primary = model.PrimaryPart or (if body and body:IsA("BasePart") then body else model:FindFirstChildWhichIsA("BasePart")) :: BasePart
+	-- the model's pivot rides on the body from here on (WorldPivot stays behind once physics moves it)
+	primary.PivotOffset = primary.CFrame:ToObjectSpace(model:GetPivot())
+	model.PrimaryPart = primary
 	-- one physics body, server-owned and moved by constraints, so every client sees it glide
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
@@ -1554,7 +1563,7 @@ local function spawnDrone(player: Player)
 	pcall(function()
 		primary:SetNetworkOwner(nil)
 	end)
-	drones[player] = { Owner = player, Part = primary, Align = align, Turn = turn, NextShot = 0, NextPickup = 0 }
+	drones[player] = { Owner = player, Part = primary, Align = align, Turn = turn, NextShot = 0, NextPickup = 0, Shots = 0 }
 end
 
 local MODE_COLOURS: { [string]: Color3 } = {
@@ -1576,9 +1585,14 @@ local function tickDrones()
 			local model = drone.Part:FindFirstAncestorOfClass("Model")
 			if model and model:GetAttribute("Mode") ~= mode then
 				model:SetAttribute("Mode", mode)
+				local colour = MODE_COLOURS[mode] or MODE_COLOURS.Escort
 				local light = drone.Part:FindFirstChildOfClass("PointLight")
 				if light then
-					light.Color = MODE_COLOURS[mode] or MODE_COLOURS.Escort
+					light.Color = colour
+				end
+				local eye = model:FindFirstChild("Eye")
+				if eye and eye:IsA("BasePart") then
+					eye.Color = colour -- the eye shows the mode
 				end
 			end
 			local side = root.CFrame.RightVector * 2.5 + root.CFrame.LookVector * (if mode == "Guard" then 2 else -1.5)
@@ -1614,7 +1628,10 @@ local function tickDrones()
 						drone.NextShot = os.clock() + d.FireSeconds / guns
 						local damage = d.Damage * (if mode == "Assault" then d.AssaultMultiplier else 1)
 						ctx.Combat:Damage(target.Id, damage, playerCombatId(player), "drone")
-						Remotes.FireAllClients("AbilityFx", player.UserId, "Tinkerer", "Tracer", from, { To = target.Root.Position })
+						-- from a gun's muzzle: the second gun (level 3) takes every other shot
+						drone.Shots += 1
+						local muzzle = if model then socketOf(model, if guns > 1 and drone.Shots % 2 == 0 then "Muzzle2" else "Muzzle") else nil
+						Remotes.FireAllClients("AbilityFx", player.UserId, "Tinkerer", "Tracer", muzzle or from, { To = target.Root.Position })
 					end
 				else
 					drone.Turn.CFrame = CFrame.lookAt(from, from + root.CFrame.LookVector)

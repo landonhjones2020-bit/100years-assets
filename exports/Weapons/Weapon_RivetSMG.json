@@ -1,0 +1,92 @@
+{
+ "asset": "Weapon_RivetSMG",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.84,
+  1.671,
+  3.415
+ ],
+ "tris": 1304,
+ "pivot": [
+  0.0,
+  0.631,
+  0.678
+ ],
+ "parts": [
+  {
+   "name": "RivetSMG",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "rubber",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.205,
+    -0.678
+   ],
+   "size": [
+    0.84,
+    1.671,
+    3.415
+   ],
+   "tris": 1304
+  }
+ ],
+ "meta": {
+  "kind": "Gun",
+  "hold": "TwoHanded",
+  "ammoPerShot": 1,
+  "class": [
+   "Engineer",
+   "HazmatTech",
+   "Scavenger",
+   "Tinkerer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.58,
+    -2.41
+   ],
+   "yaw": 0.0
+  },
+  "Support": {
+   "p": [
+    0.0,
+    0.2,
+    -1.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "f3df45b3ffc7c33b"
+}

@@ -24,6 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "Residents"))
 sys.path.insert(0, os.path.join(HERE, "..", "Weapons"))
+sys.path.insert(0, os.path.join(HERE, "..", "Props"))
 import uikit as K  # noqa: E402
 
 sf = K.sf
@@ -250,6 +251,33 @@ WEAPON_ICONS = {
     "Icon_Welder": ("Tool_Welder", (-14, 12), 3.0),
     "Icon_Drill": ("Tool_Drill", (-16, 12), 3.7),                  # Prompt 14
     "Icon_Pickaxe": ("Weapon_Pickaxe", (-40, 12), 4.3),
+    # A2 (Prompt 20): the class kits, throwables, tools and devices. None: fit the frame.
+    "Icon_LeadPipe": ("Weapon_LeadPipe", (-38, 12), None),
+    "Icon_FireAxe": ("Weapon_FireAxe", (-38, 12), None),
+    "Icon_Sledgehammer": ("Weapon_Sledgehammer", (-38, 12), None),
+    "Icon_ShockBaton": ("Weapon_ShockBaton", (-38, 12), None),
+    "Icon_DefibPaddles": ("Weapon_DefibPaddles", (-30, 30), None),
+    "Icon_AntennaWhip": ("Weapon_AntennaWhip", (-38, 12), None),
+    "Icon_HazardHook": ("Weapon_HazardHook", (-38, 12), None),
+    "Icon_HuntingKnife": ("Weapon_HuntingKnife", (-30, 12), None),
+    "Icon_PowerWrench": ("Weapon_PowerWrench", (-38, 12), None),
+    "Icon_PumpShotgun": ("Weapon_PumpShotgun", (-14, 12), None),
+    "Icon_LeverRifle": ("Weapon_LeverRifle", (-14, 12), None),
+    "Icon_RivetSMG": ("Weapon_RivetSMG", (-14, 14), None),
+    "Icon_Flamethrower": ("Weapon_Flamethrower", (-14, 14), None),
+    "Icon_GrenadeLauncher": ("Weapon_GrenadeLauncher", (-14, 14), None),
+    "Icon_ArcRifle": ("Weapon_ArcRifle", (-14, 14), None),
+    "Icon_FragGrenade": ("Throwable_FragGrenade", (-10, 25), None),
+    "Icon_Flare": ("Throwable_Flare", (-30, 20), None),
+    "Icon_FoamGrenade": ("Throwable_FoamGrenade", (-10, 25), None),
+    "Icon_ShockMine": ("Throwable_ShockMine", (-35, 25), None),
+    "Icon_GeigerCounter": ("Tool_GeigerCounter", (-14, 30), None),
+    "Icon_Grapple": ("Tool_Grapple", (-16, 12), None),
+    "Icon_ClearRadPills": ("Item_ClearRadPills", (-10, -60), None),
+    "Icon_Lamp": ("Prop_Lamp", (-5, -35), None),
+    "Icon_Turret": ("Prop_Turret", (-8, -25), None),
+    "Icon_CombatDrone": ("Prop_CombatDrone", (-25, -35), None),
+    "Icon_Barricade": ("Prop_Barricade", (-5, -60), None),
 }
 
 
@@ -273,6 +301,16 @@ def weapon_icon(module, sprite, size=256):
     root.rotation_euler = (math.radians(rx), 0, math.radians(rz))   # front up and a little toward us
     bpy.context.view_layer.update()
     _render_setup(size, size, samples=96)
+    if ortho is None:   # fit: the model's extent seen from the camera (along X), with a margin
+        corners = []
+        for o in objs:
+            for c in o.bound_box:
+                corners.append(o.matrix_world @ Vector(c))
+        ys = [c.y for c in corners]
+        zs = [c.z for c in corners]
+        ortho = max(max(ys) - min(ys), max(zs) - min(zs)) * 1.12
+        mid = Vector((ctr.x, (max(ys) + min(ys)) / 2, (max(zs) + min(zs)) / 2))
+        ctr = mid
     cd = bpy.data.cameras.new("ICam")
     cd.type = "ORTHO"
     cd.ortho_scale = ortho
@@ -301,6 +339,10 @@ SPECS["Icon_Extinguisher"] = {"size": [256, 256], "slice": None, "group": "items
 SPECS["Icon_Welder"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Welder icon from the model (hotbar)"}
 SPECS["Icon_Drill"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Drill icon from the model (hotbar)"}
 SPECS["Icon_Pickaxe"] = {"size": [256, 256], "slice": None, "group": "items", "note": "Pickaxe icon from the model (hotbar)"}
+for _sprite, (_module, _rot, _ortho) in WEAPON_ICONS.items():
+    if _ortho is None:
+        SPECS[_sprite] = {"size": [256, 256], "slice": None, "group": "items",
+                          "note": f"{_module} icon from the model (A2, Prompt 20)"}
 
 if __name__ == "__main__":
     args = sys.argv[1:]

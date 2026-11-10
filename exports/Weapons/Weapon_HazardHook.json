@@ -1,0 +1,77 @@
+{
+ "asset": "Weapon_HazardHook",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.285,
+  0.814,
+  4.093
+ ],
+ "tris": 846,
+ "pivot": [
+  0.0,
+  0.15,
+  1.374
+ ],
+ "parts": [
+  {
+   "name": "Hook",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "hazard",
+    "rubber",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    0.257,
+    -1.374
+   ],
+   "size": [
+    0.285,
+    0.814,
+    4.093
+   ],
+   "tris": 846
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "class": [
+   "HazmatTech"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    0.0,
+    -3.35
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "77ce4eea6e7414ab"
+}

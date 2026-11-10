@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T01:57:58Z",
- "commit": "cd29700cb9b5200d727c4bbe47ed1ea8d68e883b",
- "label": "p19-cd29700",
+ "built": "2026-11-10T02:31:31Z",
+ "commit": "8d08d50fd716c182f17ff4e70ce46174d1704e99",
+ "label": "p20-8d08d50",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -197,7 +197,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "bac460fc"
+    "Hash": "da67d5a5"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -402,7 +402,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "bafcaadc"
+    "Hash": "400dc27c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -729,7 +729,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "bac460fc"
+    "Hash": "da67d5a5"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -934,7 +934,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "bafcaadc"
+    "Hash": "400dc27c"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -954,7 +954,7 @@
    "ServerScriptService.Lib.ClassAbilities": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Lib/ClassAbilities.luau",
-    "Hash": "2e3fbb39"
+    "Hash": "2011a074"
    },
    "ServerScriptService.Lib.Hazards": {
     "Class": "ModuleScript",
@@ -999,7 +999,7 @@
    "ServerScriptService.Services.ClassService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/ClassService.luau",
-    "Hash": "7ff76c22"
+    "Hash": "b7be8bc3"
    },
    "ServerScriptService.Services.CombatService": {
     "Class": "ModuleScript",
@@ -1129,7 +1129,7 @@
    "ServerScriptService.Services.WeaponService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/WeaponService.luau",
-    "Hash": "0752009b"
+    "Hash": "2c0d1772"
    },
    "ServerStorage.Documentation.ARCHITECTURE": {
     "Class": "ModuleScript",
@@ -1154,7 +1154,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.ClassController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/ClassController.luau",
-    "Hash": "0593813e"
+    "Hash": "fccc65e2"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.CombatController": {
     "Class": "ModuleScript",

@@ -1,0 +1,105 @@
+{
+ "asset": "Weapon_ShockBaton",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.38,
+  0.38,
+  3.247
+ ],
+ "tris": 908,
+ "pivot": [
+  0.0,
+  0.19,
+  0.854
+ ],
+ "parts": [
+  {
+   "name": "Baton",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "copper",
+    "hazard",
+    "navy",
+    "rubber",
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    0.0,
+    -0.84
+   ],
+   "size": [
+    0.38,
+    0.38,
+    3.22
+   ],
+   "tris": 844
+  },
+  {
+   "name": "Spark",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    0.0,
+    -2.42
+   ],
+   "size": [
+    0.114,
+    0.12,
+    0.114
+   ],
+   "tris": 64
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "class": [
+   "Security",
+   "Warden",
+   "MadScientist"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    0.0,
+    -2.45
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "ea9134dfd3dc1082"
+}

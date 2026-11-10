@@ -1,0 +1,92 @@
+{
+ "asset": "Weapon_PumpShotgun",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.432,
+  1.485,
+  3.654
+ ],
+ "tris": 1344,
+ "pivot": [
+  -0.046,
+  0.655,
+  0.708
+ ],
+ "parts": [
+  {
+   "name": "Shotgun",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "rubber",
+    "rust",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.046,
+    0.087,
+    -0.708
+   ],
+   "size": [
+    0.432,
+    1.485,
+    3.654
+   ],
+   "tris": 1344
+  }
+ ],
+ "meta": {
+  "kind": "Gun",
+  "hold": "TwoHanded",
+  "ammoPerShot": 2,
+  "class": [
+   "Quartermaster",
+   "Driller",
+   "Spelunker"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    0.0,
+    0.6,
+    -2.56
+   ],
+   "yaw": 0.0
+  },
+  "Support": {
+   "p": [
+    0.0,
+    0.2,
+    -1.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "82be9d6b601f2b7c"
+}

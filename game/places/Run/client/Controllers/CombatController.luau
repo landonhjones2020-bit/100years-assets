@@ -224,7 +224,16 @@ local function updateHold()
 	local wanted: string? = nil
 	local entry = if item then Config.Find("Items", item) else nil
 	if alive() and Combat.Gun(item) and now() >= swingEndsAt then
-		wanted = if camera:IsAiming() then "GunAim" else "GunHold"
+		-- A2's long guns (Prompt 20): both hands, shouldered to aim; a Hip gun (the flamethrower)
+		-- stays at the hip
+		local hold = if entry then entry.Hold else nil
+		if hold == "TwoHanded" then
+			wanted = if camera:IsAiming() then "RifleAim" else "RifleHold"
+		elseif hold == "Hip" then
+			wanted = "RifleHold"
+		else
+			wanted = if camera:IsAiming() then "GunAim" else "GunHold"
+		end
 	elseif alive() and entry and entry.Kind == "Tool" and now() >= swingEndsAt then
 		wanted = "GunHold" -- tools are held forward like a gun (Prompt 13)
 	end
@@ -498,7 +507,8 @@ local function reload()
 		return
 	end
 	Remotes.FireServer("ReloadWeapon")
-	play("Reload", gun.ReloadSeconds)
+	local entry = if item then Config.Find("Items", item) else nil
+	play(if entry and entry.Hold then "RifleReload" else "Reload", gun.ReloadSeconds)
 end
 
 local function fire(slot: number, item: string, gun: { [string]: any })
@@ -581,7 +591,7 @@ local function throw(slot: number)
 	local direction = (CFrame.lookAt(origin, target) * CFrame.Angles(loft, 0, 0)).LookVector
 	camera:Face("Fire", true)
 	faceUntil = os.clock() + 0.6
-	play("Melee3", 0.35, 0.05) -- the overhead swing reads as a throw until A2's own clip
+	play("Throw", 0.35, 0.05)
 	Remotes.FireServer("ThrowItem", slot, origin, direction)
 end
 
@@ -693,7 +703,14 @@ local function swing(heavy: boolean)
 		stop(holdTrack, 0.05)
 		holdTrack = nil
 	end
-	play(if heavy then "MeleeHeavy" else `Melee{step}`, length, 0.04)
+	-- a Heavy weapon (the Fire Axe, the Sledgehammer; Prompt 20) swings two-handed: a chop, a sweep
+	-- back, then the overhead smash as its third hit
+	local meleeEntry = Config.Find("Items", itemId)
+	local clip = if heavy then "MeleeHeavy" else `Melee{step}`
+	if not heavy and meleeEntry and meleeEntry.Hold == "Heavy" then
+		clip = if step >= 3 then "MeleeHeavy" else `HeavySwing{step}`
+	end
+	play(clip, length, 0.04)
 	camera:Face("Swing", true)
 	task.delay(length, function()
 		if now() >= swingEndsAt - 0.01 then

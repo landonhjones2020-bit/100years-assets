@@ -58,6 +58,11 @@ return {
 		UsesResource = Check.optional(Check.ref("Resources")),
 		HasRarity = F.Flag,
 		ClassKit = F.Flag,
+		-- How a player holds it (Prompt 20; CombatController picks the clips): TwoHanded guns use
+		-- RifleHold, RifleAim and RifleReload; Hip guns stay at the hip when aiming (the
+		-- flamethrower); Heavy melee weapons swing two-handed. None: one hand (pistols, tools,
+		-- light melee).
+		Hold = Check.optional(Check.enum({ "TwoHanded", "Hip", "Heavy" })),
 		Asset = F.Asset,
 	}),
 	Entries = {
@@ -85,6 +90,7 @@ return {
 			Text = "Heavy; breaks rubble.",
 			Melee = { Damage = 32, HeavyDamage = 58, SwingSeconds = 0.8, BreaksRubble = true },
 			HasRarity = true,
+			Hold = "Heavy",
 			Asset = "Weapon_FireAxe",
 		},
 		Sledgehammer = {
@@ -93,6 +99,7 @@ return {
 			Text = "Slow, big knockback.",
 			Melee = { Damage = 45, HeavyDamage = 80, SwingSeconds = 1.1, Knockback = 30, BreaksRubble = true },
 			HasRarity = true,
+			Hold = "Heavy",
 			Asset = "Weapon_Sledgehammer",
 		},
 		ShockBaton = {
@@ -180,6 +187,7 @@ return {
 			Gun = { Damage = 9, Pellets = 8, FireRate = 1, Range = 40, Magazine = 6, ReloadSeconds = 3, AmmoPerShot = 2, SpreadDegrees = 7 },
 			UsesResource = "Ammo",
 			HasRarity = true,
+			Hold = "TwoHanded",
 			Asset = "Weapon_PumpShotgun",
 		},
 		LeverRifle = {
@@ -189,6 +197,7 @@ return {
 			Gun = { Damage = 45, FireRate = 1.2, Range = 300, Magazine = 7, ReloadSeconds = 2.5, AmmoPerShot = 2, SpreadDegrees = 0.3 },
 			UsesResource = "Ammo",
 			HasRarity = true,
+			Hold = "TwoHanded",
 			Asset = "Weapon_LeverRifle",
 		},
 		RivetSMG = {
@@ -198,6 +207,7 @@ return {
 			Gun = { Damage = 9, FireRate = 10, Range = 90, Magazine = 30, ReloadSeconds = 1.8, AmmoPerShot = 1, SpreadDegrees = 3, Automatic = true },
 			UsesResource = "Ammo",
 			HasRarity = true,
+			Hold = "TwoHanded",
 			Asset = "Weapon_RivetSMG",
 		},
 		Flamethrower = {
@@ -208,6 +218,7 @@ return {
 			UsesResource = "Ammo",
 			HasRarity = true,
 			ClassKit = true,
+			Hold = "Hip",
 			Asset = "Weapon_Flamethrower",
 		},
 		GrenadeLauncher = {
@@ -218,6 +229,7 @@ return {
 			UsesResource = "Ammo",
 			HasRarity = true,
 			ClassKit = true,
+			Hold = "TwoHanded",
 			Asset = "Weapon_GrenadeLauncher",
 		},
 		ArcRifle = {
@@ -228,6 +240,7 @@ return {
 			UsesResource = "Ammo",
 			HasRarity = true,
 			ClassKit = true,
+			Hold = "TwoHanded",
 			Asset = "Weapon_ArcRifle",
 		},
 

@@ -1,0 +1,87 @@
+{
+ "note": "A2 (Prompt 20) uploads: operation ids, then asset ids",
+ "ops": {
+  "Weapon_LeadPipe": "0d14ca46-f69f-4838-9c47-8d50e17b2c43",
+  "Weapon_FireAxe": "7549455c-7893-4f04-8c62-027afad1d349",
+  "Weapon_Sledgehammer": "a6f50a44-1d14-486a-ae76-fe392a862604",
+  "Weapon_ShockBaton": "1602e66d-650b-4c56-9634-33edb7c5b187",
+  "Weapon_DefibPaddles": "3577db11-5446-46ea-b64c-d424e97a27b2",
+  "Weapon_AntennaWhip": "0b61369e-4318-44e5-b17d-7d5e8e4c44b7",
+  "Weapon_HazardHook": "7ef1cb00-2141-428a-b50c-724a2f1cce16",
+  "Weapon_HuntingKnife": "526b58f8-f542-4e5b-80bc-f51c7c5f911d",
+  "Weapon_PowerWrench": "8e338e84-78e9-4311-ad2a-defce9cc6eb9",
+  "Weapon_PumpShotgun": "2dbd78ee-6148-4cab-8401-a0ba55f1f6ad",
+  "Weapon_LeverRifle": "c78fa314-c00d-493e-85c3-93d5b4519962",
+  "Weapon_RivetSMG": "59fb7ad4-84b7-4ed0-9736-c4c863839f04",
+  "Weapon_Flamethrower": "b0d154e8-0166-4bca-91e1-eb142415ae68",
+  "Weapon_GrenadeLauncher": "ed33a9ba-c292-4491-be77-73dc40461146",
+  "Weapon_ArcRifle": "55a7b20f-0e52-46cf-8c45-19b2260fb1e6",
+  "Throwable_FragGrenade": "957c626c-bb24-4080-b69e-45d930112e96",
+  "Throwable_Flare": "49cc805a-62e5-49ec-ad05-9de87a33087d",
+  "Throwable_FoamGrenade": "bd82c6b9-5797-4cf1-b314-2bf7b4b7114d",
+  "Throwable_ShockMine": "6329eb9e-e1c9-4e53-98cc-326e1f56f577",
+  "Tool_GeigerCounter": "8f082c29-e208-4c57-b075-6210ce45a1b4",
+  "Tool_Grapple": "36704e59-f2b8-4ada-bbaa-042c80aeabb9",
+  "Item_Medkit": "cb12d070-95e6-4910-a35d-6a25c5ae774f",
+  "Item_ClearRadPills": "1d2301f7-370c-4fb8-9a89-1bfc2867dac7",
+  "Prop_Lamp": "e469b455-b654-4aab-95ae-d5caaf5249d8",
+  "Prop_Barricade": "bba4282e-95b4-41e4-9b68-2c962939293e",
+  "Prop_Turret": "f274dcad-33fd-418d-add9-a17a1a02ae27",
+  "Prop_CombatDrone": "ef45a7f9-d9dc-4e74-9ef2-29246b2f7ae4"
+ },
+ "assets": {
+  "Weapon_LeadPipe": "88595359520695",
+  "Weapon_FireAxe": "119959909555833",
+  "Weapon_Sledgehammer": "85247020074536",
+  "Weapon_ShockBaton": "120741209441702",
+  "Weapon_DefibPaddles": "128548334739378",
+  "Weapon_AntennaWhip": "87794111340285",
+  "Weapon_HazardHook": "125758627850056",
+  "Weapon_HuntingKnife": "82214620271544",
+  "Weapon_PowerWrench": "130521464038395",
+  "Weapon_PumpShotgun": "88729131924071",
+  "Weapon_LeverRifle": "91071814847337",
+  "Weapon_RivetSMG": "94030354583031",
+  "Weapon_Flamethrower": "118000374347196",
+  "Weapon_GrenadeLauncher": "121487365498080",
+  "Weapon_ArcRifle": "118251209012301",
+  "Throwable_FragGrenade": "75628160668397",
+  "Throwable_Flare": "77220212375703",
+  "Throwable_FoamGrenade": "95511975820964",
+  "Throwable_ShockMine": "94453809564539",
+  "Tool_GeigerCounter": "119548646993701",
+  "Tool_Grapple": "95823518050925",
+  "Item_Medkit": "104625047438651",
+  "Item_ClearRadPills": "73640336361131",
+  "Prop_Lamp": "90293637047671",
+  "Prop_Barricade": "93803781742188",
+  "Prop_Turret": "127032146783682",
+  "Prop_CombatDrone": "96153332046945"
+ },
+ "clip_ops": {
+  "RifleHold": "3b16e28a-f375-48cc-b48c-bef505d9bad6",
+  "RifleAim": "004c3171-6ef2-4c4f-847c-7b362ff7666f",
+  "RifleReload": "e2e47249-7882-4f1b-bef8-83a1801a1159",
+  "HeavySwing1": "c08ca890-70ca-4a5b-957c-fd266e03abb3",
+  "HeavySwing2": "75d3ea18-e3ef-4cf3-aa32-a410e968ab5c",
+  "Throw": "bff0fe10-b75c-475f-8448-aca8b7903e15"
+ },
+ "tooling": {
+  "ArtSetupBatch_A2P20": "100045173395166"
+ },
+ "clips": {
+  "RifleHold": "77956165790685",
+  "RifleAim": "85830803451075",
+  "RifleReload": "106450019697392",
+  "HeavySwing1": "92422746632862",
+  "HeavySwing2": "137173117337988",
+  "Throw": "124031410096479"
+ },
+ "ui": {
+  "atlas_items": {
+   "decalId": "103625184081360",
+   "imageId": "83868618378929",
+   "sha8": "8a696436"
+  }
+ }
+}

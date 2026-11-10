@@ -1,0 +1,92 @@
+{
+ "asset": "Prop_Lamp",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  1.801,
+  4.344,
+  1.605
+ ],
+ "tris": 542,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Lamp",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "hazard",
+    "olive",
+    "rubber",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    2.068,
+    0.0
+   ],
+   "size": [
+    1.801,
+    4.135,
+    1.605
+   ],
+   "tris": 478
+  },
+  {
+   "name": "Bulb",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    0.0,
+    3.828,
+    -0.108
+   ],
+   "size": [
+    0.285,
+    0.3,
+    0.285
+   ],
+   "tris": 64
+  }
+ ],
+ "meta": {
+  "kind": "Placeable"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Light": {
+   "p": [
+    0.0,
+    3.828,
+    -0.108
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "41a755b32362801a"
+}

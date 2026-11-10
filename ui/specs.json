@@ -385,6 +385,24 @@
   ],
   "slice": null
  },
+ "Icon_AntennaWhip": {
+  "group": "items",
+  "note": "Weapon_AntennaWhip icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_ArcRifle": {
+  "group": "items",
+  "note": "Weapon_ArcRifle icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Arrow": {
   "group": "hud",
   "note": "screen-edge arrow to a breach (points up; white, tint with ImageColor3)",
@@ -403,11 +421,38 @@
   ],
   "slice": null
  },
+ "Icon_Barricade": {
+  "group": "items",
+  "note": "Prop_Barricade icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Check": {
   "note": "tab: owned (white, tint with ImageColor3)",
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_ClearRadPills": {
+  "group": "items",
+  "note": "Item_ClearRadPills icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_CombatDrone": {
+  "group": "items",
+  "note": "Prop_CombatDrone icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -455,6 +500,15 @@
   ],
   "slice": null
  },
+ "Icon_DefibPaddles": {
+  "group": "items",
+  "note": "Weapon_DefibPaddles icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Dodge": {
   "group": "hud",
   "note": "touch: dodge (a roll arrow; white, tint with ImageColor3)",
@@ -491,11 +545,65 @@
   ],
   "slice": null
  },
+ "Icon_FireAxe": {
+  "group": "items",
+  "note": "Weapon_FireAxe icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_Flamethrower": {
+  "group": "items",
+  "note": "Weapon_Flamethrower icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_Flare": {
+  "group": "items",
+  "note": "Throwable_Flare icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_FoamGrenade": {
+  "group": "items",
+  "note": "Throwable_FoamGrenade icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Food": {
   "note": "Food",
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_FragGrenade": {
+  "group": "items",
+  "note": "Throwable_FragGrenade icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_GeigerCounter": {
+  "group": "items",
+  "note": "Tool_GeigerCounter icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -507,11 +615,47 @@
   ],
   "slice": null
  },
+ "Icon_Grapple": {
+  "group": "items",
+  "note": "Tool_Grapple icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_GrenadeLauncher": {
+  "group": "items",
+  "note": "Weapon_GrenadeLauncher icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Grid": {
   "note": "tab: all (white, tint with ImageColor3)",
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_HazardHook": {
+  "group": "items",
+  "note": "Weapon_HazardHook icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_HuntingKnife": {
+  "group": "items",
+  "note": "Weapon_HuntingKnife icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -538,6 +682,33 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Lamp": {
+  "group": "items",
+  "note": "Prop_Lamp icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_LeadPipe": {
+  "group": "items",
+  "note": "Weapon_LeadPipe icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_LeverRifle": {
+  "group": "items",
+  "note": "Weapon_LeverRifle icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -593,6 +764,24 @@
   ],
   "slice": null
  },
+ "Icon_PowerWrench": {
+  "group": "items",
+  "note": "Weapon_PowerWrench icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_PumpShotgun": {
+  "group": "items",
+  "note": "Weapon_PumpShotgun icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Radiation": {
   "group": "surface",
   "note": "radiation (alerts and the gauge; Prompt 16)",
@@ -608,6 +797,15 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_RivetSMG": {
+  "group": "items",
+  "note": "Weapon_RivetSMG icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -644,12 +842,39 @@
   ],
   "slice": null
  },
+ "Icon_ShockBaton": {
+  "group": "items",
+  "note": "Weapon_ShockBaton icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
+ "Icon_ShockMine": {
+  "group": "items",
+  "note": "Throwable_ShockMine icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
+  ],
+  "slice": null
+ },
  "Icon_Shoulder": {
   "group": "hud",
   "note": "touch: swap shoulder (arrows both ways; white, tint with ImageColor3)",
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Sledgehammer": {
+  "group": "items",
+  "note": "Weapon_Sledgehammer icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },
@@ -685,6 +910,15 @@
   "size": [
    128,
    128
+  ],
+  "slice": null
+ },
+ "Icon_Turret": {
+  "group": "items",
+  "note": "Prop_Turret icon from the model (A2, Prompt 20)",
+  "size": [
+   256,
+   256
   ],
   "slice": null
  },

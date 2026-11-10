@@ -1,0 +1,60 @@
+{
+ "asset": "Prop_Barricade",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  5.637,
+  4.287,
+  0.33
+ ],
+ "tris": 576,
+ "pivot": [
+  0.0,
+  2.171,
+  0.065
+ ],
+ "parts": [
+  {
+   "name": "Barricade",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "gunmetal",
+    "hazard",
+    "pine",
+    "rubber",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    -0.028,
+    -0.065
+   ],
+   "size": [
+    5.633,
+    4.282,
+    0.33
+   ],
+   "tris": 576
+  }
+ ],
+ "meta": {
+  "kind": "Device",
+  "class": [
+   "Engineer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "97645c011eb44f04"
+}

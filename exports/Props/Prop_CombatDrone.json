@@ -1,0 +1,111 @@
+{
+ "asset": "Prop_CombatDrone",
+ "category": "Props",
+ "format": 1,
+ "size": [
+  2.306,
+  1.08,
+  2.273
+ ],
+ "tris": 962,
+ "pivot": [
+  0.0,
+  0.37,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Drone",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "gunmetal",
+    "rubber",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.17,
+    0.0
+   ],
+   "size": [
+    2.306,
+    1.08,
+    2.273
+   ],
+   "tris": 898
+  },
+  {
+   "name": "Eye",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.0,
+    -0.06,
+    -0.7
+   ],
+   "size": [
+    0.228,
+    0.24,
+    0.228
+   ],
+   "tris": 64
+  }
+ ],
+ "meta": {
+  "kind": "Device",
+  "class": [
+   "Tinkerer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Eye": {
+   "p": [
+    0.0,
+    -0.06,
+    -0.8
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle": {
+   "p": [
+    -0.18,
+    -0.3,
+    -0.87
+   ],
+   "yaw": 0.0
+  },
+  "Muzzle2": {
+   "p": [
+    0.18,
+    -0.3,
+    -0.87
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "dc4734df88130ec1"
+}

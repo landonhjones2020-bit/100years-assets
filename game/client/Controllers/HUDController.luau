@@ -86,13 +86,14 @@ local TOUCH_ACTIONS = {
 	Shoulder = "SwapShoulder",
 	Heal = "Heal", -- Landon, 2026-11-08
 }
--- The ability's icon: Ability_<Class> once the UI kit has it (Prompt 20's art), else a stand-in.
+-- The ability's icon: Ability_<Class> if the UI kit ever has one (A11: icons), else the thing the
+-- ability uses, from the item icons rendered off A2's models (Prompt 20), or a HUD stamp.
 local ABILITY_ICONS: { [string]: string } = {
-	Survivor = "Icon_Medkit", Engineer = "Icon_Welder", Medic = "Icon_Medkit", Firefighter = "Icon_Extinguisher",
-	Cook = "Icon_Food", Security = "Icon_Shield", Scout = "Icon_Ping", Quartermaster = "Icon_Scrap",
+	Survivor = "Icon_Medkit", Engineer = "Icon_Turret", Medic = "Icon_DefibPaddles", Firefighter = "Icon_FoamGrenade",
+	Cook = "Icon_Food", Security = "Icon_Shield", Scout = "Icon_Flare", Quartermaster = "Icon_Scrap",
 	RadioOperator = "Icon_Radio", HazmatTech = "Icon_Radiation", Exterminator = "Icon_Fire", Marksman = "Icon_Aim",
-	Driller = "Icon_Drill", Scavenger = "Icon_Backpack", Warden = "Icon_Crew", Demolitionist = "Icon_Fire",
-	Spelunker = "Icon_Route", MadScientist = "Icon_Power", Tinkerer = "Icon_Wrench",
+	Driller = "Icon_Drill", Scavenger = "Icon_Backpack", Warden = "Icon_Crew", Demolitionist = "Icon_FragGrenade",
+	Spelunker = "Icon_Grapple", MadScientist = "Icon_ShockMine", Tinkerer = "Icon_CombatDrone",
 }
 local MAX_ALERTS = 3
 local FLIP_SECONDS = 0.07
@@ -400,6 +401,9 @@ function HUDController:SetClass(id: string, level: number?)
 	part("Vitals.Class").Text = `{string.upper(class.Name)}  ·  LV {classLevel}`
 	local icon = part("Vitals.Ability.Icon")
 	local sprite = if KitRuntime.Has(`Ability_{id}`) then `Ability_{id}` else ABILITY_ICONS[id]
+	if sprite and not KitRuntime.Has(sprite) then
+		sprite = "Icon_Interact" -- a kit without that icon yet
+	end
 	icon.Visible = sprite ~= nil
 	if sprite then
 		KitRuntime.SetSprite(icon, sprite)

@@ -1,0 +1,67 @@
+{
+ "asset": "Item_ClearRadPills",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.342,
+  0.53,
+  0.374
+ ],
+ "tris": 288,
+ "pivot": [
+  0.0,
+  0.0,
+  0.007
+ ],
+ "parts": [
+  {
+   "name": "Pills",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "chrome",
+    "cream",
+    "hazard",
+    "mint",
+    "navy",
+    "porcelain"
+   ],
+   "offset": [
+    0.0,
+    0.265,
+    -0.007
+   ],
+   "size": [
+    0.342,
+    0.53,
+    0.374
+   ],
+   "tris": 288
+  }
+ ],
+ "meta": {
+  "kind": "Consumable"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.22,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "43d680ffb3aae593"
+}

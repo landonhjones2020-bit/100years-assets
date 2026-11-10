@@ -41,13 +41,13 @@
    ]
   },
   "items": {
-   "decalId": 75294353899571,
+   "decalId": "103625184081360",
    "file": "ui/atlas_items.png",
-   "imageId": 111680310007713,
-   "sha1": "b5e9443ac1a2fc96d77666f2286834f0181d8a98",
+   "imageId": "83868618378929",
+   "sha1": "8a69643628f2f6484e13b3c257854eb9f52af224",
    "size": [
     1024,
-    485
+    662
    ]
   },
   "kit_a": {
@@ -673,6 +673,32 @@
    ],
    "slice": null
   },
+  "Icon_AntennaWhip": {
+   "atlas": "items",
+   "note": "Weapon_AntennaWhip icon from the model (A2, Prompt 20)",
+   "offset": [
+    4,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_ArcRifle": {
+   "atlas": "items",
+   "note": "Weapon_ArcRifle icon from the model (A2, Prompt 20)",
+   "offset": [
+    140,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Arrow": {
    "atlas": "hud",
    "note": "screen-edge arrow to a breach (points up; white, tint with ImageColor3)",
@@ -699,11 +725,50 @@
    ],
    "slice": null
   },
+  "Icon_Barricade": {
+   "atlas": "items",
+   "note": "Prop_Barricade icon from the model (A2, Prompt 20)",
+   "offset": [
+    276,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Check": {
    "atlas": "kit_b",
    "note": "tab: owned (white, tint with ImageColor3)",
    "offset": [
     684,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_ClearRadPills": {
+   "atlas": "items",
+   "note": "Item_ClearRadPills icon from the model (A2, Prompt 20)",
+   "offset": [
+    412,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_CombatDrone": {
+   "atlas": "items",
+   "note": "Prop_CombatDrone icon from the model (A2, Prompt 20)",
+   "offset": [
+    548,
     4
    ],
    "size": [
@@ -777,6 +842,19 @@
    ],
    "slice": null
   },
+  "Icon_DefibPaddles": {
+   "atlas": "items",
+   "note": "Weapon_DefibPaddles icon from the model (A2, Prompt 20)",
+   "offset": [
+    684,
+    4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Dodge": {
    "atlas": "hud",
    "note": "touch: dodge (a roll arrow; white, tint with ImageColor3)",
@@ -794,12 +872,12 @@
    "atlas": "items",
    "note": "Drill icon from the model (hotbar)",
    "offset": [
-    4,
+    820,
     4
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },
@@ -807,12 +885,12 @@
    "atlas": "items",
    "note": "Extinguisher icon from the model (hotbar)",
    "offset": [
-    268,
-    4
+    4,
+    140
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },
@@ -829,11 +907,89 @@
    ],
    "slice": null
   },
+  "Icon_FireAxe": {
+   "atlas": "items",
+   "note": "Weapon_FireAxe icon from the model (A2, Prompt 20)",
+   "offset": [
+    140,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Flamethrower": {
+   "atlas": "items",
+   "note": "Weapon_Flamethrower icon from the model (A2, Prompt 20)",
+   "offset": [
+    276,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Flare": {
+   "atlas": "items",
+   "note": "Throwable_Flare icon from the model (A2, Prompt 20)",
+   "offset": [
+    412,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_FoamGrenade": {
+   "atlas": "items",
+   "note": "Throwable_FoamGrenade icon from the model (A2, Prompt 20)",
+   "offset": [
+    548,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Food": {
    "atlas": "kit_b",
    "note": "Food",
    "offset": [
     4,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_FragGrenade": {
+   "atlas": "items",
+   "note": "Throwable_FragGrenade icon from the model (A2, Prompt 20)",
+   "offset": [
+    684,
+    140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_GeigerCounter": {
+   "atlas": "items",
+   "note": "Tool_GeigerCounter icon from the model (A2, Prompt 20)",
+   "offset": [
+    820,
     140
    ],
    "size": [
@@ -855,12 +1011,64 @@
    ],
    "slice": null
   },
+  "Icon_Grapple": {
+   "atlas": "items",
+   "note": "Tool_Grapple icon from the model (A2, Prompt 20)",
+   "offset": [
+    4,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_GrenadeLauncher": {
+   "atlas": "items",
+   "note": "Weapon_GrenadeLauncher icon from the model (A2, Prompt 20)",
+   "offset": [
+    140,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Grid": {
    "atlas": "kit_b",
    "note": "tab: all (white, tint with ImageColor3)",
    "offset": [
     276,
     140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_HazardHook": {
+   "atlas": "items",
+   "note": "Weapon_HazardHook icon from the model (A2, Prompt 20)",
+   "offset": [
+    276,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_HuntingKnife": {
+   "atlas": "items",
+   "note": "Weapon_HuntingKnife icon from the model (A2, Prompt 20)",
+   "offset": [
+    412,
+    276
    ],
    "size": [
     128,
@@ -907,6 +1115,45 @@
    ],
    "slice": null
   },
+  "Icon_Lamp": {
+   "atlas": "items",
+   "note": "Prop_Lamp icon from the model (A2, Prompt 20)",
+   "offset": [
+    548,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_LeadPipe": {
+   "atlas": "items",
+   "note": "Weapon_LeadPipe icon from the model (A2, Prompt 20)",
+   "offset": [
+    684,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_LeverRifle": {
+   "atlas": "items",
+   "note": "Weapon_LeverRifle icon from the model (A2, Prompt 20)",
+   "offset": [
+    820,
+    276
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Medkit": {
    "atlas": "kit_b",
    "note": "Medkits: carried by players, used with the Heal button (Landon, 2026-11-08)",
@@ -937,12 +1184,12 @@
    "atlas": "items",
    "note": "Pickaxe icon from the model (hotbar)",
    "offset": [
-    532,
-    4
+    4,
+    412
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },
@@ -963,12 +1210,12 @@
    "atlas": "items",
    "note": "Pocket Pistol icon from the model (hotbar)",
    "offset": [
-    4,
-    268
+    140,
+    412
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },
@@ -978,6 +1225,32 @@
    "offset": [
     684,
     140
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_PowerWrench": {
+   "atlas": "items",
+   "note": "Weapon_PowerWrench icon from the model (A2, Prompt 20)",
+   "offset": [
+    276,
+    412
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_PumpShotgun": {
+   "atlas": "items",
+   "note": "Weapon_PumpShotgun icon from the model (A2, Prompt 20)",
+   "offset": [
+    412,
+    412
    ],
    "size": [
     128,
@@ -1004,6 +1277,19 @@
    "offset": [
     548,
     4
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_RivetSMG": {
+   "atlas": "items",
+   "note": "Weapon_RivetSMG icon from the model (A2, Prompt 20)",
+   "offset": [
+    548,
+    412
    ],
    "size": [
     128,
@@ -1063,12 +1349,51 @@
    ],
    "slice": null
   },
+  "Icon_ShockBaton": {
+   "atlas": "items",
+   "note": "Weapon_ShockBaton icon from the model (A2, Prompt 20)",
+   "offset": [
+    684,
+    412
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_ShockMine": {
+   "atlas": "items",
+   "note": "Throwable_ShockMine icon from the model (A2, Prompt 20)",
+   "offset": [
+    820,
+    412
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Shoulder": {
    "atlas": "hud",
    "note": "touch: swap shoulder (arrows both ways; white, tint with ImageColor3)",
    "offset": [
     412,
     404
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
+  "Icon_Sledgehammer": {
+   "atlas": "items",
+   "note": "Weapon_Sledgehammer icon from the model (A2, Prompt 20)",
+   "offset": [
+    4,
+    548
    ],
    "size": [
     128,
@@ -1128,6 +1453,19 @@
    ],
    "slice": null
   },
+  "Icon_Turret": {
+   "atlas": "items",
+   "note": "Prop_Turret icon from the model (A2, Prompt 20)",
+   "offset": [
+    140,
+    548
+   ],
+   "size": [
+    128,
+    128
+   ],
+   "slice": null
+  },
   "Icon_Water": {
    "atlas": "kit_b",
    "note": "Water",
@@ -1145,12 +1483,12 @@
    "atlas": "items",
    "note": "Welder icon from the model (hotbar)",
    "offset": [
-    268,
-    268
+    276,
+    548
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },
@@ -1158,12 +1496,12 @@
    "atlas": "items",
    "note": "Wrench icon from the model (hotbar)",
    "offset": [
-    532,
-    268
+    412,
+    548
    ],
    "size": [
-    256,
-    256
+    128,
+    128
    ],
    "slice": null
   },

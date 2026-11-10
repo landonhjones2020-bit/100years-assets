@@ -1,0 +1,105 @@
+{
+ "asset": "Weapon_PowerWrench",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.61,
+  1.197,
+  3.695
+ ],
+ "tris": 948,
+ "pivot": [
+  0.0,
+  0.537,
+  0.968
+ ],
+ "parts": [
+  {
+   "name": "PowerWrench",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "copper",
+    "gunmetal",
+    "hazard",
+    "rubber",
+    "signal",
+    "steel",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    0.061,
+    -0.968
+   ],
+   "size": [
+    0.61,
+    1.197,
+    3.695
+   ],
+   "tris": 928
+  },
+  {
+   "name": "PowerWrench_",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -0.2,
+    0.08,
+    0.65
+   ],
+   "size": [
+    0.05,
+    0.087,
+    0.1
+   ],
+   "tris": 20
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "class": [
+   "Tinkerer"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    0.0,
+    -2.75
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "3343e6d4bf18a453"
+}

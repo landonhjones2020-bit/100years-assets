@@ -649,7 +649,7 @@ local function placeMine(player: Player, at: Vector3, throwable: { [string]: any
 	local t = Combat.Tuning()
 	local mine = thrownPart("ShockMine")
 	mine.Name = "ShockMine"
-	mine.Position = at + Vector3.new(0, 0.3, 0)
+	mine.Position = at + Vector3.new(0, mine.Size.Y / 2, 0) -- sitting on the ground, whatever its size
 	mine:SetAttribute("Owner", player.UserId)
 	mine.Parent = workspace
 	local armedAt = os.clock() + t.MineArmSeconds
@@ -687,7 +687,7 @@ local function landed(player: Player, itemId: string, throwable: { [string]: any
 	elseif throwable.LightSeconds then
 		local flare = thrownPart("Flare")
 		flare.Name = "Flare"
-		flare.Position = at + Vector3.new(0, 0.35, 0)
+		flare.Position = at + Vector3.new(0, flare.Size.Y / 2, 0)
 		flare:SetAttribute("Radius", throwable.Radius)
 		flare:SetAttribute("RevealsHidden", throwable.RevealsHidden == true)
 		local light = Instance.new("PointLight")

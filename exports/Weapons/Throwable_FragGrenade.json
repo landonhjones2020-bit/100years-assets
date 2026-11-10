@@ -1,0 +1,69 @@
+{
+ "asset": "Throwable_FragGrenade",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.48,
+  0.666,
+  0.498
+ ],
+ "tris": 260,
+ "pivot": [
+  0.0,
+  0.25,
+  0.014
+ ],
+ "parts": [
+  {
+   "name": "Grenade",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "forest",
+    "gunmetal",
+    "olive",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    0.083,
+    -0.014
+   ],
+   "size": [
+    0.48,
+    0.666,
+    0.498
+   ],
+   "tris": 260
+  }
+ ],
+ "meta": {
+  "kind": "Throwable",
+  "class": [
+   "Demolitionist"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "466b86350bd6ce3e"
+}

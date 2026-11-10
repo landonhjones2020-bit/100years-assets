@@ -1,0 +1,78 @@
+{
+ "asset": "Weapon_AntennaWhip",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.3,
+  0.36,
+  4.19
+ ],
+ "tris": 980,
+ "pivot": [
+  0.0,
+  0.15,
+  1.415
+ ],
+ "parts": [
+  {
+   "name": "Whip",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "copper",
+    "navy",
+    "rubber",
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    0.03,
+    -1.415
+   ],
+   "size": [
+    0.3,
+    0.36,
+    4.19
+   ],
+   "tris": 980
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "class": [
+   "RadioOperator"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    0.0,
+    -3.45
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "15f4ec2adfa419f7"
+}

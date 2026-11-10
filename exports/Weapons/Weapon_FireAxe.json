@@ -1,0 +1,89 @@
+{
+ "asset": "Weapon_FireAxe",
+ "category": "Weapons",
+ "format": 1,
+ "size": [
+  0.309,
+  1.397,
+  3.388
+ ],
+ "tris": 760,
+ "pivot": [
+  0.0,
+  0.74,
+  0.824
+ ],
+ "parts": [
+  {
+   "name": "Axe",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "pine",
+    "rubber",
+    "rust",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    -0.042,
+    -0.824
+   ],
+   "size": [
+    0.309,
+    1.397,
+    3.388
+   ],
+   "tris": 760
+  }
+ ],
+ "meta": {
+  "kind": "Melee",
+  "hold": "Heavy",
+  "class": [
+   "Firefighter",
+   "Scavenger"
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Grip": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Support": {
+   "p": [
+    0.0,
+    0.0,
+    0.6
+   ],
+   "yaw": 0.0
+  },
+  "Tip": {
+   "p": [
+    0.0,
+    -0.72,
+    -2.1
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "0e57dcc65f7ba659"
+}
