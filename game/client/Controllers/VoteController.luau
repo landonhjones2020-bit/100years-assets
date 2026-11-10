@@ -53,6 +53,7 @@ local Remotes = require(Shared.Remotes)
 local Draft = require(Shared.Rules.Draft)
 local Lib = script.Parent.Parent:WaitForChild("Lib")
 local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
+local UIKit = require(Lib:WaitForChild("UIKit"))
 
 local log = Log.new("VoteController")
 
@@ -485,6 +486,25 @@ function VoteController:Start()
 	-- the blueprint draft (Prompt 19)
 	draftFrame = found:FindFirstChild("Draft")
 	if draftFrame then
+		-- load the card atlases now, so the first draft's cards show at once
+		task.spawn(function()
+			local images: { string } = {}
+			for _, kind in { "Room", "BunkerPerk", "ResidentBoon", "PlayerBoon", "RiskDeal" } do
+				local sprite = UIKit.Sprites[`Draft_{kind}`]
+				if sprite and not table.find(images, sprite.image) then
+					table.insert(images, sprite.image)
+				end
+			end
+			local holders = {}
+			for _, image in images do
+				local label = Instance.new("ImageLabel")
+				label.Image = image
+				table.insert(holders, label)
+			end
+			pcall(function()
+				game:GetService("ContentProvider"):PreloadAsync(holders)
+			end)
+		end)
 		for i = 1, 4 do
 			local card = draftFrame.Cards:FindFirstChild(`Card{i}`)
 			if card then

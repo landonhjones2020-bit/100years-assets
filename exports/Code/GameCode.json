@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T01:01:35Z",
- "commit": "4b18cca1e5252c9c309c3f6e09d323f8e49f4f84",
- "label": "p19-4b18cca",
+ "built": "2026-11-10T01:02:17Z",
+ "commit": "56bf1065c431cfa3318afbd14692ffe489efaa89",
+ "label": "p19-56bf106",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -197,7 +197,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "f148b899"
+    "Hash": "7054d4ca"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -397,7 +397,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "dcbf906d"
+    "Hash": "93ddc1a9"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -719,7 +719,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "f148b899"
+    "Hash": "7054d4ca"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -919,7 +919,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "dcbf906d"
+    "Hash": "93ddc1a9"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",

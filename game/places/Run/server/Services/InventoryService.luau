@@ -899,13 +899,17 @@ local function registerCommands(dev: any)
 		end,
 	})
 	dev:Register("pack.add", {
-		Description = "Put resources in your backpack.",
-		Usage = "pack.add <resource> <n>",
+		Description = "Put resources in your backpack, or Blueprint (found as loot is: a card drawn for the draft, Prompt 19).",
+		Usage = "pack.add <resource|Blueprint> <n>",
 		Run = function(player, args): string?
 			local p = target(player)
 			local id = tostring(args[1] or "")
+			if p and id == "Blueprint" then
+				local _, left = InventoryService:Give(p, { { Special = "Blueprint", Count = math.max(math.floor(tonumber(args[2]) or 1), 1) } })
+				return `{packLine(p)}: {Surface.Summary(packs[p] or {})}{if #left > 0 then ` (left over {Loot.Text(left)})` else ""}`
+			end
 			if not p or not Config.Find("Resources", id) then
-				return "pack.add <resource> <n>"
+				return "pack.add <resource|Blueprint> <n>"
 			end
 			local _, left = InventoryService:Give(p, { { Resource = id, Count = math.max(math.floor(tonumber(args[2]) or 10), 1) } })
 			return `{packLine(p)}: {Surface.Summary(packs[p] or {})}{if #left > 0 then ` (left over {Loot.Text(left)})` else ""}`

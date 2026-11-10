@@ -797,7 +797,9 @@ local function earlyWarnings()
 	if type(endsAt) ~= "number" then
 		return
 	end
-	local left = endsAt - now()
+	-- clock seconds left in the day (DevTools can run the clock faster: TimeScale)
+	local scale = RunState.Get("TimeScale")
+	local left = (endsAt - now()) * (if type(scale) == "number" and scale > 0 then scale else 1)
 	-- Salvage Rights (Prompt 19): this storm hits stormEarly seconds before its Surge
 	if stormEarly > 0 then
 		local warn = Config.Get("Tuning", "Draft").StormEarlyWarnSeconds
