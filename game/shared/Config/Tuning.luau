@@ -242,10 +242,13 @@ local Schemas: { [string]: Check.Checker } = {
 	Legends = shape({ StartLevel = I, RenownMax = I, RenownStatBonus = I, StarterLegend = Check.ref("Legends") }),
 	ClassShop = shape({
 		Slots = I, ResetHourUTC = I, FreeRerolls = I, VIPFreeRerolls = I, RerollRobux = I, WishlistDays = I,
-		FreeTrialRunsPerDay = I, ClassLevelRuns = list(I, 2),
+		FreeTrialRunsPerDay = I, RerollProductId = Check.optional(F.PositiveInt), ClassLevelRuns = list(I, 2),
 	}),
 	Account = shape({ LevelMax = I, XPPerYear = N, XPToLevelBase = N, XPToLevelStep = N, VIPGlowshardBonus = N }),
-	Lobby = shape({ PadCountdownSeconds = S, PartyMax = I }),
+	Lobby = shape({
+		PadCountdownSeconds = S, PartyMax = I, SoloCountdownSeconds = S, PrivateInvites = I, LaunchRetrySeconds = S,
+		RecordSeconds = N, RejoinStartSeconds = S, RejoinSeconds = S, RejoinRefreshSeconds = S,
+	}),
 }
 
 return {
@@ -612,8 +615,18 @@ return {
 		ClassShop = { -- Section 14
 			Slots = 4, ResetHourUTC = 0, FreeRerolls = 1, VIPFreeRerolls = 2, RerollRobux = 99, WishlistDays = 3,
 			FreeTrialRunsPerDay = 1, ClassLevelRuns = { 3, 10 },
+			-- the "Class Shop Reroll" developer product (Prompt 21; nil until it exists: the paid reroll is then off)
+			RerollProductId = nil,
 		},
 		Account = { LevelMax = 100, XPPerYear = 10, XPToLevelBase = 200, XPToLevelStep = 50, VIPGlowshardBonus = 0.25 }, -- Section 16; XP prov.
-		Lobby = { PadCountdownSeconds = 20, PartyMax = 6 }, -- Section 21
+		Lobby = { -- Section 21; the times below the first line are Prompt 21's, prov.
+			PadCountdownSeconds = 20, PartyMax = 6,
+			SoloCountdownSeconds = 3, -- "a solo pad starts at once": long enough to step back off
+			PrivateInvites = 12, -- how many players a private pad's leader can have invited at once
+			LaunchRetrySeconds = 6, -- a pad whose launch failed can try again after this
+			RecordSeconds = 43200, -- how long MemoryStore keeps a run's record (a run is shorter than this)
+			RejoinStartSeconds = 300, -- the rejoin record's first life (the Run server takes it over when it starts)
+			RejoinSeconds = 180, RejoinRefreshSeconds = 60, -- then kept alive by the Run server, so a dead run's offer ends
+		},
 	},
 }

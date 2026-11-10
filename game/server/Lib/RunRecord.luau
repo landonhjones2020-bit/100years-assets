@@ -10,9 +10,12 @@
 	  read path can be tried before Prompt 21's lobby writes real ones).
 	* The record (version 1):
 		{ Version = 1, Party = { user ids }, Difficulty = "Normal",
-		  Loadouts = { ["<user id>"] = { Class = "Medic", Trial = false } }, CreatedAt = os.time() }
-	  Prompt 20 reads Loadouts (ClassService); Prompt 21 writes the record and reads Party and
-	  Difficulty (RunDirector).
+		  Loadouts = { ["<user id>"] = { Class = "Medic", Trial = false } }, CreatedAt = os.time(),
+		  Code = "<the reserved server's access code>" }
+	  Prompt 20 reads Loadouts (ClassService); Prompt 21 writes the record (Lib.RunLaunch) and reads
+	  Party, Difficulty and Code (PartyService: who may join, the run's difficulty, and the rejoin
+	  records it keeps alive, which need the access code a reserved server can't ask for itself).
+	* Mine() is this server's record, read once and shared (Mine(true) reads it again: DevTools).
 	* Read(key) retries a failed MemoryStore call a few times; it never errors. Write(key, record,
 	  seconds) is the lobby's (and DevTools').
 ]]
@@ -35,6 +38,7 @@ export type Record = {
 	Difficulty: string?,
 	Loadouts: { [string]: Loadout },
 	CreatedAt: number,
+	Code: string?,
 }
 
 local Schema = Check.shape({
@@ -46,6 +50,7 @@ local Schema = Check.shape({
 		Trial = Check.optional(Check.boolean()),
 	}), 12),
 	CreatedAt = Check.number({ min = 0 }),
+	Code = Check.optional(Check.string(400)),
 })
 
 -- This server's key, or nil when it isn't a reserved Run server (and isn't Studio).
@@ -101,6 +106,29 @@ function RunRecord.Remove(key: string): boolean
 		map():RemoveAsync(key)
 	end)
 	return ok
+end
+
+-- This server's own record, read once (the first call yields); nil and why when there is none.
+-- `again` reads it afresh (DevTools, after writing a test record).
+local mine: { Done: boolean, Reading: boolean, Record: Record?, Why: string? } = { Done = false, Reading = false }
+function RunRecord.Mine(again: boolean?): (Record?, string?)
+	while mine.Reading do
+		task.wait(0.1)
+	end
+	if again then
+		mine.Done, mine.Record, mine.Why = false, nil, nil
+	end
+	if not mine.Done then
+		mine.Reading = true
+		local key = RunRecord.Key()
+		if key then
+			mine.Record, mine.Why = RunRecord.Read(key)
+		else
+			mine.Why = "not a reserved Run server"
+		end
+		mine.Done, mine.Reading = true, false
+	end
+	return mine.Record, mine.Why
 end
 
 -- A player's loadout in a record.

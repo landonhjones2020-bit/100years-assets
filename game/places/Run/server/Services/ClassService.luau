@@ -314,7 +314,7 @@ local function readRecord()
 		log:Info("no run record: not a reserved Run server")
 		return
 	end
-	local found, why = RunRecord.Read(key)
+	local found, why = RunRecord.Mine() -- read once for the whole server (PartyService reads it too)
 	record = found
 	if found then
 		log:Info("run record %s: %d loadouts", key, (function()
@@ -778,8 +778,8 @@ local function registerCommands(dev: any)
 			if not ok then
 				return `couldn't write: {why}`
 			end
-			recordRead = false
-			record = nil
+			record = RunRecord.Mine(true) -- read it back, as a new player's session would
+			recordRead = true
 			local class, level, trial = chosen(player)
 			ClassService:SetClass(player, class, level, trial, "the run record")
 			return `record written and read: {describe(states[player])}`

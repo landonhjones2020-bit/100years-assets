@@ -43,6 +43,8 @@ local Deep = require(Shared.Rules.Deep)
 local Expeditions = require(Shared.Rules.Expeditions)
 local Draft = require(Shared.Rules.Draft)
 local Classes = require(Shared.Rules.Classes)
+local ClassShop = require(Shared.Rules.ClassShop)
+local Lobby = require(Shared.Rules.Lobby)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -1406,9 +1408,10 @@ test("RunState: a value for every stocked resource, written by EconomyService", 
 	end
 end)
 
-test("UIContract: the Frame is in both places, the HUD in the Run; paths are unique", function()
+test("UIContract: the Frame is in both places, the HUD in the Run, the Lobby GUI in the Lobby; paths are unique", function()
 	expectEqual(UIContract.Screens.Frame.Places, { "Lobby", "Run" }, "Frame places")
 	expectEqual(UIContract.Screens.HUD.Places, { "Run" }, "HUD places")
+	expectEqual(UIContract.Screens.Lobby.Places, { "Lobby" }, "Lobby places")
 	for name, screen in UIContract.Screens do
 		local seen = {}
 		for _, path in screen.Paths do
@@ -2650,6 +2653,152 @@ test("Classes: what the abilities rest on (Prompt 20)", function()
 			end
 		end
 	end
+end)
+
+-- The lobby (Prompt 21) ---------------------------------------------------------------------
+
+test("ClassShop: the day turns at 00:00 UTC; four classes not owned, new each day (Section 14)", function()
+	expectEqual(ClassShop.Day(0), 0)
+	expectEqual(ClassShop.Day(86399), 0, "the last second of a day")
+	expectEqual(ClassShop.Day(86400), 1, "midnight UTC")
+	expectEqual(ClassShop.SecondsToReset(86400 * 5 + 100), 86300)
+	local t = Config.Get("Tuning", "ClassShop")
+	expectEqual(t.Slots, 4, "4 classes")
+	local priced = 0
+	for _, class in all("Classes") do
+		priced += if class.Price > 0 then 1 else 0
+	end
+	local owned: { [string]: any } = { Survivor = { Level = 1, XP = 0 }, Medic = { Level = 1, XP = 0 } }
+	expectEqual(#ClassShop.Unowned(owned), priced - 1, "everything for sale but the Medic")
+	local shop: any = { Day = 0, Slots = {}, RerollsUsed = 3 }
+	expect(ClassShop.Refresh(shop, owned, 7, Random.new(1)), "a new day refreshes")
+	expectEqual(#shop.Slots, 4)
+	expectEqual(shop.Day, 7)
+	expectEqual(shop.RerollsUsed, 0, "the day's rerolls start over")
+	local order = Config.Ids("Classes")
+	for i, id in shop.Slots do
+		expect(not owned[id] and Config.Get("Classes", id).Price > 0, `{id}: not owned, for sale`)
+		expect(i == 1 or (table.find(order, shop.Slots[i - 1]) :: number) < (table.find(order, id) :: number), "in catalogue order, no repeats")
+	end
+	expect(table.find(shop.Slots, shop.Trial), "the trial class is one of the slots")
+	local before = table.concat(shop.Slots, ",")
+	expect(not ClassShop.Refresh(shop, owned, 7, Random.new(2)), "the same day: no change")
+	expectEqual(table.concat(shop.Slots, ","), before)
+	-- a player who owns nearly everything gets fewer slots
+	local most: { [string]: any } = {}
+	for _, id in order do
+		most[id] = { Level = 1, XP = 0 }
+	end
+	most.Tinkerer, most.Warden = nil, nil
+	local few: any = { Day = 0, Slots = {}, RerollsUsed = 0 }
+	ClassShop.Refresh(few, most, 7, Random.new(3))
+	expectEqual(few.Slots, { "Warden", "Tinkerer" }, "only what is left")
+	ClassShop.Reroll(few, most, 7, Random.new(4))
+	expectEqual(few.Slots, { "Warden", "Tinkerer" }, "a reroll with nothing else to show")
+end)
+
+test("ClassShop: rerolls, the wishlist within 3 days, buying and the free trial (Section 14)", function()
+	local owned: { [string]: any } = { Survivor = { Level = 1, XP = 0 } }
+	local shop: any = { Day = 0, Slots = {}, RerollsUsed = 0 }
+	ClassShop.Refresh(shop, owned, 10, Random.new(5))
+	expectEqual(ClassShop.FreeLeft(shop, false), 1, "one free reroll a day")
+	expectEqual(ClassShop.FreeLeft(shop, true), 2, "two with VIP")
+	local old = table.clone(shop.Slots)
+	ClassShop.Reroll(shop, owned, 10, Random.new(6))
+	expectEqual(#shop.Slots, 4)
+	for _, id in shop.Slots do
+		expect(not table.find(old, id), `{id} is new: a reroll replaces all four while there are others`)
+	end
+	expectEqual(ClassShop.FreeLeft(shop, false), 0)
+	expectEqual(ClassShop.FreeLeft(shop, true), 1)
+	-- the wishlist: forced in once it hasn't been seen for WishlistDays shop days
+	local days = Config.Get("Tuning", "ClassShop").WishlistDays
+	expectEqual(days, 3)
+	for seed = 1, 20 do
+		local wishing: any = { Day = 10, Slots = { "Engineer", "Medic", "Cook", "Scout" }, RerollsUsed = 0 }
+		expect((ClassShop.Wish(wishing, owned, "Tinkerer", 10)), "a wish for a class not owned")
+		expect(not ClassShop.WishDue(wishing, owned, 10 + days - 1), "not due before day 3")
+		expect(ClassShop.WishDue(wishing, owned, 10 + days), "due on day 3")
+		ClassShop.Refresh(wishing, owned, 10 + days, Random.new(seed))
+		expect(table.find(wishing.Slots, "Tinkerer"), "the wish is in the shop")
+		expectEqual(wishing.WishDay, 10 + days, "seen: the count starts over")
+		ClassShop.Reroll(wishing, owned, 10 + days, Random.new(seed + 100))
+		expect(table.find(wishing.Slots, "Tinkerer"), "and it stays through that day's rerolls")
+	end
+	expect(not ClassShop.Wish(shop, owned, "Survivor", 10), "the free class can't be wished for")
+	expect(not ClassShop.Wish(shop, { Medic = { Level = 1, XP = 0 } }, "Medic", 10), "nor one already owned")
+	expect((ClassShop.Wish(shop, owned, nil, 10)) and shop.Wishlist == nil, "a wish can be cleared")
+	-- buying: only today's slots, only with the Glowshards
+	local profile: any = ProfileSchema.Default()
+	profile.ClassShop = { Day = 10, Slots = { "Engineer", "Warden" }, RerollsUsed = 0, Trial = "Warden" }
+	profile.Glowshards = 100
+	expect((ClassShop.CanBuy(profile, "Engineer", 10)), "40 Glowshards for a Common class")
+	expectEqual(select(2, ClassShop.CanBuy(profile, "Warden", 10)), "200 MORE GLOWSHARDS NEEDED")
+	expect(not ClassShop.CanBuy(profile, "Medic", 10), "not in today's shop")
+	expect(not ClassShop.CanBuy(profile, "Engineer", 11), "yesterday's shop is closed")
+	expect(not ClassShop.CanBuy(profile, "Survivor", 10), "the free class isn't for sale")
+	-- the free trial: one run a day with a class from the shop
+	expectEqual(ClassShop.Trial(profile.ClassShop, profile.Classes, 10), "Warden")
+	profile.Loadout = { Class = "Warden" }
+	local class, trial = ClassShop.Loadout(profile, 10)
+	expect(class == "Warden" and trial, "the trial class can be brought")
+	expectEqual((ClassShop.Loadout(profile, 11)), "Survivor", "not on another day")
+	profile.ClassShop.TrialUsed = true
+	expectEqual((ClassShop.Loadout(profile, 10)), "Survivor", "nor after the trial run has left")
+	profile.Classes.Warden = { Level = 2, XP = 0 }
+	class, trial = ClassShop.Loadout(profile, 10)
+	expect(class == "Warden" and not trial, "an owned class is no trial")
+	profile.Loadout = { Class = "Nobody" }
+	expectEqual((ClassShop.Loadout(profile, 10)), "Survivor", "an unknown class falls back")
+	expect(ProfileSchema.Validate(ProfileSchema.Default()), "the default profile, with its loadout, validates")
+	expectEqual(ProfileSchema.Default().Loadout.Class, "Survivor", "a new profile brings the Survivor")
+	local saved = ProfileSchema.Default()
+	saved.Loadout = nil
+	expectEqual(ProfileSchema.Load(saved).Loadout.Class, "Survivor", "an older save gets a loadout")
+end)
+
+test("Lobby: difficulty unlocks, pads and who may board (Sections 5 and 21)", function()
+	expect(Lobby.Unlocked(nil, "Normal"), "Normal from the start")
+	expect(not Lobby.Unlocked({ Wins = 0 }, "Hard"), "Hard is locked at first")
+	expect(Lobby.Unlocked({ Wins = 1 }, "Hard"), "Hard after a victory")
+	expect(not Lobby.Unlocked({ Wins = 5 }, "Nightmare"), "Nightmare needs a Hard win")
+	expect(Lobby.Unlocked({ Wins = 5, HardWins = 1 }, "Nightmare"), "Nightmare after a Hard win")
+	expectEqual(Lobby.Difficulties({ Wins = 1 }), { "Normal", "Hard" })
+	expectEqual(Lobby.NextDifficulty("Normal", { { Wins = 1, HardWins = 1 } }), "Hard")
+	expectEqual(Lobby.NextDifficulty("Nightmare", { { Wins = 1, HardWins = 1 } }), "Normal", "wraps round")
+	expectEqual(Lobby.NextDifficulty("Normal", { { Wins = 1 }, { Wins = 0 } }), "Normal", "only what every rider has unlocked")
+	local t = Config.Get("Tuning", "Lobby")
+	expectEqual(t.PadCountdownSeconds, 20, "a 20 s countdown")
+	expectEqual(t.PartyMax, 6, "up to 6")
+	expectEqual(t.PartyMax, Constants.MAX_PLAYERS.Run, "a full pad is a full Run server")
+	expectEqual(Lobby.Capacity("Public"), 6)
+	expectEqual(Lobby.Capacity("Solo"), 1)
+	expectEqual(Lobby.CountdownSeconds("Public"), 20)
+	expect(Lobby.CountdownSeconds("Solo") <= 5, "a solo pad starts at once")
+	local kinds: { [string]: number } = {}
+	for _, pad in all("Pads") do
+		kinds[pad.Kind] = (kinds[pad.Kind] or 0) + 1
+		expect((pad.Kind == "Public") == (pad.Difficulty ~= nil), `{pad.Id}: a public pad's difficulty is fixed, the others are picked`)
+	end
+	expect(kinds.Public >= 1 and kinds.Private >= 1 and kinds.Solo == 1, "public pads, private pads and a solo pad")
+	local pad: Lobby.Pad = { Id = "PrivateA", Kind = "Private", Difficulty = "Normal", Riders = {}, Invited = {}, Phase = "Idle" }
+	expect((Lobby.MayBoard(pad, 1, nil)), "anyone may take an empty private pad")
+	pad.Riders = { 1 }
+	expect(not Lobby.MayBoard(pad, 2, nil), "then only its leader's guests")
+	pad.Invited = { [2] = true }
+	expect((Lobby.MayBoard(pad, 2, nil)), "an invited player")
+	pad.Difficulty = "Hard"
+	expectEqual(select(2, Lobby.MayBoard(pad, 2, { Wins = 0 })), "HARD UNLOCKS AFTER A CENTURY VICTORY")
+	expect((Lobby.MayBoard(pad, 1, { Wins = 0 })), "a rider already aboard stays")
+	local public: Lobby.Pad = { Id = "PublicNormal", Kind = "Public", Difficulty = "Normal", Riders = { 1, 2, 3, 4, 5, 6 }, Phase = "Counting" }
+	expectEqual(select(2, Lobby.MayBoard(public, 7, nil)), "THIS PAD IS FULL")
+	public.Riders = { 1 }
+	expect((Lobby.MayBoard(public, 7, nil)), "room on a public pad")
+	public.Phase = "Launching"
+	expectEqual(select(2, Lobby.MayBoard(public, 7, nil)), "THIS PAD IS LEAVING")
+	expectEqual(Lobby.Title(public), "PUBLIC · NORMAL")
+	-- the paid reroll's product, once made, has the bible's price
+	expectEqual(Config.Get("Tuning", "ClassShop").RerollRobux, 99, "99 Robux per reroll")
 end)
 
 local DataTests = {}

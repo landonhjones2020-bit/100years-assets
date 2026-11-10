@@ -21,6 +21,7 @@
 	API:
 		RunDirector:Phase(): RunPhase
 		RunDirector:Difficulty(): string                       -- Normal, Hard or Nightmare
+		RunDirector:SetDifficulty(id): boolean                 -- from the run's record (PartyService, Prompt 21)
 		RunDirector:Win(kind: "Century" | "Deep"): boolean
 		RunDirector:Lose(reason: "ReactorDestroyed" | "ResidentsLost"): boolean
 		RunDirector:KeepGoing(): boolean
@@ -138,9 +139,22 @@ function RunDirector:Phase(): RunPhase
 	return phase
 end
 
--- Normal, Hard or Nightmare (Config.Difficulties). Normal until the lobby's pads choose (Prompt 21).
+-- Normal, Hard or Nightmare (Config.Difficulties): the pad's, from the run's record (PartyService).
 function RunDirector:Difficulty(): string
 	return difficulty
+end
+
+-- The run's record says what the pad was set to. Not once the run has ended.
+function RunDirector:SetDifficulty(id: string): boolean
+	if phase == "Ended" or not Config.Find("Difficulties", id) then
+		return false
+	end
+	if id ~= difficulty then
+		difficulty = id
+		set("Difficulty", difficulty)
+		log:Info("difficulty: %s", id)
+	end
+	return true
 end
 
 -- A victory (Century: the final Surge survived; Deep: the Source destroyed in its chamber).

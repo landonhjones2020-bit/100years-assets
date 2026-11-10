@@ -19,10 +19,14 @@
 	  after Keep Going pays only what is new (a ledger per player).
 	* It publishes the Results collection ("Run" -> the results below) for the results screen.
 	* The results screen's buttons (Section 21): Play Again opens a team vote (Config.Votes
-	  PlayAgain; solo applies at once) that sends everyone to a fresh Run server; Keep Going, after a
-	  victory, opens the Keep Going vote (Endless, RunDirector:KeepGoing); Return to Lobby sends the
-	  player to the lobby. Teleports don't work in Studio: there it says so. Prompt 21 adds the
-	  party list and loadouts in MemoryStore.
+	  PlayAgain; solo applies at once) that sends everyone to a fresh Run server, the same way a
+	  pad does (Lib.RunLaunch: a reserved server, the party and its loadouts in MemoryStore first;
+	  the same difficulty; each player's class if they own it, else the Survivor: a free trial is
+	  one run); Keep Going, after a victory, opens the Keep Going vote (Endless,
+	  RunDirector:KeepGoing); Return to Lobby sends the player to the lobby. Teleports don't work in
+	  Studio: there it says so.
+	* A win also counts in Stats.HardWins or NightmareWins (Prompt 21: Nightmare unlocks after a
+	  Hard win, Rules.Lobby.Unlocked).
 
 	Results: { Outcome, DefeatReason, Victory, Endless, Year, Cycle, Era, Difficulty, Seconds,
 	DeepestFloor, Band, Team = { MonstersKilled, CellsDug, RoomsBuilt, ResidentsAlive, ResidentsLost,
@@ -37,6 +41,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
 local TeleportService = game:GetService("TeleportService")
 
 local Shared = ReplicatedStorage.Shared
@@ -49,6 +54,7 @@ local Remotes = require(Shared.Remotes)
 local Residents = require(Shared.Rules.Residents)
 local Results = require(Shared.Rules.Results)
 local RunState = require(Shared.RunState)
+local RunLaunch = require(ServerScriptService.Lib.RunLaunch)
 
 local log = Log.new("ResultsService")
 
@@ -216,6 +222,12 @@ local function pay(player: Player, summary: any, run: Results.Run): { [string]: 
 			if run.Victory and not paid.Victory then
 				st.Wins = (st.Wins or 0) + 1
 				st.LastWinDay = today
+				-- a win on Hard unlocks Nightmare (Section 5; Rules.Lobby.Unlocked)
+				if run.Difficulty == "Hard" then
+					st.HardWins = (st.HardWins or 0) + 1
+				elseif run.Difficulty == "Nightmare" then
+					st.NightmareWins = (st.NightmareWins or 0) + 1
+				end
 			end
 			st.BestYear = math.max(st.BestYear or 0, run.Year)
 			st.Deepest = math.max(st.Deepest or 0, run.DeepestFloor)
@@ -381,8 +393,15 @@ local function onPlayAgain(player: Player)
 		return
 	end
 	openVote(player, "PlayAgain", `PLAY AGAIN? ({string.upper(player.DisplayName)} ASKS)`, function()
+		-- the same party to a fresh Run server, each with the class they own (a free trial was one run)
 		local list = session:ReadyPlayers()
-		local ok, why = teleport(Constants.PLACE_IDS.Run, list, true)
+		local loadouts: { [number]: any } = {}
+		for _, member in list do
+			local class = member:GetAttribute("Class")
+			local owned = type(class) == "string" and member:GetAttribute("ClassTrial") ~= true
+			loadouts[member.UserId] = { Class = if owned then class else "Survivor" }
+		end
+		local ok, why = RunLaunch.Start(list, director:Difficulty(), loadouts)
 		Remotes.FireClients("Alert", list, if ok then "Info" else "Warning",
 			if ok then "PLAY AGAIN: OFF TO A FRESH BUNKER" else `PLAY AGAIN PASSED · {why}`)
 		log:Info("Play Again passed (%s)", if ok then "teleporting" else tostring(why))

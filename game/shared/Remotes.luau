@@ -271,6 +271,78 @@ local DEFINITIONS: { [string]: Definition } = {
 		Doc = "Press Return to Lobby on the results screen: back to the lobby (Section 21; ResultsService, Prompt 15).",
 	},
 
+	-- The lobby (Prompt 21; bible Sections 14 and 21)
+	ShopBuy = {
+		To = "Server",
+		Place = "Lobby",
+		Args = { Check.string(40, { pattern = "^%a[%w]*$", min = 1 }) }, -- the class
+		Rate = { Burst = 3, PerSecond = 0.5 },
+		Doc = "Buy a class from today's Class Shop with Glowshards (Section 14; ClassShopService).",
+	},
+	ShopReroll = {
+		To = "Server",
+		Place = "Lobby",
+		Args = {},
+		Rate = { Burst = 3, PerSecond = 0.5 },
+		Doc = "Reroll today's Class Shop: free while a free reroll is left, else the 99 Robux prompt (Section 14; ClassShopService).",
+	},
+	ShopWish = {
+		To = "Server",
+		Place = "Lobby",
+		Args = { Check.string(40, { pattern = "^[%w]*$" }) }, -- the class; "" clears the wish
+		Rate = { Burst = 4, PerSecond = 1 },
+		Doc = "Wishlist a class, so it turns up in the shop within 3 days (Section 14; ClassShopService).",
+	},
+	SetLoadoutClass = {
+		To = "Server",
+		Place = "Lobby",
+		Args = { Check.string(40, { pattern = "^%a[%w]*$", min = 1 }) },
+		Rate = { Burst = 6, PerSecond = 2 },
+		Doc = "Equip a class for the next run: one you own, or today's free trial (Section 14; ClassShopService).",
+	},
+	PadDifficulty = {
+		To = "Server",
+		Place = "Lobby",
+		Args = {},
+		Rate = { Burst = 6, PerSecond = 2 },
+		Doc = "A private pad's leader or a solo pad's rider picks the next difficulty its riders have unlocked (Section 21; PadService).",
+	},
+	PadStart = {
+		To = "Server",
+		Place = "Lobby",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.5 },
+		Doc = "A private pad's leader starts the run (Section 21; PadService).",
+	},
+	PadInvite = {
+		To = "Server",
+		Place = "Lobby",
+		Args = { Check.integer(1), Check.boolean() }, -- the guest's user id; invited or not
+		Rate = { Burst = 12, PerSecond = 4 },
+		Doc = "A private pad's leader invites a player in the lobby onto the pad, or takes the invitation back (Section 21; PadService).",
+	},
+	PadHold = {
+		To = "Server",
+		Place = "Lobby",
+		Args = { Check.boolean() },
+		Rate = { Burst = 6, PerSecond = 2 },
+		Doc = "A solo pad's rider has the loadout screen open (true): its short countdown waits (PadService).",
+	},
+	RejoinRun = {
+		To = "Server",
+		Place = "Lobby",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.2 },
+		Doc = "Press Rejoin your run: back into the run this player dropped from (Section 21; RejoinService).",
+	},
+	RejoinDismiss = {
+		To = "Server",
+		Place = "Lobby",
+		Args = {},
+		Rate = { Burst = 2, PerSecond = 0.5 },
+		Doc = "Put the Rejoin your run card away for this visit (RejoinService).",
+	},
+
 	-- server -> client
 	Delta = {
 		To = "Client",

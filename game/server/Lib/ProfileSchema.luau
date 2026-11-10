@@ -36,6 +36,7 @@ local RECORDS: { [string]: boolean } = {
 	Stats = true,
 	Quests = true,
 	ClassShop = true,
+	Loadout = true,
 }
 
 local Id = Check.string(64, { pattern = "^[%a][%w_]*$" })
@@ -58,11 +59,17 @@ local SHAPE = Check.shape({
 		LastReset = Check.number({ min = 0 }),
 	}),
 	ClassShop = Check.shape({
-		Day = Check.integer(0),
+		Day = Check.integer(0), -- the shop day (Rules.ClassShop.Day) these slots are for
 		Slots = Check.array(Id, 4),
 		RerollsUsed = Check.integer(0),
 		Wishlist = Check.optional(Id),
+		WishDay = Check.optional(Check.integer(0)), -- the shop day the wish was made, or last shown (Prompt 21)
+		Trial = Check.optional(Id), -- today's free-trial class, one of the slots
+		TrialUsed = Check.optional(Check.boolean()), -- today's trial run has launched
 	}),
+	-- What the player brings to a run (Section 14: set in the lobby). Talents, the Legend, the
+	-- outfit and skins join it with their prompts.
+	Loadout = Check.shape({ Class = Id }),
 	AccountLevel = Check.integer(1, 100),
 	AccountXP = Check.number({ min = 0 }),
 	Settings = Check.map(Id, Check.primitive(64), 64),
@@ -93,6 +100,7 @@ function ProfileSchema.Default(): { [string]: any }
 		Badges = {},
 		Quests = { Daily = {}, Weekly = {}, LastReset = 0 },
 		ClassShop = { Day = 0, Slots = {}, RerollsUsed = 0 },
+		Loadout = { Class = "Survivor" },
 		AccountLevel = 1,
 		AccountXP = 0,
 		Settings = {},

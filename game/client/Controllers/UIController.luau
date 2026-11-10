@@ -427,6 +427,13 @@ function UIController:SetHint(text: string)
 	end
 end
 
+-- The open screen's own hint again, after another controller borrowed the footer with SetHint
+-- (the lobby's pad countdown while the Loadout is open).
+function UIController:ResetHint()
+	local screen = if current then screens[current] else nil
+	UIController:SetHint(if screen then screen.Hint or "" else "")
+end
+
 -- A message in the footer (zone E) for a few seconds, then the screen's hint again: the HUD's
 -- alerts while a screen hides the HUD (a refused proposal in the Command View).
 function UIController:Notice(text: string, kind: string?)
