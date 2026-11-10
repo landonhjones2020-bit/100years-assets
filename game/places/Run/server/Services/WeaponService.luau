@@ -143,8 +143,9 @@ local WeaponService = {
 	Swung = Signal.new() :: Signal.Signal<Player, CFrame, number, number, number, string, boolean>,
 	-- A player's explosive went off: where, its radius, whose (Prompt 14: explosives raise Disturbance).
 	Exploded = Signal.new() :: Signal.Signal<Vector3, number, Player>,
-	-- A player's hit landed (Prompt 20): who, the target's combatant id, the damage done, how, where.
-	Hit = Signal.new() :: Signal.Signal<Player, string, number, string, Vector3?>,
+	-- A player's hit landed (Prompt 20): who, the target's combatant id, the damage done, how, where,
+	-- and the hit's own kind before a boss renamed it (a crit or a blast on the belly is "weakpoint").
+	Hit = Signal.new() :: Signal.Signal<Player, string, number, string, Vector3?, string>,
 }
 
 local combat: any = nil
@@ -476,11 +477,11 @@ local function bodies(): { Instance }
 	return list
 end
 
-local function confirm(player: Player, targetId: string, done: number, point: Vector3?, how: string?)
+local function confirm(player: Player, targetId: string, done: number, point: Vector3?, how: string?, kind: string?)
 	local target = combat:Get(targetId)
 	local killed = target == nil or target.State == "Dead"
 	Remotes.FireClient("HitConfirmed", player, targetId, done, killed, point)
-	WeaponService.Hit:Fire(player, targetId, done, how or "hit", point)
+	WeaponService.Hit:Fire(player, targetId, done, how or "hit", point, kind or how or "hit")
 end
 
 -- Guns ---------------------------------------------------------------------------------------
@@ -534,7 +535,7 @@ local function explode(player: Player, at: Vector3, radius: number, damage: numb
 			local amount, how = modified(c, damage * scale, at, "blast", player)
 			local done = combat:Damage(c.Id, amount, shooterId, how)
 			if done > 0 then
-				confirm(player, c.Id, done, c.Root.Position, how)
+				confirm(player, c.Id, done, c.Root.Position, how, "blast")
 			end
 		end
 	end
@@ -846,13 +847,11 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 	local crit = if bonus and type(bonus.Crit) == "number" and bonus.Crit > 1 then bonus.Crit else nil
 	local hitOnce: { [string]: boolean } = {}
 	local function land(target: any, point: Vector3, scale: number)
-		local amount, how = modified(target, damage * scale * (crit or 1), point, if crit then "crit" else "shot", player)
-		if crit and how == "shot" then
-			how = "crit"
-		end
+		local kind = if crit then "crit" else "shot"
+		local amount, how = modified(target, damage * scale * (crit or 1), point, kind, player)
 		local done = combat:Damage(target.Id, amount, shooter.Id, how)
 		if done > 0 then
-			confirm(player, target.Id, done, point, how)
+			confirm(player, target.Id, done, point, how, kind)
 		end
 		hitOnce[target.Id] = true
 	end

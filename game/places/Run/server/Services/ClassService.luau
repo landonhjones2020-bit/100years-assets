@@ -551,12 +551,15 @@ local function hitModifier(target: any, _point: Vector3?, _how: string, player: 
 	return 1
 end
 
-local function onHit(player: Player, targetId: string, _done: number, how: string, _point: Vector3?)
-	if how == "burned" then
+-- kind: the hit's own kind (a crit on the Brood Mother's belly is still a crit, though she counts it as
+-- a "weakpoint" hit)
+local function onHit(player: Player, targetId: string, _done: number, how: string, _point: Vector3?, kind: string?)
+	kind = kind or how
+	if kind == "burned" then
 		Abilities.Burn(targetId, player)
-	elseif how == "crit" and boss:IsBoss(targetId) and Modifiers.PlayerValue(player, "CritsStaggerBosses") then
+	elseif kind == "crit" and boss:IsBoss(targetId) and Modifiers.PlayerValue(player, "CritsStaggerBosses") then
 		boss:Stun(targetId, `{player.Name}'s crit`)
-	elseif how == "blast" and boss:IsBoss(targetId) and Modifiers.PlayerValue(player, "ExplosionsStunBosses") then
+	elseif kind == "blast" and boss:IsBoss(targetId) and Modifiers.PlayerValue(player, "ExplosionsStunBosses") then
 		boss:Stun(targetId, `{player.Name}'s explosion`)
 	end
 end

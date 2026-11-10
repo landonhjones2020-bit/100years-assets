@@ -121,7 +121,7 @@ type Drone = { Owner: Player, Part: BasePart, Align: AlignPosition, Turn: AlignO
 type Strip = { Owner: Player, Part: BasePart, CFrame: CFrame, Size: Vector3, Until: number }
 type Well = { Owner: Player, Part: BasePart, At: Vector3, Until: number }
 type Trap = { Owner: Player, Part: BasePart, At: Vector3, Until: number }
-type Burn = { Owner: Player?, Until: number, Spreads: boolean, Fire: Fire? }
+type Burn = { Owner: Player?, Until: number, Spreads: boolean, Fire: Fire?, FireId: number }
 
 local ctx: Context = nil :: any
 local rng = Random.new()
@@ -131,6 +131,10 @@ local strips: { Strip } = {}
 local wells: { Well } = {}
 local traps: { Trap } = {}
 local burning: { [string]: Burn } = {} -- monster combatant id
+-- Each fire a flame starts has an id, and a spread carries it on: a monster burns once in a given
+-- fire (two monsters side by side passed one fire back and forth for good: playtest, Prompt 20).
+local fireCount = 0
+local lastFire: { [string]: number } = {} -- monster combatant id -> the fire it last burned in
 local beacon: { Part: BasePart, Until: number, By: Player }? = nil
 local barricaded: { [string]: boolean } = {} -- room id
 local barricadeSpots: { [string]: BasePart } = {} -- room id -> the prompt's part
@@ -340,8 +344,8 @@ end
 -- Burning ------------------------------------------------------------------------------------------
 
 -- A monster catches fire (flame guns, napalm): Burn.Seconds of Burn.DamagePerSecond; the owner's
--- BurnSpreadsBetweenMonsters lets it spread.
-function Abilities.Burn(targetId: string, owner: Player?)
+-- BurnSpreadsBetweenMonsters lets it spread. fireId: the fire a spread carries on (none: a new fire).
+function Abilities.Burn(targetId: string, owner: Player?, fireId: number?)
 	local c = ctx.Combat:Get(targetId)
 	if not c or c.State ~= "Alive" or c.Team ~= "Monsters" then
 		return
@@ -356,6 +360,11 @@ function Abilities.Burn(targetId: string, owner: Player?)
 		end
 		return
 	end
+	if not fireId then
+		fireCount += 1
+		fireId = fireCount
+	end
+	lastFire[targetId] = fireId
 	local fire = Instance.new("Fire")
 	fire.Size = math.clamp(c.Reach * 1.5, 3, 12)
 	fire.Heat = 6
@@ -365,12 +374,18 @@ function Abilities.Burn(targetId: string, owner: Player?)
 		Until = os.clock() + seconds,
 		Spreads = owner ~= nil and Modifiers.PlayerValue(owner, "BurnSpreadsBetweenMonsters") ~= nil,
 		Fire = fire,
+		FireId = fireId :: number,
 	}
 end
 
 local function tickBurning(dt: number)
 	local b_ = t().Burn
-	local spreadTo: { { Id: string, Owner: Player? } } = {}
+	local spreadTo: { { Id: string, Owner: Player?, FireId: number } } = {}
+	for id in lastFire do
+		if not burning[id] and not ctx.Combat:Get(id) then
+			lastFire[id] = nil
+		end
+	end
 	for id, b in burning do
 		local c = ctx.Combat:Get(id)
 		if not c or c.State ~= "Alive" or os.clock() >= b.Until then
@@ -383,16 +398,16 @@ local function tickBurning(dt: number)
 			ctx.Combat:Damage(id, b_.DamagePerSecond * dt, source, "burning")
 			if b.Spreads then
 				for _, other in ctx.Combat:All("Monsters") do
-					if not burning[other.Id] and other.State == "Alive"
+					if not burning[other.Id] and lastFire[other.Id] ~= b.FireId and other.State == "Alive"
 						and (other.Root.Position - c.Root.Position).Magnitude - other.Reach <= b_.SpreadRadius then
-						table.insert(spreadTo, { Id = other.Id, Owner = b.Owner })
+						table.insert(spreadTo, { Id = other.Id, Owner = b.Owner, FireId = b.FireId })
 					end
 				end
 			end
 		end
 	end
 	for _, s in spreadTo do
-		Abilities.Burn(s.Id, s.Owner)
+		Abilities.Burn(s.Id, s.Owner, s.FireId)
 	end
 end
 
