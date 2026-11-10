@@ -615,8 +615,9 @@ return {
 		ClassShop = { -- Section 14
 			Slots = 4, ResetHourUTC = 0, FreeRerolls = 1, VIPFreeRerolls = 2, RerollRobux = 99, WishlistDays = 3,
 			FreeTrialRunsPerDay = 1, ClassLevelRuns = { 3, 10 },
-			-- the "Class Shop Reroll" developer product (Prompt 21; nil until it exists: the paid reroll is then off)
-			RerollProductId = nil,
+			-- the "Class Shop Reroll" developer product (made 2026-11-10 through Open Cloud, 99 Robux; its icon is
+			-- ui/products/Product_ClassShopReroll.png). nil would turn the paid reroll off.
+			RerollProductId = 3730189637,
 		},
 		Account = { LevelMax = 100, XPPerYear = 10, XPToLevelBase = 200, XPToLevelStep = 50, VIPGlowshardBonus = 0.25 }, -- Section 16; XP prov.
 		Lobby = { -- Section 21; the times below the first line are Prompt 21's, prov.

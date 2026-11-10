@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T13:54:22Z",
- "commit": "741a4eb41136e0fe284b6bd2fc473e25804edf29",
- "label": "p21-741a4eb",
+ "built": "2026-11-10T14:05:50Z",
+ "commit": "ce75b3e8f33e69c3b866968497164ecd81d7a535",
+ "label": "p21-ce75b3e",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -247,7 +247,7 @@
    "ReplicatedStorage.Shared.Rules.ClassShop": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/ClassShop.luau",
-    "Hash": "97d20272"
+    "Hash": "ffa2cd16"
    },
    "ReplicatedStorage.Shared.Rules.Classes": {
     "Class": "ModuleScript",
@@ -417,7 +417,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "71329c0d"
+    "Hash": "ac9728a0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -452,7 +452,7 @@
    "ServerScriptService.Services.ClassShopService": {
     "Class": "ModuleScript",
     "From": "game/places/Lobby/server/Services/ClassShopService.luau",
-    "Hash": "173eb8bc"
+    "Hash": "54797b55"
    },
    "ServerScriptService.Services.DevService": {
     "Class": "ModuleScript",
@@ -462,7 +462,7 @@
    "ServerScriptService.Services.PadService": {
     "Class": "ModuleScript",
     "From": "game/places/Lobby/server/Services/PadService.luau",
-    "Hash": "72d9f14c"
+    "Hash": "ddf0a19c"
    },
    "ServerScriptService.Services.ProfileService": {
     "Class": "ModuleScript",
@@ -472,7 +472,7 @@
    "ServerScriptService.Services.PurchaseService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/PurchaseService.luau",
-    "Hash": "e7c412ab"
+    "Hash": "72290e65"
    },
    "ServerScriptService.Services.RejoinService": {
     "Class": "ModuleScript",
@@ -507,7 +507,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.ClassShopController": {
     "Class": "ModuleScript",
     "From": "game/places/Lobby/client/Controllers/ClassShopController.luau",
-    "Hash": "4fe521a7"
+    "Hash": "4918d5e8"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
@@ -547,7 +547,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.PadController": {
     "Class": "ModuleScript",
     "From": "game/places/Lobby/client/Controllers/PadController.luau",
-    "Hash": "ea9b7c3f"
+    "Hash": "f1c4db82"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ReplicaController": {
     "Class": "ModuleScript",
@@ -844,7 +844,7 @@
    "ReplicatedStorage.Shared.Rules.ClassShop": {
     "Class": "ModuleScript",
     "From": "game/shared/Rules/ClassShop.luau",
-    "Hash": "97d20272"
+    "Hash": "ffa2cd16"
    },
    "ReplicatedStorage.Shared.Rules.Classes": {
     "Class": "ModuleScript",
@@ -1014,7 +1014,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "71329c0d"
+    "Hash": "ac9728a0"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -1174,7 +1174,7 @@
    "ServerScriptService.Services.PurchaseService": {
     "Class": "ModuleScript",
     "From": "game/server/Services/PurchaseService.luau",
-    "Hash": "e7c412ab"
+    "Hash": "72290e65"
    },
    "ServerScriptService.Services.ReplicationService": {
     "Class": "ModuleScript",

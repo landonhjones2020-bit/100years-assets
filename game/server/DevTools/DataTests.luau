@@ -2800,8 +2800,9 @@ test("Lobby: difficulty unlocks, pads and who may board (Sections 5 and 21)", fu
 	public.Phase = "Launching"
 	expectEqual(select(2, Lobby.MayBoard(public, 7, nil)), "THIS PAD IS LEAVING")
 	expectEqual(Lobby.Title(public), "PUBLIC · NORMAL")
-	-- the paid reroll's product, once made, has the bible's price
+	-- the paid reroll: the bible's price, and its developer product
 	expectEqual(Config.Get("Tuning", "ClassShop").RerollRobux, 99, "99 Robux per reroll")
+	expectEqual(Config.Get("Tuning", "ClassShop").RerollProductId, 3730189637, "the Class Shop Reroll product")
 end)
 
 local DataTests = {}
