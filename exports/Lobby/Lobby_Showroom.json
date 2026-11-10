@@ -1,0 +1,462 @@
+{
+ "asset": "Lobby_Showroom",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  138.4,
+  79.446,
+  112.974
+ ],
+ "tris": 17061,
+ "pivot": [
+  0.2,
+  0.3,
+  7.287
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "mint",
+    "porcelain",
+    "rubber",
+    "sandstone",
+    "signal",
+    "steel",
+    "stone",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    39.216,
+    -7.287
+   ],
+   "size": [
+    138.0,
+    79.032,
+    112.974
+   ],
+   "tris": 8151
+  },
+  {
+   "name": "Decor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "mint",
+    "navy",
+    "porcelain",
+    "rubber",
+    "sandstone",
+    "signal",
+    "steel",
+    "stone",
+    "teal"
+   ],
+   "offset": [
+    -16.2,
+    23.045,
+    -7.637
+   ],
+   "size": [
+    106.4,
+    46.69,
+    112.274
+   ],
+   "tris": 8150
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.62,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    9.775,
+    -48.0
+   ],
+   "size": [
+    118.0,
+    15.45,
+    0.22
+   ],
+   "tris": 36
+  },
+  {
+   "name": "DecorGlassSkyblue_",
+   "material": "Glass",
+   "transparency": 0.6,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    6.2,
+    -43.721
+   ],
+   "size": [
+    15.326,
+    10.9,
+    6.873
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    13.06,
+    -56.1
+   ],
+   "size": [
+    23.7,
+    0.1,
+    7.817
+   ],
+   "tris": 216
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    56.4,
+    73.5,
+    -52.4
+   ],
+   "size": [
+    12.779,
+    11.292,
+    5.1
+   ],
+   "tris": 432
+  },
+  {
+   "name": "Decor_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "porcelain",
+    "signal",
+    "teal"
+   ],
+   "offset": [
+    -5.0,
+    37.596,
+    -52.42
+   ],
+   "size": [
+    116.638,
+    24.246,
+    4.113
+   ],
+   "tris": 52
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Floor",
+    0.0,
+    0.0,
+    -0.3,
+    132.0,
+    96.0,
+    1.4,
+    0.0
+   ],
+   [
+    "Wall",
+    -65.25,
+    0.0,
+    12.0,
+    1.5,
+    96.0,
+    24.0,
+    0.0
+   ],
+   [
+    "Wall",
+    65.25,
+    0.0,
+    12.0,
+    1.5,
+    96.0,
+    24.0,
+    0.0
+   ],
+   [
+    "Wall",
+    0.0,
+    47.25,
+    12.0,
+    132.0,
+    1.5,
+    24.0,
+    0.0
+   ],
+   [
+    "Roof",
+    0.0,
+    0.0,
+    23.0,
+    132.0,
+    96.0,
+    2.0,
+    0.0
+   ],
+   [
+    "Wall",
+    -62.5,
+    -47.9,
+    8.75,
+    7.0,
+    2.2,
+    17.5,
+    0.0
+   ],
+   [
+    "Wall",
+    62.5,
+    -47.9,
+    8.75,
+    7.0,
+    2.2,
+    17.5,
+    0.0
+   ],
+   [
+    "Glass",
+    -33.5,
+    -48.0,
+    8.75,
+    51.0,
+    1.0,
+    17.5,
+    0.0
+   ],
+   [
+    "Glass",
+    33.5,
+    -48.0,
+    8.75,
+    51.0,
+    1.0,
+    17.5,
+    0.0
+   ],
+   [
+    "Strut",
+    -15.5,
+    -60.2,
+    3.0,
+    2.4,
+    2.4,
+    6.0,
+    0.0
+   ],
+   [
+    "Strut",
+    15.5,
+    -60.2,
+    3.0,
+    2.4,
+    2.4,
+    6.0,
+    0.0
+   ],
+   [
+    "Pylon",
+    -57.0,
+    -54.5,
+    15.0,
+    10.5,
+    5.0,
+    30.0,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     0.0,
+     -56.0,
+     11.3
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 0.9,
+    "range": 30,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   },
+   {
+    "p": [
+     68.2,
+     -41.5,
+     10.2
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 0.6,
+    "range": 14,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Bay1": {
+   "p": [
+    50.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "Bay2": {
+   "p": [
+    30.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "Bay3": {
+   "p": [
+    10.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "Bay4": {
+   "p": [
+    -10.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "Bay5": {
+   "p": [
+    -30.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "Bay6": {
+   "p": [
+    -50.0,
+    0.4,
+    39.55
+   ],
+   "yaw": 0.0
+  },
+  "ClassBooth": {
+   "p": [
+    64.3,
+    0.4,
+    -2.0
+   ],
+   "yaw": 90.0
+  },
+  "Cutaway": {
+   "p": [
+    35.0,
+    0.4,
+    -35.0
+   ],
+   "yaw": 0.0
+  },
+  "LoadoutBooth": {
+   "p": [
+    -64.3,
+    0.4,
+    -2.0
+   ],
+   "yaw": 270.0
+  },
+  "Spawn": {
+   "p": [
+    0.0,
+    0.0,
+    -78.0
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "c8436c8e550f3bdb"
+}

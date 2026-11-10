@@ -1,0 +1,54 @@
+{
+ "asset": "Town_TreeClump",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  60.44,
+  35.769,
+  29.723
+ ],
+ "tris": 1084,
+ "pivot": [
+  1.017,
+  0.034,
+  1.468
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "forest",
+    "leaf",
+    "olive",
+    "walnut"
+   ],
+   "offset": [
+    -1.017,
+    17.851,
+    -1.468
+   ],
+   "size": [
+    60.44,
+    35.769,
+    29.723
+   ],
+   "tris": 1084
+  }
+ ],
+ "meta": {},
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "d59962b0fe3068ae"
+}

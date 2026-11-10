@@ -1,0 +1,80 @@
+{
+ "asset": "Town_WelcomeBanner",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  69.8,
+  27.92,
+  1.8
+ ],
+ "tris": 1600,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "navy",
+    "rubber",
+    "signal",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    13.96,
+    0.0
+   ],
+   "size": [
+    69.8,
+    27.92,
+    1.8
+   ],
+   "tris": 1600
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Pole",
+    -34.0,
+    0.0,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    0.0
+   ],
+   [
+    "Pole",
+    34.0,
+    0.0,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "34380c209ee4f268"
+}

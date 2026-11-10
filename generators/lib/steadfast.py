@@ -503,11 +503,25 @@ def _evaluated_bmesh(obj) -> bmesh.types.BMesh:
     return bm
 
 
+# Neon and Glass MeshParts show one colour each in Studio (AssetSetup gives them their first
+# swatch). With this on (generators/Town/townkit.py), parts of those materials are grouped per
+# swatch as well, so a sign's orange and teal tubes stay two MeshParts: DecorNeonSignal,
+# DecorNeonTeal. Off by default: assets exported before it keep their part names.
+SPLIT_UNTEXTURED = False
+_UNTEXTURED = ("Neon", "Glass", "ForceField")
+# Roblox refuses a mesh much over 20,000 triangles. With a cap set (townkit: 12,000), a merged
+# decoration group over it is cut into pieces along its longer side: Decor, Decor2, Decor3...
+DECOR_CAP: int | None = None
+
+
 def _group_key(o) -> tuple:
     if o.get("sf_role"):
         return ("__role__", o["sf_part"])
-    return (o["sf_material"], round(o["sf_transparency"], 3), o["sf_collision"],
-            o["sf_cast_shadow"], o.get("sf_bone"), o.get("sf_tint"))
+    key = (o["sf_material"], round(o["sf_transparency"], 3), o["sf_collision"],
+           o["sf_cast_shadow"], o.get("sf_bone"), o.get("sf_tint"))
+    if SPLIT_UNTEXTURED and o["sf_material"] in _UNTEXTURED:
+        key += (o["sf_swatch"],)
+    return key
 
 
 def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
@@ -544,6 +558,7 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
         grp = groups[k]
         bm = bmesh.new()
         sw_out = bm.faces.layers.int.new("sw")
+        cut_layer = bm.faces.layers.int.new("cut")
         for o in grp:
             src = _evaluated_bmesh(o)
             sw_in = src.faces.layers.int.get("sw")
@@ -563,10 +578,8 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
             src.free()
         bmesh.ops.translate(bm, verts=bm.verts[:], vec=-pv)
         uv = bm.loops.layers.uv.new("UVMap")
-        used = set()
         for f in bm.faces:
             s = PALETTE["swatches"][f[sw_out]]
-            used.add(s["name"])
             for loop in f.loops:
                 loop[uv].uv = s["uv"]
         # A bone's main group (plain material, no role) takes the bone's name, so it becomes
@@ -576,21 +589,50 @@ def _build_export_meshes(objs, pv: Vector, merge: bool) -> list[dict]:
         main = (first.get("sf_bone") and not first.get("sf_role")
                 and first["sf_material"] not in ("Neon", "Glass", "ForceField")
                 and first["sf_transparency"] == 0)
-        name = first["sf_bone"] if main else first["sf_part"]
+        base = first["sf_bone"] if main else first["sf_part"]
         if k[0] == "__decor__":   # merged decoration: Decor, DecorNeon, DecorGlass...
-            name = "Decor" + ("" if first["sf_material"] == "SmoothPlastic" else first["sf_material"])
-        while name in taken:
-            name += "_"
-        taken.add(name)
-        me = bpy.data.meshes.new(name)
-        bm.to_mesh(me)
-        bm.free()
-        me.materials.append(pal)
-        tmp = bpy.data.objects.new(name, me)
-        bpy.context.scene.collection.objects.link(tmp)
-        assert tmp.name == name, f"export mesh got renamed to {tmp.name}"
-        tmp["sf_export_tmp"] = True
-        out.append({"obj": tmp, "src": grp, "swatches": sorted(used)})
+            base = "Decor" + ("" if first["sf_material"] == "SmoothPlastic" else first["sf_material"])
+            if SPLIT_UNTEXTURED and first["sf_material"] in _UNTEXTURED:
+                base += first["sf_swatch"].capitalize()
+        # A merged decoration group over the cap is cut into pieces along its longer side.
+        pieces = [bm]
+        tris = sum(len(f.verts) - 2 for f in bm.faces)
+        if DECOR_CAP and k[0] == "__decor__" and tris > DECOR_CAP:
+            n = -(-tris // DECOR_CAP)
+            xs = [v.co.x for v in bm.verts]
+            ys = [v.co.y for v in bm.verts]
+            axis = 0 if (max(xs) - min(xs)) >= (max(ys) - min(ys)) else 1
+            ordered = sorted(bm.faces, key=lambda f: f.calc_center_median()[axis])
+            run = 0
+            for f in ordered:
+                f[cut_layer] = min(n - 1, run * n // tris)
+                run += len(f.verts) - 2
+            pieces = []
+            for c in range(n):
+                piece = bm.copy()
+                layer = piece.faces.layers.int.get("cut")
+                bmesh.ops.delete(piece, geom=[f for f in piece.faces if f[layer] != c], context="FACES")
+                loose = [v for v in piece.verts if not v.link_faces]
+                if loose:
+                    bmesh.ops.delete(piece, geom=loose, context="VERTS")
+                pieces.append(piece)
+            bm.free()
+        for c, piece in enumerate(pieces):
+            name = base if c == 0 else f"{base}{c + 1}"
+            while name in taken:
+                name += "_"
+            taken.add(name)
+            layer = piece.faces.layers.int.get("sw")
+            used = {PALETTE["swatches"][f[layer]]["name"] for f in piece.faces}
+            me = bpy.data.meshes.new(name)
+            piece.to_mesh(me)
+            piece.free()
+            me.materials.append(pal)
+            tmp = bpy.data.objects.new(name, me)
+            bpy.context.scene.collection.objects.link(tmp)
+            assert tmp.name == name, f"export mesh got renamed to {tmp.name}"
+            tmp["sf_export_tmp"] = True
+            out.append({"obj": tmp, "src": grp, "swatches": sorted(used)})
     return out
 
 

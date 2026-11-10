@@ -1,0 +1,50 @@
+{
+ "asset": "Town_Hill",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  196.27,
+  90.658,
+  161.779
+ ],
+ "tris": 80,
+ "pivot": [
+  -0.573,
+  50.795,
+  -2.479
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "leaf"
+   ],
+   "offset": [
+    0.573,
+    -5.466,
+    2.479
+   ],
+   "size": [
+    196.27,
+    90.658,
+    161.779
+   ],
+   "tris": 80
+  }
+ ],
+ "meta": {},
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "163a010df5d97ddf"
+}

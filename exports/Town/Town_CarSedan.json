@@ -1,0 +1,174 @@
+{
+ "asset": "Town_CarSedan",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  7.322,
+  6.16,
+  18.65
+ ],
+ "tris": 1328,
+ "pivot": [
+  0.019,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Paint",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Paint",
+   "bone": null,
+   "tint": "#2F6F73",
+   "swatches": [
+    "tint"
+   ],
+   "offset": [
+    0.0,
+    2.925,
+    0.05
+   ],
+   "size": [
+    7.04,
+    3.65,
+    17.34
+   ],
+   "tris": 228
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "porcelain",
+    "rubber"
+   ],
+   "offset": [
+    -0.019,
+    3.08,
+    0.0
+   ],
+   "size": [
+    7.322,
+    6.16,
+    18.65
+   ],
+   "tris": 984
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    2.95,
+    -8.43
+   ],
+   "size": [
+    6.16,
+    0.86,
+    0.4
+   ],
+   "tris": 56
+  },
+  {
+   "name": "DecorNeonRust",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    -0.015,
+    3.9,
+    8.5
+   ],
+   "size": [
+    7.17,
+    0.585,
+    0.5
+   ],
+   "tris": 48
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.45,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.0,
+    4.73,
+    1.25
+   ],
+   "size": [
+    5.6,
+    2.14,
+    8.5
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Car",
+    0.0,
+    0.0,
+    2.8,
+    7.1,
+    17.6,
+    5.6,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Centre": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "222a599521b9a4c0"
+}

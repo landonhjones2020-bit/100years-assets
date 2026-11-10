@@ -1,0 +1,339 @@
+{
+ "asset": "Lobby_BlockGas",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  73.0,
+  37.504,
+  75.62
+ ],
+ "tris": 7399,
+ "pivot": [
+  36.5,
+  0.2,
+  -24.19
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "basalt",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "navy",
+    "porcelain",
+    "rubber",
+    "rust",
+    "signal",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -36.5,
+    18.552,
+    24.25
+   ],
+   "size": [
+    73.0,
+    37.504,
+    75.5
+   ],
+   "tris": 6679
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.6,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -14.1,
+    5.3,
+    37.84
+   ],
+   "size": [
+    13.8,
+    7.4,
+    0.1
+   ],
+   "tris": 12
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -31.14,
+    11.35,
+    6.64
+   ],
+   "size": [
+    39.52,
+    9.5,
+    40.52
+   ],
+   "tris": 672
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    -65.0,
+    33.001,
+    6.0
+   ],
+   "size": [
+    7.989,
+    7.598,
+    0.7
+   ],
+   "tris": 36
+  }
+ ],
+ "meta": {
+  "width": 72.0,
+  "colliders": [
+   [
+    "Building",
+    29.0,
+    49.0,
+    6.5,
+    46.0,
+    22.0,
+    13.0,
+    0.0
+   ],
+   [
+    "Island",
+    38.0,
+    22.0,
+    0.275,
+    22.0,
+    4.0,
+    0.55,
+    0.0
+   ],
+   [
+    "Column",
+    28.5,
+    22.0,
+    6.75,
+    1.5,
+    1.5,
+    13.5,
+    0.0
+   ],
+   [
+    "Column",
+    47.5,
+    22.0,
+    6.75,
+    1.5,
+    1.5,
+    13.5,
+    0.0
+   ],
+   [
+    "Pump",
+    33.8,
+    22.0,
+    4.3,
+    2.4,
+    1.7,
+    7.5,
+    0.0
+   ],
+   [
+    "Pump",
+    42.2,
+    22.0,
+    4.3,
+    2.4,
+    1.7,
+    7.5,
+    0.0
+   ],
+   [
+    "Sign",
+    65.0,
+    6.0,
+    10.0,
+    3.0,
+    3.0,
+    20.0,
+    0.0
+   ],
+   [
+    "Wall",
+    0.8,
+    32.0,
+    1.5,
+    1.2,
+    58.0,
+    3.0,
+    0.0
+   ],
+   [
+    "Wall",
+    71.2,
+    32.0,
+    1.5,
+    1.2,
+    58.0,
+    3.0,
+    0.0
+   ],
+   [
+    "Hedge",
+    61.75,
+    60.1,
+    1.5,
+    17.5,
+    1.8,
+    3.0,
+    0.0
+   ],
+   [
+    "Tree",
+    63.0,
+    50.0,
+    5.625,
+    2.1,
+    2.1,
+    11.25,
+    40.0
+   ],
+   [
+    "Lamp",
+    12.0,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Lamp",
+    46.0,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Sign",
+    70.6,
+    -10.8,
+    5.5,
+    0.6,
+    0.6,
+    11.0,
+    0.0
+   ],
+   [
+    "Hydrant",
+    67.0,
+    -10.2,
+    1.4,
+    1.3,
+    1.3,
+    2.8,
+    0.0
+   ],
+   [
+    "Mailbox",
+    3.0,
+    -9.2,
+    2.2,
+    2.2,
+    2.0,
+    4.4,
+    0.0
+   ],
+   [
+    "Bench",
+    30.0,
+    35.8,
+    1.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Bin",
+    4.6,
+    36.0,
+    1.4,
+    2.0,
+    2.0,
+    2.8,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     38.0,
+     22.0,
+     11.5
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 1.1,
+    "range": 34,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "f3a89aebbf09be76"
+}

@@ -13,9 +13,11 @@ For a model inserted from an FBX upload into ServerStorage.Assets.Pipeline it:
      metalness and roughness maps (ids are attributes on ServerStorage.Assets), AlphaMode
      Overlay so "tint" faces show MeshPart.Color; Neon and Glass parts get their swatch
      colour instead
-  5. writes attributes (AssetId, Category, Tris, FbxSha1, Socket_<name>, Role) and the
+  5. builds the sidecar's colliders (invisible boxes in a Colliders folder) and lights (a
+     Lights part with an Attachment and a light each): town and lobby architecture
+  6. writes attributes (AssetId, Category, Tris, FbxSha1, Socket_<name>, Role) and the
      "Asset" tag
-  6. moves it to ServerStorage.Assets.<Category>, replacing an older copy
+  7. moves it to ServerStorage.Assets.<Category>, replacing an older copy
 If a check fails, the model stays in ServerStorage.Assets.Pipeline and the report says why.
 ]]
 
@@ -123,6 +125,73 @@ function AssetSetup.run(model: Model, doc: any, opts: { assetId: string, swatchH
 		if spec.role then
 			part:SetAttribute("Role", spec.role)
 		end
+	end
+
+	-- Town and lobby architecture is merged decoration without collision: what players and
+	-- shots hit is invisible boxes from the sidecar (meta.colliders), and its lamps are
+	-- meta.lights. Both live inside the model, so a clone brings them along.
+	for _, old in model:GetChildren() do
+		if old.Name == "Colliders" or old.Name == "Lights" then
+			old:Destroy()
+		end
+	end
+	if doc.colliders then
+		local folder = Instance.new("Folder")
+		folder.Name = "Colliders"
+		for _, c in doc.colliders do
+			local box = Instance.new("Part")
+			box.Name = c.n
+			box.Size = vec(c.s)
+			box.CFrame = pivot * CFrame.new(vec(c.p)) * CFrame.Angles(0, math.rad(c.yaw), 0)
+			box.Transparency = 1
+			box.Anchored = true
+			box.CanCollide = true
+			box.CanQuery = true
+			box.CanTouch = false
+			box.CastShadow = false
+			if math.max(box.Size.X, box.Size.Z) < 8 then -- a lamp post or a bench must not push the camera in
+				CollectionService:AddTag(box, "CameraIgnore")
+			end
+			box.Parent = folder
+		end
+		folder.Parent = model
+		say(string.format("%d collider(s)", #doc.colliders))
+	end
+	if doc.lights then
+		local holder = Instance.new("Part")
+		holder.Name = "Lights"
+		holder.Size = Vector3.new(1, 1, 1)
+		holder.CFrame = pivot
+		holder.Transparency = 1
+		holder.Anchored = true
+		holder.CanCollide = false
+		holder.CanQuery = false
+		holder.CanTouch = false
+		holder.CastShadow = false
+		for i, l in doc.lights do
+			local at = Instance.new("Attachment")
+			at.Name = "Light" .. i
+			at.Position = vec(l.p)
+			at.Parent = holder
+			local light: Light
+			if l.kind == "Spot" then
+				local spot = Instance.new("SpotLight")
+				spot.Angle = l.angle
+				spot.Face = (Enum.NormalId :: any)[l.face]
+				spot.Range = l.range
+				light = spot
+			else
+				local point = Instance.new("PointLight")
+				point.Range = l.range
+				light = point
+			end
+			light.Color = Color3.fromHex(l.hex)
+			light.Brightness = l.brightness
+			light.Shadows = l.shadows
+			light.Parent = at
+		end
+		holder.Parent = model
+		say(string.format("%d light(s)", #doc.lights))
 	end
 
 	model:SetAttribute("AssetId", opts.assetId)

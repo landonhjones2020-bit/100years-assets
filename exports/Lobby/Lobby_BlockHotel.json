@@ -1,0 +1,606 @@
+{
+ "asset": "Lobby_BlockHotel",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  82.65,
+  55.524,
+  62.325
+ ],
+ "tris": 14237,
+ "pivot": [
+  40.975,
+  0.014,
+  -15.588
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "porcelain",
+    "rust",
+    "sandstone",
+    "signal",
+    "skyblue",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -26.0,
+    27.755,
+    16.625
+   ],
+   "size": [
+    52.7,
+    55.51,
+    60.25
+   ],
+   "tris": 6166
+  },
+  {
+   "name": "Decor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "porcelain",
+    "rubber",
+    "rust",
+    "sandstone",
+    "signal",
+    "skyblue",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -55.45,
+    24.818,
+    15.588
+   ],
+   "size": [
+    53.7,
+    49.664,
+    62.325
+   ],
+   "tris": 6165
+  },
+  {
+   "name": "DecorNeonPorcelain",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    -41.0,
+    8.69,
+    0.75
+   ],
+   "size": [
+    78.0,
+    0.18,
+    0.5
+   ],
+   "tris": 48
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.74,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -41.0,
+    5.31,
+    1.165
+   ],
+   "size": [
+    78.6,
+    7.18,
+    2.47
+   ],
+   "tris": 96
+  },
+  {
+   "name": "DecorGlassSkyblue_",
+   "material": "Glass",
+   "transparency": 0.45,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -46.5,
+    4.7,
+    1.94
+   ],
+   "size": [
+    43.9,
+    5.4,
+    0.06
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorGlassMint",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -41.0,
+    9.71,
+    0.1
+   ],
+   "size": [
+    78.6,
+    1.18,
+    0.1
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -31.937,
+    12.765,
+    -8.098
+   ],
+   "size": [
+    60.367,
+    6.67,
+    11.043
+   ],
+   "tris": 992
+  },
+  {
+   "name": "DecorGlassSkyblue__",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -41.089,
+    29.2,
+    23.0
+   ],
+   "size": [
+    74.921,
+    26.4,
+    46.4
+   ],
+   "tris": 396
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    -29.429,
+    27.815,
+    -0.06
+   ],
+   "size": [
+    37.486,
+    23.23,
+    0.02
+   ],
+   "tris": 70
+  },
+  {
+   "name": "DecorNeonSignal",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    -55.683,
+    3.35,
+    1.05
+   ],
+   "size": [
+    0.43,
+    0.2,
+    0.173
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Decor_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "signal"
+   ],
+   "offset": [
+    -67.0,
+    8.075,
+    -4.57
+   ],
+   "size": [
+    27.8,
+    0.75,
+    0.06
+   ],
+   "tris": 208
+  }
+ ],
+ "meta": {
+  "width": 82.0,
+  "colliders": [
+   [
+    "Wall",
+    12.55,
+    1.2,
+    4.45,
+    21.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    39.45,
+    1.2,
+    4.45,
+    21.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    26.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    26.0,
+    24.2,
+    23.55,
+    52.0,
+    43.6,
+    47.1,
+    0.0
+   ],
+   [
+    "Wall",
+    0.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    51.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    59.05,
+    1.2,
+    4.45,
+    10.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    74.95,
+    1.2,
+    4.45,
+    10.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    67.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    67.0,
+    24.2,
+    13.05,
+    30.0,
+    43.6,
+    26.1,
+    0.0
+   ],
+   [
+    "Wall",
+    52.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    81.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Lamp",
+    20.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    35.26,
+    -9.4,
+    4.038,
+    1.4,
+    1.4,
+    8.077,
+    65.26
+   ],
+   [
+    "Lamp",
+    61.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    76.26,
+    -9.4,
+    3.749,
+    1.4,
+    1.4,
+    7.497,
+    120.44
+   ],
+   [
+    "Meter",
+    6.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    20.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    34.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    48.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    62.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    76.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Bench",
+    12.0,
+    -2.0,
+    1.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    20.0,
+    -1.8,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    32.0,
+    -1.8,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Mailbox",
+    46.0,
+    -9.2,
+    2.2,
+    2.2,
+    2.0,
+    4.4,
+    0.0
+   ],
+   [
+    "Bin",
+    76.0,
+    -9.6,
+    1.4,
+    2.0,
+    2.0,
+    2.8,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "906779f3289c82ff"
+}

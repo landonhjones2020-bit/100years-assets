@@ -11,7 +11,7 @@
 --   mouse, as in a run, so every button carries its key (a chip the controllers fill per device).
 -- * Invite: a private pad's guest list (players in this lobby) and INVITE FRIENDS.
 -- * Rejoin: "Rejoin your run".
--- * Templates.PadSign: the sign over each pad. Templates.Prompt: the booths' prompts.
+-- * Templates.PadSign: the sign on each pad's board (a SurfaceGui). Templates.Prompt: the booths' prompts.
 local sg = screen("Lobby", 4)
 
 -- the equipped class
@@ -109,11 +109,15 @@ end
 
 local T = folder(sg, "Templates")
 
--- The sign over a pad (a BillboardGui on the pad's Sign part, sized in studs).
-local sign = new("BillboardGui", T, "PadSign", {})
-sign.Size = UDim2.fromScale(11, 4.2)
-sign.MaxDistance = 220
+-- The sign over a pad: a SurfaceGui on the front of the pad's Sign part (12 by 4.4 studs).
+local sign = new("SurfaceGui", T, "PadSign", {})
+sign.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+sign.PixelsPerStud = 40
+sign.Face = Enum.NormalId.Front
+sign.MaxDistance = 260
 sign.LightInfluence = 0
+sign.Brightness = 1.2
+sign.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 sign.ResetOnSpawn = false
 sign.Enabled = false
 local board = new("ImageLabel", sign, "Board", { pos = { 0, 0 }, size = { 1, 1 }, sprite = "Panel_Navy" })

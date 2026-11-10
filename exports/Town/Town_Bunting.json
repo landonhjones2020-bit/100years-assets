@@ -1,0 +1,77 @@
+{
+ "asset": "Town_Bunting",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  68.027,
+  7.494,
+  0.087
+ ],
+ "tris": 260,
+ "pivot": [
+  34.0,
+  7.47,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -34.0,
+    -2.513,
+    0.0
+   ],
+   "size": [
+    68.027,
+    5.074,
+    0.087
+   ],
+   "tris": 208
+  },
+  {
+   "name": "Decor_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "porcelain",
+    "signal",
+    "teal"
+   ],
+   "offset": [
+    -34.0,
+    -3.779,
+    0.0
+   ],
+   "size": [
+    67.372,
+    7.381,
+    0.06
+   ],
+   "tris": 52
+  }
+ ],
+ "meta": {},
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "0d6ff4aaf1ef725c"
+}

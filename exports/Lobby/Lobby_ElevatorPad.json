@@ -1,0 +1,143 @@
+{
+ "asset": "Lobby_ElevatorPad",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  13.4,
+  19.9,
+  15.5
+ ],
+ "tris": 1826,
+ "pivot": [
+  0.0,
+  0.0,
+  1.1
+ ],
+ "parts": [
+  {
+   "name": "Floor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": "Floor",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "size": [
+    12.6,
+    0.5,
+    12.6
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "leaf",
+    "navy",
+    "rubber",
+    "rust",
+    "signal",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    9.95,
+    -1.1
+   ],
+   "size": [
+    13.4,
+    19.9,
+    15.5
+   ],
+   "tris": 1766
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    12.18,
+    0.0
+   ],
+   "size": [
+    2.6,
+    0.16,
+    2.473
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Sign",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": "Sign",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "navy"
+   ],
+   "offset": [
+    0.0,
+    16.9,
+    -8.6
+   ],
+   "size": [
+    12.0,
+    4.4,
+    0.3
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "signFace": "Front"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Rider": {
+   "p": [
+    0.0,
+    0.5,
+    0.0
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "c7dca6ab7ddc6f11"
+}

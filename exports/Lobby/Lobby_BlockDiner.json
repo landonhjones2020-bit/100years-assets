@@ -1,0 +1,398 @@
+{
+ "asset": "Lobby_BlockDiner",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  64.246,
+  25.174,
+  51.722
+ ],
+ "tris": 7466,
+ "pivot": [
+  34.123,
+  0.017,
+  -9.589
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "porcelain",
+    "rust",
+    "signal",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -34.123,
+    12.492,
+    9.589
+   ],
+   "size": [
+    64.246,
+    25.017,
+    51.722
+   ],
+   "tris": 5728
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.45,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -33.0,
+    5.75,
+    20.605
+   ],
+   "size": [
+    58.2,
+    4.7,
+    28.99
+   ],
+   "tris": 92
+  },
+  {
+   "name": "DecorGlassSkyblue_",
+   "material": "Glass",
+   "transparency": 0.5,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -33.0,
+    6.0,
+    22.0
+   ],
+   "size": [
+    32.0,
+    4.2,
+    26.32
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    -33.051,
+    17.029,
+    15.347
+   ],
+   "size": [
+    29.148,
+    16.257,
+    8.625
+   ],
+   "tris": 404
+  },
+  {
+   "name": "DecorNeonSignal",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    -31.0,
+    14.325,
+    8.902
+   ],
+   "size": [
+    14.531,
+    11.55,
+    5.345
+   ],
+   "tris": 772
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -33.0,
+    15.975,
+    -1.06
+   ],
+   "size": [
+    34.24,
+    3.35,
+    25.12
+   ],
+   "tris": 446
+  }
+ ],
+ "meta": {
+  "width": 66.0,
+  "colliders": [
+   [
+    "Building",
+    33.0,
+    22.0,
+    6.25,
+    32.0,
+    26.0,
+    12.5,
+    0.0
+   ],
+   [
+    "Building",
+    11.8,
+    22.0,
+    6.25,
+    20.8,
+    23.92,
+    12.5,
+    0.0
+   ],
+   [
+    "Building",
+    54.2,
+    22.0,
+    6.25,
+    20.8,
+    23.92,
+    12.5,
+    0.0
+   ],
+   [
+    "Porch",
+    33.0,
+    7.7,
+    5.3,
+    8.4,
+    2.6,
+    10.6,
+    0.0
+   ],
+   [
+    "Hedge",
+    15.0,
+    1.2,
+    1.0,
+    26.0,
+    1.2,
+    2.0,
+    0.0
+   ],
+   [
+    "Hedge",
+    51.0,
+    1.2,
+    1.0,
+    26.0,
+    1.2,
+    2.0,
+    0.0
+   ],
+   [
+    "Lamp",
+    16.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    28.38,
+    -9.4,
+    4.036,
+    1.4,
+    1.4,
+    8.072,
+    170.85
+   ],
+   [
+    "Lamp",
+    49.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    61.38,
+    -9.4,
+    3.714,
+    1.4,
+    1.4,
+    7.428,
+    -120.09
+   ],
+   [
+    "Meter",
+    6.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    20.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    34.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    48.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Board",
+    26.0,
+    -2.8,
+    1.6,
+    2.0,
+    1.2,
+    3.2,
+    -10.0
+   ],
+   [
+    "Bench",
+    14.0,
+    -1.4,
+    1.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Bin",
+    54.0,
+    -9.6,
+    1.4,
+    2.0,
+    2.0,
+    2.8,
+    0.0
+   ],
+   [
+    "Tub",
+    26.6,
+    2.4,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    39.4,
+    2.4,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     33.0,
+     4.0,
+     9.0
+    ],
+    "kind": "Point",
+    "colour": "hazard",
+    "brightness": 0.8,
+    "range": 26,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "3bf74e71ac27b9b6"
+}

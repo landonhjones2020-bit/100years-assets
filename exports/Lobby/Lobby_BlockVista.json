@@ -1,0 +1,673 @@
+{
+ "asset": "Lobby_BlockVista",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  86.4,
+  29.764,
+  62.487
+ ],
+ "tris": 12990,
+ "pivot": [
+  43.0,
+  0.014,
+  -15.506
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "mint",
+    "navy",
+    "plum",
+    "porcelain",
+    "rubber",
+    "rust",
+    "sandstone",
+    "signal",
+    "skyblue",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -43.0,
+    14.868,
+    15.506
+   ],
+   "size": [
+    86.4,
+    29.764,
+    62.487
+   ],
+   "tris": 10984
+  },
+  {
+   "name": "DecorNeonPorcelain",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    -43.0,
+    8.69,
+    0.75
+   ],
+   "size": [
+    82.0,
+    0.18,
+    0.5
+   ],
+   "tris": 72
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.74,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -43.0,
+    5.31,
+    1.165
+   ],
+   "size": [
+    82.6,
+    7.18,
+    2.47
+   ],
+   "tris": 144
+  },
+  {
+   "name": "DecorNeonMint",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -15.75,
+    3.4,
+    0.69
+   ],
+   "size": [
+    25.6,
+    1.95,
+    0.1
+   ],
+   "tris": 72
+  },
+  {
+   "name": "DecorGlassSkyblue_",
+   "material": "Glass",
+   "transparency": 0.45,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -44.0,
+    4.7,
+    1.94
+   ],
+   "size": [
+    58.9,
+    5.4,
+    0.06
+   ],
+   "tris": 36
+  },
+  {
+   "name": "DecorGlassMint",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -43.0,
+    9.71,
+    0.1
+   ],
+   "size": [
+    82.6,
+    1.18,
+    0.1
+   ],
+   "tris": 36
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -42.806,
+    11.825,
+    -7.431
+   ],
+   "size": [
+    82.057,
+    8.55,
+    12.378
+   ],
+   "tris": 998
+  },
+  {
+   "name": "DecorGlassSkyblue__",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -28.5,
+    18.7,
+    23.0
+   ],
+   "size": [
+    51.6,
+    5.4,
+    46.4
+   ],
+   "tris": 132
+  },
+  {
+   "name": "Decor_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "blush",
+    "hazard",
+    "plum",
+    "teal"
+   ],
+   "offset": [
+    -59.0,
+    8.075,
+    -4.57
+   ],
+   "size": [
+    51.8,
+    0.75,
+    0.06
+   ],
+   "tris": 368
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    -69.725,
+    4.1,
+    1.35
+   ],
+   "size": [
+    16.6,
+    1.7,
+    1.12
+   ],
+   "tris": 88
+  },
+  {
+   "name": "DecorNeonSignal",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    -69.725,
+    2.7,
+    0.78
+   ],
+   "size": [
+    16.1,
+    0.5,
+    0.08
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorGlassSkyblue___",
+   "material": "Glass",
+   "transparency": 0.6,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -82.0,
+    3.75,
+    -2.6
+   ],
+   "size": [
+    3.4,
+    6.9,
+    3.4
+   ],
+   "tris": 36
+  }
+ ],
+ "meta": {
+  "width": 86.0,
+  "colliders": [
+   [
+    "Wall",
+    7.55,
+    1.2,
+    4.45,
+    11.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    24.45,
+    1.2,
+    4.45,
+    11.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    16.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    16.0,
+    24.2,
+    13.05,
+    32.0,
+    43.6,
+    26.1,
+    0.0
+   ],
+   [
+    "Wall",
+    0.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    31.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    38.05,
+    1.2,
+    4.45,
+    8.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    51.95,
+    1.2,
+    4.45,
+    8.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    45.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    45.0,
+    24.2,
+    13.05,
+    26.0,
+    43.6,
+    26.1,
+    0.0
+   ],
+   [
+    "Wall",
+    32.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    57.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    64.55,
+    1.2,
+    4.45,
+    9.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    79.45,
+    1.2,
+    4.45,
+    9.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    72.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    72.0,
+    24.2,
+    7.8,
+    28.0,
+    43.6,
+    15.6,
+    0.0
+   ],
+   [
+    "Wall",
+    58.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    85.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Lamp",
+    21.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    36.98,
+    -9.4,
+    3.925,
+    1.4,
+    1.4,
+    7.851,
+    130.15
+   ],
+   [
+    "Lamp",
+    64.5,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    79.98,
+    -9.4,
+    3.904,
+    1.4,
+    1.4,
+    7.808,
+    150.1
+   ],
+   [
+    "Meter",
+    6.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    20.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    34.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    48.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    62.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    76.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Bench",
+    7.0,
+    -2.0,
+    1.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    33.5,
+    -1.8,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    56.5,
+    -1.8,
+    1.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Bin",
+    60.0,
+    -9.6,
+    1.4,
+    2.0,
+    2.0,
+    2.8,
+    0.0
+   ],
+   [
+    "Booth",
+    82.0,
+    -2.6,
+    4.2,
+    3.4,
+    3.4,
+    8.4,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "adb7e4bd6b5d3e6d"
+}

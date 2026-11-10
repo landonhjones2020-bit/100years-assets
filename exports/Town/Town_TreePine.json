@@ -1,0 +1,65 @@
+{
+ "asset": "Town_TreePine",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  15.668,
+  37.74,
+  15.891
+ ],
+ "tris": 290,
+ "pivot": [
+  0.59,
+  0.0,
+  -0.179
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "forest",
+    "olive",
+    "walnut"
+   ],
+   "offset": [
+    -0.59,
+    18.87,
+    0.179
+   ],
+   "size": [
+    15.668,
+    37.74,
+    15.891
+   ],
+   "tris": 290
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Tree",
+    0.0,
+    0.0,
+    5.1,
+    2.0,
+    2.0,
+    10.2,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "3594b69ac2511fd3"
+}

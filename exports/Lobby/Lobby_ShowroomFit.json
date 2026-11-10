@@ -1,0 +1,198 @@
+{
+ "asset": "Lobby_ShowroomFit",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  129.12,
+  20.97,
+  76.404
+ ],
+ "tris": 17256,
+ "pivot": [
+  0.0,
+  -0.35,
+  8.11
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "mint",
+    "navy",
+    "porcelain",
+    "rust",
+    "signal",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    18.703,
+    10.838,
+    -8.11
+   ],
+   "size": [
+    91.714,
+    20.964,
+    76.404
+   ],
+   "tris": 8590
+  },
+  {
+   "name": "Decor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "mint",
+    "navy",
+    "olive",
+    "pine",
+    "porcelain",
+    "rubber",
+    "rust",
+    "signal",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -45.479,
+    10.835,
+    -7.9
+   ],
+   "size": [
+    38.162,
+    20.97,
+    75.985
+   ],
+   "tris": 8590
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -63.1,
+    5.15,
+    9.5
+   ],
+   "size": [
+    1.522,
+    2.3,
+    1.6
+   ],
+   "tris": 76
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Display",
+    37.0,
+    -36.0,
+    6.4,
+    12.0,
+    6.0,
+    12.0,
+    -32.0
+   ],
+   [
+    "Display",
+    57.2,
+    -29.0,
+    3.4,
+    7.0,
+    7.5,
+    6.0,
+    0.0
+   ],
+   [
+    "Display",
+    57.2,
+    -40.8,
+    2.4,
+    5.5,
+    6.0,
+    4.0,
+    0.0
+   ],
+   [
+    "Display",
+    63.3,
+    -20.5,
+    6.15,
+    2.4,
+    9.4,
+    11.5,
+    0.0
+   ],
+   [
+    "Directory",
+    13.5,
+    -38.5,
+    4.9,
+    5.0,
+    2.2,
+    9.0,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     33.0,
+     -41.0,
+     12.4
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 0.8,
+    "range": 22,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "8e54bd2572c4ddb4"
+}

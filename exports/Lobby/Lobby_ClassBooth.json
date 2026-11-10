@@ -1,0 +1,156 @@
+{
+ "asset": "Lobby_ClassBooth",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  21.4,
+  15.8,
+  11.85
+ ],
+ "tris": 5209,
+ "pivot": [
+  0.0,
+  0.0,
+  5.875
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "navy",
+    "plum",
+    "signal",
+    "skyblue",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    7.9,
+    -5.875
+   ],
+   "size": [
+    21.4,
+    15.8,
+    11.85
+   ],
+   "tris": 4849
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    12.28,
+    -2.65
+   ],
+   "size": [
+    18.3,
+    0.4,
+    0.346
+   ],
+   "tris": 360
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Wall",
+    0.0,
+    -0.3,
+    7.8,
+    20.0,
+    0.6,
+    15.6,
+    0.0
+   ],
+   [
+    "Wall",
+    -10.0,
+    -3.2,
+    3.5,
+    0.6,
+    6.4,
+    7.0,
+    0.0
+   ],
+   [
+    "Wall",
+    10.0,
+    -3.2,
+    3.5,
+    0.6,
+    6.4,
+    7.0,
+    0.0
+   ],
+   [
+    "Counter",
+    0.0,
+    -5.7,
+    1.9,
+    15.6,
+    2.6,
+    3.8,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     0.0,
+     -4.5,
+     11.1
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 0.8,
+    "range": 18,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Prompt": {
+   "p": [
+    0.0,
+    3.6,
+    -7.6
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "769b183e366bf038"
+}

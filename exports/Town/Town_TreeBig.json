@@ -1,0 +1,66 @@
+{
+ "asset": "Town_TreeBig",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  23.6,
+  33.933,
+  21.89
+ ],
+ "tris": 168,
+ "pivot": [
+  1.401,
+  0.028,
+  -2.622
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "forest",
+    "leaf",
+    "walnut"
+   ],
+   "offset": [
+    -1.401,
+    16.939,
+    2.622
+   ],
+   "size": [
+    23.6,
+    33.933,
+    21.89
+   ],
+   "tris": 168
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Tree",
+    0.0,
+    0.0,
+    7.5,
+    2.8,
+    2.8,
+    15.0,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "bdbc392c97af5659"
+}

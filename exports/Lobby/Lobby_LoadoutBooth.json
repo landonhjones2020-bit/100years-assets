@@ -1,0 +1,191 @@
+{
+ "asset": "Lobby_LoadoutBooth",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  21.4,
+  15.809,
+  11.85
+ ],
+ "tris": 2995,
+ "pivot": [
+  0.0,
+  0.009,
+  5.875
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "leather",
+    "mint",
+    "navy",
+    "olive",
+    "porcelain",
+    "rubber",
+    "signal",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    7.895,
+    -5.875
+   ],
+   "size": [
+    21.4,
+    15.809,
+    11.85
+   ],
+   "tris": 2623
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    12.28,
+    -2.65
+   ],
+   "size": [
+    18.3,
+    0.4,
+    0.346
+   ],
+   "tris": 360
+  },
+  {
+   "name": "DecorGlassMint",
+   "material": "Glass",
+   "transparency": 0.35,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -6.6,
+    5.95,
+    -0.84
+   ],
+   "size": [
+    4.6,
+    9.4,
+    0.08
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Wall",
+    0.0,
+    -0.3,
+    7.8,
+    20.0,
+    0.6,
+    15.6,
+    0.0
+   ],
+   [
+    "Wall",
+    -10.0,
+    -3.2,
+    3.5,
+    0.6,
+    6.4,
+    7.0,
+    0.0
+   ],
+   [
+    "Wall",
+    10.0,
+    -3.2,
+    3.5,
+    0.6,
+    6.4,
+    7.0,
+    0.0
+   ],
+   [
+    "Lockers",
+    -2.95,
+    -1.65,
+    4.7,
+    12.3,
+    2.3,
+    9.4,
+    0.0
+   ],
+   [
+    "Bench",
+    -1.7,
+    -5.5,
+    0.9,
+    13.0,
+    2.0,
+    1.8,
+    0.0
+   ]
+  ],
+  "lights": [
+   {
+    "p": [
+     0.0,
+     -4.5,
+     11.1
+    ],
+    "kind": "Point",
+    "colour": "cream",
+    "brightness": 0.8,
+    "range": 18,
+    "face": "Bottom",
+    "angle": 90.0,
+    "shadows": false
+   }
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Prompt": {
+   "p": [
+    0.0,
+    3.6,
+    -7.6
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "8f8a63902e611dde"
+}

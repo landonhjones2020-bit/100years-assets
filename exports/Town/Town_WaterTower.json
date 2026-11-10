@@ -1,0 +1,70 @@
+{
+ "asset": "Town_WaterTower",
+ "category": "Town",
+ "format": 1,
+ "size": [
+  32.997,
+  71.568,
+  36.6
+ ],
+ "tris": 1982,
+ "pivot": [
+  0.0,
+  0.068,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "chrome",
+    "cream",
+    "gunmetal",
+    "navy",
+    "steel",
+    "stone",
+    "teal"
+   ],
+   "offset": [
+    0.0,
+    35.716,
+    0.0
+   ],
+   "size": [
+    32.997,
+    71.568,
+    36.6
+   ],
+   "tris": 1982
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Tower",
+    0.0,
+    0.0,
+    1.0,
+    36.0,
+    36.0,
+    2.0,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "c34b10e6a6a7dd1b"
+}

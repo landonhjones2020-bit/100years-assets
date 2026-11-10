@@ -1,0 +1,358 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" version="4">
+<Item class="ModuleScript" referent="RBX0">
+<Properties>
+<string name="Name">UIBuild_Lobby_P21b</string>
+<ProtectedString name="Source"><![CDATA[return function()
+local SPR: { [string]: { any } } = {
+	Button_Leaf_Down = {"rbxassetid://108416061266181", 236, 532, 192, 112, 50, 50, 50, 50},
+	Button_Leaf_Up = {"rbxassetid://108416061266181", 436, 532, 192, 112, 50, 50, 50, 50},
+	Button_Rust_Down = {"rbxassetid://108416061266181", 636, 532, 192, 112, 50, 50, 50, 50},
+	Button_Rust_Up = {"rbxassetid://108416061266181", 4, 652, 192, 112, 50, 50, 50, 50},
+	Button_Signal_Down = {"rbxassetid://108416061266181", 404, 652, 192, 112, 50, 50, 50, 50},
+	Button_Signal_Up = {"rbxassetid://108416061266181", 804, 652, 192, 112, 50, 50, 50, 50},
+	Button_Teal_Down = {"rbxassetid://108416061266181", 4, 772, 192, 112, 50, 50, 50, 50},
+	Button_Teal_Up = {"rbxassetid://108416061266181", 204, 772, 192, 112, 50, 50, 50, 50},
+	Chip_Cream = {"rbxassetid://108416061266181", 668, 772, 160, 80, 40, 36, 40, 36},
+	Chip_Navy = {"rbxassetid://108416061266181", 836, 772, 160, 80, 40, 36, 40, 36},
+	Close_Down = {"rbxassetid://108416061266181", 4, 4, 128, 128},
+	Close_Up = {"rbxassetid://108416061266181", 140, 4, 128, 128},
+	Icon_Glowshard = {"rbxassetid://108416061266181", 140, 140, 128, 128},
+	Icon_Wrench = {"rbxassetid://83868618378929", 412, 548, 128, 128},
+	Lamp_Amber = {"rbxassetid://108416061266181", 76, 892, 48, 48},
+	Lamp_Off = {"rbxassetid://108416061266181", 188, 892, 48, 48},
+	Panel_Cream = {"rbxassetid://85214114089895", 796, 268, 192, 192, 60, 60, 60, 60},
+	Panel_Navy = {"rbxassetid://85214114089895", 4, 532, 192, 192, 60, 60, 60, 60},
+	Plate_Cream = {"rbxassetid://108416061266181", 404, 772, 256, 96, 56, 40, 56, 40},
+	Telegram = {"rbxassetid://85214114089895", 268, 868, 256, 128, 72, 40, 72, 40},
+	Well_Teal = {"rbxassetid://85214114089895", 740, 532, 160, 160, 44, 44, 44, 44},
+}
+local VH = workspace.CurrentCamera.ViewportSize.Y
+local SLICE = 0.5 * VH / 1080 -- sprites are drawn at 2x their 1080p size
+
+local F = {
+	title = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Bold),
+	label = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Medium),
+	typed = Font.new("rbxasset://fonts/families/SpecialElite.json"),
+	num = Font.new("rbxasset://fonts/families/RobotoCondensed.json", Enum.FontWeight.Bold),
+	body = Font.new("rbxasset://fonts/families/RobotoCondensed.json", Enum.FontWeight.Regular),
+}
+local COL = {
+	navy = Color3.fromHex("#1B2A3A"), cream = Color3.fromHex("#F2E6C9"), teal = Color3.fromHex("#2F6F73"),
+	signal = Color3.fromHex("#E8743B"), hazard = Color3.fromHex("#F2C14E"), rust = Color3.fromHex("#B5412B"),
+	glow = Color3.fromHex("#7CFF9B"), leaf = Color3.fromHex("#6F9B4C"), ink = Color3.fromHex("#2A3B4C"),
+	night = Color3.fromHex("#0B121A"),
+}
+local CENTER = Enum.TextXAlignment.Center
+local RIGHT = Enum.TextXAlignment.Right
+
+local function skin(o: any, name: string, crop: { number }?)
+	local s = SPR[name]
+	assert(s, "no sprite " .. name)
+	o.Image = s[1]
+	o.BackgroundTransparency = 1
+	if crop then -- {x, y, w, h} inside the sprite
+		o.ImageRectOffset = Vector2.new(s[2] + crop[1], s[3] + crop[2])
+		o.ImageRectSize = Vector2.new(crop[3], crop[4])
+		o.ScaleType = Enum.ScaleType.Stretch
+		o:SetAttribute("Crop", Vector2.new(crop[1], crop[2]))
+	else
+		o.ImageRectOffset = Vector2.new(s[2], s[3])
+		o.ImageRectSize = Vector2.new(s[4], s[5])
+		if s[6] then
+			o.ScaleType = Enum.ScaleType.Slice
+			o.SliceCenter = Rect.new(s[6], s[7], s[4] - s[8], s[5] - s[9])
+			o.SliceScale = SLICE
+		else
+			o.ScaleType = Enum.ScaleType.Stretch
+		end
+	end
+	o:SetAttribute("Sprite", name)
+end
+
+local function rectOf(name: string): Vector2
+	local s = SPR[name]
+	assert(s, "no sprite " .. name)
+	return Vector2.new(s[2], s[3])
+end
+
+local function aspect(o: Instance, ratio: number, dom: string?)
+	local c = Instance.new("UIAspectRatioConstraint")
+	c.AspectRatio = ratio
+	if dom == "H" then
+		c.DominantAxis = Enum.DominantAxis.Height
+	end
+	c.Parent = o
+	return c
+end
+
+local function new(class: string, parent: Instance, name: string, p: { [string]: any }): any
+	local o = Instance.new(class)
+	o.Name = name
+	if o:IsA("GuiObject") then
+		o.BackgroundTransparency = 1
+		o.BorderSizePixel = 0
+	end
+	if o:IsA("ImageButton") or o:IsA("TextButton") then
+		o.AutoButtonColor = false
+	end
+	if p.pos then o.Position = UDim2.fromScale(p.pos[1], p.pos[2]) end
+	if p.size then o.Size = UDim2.fromScale(p.size[1], p.size[2]) end
+	if p.anchor then o.AnchorPoint = Vector2.new(p.anchor[1], p.anchor[2]) end
+	if p.z then o.ZIndex = p.z end
+	if p.rot then o.Rotation = p.rot end
+	if p.order then o.LayoutOrder = p.order end
+	if p.visible == false then o.Visible = false end
+	if p.clip then o.ClipsDescendants = true end
+	if p.sprite then skin(o, p.sprite, p.crop) end
+	if p.tint then o.ImageColor3 = p.tint end
+	if p.bg then
+		o.BackgroundColor3 = p.bg
+		o.BackgroundTransparency = p.bgT or 0
+	end
+	if p.aspect then aspect(o, p.aspect, p.dom) end
+	if p.states then -- {up, down, hover?, disabled?}: Lib.KitRuntime swaps the atlas rect
+		o:SetAttribute("RectUp", rectOf(p.states[1]))
+		o:SetAttribute("RectDown", rectOf(p.states[2]))
+		if p.states[3] then o:SetAttribute("RectHover", rectOf(p.states[3])) end
+		if p.states[4] then o:SetAttribute("RectDisabled", rectOf(p.states[4])) end
+	end
+	if p.attrs then
+		for k, v in p.attrs do
+			o:SetAttribute(k, v)
+		end
+	end
+	o.Parent = parent
+	return o
+end
+
+local function text(parent: Instance, name: string, str: string, p: { [string]: any }): TextLabel
+	local t = new(p.class or "TextLabel", parent, name, p)
+	t.Text = str
+	t.FontFace = p.font or F.body
+	t.TextColor3 = p.color or COL.navy
+	t.TextWrapped = p.wrap or false
+	t.TextScaled = true
+	t.TextXAlignment = p.alignX or Enum.TextXAlignment.Left
+	t.TextYAlignment = p.alignY or Enum.TextYAlignment.Center
+	t.LineHeight = p.lineHeight or 1
+	if p.transp then t.TextTransparency = p.transp end
+	local c = Instance.new("UITextSizeConstraint")
+	c.MinTextSize = 12 -- bible Section 18: never below 12 on phones
+	c.MaxTextSize = p.max or 72
+	c.Parent = t
+	return t
+end
+
+local function stroke(parent: Instance, thickness: number, color: Color3, transparency: number?): UIStroke
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness * VH / 1080
+	s.Transparency = transparency or 0
+	s:SetAttribute("BaseThickness", thickness)
+	s.Parent = parent
+	return s
+end
+
+local function button(parent: Instance, name: string, p: { [string]: any }, states: { string }): ImageButton
+	p.sprite = states[1]
+	p.states = states
+	local b = new("ImageButton", parent, name, p)
+	new("Frame", b, "Content", { pos = { 0, 0 }, size = { 1, 1 } })
+	return b
+end
+
+local function list(parent: Instance, dir: string, padding: number, alignH: string?, alignV: string?): UIListLayout
+	local l = Instance.new("UIListLayout")
+	l.FillDirection = if dir == "H" then Enum.FillDirection.Horizontal else Enum.FillDirection.Vertical
+	l.Padding = UDim.new(padding, 0)
+	l.SortOrder = Enum.SortOrder.LayoutOrder
+	if alignH then l.HorizontalAlignment = Enum.HorizontalAlignment[alignH] end
+	if alignV then l.VerticalAlignment = Enum.VerticalAlignment[alignV] end
+	l.Parent = parent
+	return l
+end
+
+local function scroller(parent: Instance, name: string, p: { [string]: any }): ScrollingFrame
+	local s = new("ScrollingFrame", parent, name, p)
+	s.ScrollingDirection = Enum.ScrollingDirection.Y
+	s.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	s.CanvasSize = UDim2.fromScale(0, 0)
+	s.ScrollBarThickness = math.max(2, math.round(6 * VH / 1080))
+	s.ScrollBarImageColor3 = COL.cream
+	s.ScrollBarImageTransparency = 0.25
+	s.BorderSizePixel = 0
+	s:SetAttribute("BaseScrollBar", 6)
+	return s
+end
+
+local function folder(parent: Instance, name: string): Folder
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent
+	return f
+end
+
+local function screen(name: string, order: number): ScreenGui
+	local old = game:GetService("StarterGui"):FindFirstChild(name)
+	if old then old:Destroy() end
+	local sg = Instance.new("ScreenGui")
+	sg.Name = name
+	sg.ResetOnSpawn = false
+	sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	sg.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+	sg.DisplayOrder = order
+	sg:SetAttribute("Kit", true)
+	return sg
+end
+-- The lobby's own GUI (Prompt 21; bible Sections 14, 18 and 21), Lobby place. Below The Frame
+-- (DisplayOrder 4): the Class Shop and Loadout screens are Frame pages; this is what stays on
+-- screen while a player walks the showroom. LobbyController and PadController fill it.
+--
+-- * Class: the equipped class (portrait or icon, name, level), top left, with the CLASS SHOP and
+--   LOADOUT buttons under it.
+-- * Wallet: Glowshards, top right.
+-- * Alert: the lobby's messages (a purchase, a refusal, an invitation), top centre.
+-- * Pad: the panel of the pad the player stands on: its title, its countdown, up to six riders,
+--   and the buttons the rider can use (LOADOUT, DIFFICULTY, INVITE, START). The camera holds the
+--   mouse, as in a run, so every button carries its key (a chip the controllers fill per device).
+-- * Invite: a private pad's guest list (players in this lobby) and INVITE FRIENDS.
+-- * Rejoin: "Rejoin your run".
+-- * Templates.PadSign: the sign on each pad's board (a SurfaceGui). Templates.Prompt: the booths' prompts.
+local sg = screen("Lobby", 4)
+
+-- the equipped class
+local class = new("ImageButton", sg, "Class", { pos = { 0.012, 0.022 }, size = { 0.2, 0.09 }, aspect = 4.3, sprite = "Plate_Cream" })
+local well = new("ImageLabel", class, "Well", { pos = { 0.035, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.78 }, aspect = 1, dom = "H",
+	sprite = "Well_Teal", z = 2 })
+new("ImageLabel", well, "Icon", { pos = { 0.5, 0.5 }, anchor = { 0.5, 0.5 }, size = { 0.86, 0.86 }, sprite = "Icon_Wrench", z = 3 })
+text(class, "Name", "SURVIVOR", { pos = { 0.25, 0.14 }, size = { 0.7, 0.44 }, font = F.title, color = COL.navy, z = 2 })
+text(class, "Sub", "LEVEL 1  ·  EQUIPPED", { pos = { 0.25, 0.58 }, size = { 0.7, 0.26 }, font = F.typed, color = COL.ink, z = 2 })
+
+local buttons = new("Frame", sg, "Buttons", { pos = { 0.012, 0.122 }, size = { 0.2, 0.05 }, aspect = 7.7 })
+for i, v in { { "Shop", "CLASS SHOP", "K" }, { "Loadout", "LOADOUT", "L" } } do
+	local b = button(buttons, v[1], { pos = { (i - 1) * 0.51, 0 }, size = { 0.49, 1 } }, { "Button_Teal_Up", "Button_Teal_Down" })
+	text(b.Content, "Label", v[2], { pos = { 0.1, 0.22 }, size = { 0.6, 0.56 }, font = F.title, color = COL.cream })
+	local key = new("ImageLabel", b.Content, "Key", { pos = { 0.83, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.56 }, aspect = 1.55,
+		dom = "H", sprite = "Chip_Cream", z = 2 })
+	text(key, "Text", v[3], { pos = { 0.1, 0.12 }, size = { 0.8, 0.76 }, font = F.num, color = COL.navy, alignX = CENTER, z = 3 })
+end
+
+-- Glowshards
+local wallet = new("ImageLabel", sg, "Wallet", { pos = { 0.988, 0.022 }, anchor = { 1, 0 }, size = { 0.115, 0.05 }, aspect = 3.6,
+	sprite = "Chip_Navy" })
+new("ImageLabel", wallet, "Icon", { pos = { 0.06, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.74 }, aspect = 1, dom = "H",
+	sprite = "Icon_Glowshard", z = 2 })
+text(wallet, "Amount", "0", { pos = { 0.32, 0.16 }, size = { 0.6, 0.68 }, font = F.num, color = COL.cream, alignX = RIGHT, z = 2 })
+
+-- messages
+local alert = new("ImageLabel", sg, "Alert", { pos = { 0.5, 0.022 }, anchor = { 0.5, 0 }, size = { 0.4, 0.062 }, aspect = 11.5,
+	sprite = "Telegram", visible = false })
+new("ImageLabel", alert, "Lamp", { pos = { 0.03, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.5 }, aspect = 1, dom = "H",
+	sprite = "Lamp_Amber", z = 2 })
+text(alert, "Text", "", { pos = { 0.085, 0.2 }, size = { 0.88, 0.6 }, font = F.typed, color = COL.navy, z = 2 })
+
+-- the pad the player stands on
+local pad = new("ImageLabel", sg, "Pad", { pos = { 0.5, 0.1 }, anchor = { 0.5, 0 }, size = { 0.4, 0.2 }, aspect = 3.55,
+	sprite = "Panel_Navy", visible = false })
+text(pad, "Title", "PUBLIC · NORMAL", { pos = { 0.04, 0.07 }, size = { 0.56, 0.18 }, font = F.title, color = COL.cream })
+text(pad, "Timer", "", { pos = { 0.6, 0.07 }, size = { 0.36, 0.18 }, font = F.num, color = COL.hazard, alignX = RIGHT })
+local riders = new("Frame", pad, "Riders", { pos = { 0.04, 0.29 }, size = { 0.92, 0.38 } })
+for i = 1, 6 do
+	local col, row = (i - 1) % 3, math.floor((i - 1) / 3)
+	local slot = new("ImageLabel", riders, "Slot" .. i, { pos = { col * 0.337, row * 0.52 }, size = { 0.325, 0.46 }, sprite = "Chip_Cream" })
+	new("ImageLabel", slot, "Lamp", { pos = { 0.05, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.6 }, aspect = 1, dom = "H",
+		sprite = "Lamp_Off", z = 2 })
+	text(slot, "Name", "", { pos = { 0.2, 0.1 }, size = { 0.76, 0.46 }, font = F.label, color = COL.navy, z = 2 })
+	text(slot, "Class", "", { pos = { 0.2, 0.54 }, size = { 0.76, 0.36 }, font = F.typed, color = COL.ink, z = 2 })
+end
+local padButtons = new("Frame", pad, "Buttons", { pos = { 0.04, 0.72 }, size = { 0.92, 0.22 } })
+for i, v in {
+	{ "Loadout", "LOADOUT", "L", "Button_Teal_Up", "Button_Teal_Down" },
+	{ "Difficulty", "DIFFICULTY", "H", "Button_Signal_Up", "Button_Signal_Down" },
+	{ "Invite", "INVITE", "G", "Button_Teal_Up", "Button_Teal_Down" },
+	{ "Start", "START", "Y", "Button_Leaf_Up", "Button_Leaf_Down" },
+} do
+	local b = button(padButtons, v[1], { pos = { (i - 1) * 0.2525, 0 }, size = { 0.2425, 1 } }, { v[4], v[5] })
+	text(b.Content, "Label", v[2], { pos = { 0.07, 0.24 }, size = { 0.6, 0.52 }, font = F.title, color = COL.cream })
+	local key = new("ImageLabel", b.Content, "Key", { pos = { 0.82, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.58 }, aspect = 1.55,
+		dom = "H", sprite = "Chip_Cream", z = 2 })
+	text(key, "Text", v[3], { pos = { 0.08, 0.12 }, size = { 0.84, 0.76 }, font = F.num, color = COL.navy, alignX = CENTER, z = 3 })
+end
+
+-- a private pad's guest list
+local invite = new("ImageLabel", sg, "Invite", { pos = { 0.5, 0.32 }, anchor = { 0.5, 0 }, size = { 0.3, 0.5 }, aspect = 1.07,
+	sprite = "Panel_Cream", visible = false })
+text(invite, "Title", "INVITE TO YOUR PAD", { pos = { 0.06, 0.04 }, size = { 0.7, 0.08 }, font = F.title, color = COL.navy })
+local closeInvite = button(invite, "Close", { pos = { 0.94, 0.08 }, anchor = { 0.5, 0.5 }, size = { 0.09, 0.09 }, aspect = 1 },
+	{ "Close_Up", "Close_Down" })
+closeInvite.ZIndex = 3
+text(invite, "Empty", "NOBODY ELSE IS IN THIS LOBBY", { pos = { 0.06, 0.2 }, size = { 0.88, 0.08 }, font = F.typed, color = COL.ink,
+	alignX = CENTER, visible = false })
+local rows = new("Frame", invite, "Rows", { pos = { 0.06, 0.15 }, size = { 0.88, 0.66 } })
+for i = 1, 8 do
+	local row = new("ImageButton", rows, "Row" .. i, { pos = { 0, (i - 1) * 0.125 }, size = { 1, 0.113 }, sprite = "Chip_Navy", visible = false })
+	new("ImageLabel", row, "Lamp", { pos = { 0.03, 0.5 }, anchor = { 0, 0.5 }, size = { 1, 0.6 }, aspect = 1, dom = "H",
+		sprite = "Lamp_Off", z = 2 })
+	text(row, "Name", "", { pos = { 0.12, 0.18 }, size = { 0.6, 0.64 }, font = F.label, color = COL.cream, z = 2 })
+	text(row, "State", "INVITE", { pos = { 0.72, 0.22 }, size = { 0.25, 0.56 }, font = F.num, color = COL.hazard, alignX = RIGHT, z = 2 })
+end
+local friends = button(invite, "Friends", { pos = { 0.06, 0.84 }, size = { 0.88, 0.11 } }, { "Button_Teal_Up", "Button_Teal_Down" })
+text(friends.Content, "Label", "INVITE ROBLOX FRIENDS TO THIS LOBBY", { pos = { 0.06, 0.24 }, size = { 0.88, 0.52 }, font = F.title,
+	color = COL.cream, alignX = CENTER })
+
+-- "Rejoin your run"
+local rejoin = new("ImageLabel", sg, "Rejoin", { pos = { 0.5, 0.74 }, anchor = { 0.5, 0 }, size = { 0.44, 0.12 }, aspect = 7,
+	sprite = "Telegram", visible = false })
+text(rejoin, "Title", "REJOIN YOUR RUN", { pos = { 0.04, 0.2 }, size = { 0.46, 0.34 }, font = F.title, color = COL.navy })
+text(rejoin, "Sub", "NORMAL  ·  YOUR CREW IS HOLDING THE BUNKER", { pos = { 0.04, 0.56 }, size = { 0.48, 0.24 }, font = F.typed, color = COL.ink })
+for _, v in { { "Yes", "REJOIN", "R", 0.54, 0.21, "Button_Leaf_Up", "Button_Leaf_Down" }, { "No", "NOT NOW", "N", 0.765, 0.205, "Button_Rust_Up", "Button_Rust_Down" } } do
+	local b = button(rejoin, v[1], { pos = { v[4], 0.22 }, size = { v[5], 0.56 } }, { v[6], v[7] })
+	text(b.Content, "Label", v[2], { pos = { 0.08, 0.24 }, size = { 0.58, 0.52 }, font = F.title, color = COL.cream })
+	local key = new("ImageLabel", b.Content, "Key", { pos = { 0.82, 0.5 }, anchor = { 0.5, 0.5 }, size = { 1, 0.58 }, aspect = 1.3,
+		dom = "H", sprite = "Chip_Cream", z = 2 })
+	text(key, "Text", v[3], { pos = { 0.08, 0.12 }, size = { 0.84, 0.76 }, font = F.num, color = COL.navy, alignX = CENTER, z = 3 })
+end
+
+local T = folder(sg, "Templates")
+
+-- The sign over a pad: a SurfaceGui on the front of the pad's Sign part (12 by 4.4 studs).
+local sign = new("SurfaceGui", T, "PadSign", {})
+sign.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+sign.PixelsPerStud = 40
+sign.Face = Enum.NormalId.Front
+sign.MaxDistance = 260
+sign.LightInfluence = 0
+sign.Brightness = 1.2
+sign.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+sign.ResetOnSpawn = false
+sign.Enabled = false
+local board = new("ImageLabel", sign, "Board", { pos = { 0, 0 }, size = { 1, 1 }, sprite = "Panel_Navy" })
+text(board, "Kind", "PUBLIC", { pos = { 0.06, 0.08 }, size = { 0.6, 0.3 }, font = F.title, color = COL.cream, z = 2 })
+text(board, "Count", "0/6", { pos = { 0.66, 0.08 }, size = { 0.28, 0.3 }, font = F.num, color = COL.cream, alignX = RIGHT, z = 2 })
+local band = new("Frame", board, "Band", { pos = { 0.06, 0.42 }, size = { 0.88, 0.24 }, bg = COL.teal, z = 2 })
+text(band, "Difficulty", "NORMAL", { pos = { 0.04, 0.1 }, size = { 0.92, 0.8 }, font = F.title, color = COL.cream, alignX = CENTER, z = 3 })
+text(board, "Timer", "STEP ON TO START", { pos = { 0.06, 0.7 }, size = { 0.88, 0.22 }, font = F.typed, color = COL.hazard, alignX = CENTER, z = 2 })
+
+-- The interaction prompt (the HUD's, for the showroom's booths).
+local prompt = new("BillboardGui", T, "Prompt", {})
+prompt.Size = UDim2.fromScale(5.6, 1.5)
+prompt.StudsOffsetWorldSpace = Vector3.new(0, 1.2, 0)
+prompt.AlwaysOnTop = true
+prompt.LightInfluence = 0
+prompt.ResetOnSpawn = false
+prompt.Enabled = false
+local plate = new("ImageButton", prompt, "Plate", { pos = { 0, 0 }, size = { 1, 1 }, sprite = "Plate_Cream" })
+local key = new("ImageLabel", plate, "Key", { pos = { 0.12, 0.5 }, anchor = { 0.5, 0.5 }, size = { 0.17, 0.66 }, sprite = "Chip_Navy", z = 2 })
+text(key, "Text", "E", { pos = { 0.5, 0.5 }, anchor = { 0.5, 0.5 }, size = { 0.7, 0.6 }, font = F.num, color = COL.cream, alignX = CENTER,
+	z = 3 })
+text(plate, "Action", "CLASS SHOP", { pos = { 0.25, 0.14 }, size = { 0.7, 0.42 }, font = F.title, color = COL.navy, z = 2 })
+text(plate, "Object", "Steadfast showroom", { pos = { 0.25, 0.56 }, size = { 0.7, 0.28 }, font = F.typed, color = COL.ink, z = 2 })
+
+sg.Parent = game:GetService("StarterGui")
+return "Lobby GUI built: " .. #sg:GetDescendants() .. " instances"
+
+end
+]]></ProtectedString>
+</Properties>
+</Item>
+</roblox>

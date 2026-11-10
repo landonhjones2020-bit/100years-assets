@@ -1,0 +1,598 @@
+{
+ "asset": "Lobby_BlockGazette",
+ "category": "Lobby",
+ "format": 1,
+ "size": [
+  79.45,
+  30.613,
+  61.828
+ ],
+ "tris": 13772,
+ "pivot": [
+  39.375,
+  0.013,
+  -15.836
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "porcelain",
+    "rust",
+    "sandstone",
+    "signal",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -22.825,
+    15.294,
+    15.85
+   ],
+   "size": [
+    46.35,
+    30.613,
+    61.799
+   ],
+   "tris": 6379
+  },
+  {
+   "name": "Decor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "chrome",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "navy",
+    "porcelain",
+    "rust",
+    "sandstone",
+    "signal",
+    "skyblue",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -57.45,
+    13.231,
+    15.736
+   ],
+   "size": [
+    43.3,
+    26.488,
+    61.628
+   ],
+   "tris": 6377
+  },
+  {
+   "name": "DecorNeonPorcelain",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    -38.0,
+    8.69,
+    0.75
+   ],
+   "size": [
+    72.0,
+    0.18,
+    0.5
+   ],
+   "tris": 60
+  },
+  {
+   "name": "DecorGlassSkyblue",
+   "material": "Glass",
+   "transparency": 0.74,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -38.0,
+    5.31,
+    1.165
+   ],
+   "size": [
+    72.6,
+    7.18,
+    2.47
+   ],
+   "tris": 132
+  },
+  {
+   "name": "DecorGlassSkyblue_",
+   "material": "Glass",
+   "transparency": 0.45,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -41.6,
+    4.7,
+    1.94
+   ],
+   "size": [
+    50.1,
+    5.4,
+    0.06
+   ],
+   "tris": 36
+  },
+  {
+   "name": "DecorGlassMint",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "mint"
+   ],
+   "offset": [
+    -38.0,
+    9.71,
+    0.1
+   ],
+   "size": [
+    72.6,
+    1.18,
+    0.1
+   ],
+   "tris": 24
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    -14.8,
+    17.315,
+    -0.06
+   ],
+   "size": [
+    22.4,
+    2.23,
+    0.02
+   ],
+   "tris": 40
+  },
+  {
+   "name": "DecorGlassSkyblue__",
+   "material": "Glass",
+   "transparency": 0.4,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -39.8,
+    18.7,
+    23.0
+   ],
+   "size": [
+    72.8,
+    5.4,
+    46.4
+   ],
+   "tris": 204
+  },
+  {
+   "name": "Decor_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard",
+    "rust"
+   ],
+   "offset": [
+    -56.0,
+    8.075,
+    -4.57
+   ],
+   "size": [
+    37.8,
+    0.75,
+    0.06
+   ],
+   "tris": 272
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    -38.0,
+    15.2,
+    -10.4
+   ],
+   "size": [
+    39.24,
+    1.8,
+    6.44
+   ],
+   "tris": 248
+  }
+ ],
+ "meta": {
+  "width": 76.0,
+  "colliders": [
+   [
+    "Wall",
+    8.55,
+    1.2,
+    4.45,
+    13.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    27.45,
+    1.2,
+    4.45,
+    13.7,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    18.0,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    18.0,
+    24.2,
+    13.05,
+    36.0,
+    43.6,
+    26.1,
+    0.0
+   ],
+   [
+    "Wall",
+    0.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    35.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    40.95,
+    1.2,
+    4.45,
+    6.5,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    56.0,
+    1.2,
+    4.45,
+    13.2,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Wall",
+    71.05,
+    1.2,
+    4.45,
+    6.5,
+    2.4,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    46.8,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Door",
+    65.2,
+    2.65,
+    4.45,
+    5.2,
+    0.7,
+    8.9,
+    0.0
+   ],
+   [
+    "Building",
+    56.0,
+    24.2,
+    13.05,
+    40.0,
+    43.6,
+    26.1,
+    0.0
+   ],
+   [
+    "Wall",
+    36.85,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Wall",
+    75.15,
+    1.2,
+    6.5,
+    1.7,
+    2.4,
+    13.0,
+    0.0
+   ],
+   [
+    "Lamp",
+    19.0,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    32.68,
+    -9.4,
+    4.226,
+    1.4,
+    1.4,
+    8.453,
+    81.61
+   ],
+   [
+    "Lamp",
+    57.0,
+    -10.4,
+    6.0,
+    1.6,
+    1.6,
+    12.0,
+    90.0
+   ],
+   [
+    "Tree",
+    70.68,
+    -9.4,
+    4.066,
+    1.4,
+    1.4,
+    8.131,
+    45.48
+   ],
+   [
+    "Meter",
+    6.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    20.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    34.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    48.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Meter",
+    62.0,
+    -11.2,
+    2.2,
+    0.6,
+    0.6,
+    4.4,
+    0.0
+   ],
+   [
+    "Box",
+    8.0,
+    -2.0,
+    1.7,
+    1.7,
+    1.4,
+    3.4,
+    0.0
+   ],
+   [
+    "Box",
+    10.2,
+    -2.0,
+    1.7,
+    1.7,
+    1.4,
+    3.4,
+    0.0
+   ],
+   [
+    "Mailbox",
+    30.0,
+    -9.2,
+    2.2,
+    2.2,
+    2.0,
+    4.4,
+    0.0
+   ],
+   [
+    "Bench",
+    56.0,
+    -2.0,
+    1.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Sign",
+    74.8,
+    -10.8,
+    5.5,
+    0.6,
+    0.6,
+    11.0,
+    0.0
+   ],
+   [
+    "Bin",
+    70.0,
+    -9.6,
+    1.4,
+    2.0,
+    2.0,
+    2.8,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "56881f2c5553ebfe"
+}

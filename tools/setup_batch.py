@@ -36,6 +36,15 @@ def sidecar(asset: str) -> dict:
     attrs = {k[:1].upper() + k[1:]: v for k, v in meta.items() if isinstance(v, (int, float, str, bool))}
     if attrs:
         d["attrs"] = attrs
+    # colliders and lights (townkit: Blender space about the pivot) go over in Roblox space
+    if meta.get("colliders"):
+        d["colliders"] = [{"n": c[0], "p": [-c[1], c[3], c[2]], "s": [c[4], c[6], c[5]], "yaw": c[7]} for c in meta["colliders"]]
+    if meta.get("lights"):
+        pal = json.load(open(os.path.join(REPO, "palette", "palette.json")))
+        hexes = {s["name"]: s["hex"] for s in pal["swatches"] if s["hex"]}
+        d["lights"] = [{"p": [-l["p"][0], l["p"][2], l["p"][1]], "kind": l.get("kind", "Point"), "hex": hexes[l.get("colour", "cream")],
+                        "brightness": l.get("brightness", 1.0), "range": l.get("range", 24.0), "face": l.get("face", "Bottom"),
+                        "angle": l.get("angle", 90.0), "shadows": bool(l.get("shadows", False))} for l in meta["lights"]]
     for unused in ("export", "meta", "format", "pivot"):     # AssetSetup never reads these
         d.pop(unused, None)
     return d

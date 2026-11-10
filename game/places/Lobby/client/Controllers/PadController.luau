@@ -4,8 +4,9 @@
 	difficulty ... and opens the loadout screen while you wait"). Lobby only; Prompt 21. The server
 	decides everything (PadService); this shows the Pads collection and sends what the rider wants.
 
-	* Signs: every pad model (a `PadId` attribute) with a `Sign` part gets a board over it
-	  (Lobby.Templates.PadSign): its kind, how many are on it, its difficulty (a band in the
+	* Signs: every pad model (a `PadId` attribute) with a `Sign` part gets its board lit
+	  (Lobby.Templates.PadSign, a SurfaceGui on the side the model's `SignFace` attribute names,
+	  Front if it names none): its kind, how many are on it, its difficulty (a band in the
 	  difficulty's colour) and its countdown, or what it is waiting for. A pad whose difficulty this
 	  player hasn't unlocked says how to unlock it instead.
 	* The panel (Lobby.Pad) shows while the Player's `Pad` attribute names a pad: the title, the
@@ -49,7 +50,7 @@ local input: any = nil
 local lobby: any = nil
 local gui: ScreenGui? = nil
 
-local signs: { [string]: BillboardGui } = {}
+local signs: { [string]: SurfaceGui } = {}
 local inviteRows: { [number]: number } = {} -- row index -> user id
 local inviteOpen = false
 local lastPad: string? = nil
@@ -114,7 +115,7 @@ local function timerText(pad: any, mine: boolean?): string
 	return ""
 end
 
-local function fillSign(id: string, sign: BillboardGui)
+local function fillSign(id: string, sign: SurfaceGui)
 	local pad = padOf(id)
 	local spec = Config.Find("Pads", id)
 	local board: any = sign:FindFirstChild("Board")
@@ -134,9 +135,18 @@ local function adoptSign(model: Instance)
 	if type(id) ~= "string" or signs[id] or not (anchor and anchor:IsA("BasePart")) or not gui then
 		return
 	end
-	local sign = (part("Templates.PadSign") :: BillboardGui):Clone()
+	local sign = (part("Templates.PadSign") :: SurfaceGui):Clone()
 	sign.Name = "PadSign_" .. id
 	sign.Adornee = anchor
+	local face = model:GetAttribute("SignFace") -- the pad model says which side of its board faces the hall
+	if type(face) == "string" then
+		local ok, side = pcall(function()
+			return (Enum.NormalId :: any)[face]
+		end)
+		if ok and side then
+			sign.Face = side
+		end
+	end
 	sign.Enabled = true
 	sign.Parent = player:WaitForChild("PlayerGui")
 	signs[id] = sign
