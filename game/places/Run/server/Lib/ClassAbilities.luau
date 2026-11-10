@@ -116,7 +116,7 @@ export type Context = {
 	SetBeacon: (until_: number?, by: string?) -> (),
 }
 
-type Turret = { Owner: Player, Model: Model, Until: number, NextShot: number, Shock: boolean }
+type Turret = { Owner: Player, Model: Model, Until: number, NextShot: number, Shock: boolean, Shots: number }
 type Drone = { Owner: Player, Part: BasePart, Align: AlignPosition, Turn: AlignOrientation, NextShot: number, NextPickup: number }
 type Strip = { Owner: Player, Part: BasePart, CFrame: CFrame, Size: Vector3, Until: number }
 type Well = { Owner: Player, Part: BasePart, At: Vector3, Until: number }
@@ -469,6 +469,7 @@ local function deployTurret(state: State, _origin: Vector3, _look: Vector3): (bo
 		Until = os.clock() + seconds,
 		NextShot = 0,
 		Shock = Modifiers.PlayerValue(player, "TurretShock") ~= nil,
+		Shots = 0,
 	}
 	fx(player, "Deploy", at, {})
 	return true, `TURRET DEPLOYED FOR {math.floor(seconds)} S`
@@ -490,10 +491,12 @@ local function tickTurrets()
 					turret.Model:PivotTo(CFrame.lookAt(pivot.Position, flat))
 				end
 				ctx.Combat:Damage(target.Id, tt.Damage, playerCombatId(player), "turret")
-				if turret.Shock and target.Model.Parent then
+				turret.Shots += 1
+				local shocks = turret.Shock and turret.Shots % math.max(tt.ShockEvery, 1) == 0
+				if shocks and target.Model.Parent then
 					stun(target.Model, tt.ShockSeconds)
 				end
-				Remotes.FireAllClients("AbilityFx", player.UserId, "Engineer", if turret.Shock then "ShockTracer" else "Tracer",
+				Remotes.FireAllClients("AbilityFx", player.UserId, "Engineer", if shocks then "ShockTracer" else "Tracer",
 					muzzle, { To = target.Root.Position })
 			else
 				turret.NextShot = os.clock() + 0.2
@@ -778,9 +781,9 @@ local function heartyMeal(state: State): (boolean, string?, string?, number?)
 	local root = rootOf(player)
 	fx(player, "Meal", if root then root.Position else nil, {})
 	for _, p in ctx.Session:ReadyPlayers() do
-		Remotes.FireClient("Alert", p, "Info",
-			`{string.upper(player.DisplayName)}'S HEARTY MEAL: +20% HEALTH AND STAMINA THIS CYCLE{if heals then ", ALL HEALED" else ""}`)
+		Remotes.FireClient("Alert", p, "Info", `HEARTY MEAL: +20% HEALTH AND STAMINA FOR A CYCLE{if heals then " · ALL HEALED" else ""}`)
 	end
+	log:Info("%s served a Hearty Meal%s", player.Name, if heals then " (heals)" else "")
 	task.delay(seconds, function()
 		local m = meal
 		if m and os.clock() >= m.Until - 0.05 then

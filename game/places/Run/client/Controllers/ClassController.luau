@@ -135,7 +135,7 @@ local function refreshAbility()
 	if type(uses) == "number" then
 		usesText = if type(max) == "number" then `{uses}/{max}` else tostring(uses)
 		if uses <= 0 and not waitText then
-			waitText = "0"
+			waitText = "" -- shaded: no uses left until the next Surge, cycle or era
 		end
 	end
 	local shots = player:GetAttribute("SteadyShots")

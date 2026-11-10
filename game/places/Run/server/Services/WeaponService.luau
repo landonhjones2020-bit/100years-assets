@@ -1451,6 +1451,13 @@ end
 function WeaponService:SetClass(player: Player, classId: string, level: number?)
 	local old = loadouts[player]
 	local state = newLoadout(player, classId, if old then old.Carried else nil, level)
+	if old then
+		-- the shot count carries on: the client only ever catches up to a higher one (playtest,
+		-- Prompt 20: a class change set it back to 1 and every later shot was refused)
+		state.Salt, state.NextShot = old.Salt, old.NextShot
+		player:SetAttribute("ShotSalt", state.Salt)
+		player:SetAttribute("ShotNext", state.NextShot)
+	end
 	local extra = math.floor(Modifiers.ClassValue(classId, "ExtraFragGrenades", level) or 0)
 	if extra > 0 then
 		WeaponService:GiveThrowable(player, "FragGrenade", extra)

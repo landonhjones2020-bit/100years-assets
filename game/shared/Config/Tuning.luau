@@ -213,7 +213,7 @@ local Schemas: { [string]: Check.Checker } = {
 		XPPerYear = N, TypicalRunYears = N, LevelMax = I, HoldSeconds = S, AimRange = N,
 		OwnCooldownClasses = Check.map(Check.ref("Classes"), Check.boolean(), 19),
 		SecondWindFraction = Fr,
-		Turret = shape({ Range = N, Damage = N, FireSeconds = S, ShockSeconds = S, PlaceDistance = N }),
+		Turret = shape({ Range = N, Damage = N, FireSeconds = S, ShockSeconds = S, ShockEvery = I, PlaceDistance = N }),
 		TouchHealRange = N, TouchHealPerSecond = N, TriageRadius = N, TriageHeal = N,
 		FoamRange = N, MealHealFraction = Fr,
 		TauntRadius = N, HoldDamageTaken = Fr, NearbyResidentRange = N,
@@ -576,7 +576,8 @@ return {
 			AimRange = 80,
 			OwnCooldownClasses = { MadScientist = true }, -- "Gadget Belt: 40 s each"
 			SecondWindFraction = 0.25, -- Section 14: heal 25%
-			Turret = { Range = 50, Damage = 9, FireSeconds = 0.3, ShockSeconds = 0.6, PlaceDistance = 4 },
+			-- level 3's shock: every ShockEvery-th shot stuns (every shot held a monster still for good: playtest)
+			Turret = { Range = 50, Damage = 9, FireSeconds = 0.3, ShockSeconds = 0.6, ShockEvery = 4, PlaceDistance = 4 },
 			TouchHealRange = 6, TouchHealPerSecond = 4, TriageRadius = 24, TriageHeal = 40, -- TriageHeal: Section 14
 			FoamRange = 40, -- Foam Burst: the room you stand in, else the nearest burning room this close
 			MealHealFraction = 1, -- the Cook's level 2: Hearty Meal heals everyone fully
