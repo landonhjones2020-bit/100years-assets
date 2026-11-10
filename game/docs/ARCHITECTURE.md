@@ -933,6 +933,48 @@ weighted draws with EarlyWeight in Era I, a card's face, tallies, a controller's
   `FoundHome(card, by)`. Dev: draft, draft.open, draft.take, draft.found, draft.reroll [paid],
   draft.cards, bounty [kills], vote.pick <n|id> [voter], pack.add Blueprint.
 
+## Classes (Run place)
+
+Bible Section 14 (classes, class levels) and Section 9 (Q is the class ability); Prompt 20.
+`Shared.Rules.Classes` (pure: an ability's cooldown, uses, options and duration; levels from
+experience), `Config.Classes` (kits, passives, abilities, level 2 and 3 as modifiers),
+`Tuning.Classes` (everything the bible doesn't give; provisional).
+
+* **Which class.** `Lib.RunRecord` is the record the Lobby writes to MemoryStore before the teleport
+  (hash map `RunRecords`, key = the reserved server's id; `{ Version, Party, Difficulty, Loadouts =
+  { [userId] = { Class, Trial } }, CreatedAt }`; Studio's key is "Studio"). When a session is ready
+  `ClassService` gives the player the record's class if their profile owns it or it is their free
+  trial (level 1, no experience), else the Survivor, and puts `Class`, `ClassLevel` and `ClassTrial`
+  on the Player; `WeaponService:SetClass` hands out the kit.
+* **Effects.** Every system reads a class effect with `Modifiers.PlayerValue` (a level's value
+  replaces the passive's). Bunker-wide effects go to their systems as the strongest holder's value
+  (`EconomyService:SetModifier`, `BuildService:SetModifier`, `ResidentService:SetModifier`,
+  `DisasterService:SetModifier`, `BunkerGrid:SetHPModifier`, RunState `BuildCost`).
+  `CombatService:AddDamageFilter` carries Hold the Line, the drone's Guard and residents' damage
+  near a Security, armed, or rallied; `WeaponService:AddHitModifier` and its `Hit` signal (player,
+  target, damage, how, point, the hit's own kind) carry creature damage, burning, boss staggers and
+  the Exterminator's Disturbance. `VoteService:SetTieBreaker` is the Warden.
+* **The ability.** `UseAbility(option, origin, look)` from `ClassController` (a tap of Q, LB or the
+  touch button; a hold picks the next option, `PickAbilityOption`). `ClassService` checks the run,
+  the player and readiness (seconds, cycles, or uses that return each Surge, cycle or era), then
+  `Lib.ClassAbilities.Use(state, option, origin, look)` does it through the owning services and
+  returns `(ok, text, effect, seconds)`: not ok costs nothing and the text says why. Devices that
+  stay in the world (turret, barricades, crate, napalm, traps, the beacon, the gravity well, the
+  drone) live in ClassAbilities and read their art's sockets (`Socket_<Name>` attributes).
+* **What the client reads**, on the Player: `AbilityReadyAt`, `AbilityReadyCycle`, `AbilityUses`,
+  `AbilityMax`, `AbilityOption`, `AbilityOptionReadyAt`, `AbilityEffect`, `AbilityActiveUntil`,
+  `SteadyShots`. RunState: `LevelStat` (the level 2 Warden's choice, `ChooseLevelStat`),
+  `BeaconUntil`, `BeaconBy`. Remotes: UseAbility, PickAbilityOption, TeleportToBeacon,
+  ChooseLevelStat, Grapple, AbilityFx, ArcZap.
+* **Class experience.** `ResultsService` pays it with the run's payout: `ClassService:RunXP(player,
+  years, paidYears)` is `Rules.Classes.RunXP` (XPPerYear a year; none for a trial); the level
+  follows the experience (`LevelFor`: 150 and 500) and `Refresh(player)` puts it in play.
+* **Held weapons.** `Config.Items.Hold` (TwoHanded, Hip, Heavy) picks the player's clips in
+  `CombatController` (RifleHold, RifleAim, RifleReload, HeavySwing1 and 2, Throw). Every long gun's
+  `Support` socket is 1 stud ahead of its `Grip`, so one pair of clips fits them all.
+* Dev: classes, class <Id> [level] [player], class.level, class.own, ability [option],
+  ability.ready, classxp <years>, resident.arm <id|all> [item|none], record <Class> [trial].
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -1071,6 +1113,7 @@ ClassShop, Account, Lobby).
 | Run | DeepService | service | BunkerGrid, CycleClock, RunDirector, SessionService, DigService, InventoryService, RescueService, MonsterService, CombatService, ResidentService, ResidentBrain, EconomyService, BuildService, ObjectiveService, BreachService, ProfileService, SurfaceService, DevService | caves from the A6 pieces, finds, guards and cave nests, the Lost Crews, radio logs, Glowshard chests, cryo pods and thawing, the Deep's light and falls |
 | Run | ExpeditionService | service | BunkerGrid, CycleClock, RunDirector, SessionService, EconomyService, ResidentService, ResidentBrain, RescueService, SurfaceService, DeepService, ReplicationService, DevService | resident expeditions (sending, cycles away, finds, harm, losses, coming home), distress calls and their markers, the Radio Room's recruits and crew calls |
 | Run | DraftService | service | CycleClock, RunDirector, SessionService, VoteService, BuildService, BunkerGrid, EconomyService, DisasterService, DigService, BreachService, ResidentService, ExpeditionService, WeaponService, SurfaceService, MonsterService, InventoryService, DevService | the blueprint draft (Prompt 19): drawing cards, applying the winner, found blueprints, rerolls, the Bounty Contract and the Overclock's overloads |
+| Run | ClassService | service | SessionService, RunDirector, CycleClock, ProfileService, CombatService, WeaponService, MonsterService, BossService, ResidentService, ResidentBrain, EconomyService, BuildService, BunkerGrid, DisasterService, DigService, DeepService, SurfaceService, InventoryService, RescueService, VoteService, BreachService, DevService | classes (Prompt 20): each player's class and level from the run record, abilities with cooldowns, uses and options (Lib.ClassAbilities does them), bunker-wide passives, the damage filter, class experience |
 | both | ReplicaController | controller | | the delta channel mirror (client) |
 | both | InputController | controller | | devices, the bible's action bindings, look and zoom input |
 | both | CameraController | controller | InputController, ReplicaController | the over-the-shoulder camera: shoulder, aim, zoom caps, wall fade, the mouse lock and reticle |
@@ -1079,9 +1122,10 @@ ClassShop, Account, Lobby).
 | both | MiniMapController | controller | ReplicaController, HUDController | the HUD's side-view mini-map and its pings (Run) |
 | both | CommandViewController | controller | InputController, CameraController, UIController, ReplicaController, HUDController | the Command View (Run): its camera, picking, detail panel, build menu, overlays, ghosts, pings |
 | both | VoteController | controller | ReplicaController, CommandViewController, InputController | the vote telegram (Run) and Y to vote, the blueprint draft's cards (Prompt 19), the Command View's vote and site ghosts, its Propose handlers |
-| both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run); skips `ServerAnimated` models (bosses) |
+| both | NPCAnimator | controller | | residents' and monsters' clips from their Rig and Activity attributes (Run); an attack plays over the rig's Idle when it has one; skips `ServerAnimated` models (bosses) |
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
+| Run | ClassController | controller | InputController, CameraController, HUDController | the class ability key (tap to use, hold for the next option), the class plate and ability gauge, the beacon chip, the grapple's zip, class-only prompts, ability effects |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
@@ -1213,3 +1257,12 @@ ClassShop, Account, Lobby).
   Prompt 13, 14, 16 and 17 questions: Surges bring cave-ins (floods and gas leaks with Prompt 23), a
   respawn keeps half its radiation, a third of Ash Raiders fight hand to hand, ore veins need a
   Drill or a Pickaxe. The game is 100 Years Below (Constants.GAME_NAME).
+* **Prompt 20 (2026-11-09 and 10)**: all 19 classes (Run). Rules.Classes, ClassService, Lib.ClassAbilities,
+  Lib.RunRecord (the Lobby's record, read here, written by Prompt 21), ClassController; class
+  effects wired into CombatService (the damage filter), WeaponService (kits per class, the shot
+  hook, hit modifiers, the hit's own kind), MonsterService (Taunt), BossService (Stun), BuildService,
+  EconomyService, ResidentService and ResidentBrain (rally, arming, touch heal, the level stat),
+  VoteService (the tie breaker) and ResultsService (class experience). The A2 art: 27 models, six
+  player clips (`Config.Items.Hold` picks them), 26 icons. The Ash Raider's detail pass:
+  `Monster_AshRaider_Melee` (rig AshRaiderMelee), the rifle's own joint, Idle clips, and NPCAnimator
+  playing an attack over the rig's Idle.

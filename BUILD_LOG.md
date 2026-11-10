@@ -34,11 +34,13 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 17: the Deep (Run) | ✅ done 2026-11-09 | Run playtests with real W, E holds and presses and shotgun clicks: walking into a cave through the opened back wall, the Deep's lighting and the player's light, a radio log and its crew hint, an ore vein mined, a cache and a Glowshard chest opened (the profile and the results), the Mines' crew freed and led out of its cave (Lost Crew done), the raider camp's guards waking and going back to sleep and the surface crew riding home (Lost Crew done), a cryo pod found, carried, delivered and thawed into a Rare resident, a fall's damage and the Spelunker's none, the Spelunker's eye, a cave nest destroyed into the pack, a monster's drop in a cave, a monster walking out of a cave; Lobby start check; `game/reports/P17_Deep.md`, `previews/Game/P17_*.jpg` |
 | Prompt 18: resident expeditions and distress calls (Run) | ✅ done 2026-11-09 | Run playtests with real E presses and holds, clicks and Enter: the Expeditions screen opened at the Blast Door guard's radio and a Radio Room, teams sent to the surface and the Deep, residents walking out and coming home to their jobs, a real dawn's cycle away, distress calls (forced and rolled) with the radio card, alert, flare, plate countdown and edge arrow, members reached and led home from the town and from a cave, the deadline on the real clock losing the pinned, losses and a Medkit's save, the Radio Room's recruits (rate, the Radio Operator, a Rare recruit) and a crew call, the Residents screen's AWAY tab, the run's stories; Lobby start check; `game/reports/P18_Expeditions.md`, `previews/Game/P18_*.jpg` |
 | Prompt 19: the blueprint draft (Run), with Landon's answers to the Prompt 13, 14, 16 and 17 questions | ✅ done 2026-11-09 | Run playtests with real clicks, E presses and Y: a draft after a real Surge, solo and team picks, a found card, the Mad Scientist's reroll, every usable card's effect, a blueprint hauled home; `game/reports/P19_BlueprintDraft.md`, `previews/Game/P19_*.jpg` |
+| Prompt 20: all 18 classes plus the Survivor (Run) | ✅ done 2026-11-10 | Run playtests with real Q taps and holds: every class's ability, refusals, options, class experience and levels saved; staggers, burning, barricades, the Warden's choices (Nov 9); two players, touch and a real controller still need a person; `game/reports/P20_Classes.md`, `previews/Game/P20_*.jpg` |
+| The Ash Raider's detail pass (Landon, Nov 9) | ✅ in Studio 2026-11-10, Landon: "looks good" | Both raiders rebuilt (about 3,700 of 4,000 triangles), the club raider's own model, the rifle's own joint, Idle clips; sizes and pivots measured, every clip seen in a Run playtest; `previews/Monsters/Monster_AshRaider_review.jpg`, `previews/Game/P20_raiders_*.jpg` |
 | Landon's answers to the Prompt 18 questions | ✅ built and in the bible 2026-11-09 | Run playtests with real clicks and Enter: a fast team home a cycle early at a real dawn with the full trip's finds, unheard calls losing the team with no Radio Room, the screen's warning gone live when a Radio Room started working, a heard call with one; 107 data tests in both places; addendum in `game/reports/P18_Expeditions.md`, `previews/Game/P18_FastTeam*.jpg`, `P18_UnheardCall.jpg`, `P18_NoRadioWarning.jpg`, `P18_HeardCall.jpg` |
 | A6 Mines and Flooded cave pieces | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured): 16 cave pieces, the cryo pod, the radio log recorder, two ore veins, the Glowshard chest and the raider camp; six of the Mines' pieces, the camp and four of the props walked, opened and fought round in playtests (the Mines' Drop and Cavern placed in playtests, not walked); the Flooded Caverns' pieces planned in the data tests, not yet walked; `previews/Caves/*.png`, `previews/Game/P17_*.jpg` |
 | A5 surface kit | ✅ in Studio 2026-11-09 | 22 models set up in Run (size and pivot measured; three rigs with Motor6Ds), the town built from them (`Lib.BrightwaterMap`), walked and fought in a playtest; the six clips wired in `Config.Animations`; `previews/Game/P16_A5_*.jpg` |
 | A4 Mines monsters and the Brood Mother | ✅ in Studio 2026-11-08, waiting for Landon's look | Detail pass after Landon's note; six models set up in Run (sizes, Motor6Ds, attributes), the monsters' new clips seen playing in the bunker, the Brood Mother captured from a resident's height; her clips play from Prompt 15; `previews/Game/A4_*.jpg` |
-| A2 weapons and tools | started 2026-11-08 | Pocket Pistol (v2, the grip rakes back) and Wrench in Studio and held in a Run playtest; the 11 player combat clips; the Extinguisher (v2, 0.8 scale) and the Welder held and used in a Run playtest (Prompt 13); the Drill held and digging (Prompt 14); the Pickaxe in Studio, not yet swung; the rest of the class kits to come |
+| A2 weapons and tools | ✅ in Studio 2026-11-09 | All 34 models set up in Run (size and pivot measured, sockets written): the first seven (Prompts 11 to 14) and the 27 of Prompt 20 (15 weapons, 4 throwables, 2 tools, 2 items, the lamp, barricade, turret and combat drone); 17 player clips (the 11 of Prompt 11 and 6 for two-handed weapons, heavy swings and throws); 32 item icons in one atlas; held, fired, swung and thrown in Run playtests (`previews/Game/P20_rifle_*.jpg`, `P20_fireaxe_swing.jpg`, `P20_*_art.jpg`) |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
 | A3, A7 to A11 | not started | |
@@ -70,7 +72,7 @@ Newest first. Every "verified" line says how it was checked.
 | Boss_BroodMother_EggSac | model 98283751054755 |
 | A5 buildings | Bldg_BunkerEntrance 136471216640058 (revision 2: the sign above the ring), Bldg_Checkpoint 99960013965832, Bldg_Diner 90817408363257, Bldg_GasStation 94452141526135, Bldg_Grocery 75037755291525, Bldg_HardwareStore 74921566661365, Bldg_Motel 109378714490689, Bldg_RadioTower 115435627788663, Bldg_RailYard 97376228075003, Bldg_Showroom 127482590185586, Bldg_WaterTower 76988598885900 |
 | A5 props | Prop_BurntTree 109228472383503, Prop_Cabinet 103949699846399, Prop_CarWreck_A 75526591155472, Prop_CarWreck_B 105808061470942, Prop_Debris 83482976617480, Prop_Locker 118990684990389, Prop_GeneratorParts 92467000818852, Prop_LootBag 72177580542444 |
-| A5 monsters (rigs) | Monster_AshJackal 121226055816229 (Walk 84332717499460, Attack 119698905968735), Monster_AshWraith 86571623522715 (Walk 101978077102714, Attack 95768211145275), Monster_AshRaider 89393935264400 (Walk 92909841950988, Attack 71659501687501) |
+| A5 monsters (rigs) | Monster_AshJackal 121226055816229 (Walk 84332717499460, Attack 119698905968735), Monster_AshWraith 86571623522715 (Walk 101978077102714, Attack 95768211145275), Monster_AshRaider 89393935264400 (revision 2, 2026-11-10: Idle 110323527317126, Walk 82004984617465, Attack 77468723648840), Monster_AshRaider_Melee 91768193324120 (Idle 113251330254817, Walk 77331770551937, Attack 115642778216092) |
 | UI atlas: surface | decal 134611993314949, image 83031843710701 (eight surface icons) |
 | UI atlases: draft (Prompt 19) | draft_a decal 134612236369505, image 112284329107420; draft_b decal 129470720840671, image 116460585771656 |
 | A6 cave pieces (Mines) | Entry 140717306990902, Tunnel 125627570956077, Junction 110936005050325, Pocket 126495354568524, Chamber 118404370996473, Cavern 104525632291205, Drop 76505454786857, CrewPocket 133491070274137 |
@@ -78,6 +80,59 @@ Newest first. Every "verified" line says how it was checked.
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-10 (morning, Chicago): Prompt 20, the classes; the A2 art; the Ash Raider's detail pass
+
+Game code builds `p20-cd29700` to `p20-92251ef` (final): code asset 95026446991297 revisions 81 to
+87, installed in Run and Lobby: StructureCheck 0 errors (Run 526 checks, Lobby 258), 113 data tests
+passed in each. Report: `game/reports/P20_Classes.md` (15 Bible Questions).
+
+**Classes** (Nov 9 and 10). `ClassService`, `Lib.ClassAbilities`, `Rules.Classes`, `Lib.RunRecord`
+(the Lobby's MemoryStore record, read here; Prompt 21 writes it), `ClassController`. Verified in Run
+playtests: every ability from a real Q tap on the final build (the server's answers read on the
+client), refusals that cost nothing, a real Q hold picking the next gadget, class experience
+(level 2 at 150, level 3 at 500) saved in the Studio profile; on Nov 9, Steady Shot's pierce and
+crits, the Marksman's zoom, boss staggers from crits and blasts, residents' +25% near a Security,
+burning that spreads once, an Engineer's barricade with a real E hold, the turret's shock.
+Bugs found by the playtests and fixed: a class change reset the shot count (every Marksman shot
+was refused), a crit on the Brood Mother's belly didn't stagger her, two burning monsters passed the
+fire back and forth for good, the level 3 turret stun-locked.
+
+**A2 art** (Nov 9). 27 models (ids in `manifest.csv`; uploads in `exports/_uploads/A2_P20.json`),
+six player clips: PlayerRifleHold 77956165790685, PlayerRifleAim 85830803451075, PlayerRifleReload
+106450019697392, PlayerHeavySwing1 92422746632862, PlayerHeavySwing2 137173117337988, PlayerThrow
+124031410096479. The items atlas: decal 103625184081360, image 83868618378929. Landon's note on the
+Fire Axe's clip sheet ("the head is not connected to the handle") was the sheet, not the model: the
+renderer drew the head before its move was applied (`_gunkit.shifted` and `R15_LongGuns.in_hand`
+now update the scene first).
+
+**The Ash Raider's detail pass** (Nov 10; Landon, Nov 9: "I need more detail for that character. Not
+up to our standards"; Nov 10: "looks good").
+* Both raiders share a body rebuilt at about 3,700 triangles (it was about 1,500). Models
+  re-uploaded as revision 2, the ids kept: `Monster_AshRaider` 89393935264400 (3,716 triangles, 14
+  MeshParts, 12 joints), `Monster_AshRaider_Melee` 91768193324120 (3,818, 13 MeshParts, 11 joints).
+* Clips (all new ids): AshRaider_Idle 110323527317126, AshRaider_Walk 82004984617465,
+  AshRaider_Attack 77468723648840, AshRaiderMelee_Idle 113251330254817, AshRaiderMelee_Walk
+  77331770551937, AshRaiderMelee_Attack 115642778216092. The A5 clips (92909841950988,
+  71659501687501) and the club raider's first two (133269043406621, 99672030663242) are unused.
+* Verified in Studio: sizes 3.211 x 6.753 x 5.840 and 3.415 x 6.753 x 4.370 (the sidecars say 3.422
+  wide for the second: inside the 0.01 tolerance), pivots at the feet, lenses and lantern Neon
+  orange; in a Run playtest the Idle, Walk and Attack of each seen playing (stood in the Medbay as
+  review clones, then spawned for real and fighting the player, the attack over the Idle).
+* Findings: (1) a weapon fixed to a forearm can't be shouldered and stay level, so the rifle got
+  its own joint and its two-handed poses are solved (both fists on the rifle); (2) the club raiders
+  had no clips at all before (their `Rig` is their monster type, AshRaiderMelee, which had none);
+  (3) a monster in reach stays in the Attack activity and dropped to its rest pose between two
+  attack clips: NPCAnimator now loops the rig's Idle under the attack when it has one; (4) every
+  rig's `Category` attribute said "__RigStep": fixed in `studio/AssetSetup.lua`, in the installed
+  module and on the ten rigs in Run; (5) two scratch renders at once share `previews/_scratch` and
+  delete each other's files: run them one at a time, or give each its own folder.
+* `execute_luau` answered "Target is not reachable" for the rig setup; it had run (both models were
+  in `ServerStorage.Assets.Monsters`, rigged). Check before running such a script twice.
+
+**Not verified:** two-player effects (the Medic's 1 s revive of a player, a pulled teammate, a
+teammate using the beacon, the Warden breaking a real tie), touch and a real controller, a real
+run's results paying class experience, the run record read from a real reserved server.
 
 ## 2026-11-09 (evening, Chicago): Prompt 19, the blueprint draft; Landon's 43 answers; the title
 

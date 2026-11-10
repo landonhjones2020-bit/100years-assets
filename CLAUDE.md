@@ -34,8 +34,22 @@ Start the install in the background and do other work while it downloads.
 Monsters and bosses: `generators/Monsters/_beast.py` (a `Beast` rig plus detail helpers: spike,
 claw, limb, blob, shell, eye, teeth, vein); bosses live in `generators/Bosses/` (the Brood
 Mother also renders `<Asset>_hero.png`, a resident's-eye view). `SF_NOSHEETS=1` skips the clip
-contact sheets while iterating. Re-exporting a model that is already in `manifest.csv` resets
+contact sheets while iterating. A monster uses most of its 4,000 triangles (Landon sent the Ash
+Raider back at 1,500: `Monster_AshRaider.py` is the bar for a human enemy). A held weapon that
+must be aimed gets its own bone, jointed at the grip (fixed to a forearm it points wherever the
+arm does); solve two-handed poses instead of guessing angles. Give a rig an Idle clip: an attack
+plays over it (NPCAnimator), so the monster keeps its stance between attacks. A model's `Rig`
+attribute in play is its monster type (`Config.Monsters` key), so clips are keyed by that.
+Never run two preview renders at once into the same `previews/<Category>` folder. Re-exporting a model that is already in `manifest.csv` resets
 its `status` to `exported`: put the real status back before committing.
+
+Weapons, tools and devices: `generators/Weapons/_gunkit.py` (the shared pieces, `exports(...)`,
+`t(...)` to tag a part). Every long gun's `Support` socket is `_gunkit.SUPPORT` (1 stud ahead of
+the `Grip`: R15 arms are short), so one pair of player clips fits them all; those clips are solved
+in `generators/Clips/R15_LongGuns.py` (`SF_ONLY=<Clip>`, `SF_GUN=<Module>` for a sheet with a
+weapon in hand). `Config.Items.Hold` (TwoHanded, Hip, Heavy) picks the clips. Item icons:
+`UI_Portraits.py` `WEAPON_ICONS`, packed at 128 px into the one `items` atlas (`tools/pack_ui.py`).
+A setup chunk over about 20 KB: `python3 tools/chunk_module.py <Name> <file.lua>`.
 
 ## 4. Importing into Studio (bible Section 19, steps 7 and 8)
 
