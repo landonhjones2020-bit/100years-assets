@@ -1,8 +1,10 @@
-# 100 Years Of Fallout: handoff for the next chat
+# 100 Years Below: handoff for the next chat
 
-Written 2026-11-09 (late night), after Landon's answers to the Prompt 18 questions. The game bible
-(live doc https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU, rev 137, and the two project parts,
-which match it) wins over everything here.
+Written 2026-11-10 (afternoon, Chicago), after Prompt 21. The game was called 100 Years Of Fallout
+until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
+https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
+here, with one warning: **the bible does not yet hold Landon's decisions of Nov 9 and 10** (see
+"The bible is behind").
 
 ## Start here
 
@@ -10,166 +12,173 @@ which match it) wins over everything here.
    runbook) and `BUILD_LOG.md` (status, every id, what is open).
 2. Start installing Blender in the background (`pip install --break-system-packages bpy==5.2.3`).
 3. Studio: `list_roblox_studios` shows "100 Years Of Fallout" (the Lobby) and "run" (the Run
-   place). Never touch the Night Shift studio.
-4. Next is Prompt 19, then 20, then 21: the prep for each is under "Next" below.
+   place). Never touch the Night Shift studio. Studio asked for a restart on Nov 10 (its Assistant
+   plugin changed version): ask Landon to restart it if tools misbehave.
+4. Work in this order unless Landon says otherwise: the open work below, then Prompt 22, 23, 24.
 
 ## Where things stand
 
-* Prompts 0 to 18 are built and tested in Studio, and Landon's eight Prompt 18 answers are built,
-  tested and in the bible. Code build `p18-9e6cd5a` (code asset 95026446991297, revision 76) is
-  installed in both places: StructureCheck 0 errors (Run 461 checks, Lobby 254), 107 data tests.
-* Prompt 18 (expeditions): from the EXPEDITIONS console on the Blast Door guard's radio or in a
-  Radio Room, 1 to 3 residents go to the surface or the Deep for 1 to 3 cycles with Food, Water
-  and Medkits. They walk out through the Blast Door and leave the map. Each dawn they find loot,
-  and someone may be hurt or lost, or the team radios a distress call. A team averaging Speed 8+
-  comes home a cycle early with the whole trip's finds. A call is heard only with a working Radio
-  Room (staffed and powered); unheard, the team is lost. A heard call puts a red flare and a plate
-  where they're pinned down (a town survivor spot, or a cave); players have until the next day's
-  end to reach them (hold HELP) and lead them home. The Radio Room brings recruits and Lost Crew
-  calls. Report: `game/reports/P18_Expeditions.md` (the answers in its addendum).
-* Prompt 17 (the Deep): a dug cave opening breaks into a cave put together behind the bunker from
-  the band's A6 pieces (`workspace.Deep`): ore veins, caches, radio logs, trapped miners, cryo
-  pods, Glowshard chests, guards and cave nests. The Lost Crews: one in a cave in the Mines and one
-  in the Flooded Caverns (their cells' rolls fixed each run), and one in a raider camp on the
-  surface. Cryo pods thaw in a Cryo Bay. Report: `game/reports/P17_Deep.md`.
-* Prompt 16 (the surface): the elevator behind the Blast Door goes up to Brightwater Ruins
-  (`workspace.Surface`, Y 200, built in Studio by `Lib.BrightwaterMap.Build()` from the A5 art):
-  containers, a 10-slot backpack, unloading, generator parts carried home, survivors freed and
-  walked home, radiation, a storm every Surge, Ash Jackals, Raiders (Era II) and Wraiths (storms).
-  Report: `game/reports/P16_Surface.md`.
-* Art in Studio: A1 bunker kit, A4 Mines monsters and the Brood Mother, A5 surface kit, A6 cave
-  pieces and props, and 7 of A2's weapons and tools (Pocket Pistol, Service Revolver, Wrench,
-  Extinguisher, Welder, Drill, Pickaxe). Class looks: 4 of 19 (Security, Quartermaster, Warden,
-  Mad Scientist).
+* **Prompts 0 to 21 are built and tested in Studio.** Code build `p21-a5fb2fb` (code asset
+  95026446991297, revision 90) is installed in both places: StructureCheck 0 errors (Lobby 352
+  checks, Run 534), 116 data tests.
+* **Prompt 21 (the Lobby).** The Lobby place is Brightwater's Main Street on a sunny morning with
+  the Steadfast showroom in the middle (`workspace.Lobby`, built by the script
+  `tools/lobby_world.py` prints). Inside: six elevator pads (Solo, Private, Public Normal, Public
+  Hard, Public Nightmare, Private), the Class Shop and Loadout booths, the bunker cutaway. The
+  Daily Class Shop (four classes a day, Glowshards, one free reroll, the 99 Robux reroll as a real
+  developer product, the wishlist, the free trial), the loadout, pads that reserve a Run server
+  and write the run's record and rejoin records to MemoryStore, the Run place's party gate, and
+  "Rejoin your run". Report: `game/reports/P21_Lobby.md` (13 Bible Questions, a live-test list).
+* **Prompt 20 (classes).** All 19 classes play: kits, passives, the ability on Q, levels 2 and 3,
+  class experience. Report: `game/reports/P20_Classes.md` (15 Bible Questions).
+* **Prompt 19 (the blueprint draft).** A three-card draft after every Surge, voted under the
+  clock; found blueprints join the next draft. Report: `game/reports/P19_BlueprintDraft.md` (7
+  Bible Questions).
+* **Art in Studio.** Run place: A1 bunker kit, A2 (all 34 weapons, tools and devices), A4 Mines
+  monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
+  detail pass. Lobby place: A9's lobby half, 28 models (`ServerStorage.Assets.Lobby` and `.Town`).
+  Class looks: 4 of 19 (Security, Quartermaster, Warden, Mad Scientist).
+* **The art kit for towns.** `generators/Town/townkit.py`, `buildings.py` and `props.py` build
+  1950s Main Street buildings from parameters, as merged decoration with collider boxes and
+  lights in the sidecar. STYLE.md ("Buildings and streets") has the rules. This is the kit for the
+  Run place's town too.
 
-## Landon's latest decisions (all in the bible)
+## Open work, in order
 
-* Prompt 18 (Section 12): supplies are Food and Water for every member for every cycle plus up to
-  3 Medkits; a team averaging Speed 8+ comes home a cycle early (never under 1) with the whole
-  trip's finds; a distress call needs a working Radio Room, or the team and its finds are lost;
-  the deadline is the end of the day of the cycle after the call; players hold Help and lead them
-  home; Deep calls come from an opened cave, else the rock face; a lost resident is gone at once,
-  with no revive; at most one recruit a trip; the Radio Room's recruits (15% Rare) and its Lost
-  Crew call every 2 cycles stay.
-* Earlier: a Reactor Core at 0 HP starts a 60-second meltdown; every dug cell touching rock is a
-  breach point, on any floor; throwables are crafted, found, and bought before a run with
-  Glowshards.
+1. **The 15 class looks** (Prompt 21's last piece): Survivor, Engineer, Medic, Firefighter, Cook,
+   Scout, Radio Operator, Hazmat Tech, Exterminator, Marksman, Driller, Scavenger, Demolitionist,
+   Spelunker, Tinkerer. `generators/Residents/outfits.py` (an outfit, a pose, held props, framing
+   per class; the rarer the class the further the look goes: bible Section 19) and
+   `generators/UI/UI_Portraits.py` (`--check <Class>` for a review sheet). Then `tools/pack_ui.py`,
+   upload the changed atlases as Decals, `pack_ui.py --luau`, rebuild the code. `Lib.ClassArt`
+   shows `Portrait_<Class>` as soon as the kit has it; no other code changes.
+2. **The bible is behind.** Not yet in the live doc or the project parts:
+   * the title, 100 Years Below (Section 3 still calls it the fallback);
+   * Landon's 30 answers to the Prompt 13, 14, 16 and 17 questions (tables in those reports'
+     addenda; four changed the game: Surges also bring cave-ins, and floods and gas leaks from Era
+     II; a respawn keeps half its radiation; a third of Ash Raiders fight hand to hand; ore veins
+     need a Drill or a Pickaxe);
+   * RescueService in Section 23's list, and the nests' split between DigService and DeepService;
+   * his Prompt 19 to 21 answers: the draft's cards show under the year clock; a found blueprint
+     joins the next draft; the 99 Robux reroll exists now; the surface town is about 1,400 by
+     1,100 studs with about 25 places to enter; only Main Street is walkable in the lobby.
+   Edit the live doc first, then rewrite both project parts from it.
+3. **Brightwater Ruins as a large, real town** (Landon, Nov 9: "The town is a fine place holder
+   right now but needs to be much more detailed. I want it to feel like a large town that was
+   actually real"; "make the town parts in your own blender environment it needs to actually look
+   good"). His numbers: about 1,400 by 1,100 studs, about 120 buildings, about 25 to enter. The
+   lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
+   (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
+   survivors, the raider camp, the checkpoint and the storms all hang off that map).
+4. **Prompts 22, 23 and 24** (prep below).
 
-## Next: Prompts 19, 20 and 21
+## Landon's decisions since the last handoff
+
+* Nov 9: 43 answers (see "The bible is behind"), and the title: **100 Years Below**, on his
+  lawyer's advice. `Constants.GAME_NAME` and the repo's docs carry it.
+* Nov 9: the Fire Axe's clip sheet looked broken (it was the sheet's renderer, fixed); the Ash
+  Raider needed more detail ("Not up to our standards"). Nov 10, after the detail pass: "looks
+  good". The raider at about 3,700 of 4,000 triangles is the bar for a human enemy.
+* Nov 10: he left for classes with "finish up prompt 20 and 21", then "IF you finish before I
+  return I want you to create the recap and handoff and then begin on the next 3 prompts".
+* His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
+  detailed, bosses scary; art made in Blender here and it has to actually look good.
+
+## Next: Prompts 22, 23 and 24
 
 Standing rules (bible Section 24): one system per prompt, the bible wins, never invent gameplay
 (suggest it in the Design Notes), content is data, a real playtest for timing, permissions and
 saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 
-### Prompt 19: the blueprint draft (Run)
+### Prompt 22: the intro cutscene (Run)
 
-* Bible: Section 8 (votes, Blueprint draft), the Appendix's "Blueprint card pool" (part 2),
-  Section 6 (rooms "Unlocked by: Blueprint draft"), Section 14 (the Mad Scientist's free reroll per
-  era at level 3), Section 17 (the paid Blueprint Reroll, 49 Robux: the shop is Prompt 28).
-* Already in the code:
-  * `Config.DraftCards`: 9 room cards, 7 bunker perks, 4 resident boons, 4 player boons, 5 risk
-    deals, each with its modifiers and a weight (room cards weigh more in Era I: `EarlyWeight`).
-  * `Config.Votes.Draft` (20 s, MostVotes) and `Rules.Votes.Winner` (ties picked at random).
-    `VoteService` runs yes/no votes only, and the vote banner is yes/no: the draft needs three
-    options.
-  * `CycleClock.SurgeEnded` (the draft opens after every Surge); `BuildService:Unlock(roomType)`
-    and the `Unlocked` collection (dev `unlock <roomType>`); `ExpeditionService:Recruit(tier,
-    how)` for Radio Booster and Veteran Recruit; DisasterService's overload for Overclock.
-  * Modifier keys Prompt 19 implements (13): MedkitsPerPlayer, WeaponRarityUp, BlastDoorLevel,
-    ReactorOverloadChance, FreeDraftRerollsPerEra, NextTripLoot, NextStormEarlySeconds,
-    RecruitsNow, RareRecruitNow, BountyKills, BountyScrap, ResidentLevels, MoraleNow.
-  * Keys of earlier systems, with a way in for a card: `BunkerGrid:SetHPModifier` (RoomHP),
-    `DisasterService:SetModifier` (FireSpread, BlackoutDuration), `EconomyService:SetModifier`
-    (RoomOutput, with a room), `DigService:SetModifier` (DigSpeed, DigDisturbance). No code reads
-    DarkSpawnBonus (Deep Lamps: `BreachService`'s `DarkRoomWeight`) or StaminaMult (Field Rations:
-    stamina is in `WeaponService` and `Rules.Combat`) yet. FloodDrainSpeed and GasStrength (Prompt
-    23), AmmoCraftCost and the trader's keys (Prompt 30) stay data until their systems exist.
-  * Blueprint finds are skipped until this prompt: the `SKIP` sets in `SurfaceService`,
-    `DeepService`, `DigService`, `InventoryService` and `ExpeditionService`.
-* For the Design Notes, not to invent: what a blueprint found in loot or on an expedition does
-  (the bible lists blueprints as finds and the trader sells blueprint cards, but never says);
-  the draft's screen (Section 18 lists no draft screen and the banner "never blocks the
-  screen").
-* Art: none needed. Room cards can show the room's graybox until A7 (remaining rooms); card
-  frames per rarity are in the UI kit.
-* Testing: real Surge ends on the clock, a vote with a pretend voter (Prompt 8's way), a solo
-  pick, every card's effect seen working.
+* Bible: Section 4 (the six shots over 30 seconds, the rules, how it is built), Section 19 (the
+  set is modelled here), Section 23 (the cutscene pre-streams the bunker).
+* The shots: 0 to 5 s sunny Main Street, sirens, a radio bulletin scrolling; 5 to 10 s the party's
+  avatars sprint up the hillside path into the Steadfast blast door with six residents; 10 to 15 s
+  a bomb crosses the sky, the door rolls shut; 15 to 21 s white flash, a shockwave flattens the
+  town, a mushroom cloud; 21 to 27 s the camera plunges through the rock past the bunker's rooms to
+  something glowing that opens its eyes; 27 to 30 s the title card and "Survive. Dig. Don't wake
+  it.", then the camera settles into the Command View and zooms down to your character.
+* Rules: an account's first run plays it in full; after that each player can skip after 2 s;
+  skipping is personal and the run clock starts at the 30 s mark for everyone; letterbox bars, the
+  HUD hidden, a small Skip button bottom right; text and sound only (sound is Prompt 32).
+* Already in the code: `RunDirector`'s Intro phase (`IntroEndsAt`, 30 s; Studio's `SkipIntro`
+  DevTools attribute and dev `run.skipintro`), `Tuning.Clock.IntroSeconds` and
+  `IntroSkipAfterSeconds`, the profile's `FirstRunDone` (ResultsService sets it),
+  `CameraController:Suspend(reason)` and `Resume` for a view that takes the camera, the Command
+  View's camera to hand over to.
+* To build: a client `CutsceneController` that plays a camera path from a Luau data module
+  (keyframes of time, position, rotation, exported from Blender and committed), rebuilds each
+  party member's avatar from their avatar description and runs them along a path, shows the
+  bulletin, the bars, the title card and Skip, and hands the camera to the Command View at 30 s.
+* Art (A9's other half): the set. Main Street before the bomb is the lobby's blocks
+  (`Lobby_Block*`, already made; the Run place needs them inserted and set up). New: the hillside
+  path and the blast door from outside, the bomb, the mushroom cloud, the shockwave ring, the rock
+  layers, the glimpse of the Source, and Digby the Gopher (the mascot who waves a shovel: the
+  lobby's greeter and Prompt 31's tips). The flash, blast and cloud are particles, beams and
+  tweened meshes.
+* For the Design Notes: where the set stands in the Run place (it must not be reachable in play),
+  what the six residents are (the founders), what the radio bulletin says.
 
-### Prompt 20: all 18 classes plus the Survivor (Run)
+### Prompt 23: Flooded Caverns monsters, floods and gas, The Deluge (Run)
 
-* Bible: Section 14 (the class table, class levels; talents are Prompt 27), Section 9 (controls:
-  Q is the class ability), Section 19 (class outfits are optional cosmetics), the Appendix's items.
-* Already in the code:
-  * `Config.Classes` (19 rows: Kit, Passive, Ability with cooldown or uses per Surge, cycle or
-    era, Level2, Level3 as modifiers) and `Modifiers.ClassValue(class, key, level)` with the
-    player's `Class` and `ClassLevel` attributes. Passives already honoured by earlier prompts:
-    the Driller's digging, the Scout's surface speed and siren, the Spelunker's light and falls,
-    the Radio Operator's recruits and lead, and others: grep `ClassValue`.
-  * `WeaponService` hands out the kit (dev `class <Id>` from the client's DevInvoke). The HUD's
-    class plate and ability gauge show the class's ability name; no ability code yet, and Q isn't
-    wired.
-  * Modifier keys Prompt 20 implements (25): TouchHeal, NearbyResidentDamage, ArmedResidentDamage,
-    WeakPointMultiplier, AimZoom, CritsStaggerBosses, BurnSpreadsBetweenMonsters, FuelUse,
-    ExplosiveDamage, ExplosiveRadius, ExtraFragGrenades, ExplosionsStunBosses, ArcChainTargets,
-    DroneGuns, DroneRevivesPerSurge, TurretDuration, TurretShock, BarricadeCost, TriagePulseClears,
-    InstantRally, KillsLowerDisturbance, MealsHeal, RubbleClearInstant, SupplyCallsPerEra,
-    ChoosesLevelStat.
-  * The profile's `Classes[id] = { Level, XP }` (levels 1 to 3) and `Tuning.ClassShop.ClassLevelRuns`
-    (3 and 10 runs).
-* Which class a player brings: Prompt 21 writes the run's loadout record (MemoryStore); until
-  then the class comes from the dev command. Build ClassService to read the record so Prompt 21
-  only has to write it.
-* Art (A2, the rest of the class kits): 26 models named in `Config.Items` (`Asset`) aren't made
-  yet: Weapon_LeadPipe, FireAxe, Sledgehammer, ShockBaton, DefibPaddles, AntennaWhip, HazardHook,
-  HuntingKnife, PowerWrench, PumpShotgun, LeverRifle, RivetSMG, Flamethrower, GrenadeLauncher,
-  ArcRifle; Throwable_FragGrenade, Flare, FoamGrenade, ShockMine; Tool_GeigerCounter, Tool_Grapple;
-  Item_Medkit, Item_ClearRadPills; Prop_Lamp, Prop_Barricade, Prop_Turret. Also the Tinkerer's
-  combat drone (no Config asset yet), their icons, and player clips for the new weapon types
-  (two-handed guns, the flamethrower, the grenade launcher, heavy melee).
-* Testing: every ability with real Q presses, cooldowns and uses, class XP and levels saved in
-  the Studio profile store, team effects with a pretend second player.
+* Bible: Section 10 (the Flood and Gas leak rows, The Deluge's row), Section 5 (Era II), the
+  Appendix's monster table, Section 11 (hazard pockets when digging).
+* Already in the code: `Config.Monsters` rows for Murkling (swarmer, pours out of water), Bloat
+  Toad (bursts on death or contact and floods the room), Lurker (hides in water or dark rooms and
+  grabs residents) and Tide Crab (armoured front, weak point on its back), with stats, traits and
+  `Asset` names; `Config.Disasters.Flood` and `GasLeak` (Surge weights already set: Landon wants
+  Surges to bring them from Era II; `Rules.Disasters.SurgePick` takes them once DisasterService can
+  start them); `Config.Bosses.Deluge` (Year 50, 12,000 health, 3 phases, Murkling minions);
+  `Lib.Hazards` (what disasters do that pathing must see); hazard pockets found by digging are
+  empty until this prompt (Landon); class effects waiting on it: Foam Burst on floods, the Hazmat
+  Tech's gas immunity and Decon Field on gas (one call each in `Lib.ClassAbilities`); the draft's
+  FloodDrainSpeed and GasStrength keys.
+* To build: the four monsters' behaviours (MonsterService), floods (water rising in a room,
+  pouring down the Shaft, the burst pipe to patch, draining) and gas leaks (a room fills, the vent
+  to seal or airing out) in DisasterService, The Deluge in BossService (it floods every room it
+  passes; its head is the weak point when it surfaces; rooms behind it need draining).
+* Art (A8): Monster_Murkling, Monster_BloatToad, Monster_Lurker, Monster_TideCrab and Boss_Deluge
+  with their clips (`generators/Monsters/_beast.py`; a monster uses most of its 4,000 triangles, a
+  boss up to 15,000 and has to be scary), water and gas as effects, the burst pipe and vent seal.
 
-### Prompt 21: the Lobby (Lobby place)
+### Prompt 24: Crystal Hollows monsters, radiation leaks, outbreaks, the Crystal Colossus (Run)
 
-* Bible: Section 21 (hub, elevator pads, teleport, rejoin, after a run), Section 14 (Daily Class
-  Shop, wishlist, free trial), Section 18 (the Class Shop and Loadout screens in The Frame),
-  Section 23 (places, MemoryStore, saved data), Section 17 (the 99 Robux reroll, VIP's second
-  free reroll).
-* Already in the code: the Lobby runs only the shared services (DevService, SessionService,
-  ReplicationService, ProfileService): there is no `game/places/Lobby/` yet. The profile has
-  `Glowshards`, `Classes`, `ClassShop = { Day, Slots, RerollsUsed, Wishlist }`, `FirstRunDone`.
-  `Tuning.ClassShop` (4 slots, reset 00:00 UTC, rerolls, wishlist 3 days, one free trial a day)
-  and `Tuning.Lobby` (20 s countdown, party of 6). `ResultsService` already sends Play Again and
-  Return to Lobby teleports (Prompt 15). `studio/ui/A0_ClassShop.lua` is the A0 sample of the
-  Class Shop screen.
-* To build: `game/places/Lobby/` (pads: public with the countdown, private with invites, solo;
-  difficulty per pad; the loadout screen while waiting, class only until Prompt 27), the run
-  record in MemoryStore that the Run place reads, the rejoin record and "Rejoin your run", the
-  Class Shop (daily slots, rerolls, wishlist, free trial, buying with Glowshards).
-* Art (A9, the lobby part): Main Street in sunshine (the A5 buildings before the bomb), the
-  Steadfast showroom with class booths and the elevator pads, signs (bible budget: about 25
-  models). The cutscene set and Digby are A9's other half (Prompt 22). Class cards need the 15
-  class looks still to make: Survivor, Engineer, Medic, Firefighter, Cook, Scout, Radio Operator,
-  Hazmat Tech, Exterminator, Marksman, Driller, Scavenger, Demolitionist, Spelunker, Tinkerer
-  (`generators/Residents/outfits.py`, `generators/UI/UI_Portraits.py`; rarity rule in Section 19).
-* Testing limits: Studio can't reserve servers or teleport (seen in Prompt 15). Pads, countdowns,
-  the screens, the MemoryStore records and the Class Shop can be tested in Studio; the teleport,
-  the Run reading a real record and rejoining need the published game, played from the Roblox
-  app: plan that live test with Landon.
-* Open: the 99 Robux reroll needs a developer product (the shop is Prompt 28, product ids are
-  Prompt 35): ask Landon whether Prompt 21 makes it or leaves the Robux reroll for later.
+* Bible: Section 10 (Radiation leak and Outbreak rows, the Colossus's row), Section 5 (Era III),
+  the Appendix's monsters.
+* Already in the code: `Config.Monsters` rows for Shardling (shatters into stinging shards), Prism
+  Stalker (invisible until lit by a flare or lamp), Geode Golem (very slow, huge health, shrugs off
+  small guns) and Resonator (hums to heal and speed up nearby monsters); `Config.Disasters`
+  RadiationLeak and Outbreak; `Config.Bosses.CrystalColossus` (Year 75: huge, slow, armoured;
+  flares show its weak points; its shards stun). The Crystal Hollows' cave pieces are A10 (not
+  made); the Deep builds caves from a band's pieces.
+* Art (A10): the four monsters, the Colossus, Crystal Hollows cave pieces.
 
 ## Waiting on Landon
 
-* His answers to the Bible Questions still open: Prompt 17 (8), Prompt 16 (8), Prompt 14 (8) and
-  Prompt 13 (6), in `game/reports/`.
+* **The live test of Prompt 21** in the published game (the list is in `game/reports/P21_Lobby.md`):
+  a pad to a real Run server, rejoin, Play Again, Return to Lobby, a friend on a private pad, one
+  real 99 Robux reroll.
+* His answers to the Bible Questions of Prompt 19 (7), Prompt 20 (15) and Prompt 21 (13).
+* His look at the lobby (`previews/Game/P21_*.jpg`, or the Lobby place itself) and at the town's
+  names (Prompt 21, question 11).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
-* His look at the town, the surface monsters and the caves (`previews/Game/P16_*.jpg`,
-  `P17_*.jpg`) and the A4 monsters.
-* For Prompt 21: a live test of lobby, run and back in the published game.
 
 ## Testing tips
 
+* **The lobby.** Server dev commands (`ServerScriptService.DevTools.Invoke:Invoke(cmd)`): `shop`,
+  `shop.new`, `shop.day <n>`, `shop.rerolls <n>`, `shop.trial <used|unused>`, `pads`, `pad.go <id>`,
+  `pad.fill <id> <n>`, `pad.unlock <Hard|Nightmare|none>`, `products`, `purchase.test <Product>`,
+  `rejoin`, `rejoin.fake [Difficulty]`, `rejoin.clear`. Keys: K Class Shop, L Loadout, Backspace
+  closes The Frame; on a pad H difficulty, G invite, Y start; E at a booth. Pads are at X 50, 30,
+  10, -10, -30, -50 and Z 39.5 in the showroom; a character moved onto one (`root.CFrame`) rides
+  it. To test a wall, `Humanoid:MoveTo` past it and read where the character stopped.
+* **Captures.** In a playtest bind a `ShotCam` render step on the client that sets the camera
+  every frame, then `screen_capture`. Edit-mode captures came back at 270 by 151 on Nov 10; play
+  mode gives about 554 by 311. Captures leave out AlwaysOnTop billboards (prompts) and CoreGui.
+* **Lobby and Run records in Studio.** A pad that leaves in a Lobby playtest writes the run's
+  record under the Studio key; a Run playtest started within 10 minutes reads it (`party`, `run`).
 * Expeditions: `exp` (trips out, their logs, whether a Radio Room hears calls), `exp.send
   <surface|deep> <cycles> <medkits> <id...>` (no console needed), `exp.cycle
   [Quiet|Hurt|Lost|Distress]` (a dawn now, the event forced), `exp.call [id]`, `exp.home [id]`,
@@ -178,6 +187,10 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   Reactor Core for power), `resident.assign <id> R9`. The screen: `ui.open Expeditions` from the
   client's DevInvoke, or E at a console; SEND from a dev-opened screen is refused away from a
   console, so move the character there first (`PivotTo` on the server).
+* Classes: `classes`, `class <Id> [level] [player]`, `class.level`, `class.own`, `ability
+  [option]`, `ability.ready`, `classxp <years>`, `resident.arm <id|all> [item|none]`, `record
+  <Class> [trial]`. The draft: `draft`, `draft.open`, `draft.take`, `draft.found`, `draft.reroll`,
+  `draft.cards`, `bounty`.
 * The clock: `clock.next` refuses while paused (`clock.resume` first). Pause and `monsters.clear`
   after each step: `clock.next` through a Surge leaves its monsters loose in the bunker, and even
   at x10 the threat director's single day breaches still come.
@@ -206,12 +219,13 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * `user_mouse_input` x and y are measured below the top bar (the GUI inset): a button's
   `AbsolutePosition` plus half its size, with no inset added. Buttons with unique paths can use
   `instance_path` (also for scrolling a ScrollingFrame).
-* Studio's screen captures leave out billboards (prompts, plates), so check those by using them.
 * The simulated mouse doesn't move `GetMouseLocation`: pick Command View cells with the
   `cv.select <floor> <column>` dev command.
 * `execute_luau` requires its own copy of a module, so call services through dev commands
   (`DevTools.Invoke`), not `require`.
 * Two playtests at once (Run and Lobby) share one profile lock: the second is kicked.
+* A Luau chunk near 20 KB goes up as a ModuleScript model instead of a paste
+  (`tools/chunk_module.py`, then `require(InsertService:LoadAsset(id)...)()`).
 * The project's bible parts are markdown copies of the live doc: after editing the live doc,
   rewrite the part that changed (`project_read` it first, then `project_write`).
 
@@ -226,7 +240,9 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * A melee weapon held with an empty hotbar hangs into the floor.
 * The A0 sample scripts print a line on every monster swing; remove them once Landon approves
   the monsters.
-* The HUD's class plate still says SURVIVOR after the `class` dev command.
-* The Pump Shotgun and Frag Grenade show placeholder icons in the hotbar (no art yet: A2).
 * A monster after a target on another floor can stand in a room or under the Shaft stair (its
   stuck check restarts with every re-plan); seen in the Prompt 17 playtest.
+* The lobby: the Loadout a pad opens stays open if the server moves the player off the pad (dev
+  only; a player closes it with Backspace before walking off).
+* The lobby is about 330,000 triangles, over the bible's 150,000 for phones: measure on a phone
+  (Prompt 34) before cutting anything.
