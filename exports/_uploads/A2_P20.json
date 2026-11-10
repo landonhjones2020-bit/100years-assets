@@ -83,5 +83,26 @@
    "imageId": "83868618378929",
    "sha8": "8a696436"
   }
+ },
+ "raider": {
+  "note": "2026-11-10: the detail pass. Both models re-uploaded as revision 2 (same ids); every clip is a new id (the rifle raider's rig gained a Rifle joint; the club raider got a ready stance). The first uploads of the club raider's clips (133269043406621 Walk, 99672030663242 Attack) and the rifle raider's A5 clips (92909841950988 Walk, 71659501687501 Attack) are no longer used.",
+  "Monster_AshRaider": "89393935264400",
+  "Monster_AshRaider_Melee": "91768193324120",
+  "AshRaider_Idle": "110323527317126",
+  "AshRaider_Walk": "82004984617465",
+  "AshRaider_Attack": "77468723648840",
+  "AshRaiderMelee_Idle": "113251330254817",
+  "AshRaiderMelee_Walk": "77331770551937",
+  "AshRaiderMelee_Attack": "115642778216092",
+  "ops": {
+   "Monster_AshRaider": "d07c76f3-d40e-4e90-8c38-9fb777cd0038",
+   "Monster_AshRaider_Melee": "2c433668-fd61-4f16-91d7-4991bc01984f",
+   "AshRaider_Idle": "cbe62fbd-fa8a-4927-901f-b1ed8658d96b",
+   "AshRaider_Walk": "925b6e9b-68de-46fa-8dd0-d288475e4e3c",
+   "AshRaider_Attack": "ddc2b2f6-a629-4fc1-bba6-370f3dde12bb",
+   "AshRaiderMelee_Idle": "598b2b50-8312-4d30-84e8-a7fd3eec465e",
+   "AshRaiderMelee_Walk": "d60bf976-57b5-449b-9b2b-adc031304654",
+   "AshRaiderMelee_Attack": "f53654b5-0901-43f4-8cf3-d647b8ce5d35"
+  }
  }
 }

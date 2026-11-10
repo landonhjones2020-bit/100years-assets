@@ -290,7 +290,8 @@ function AssetSetup.rig(model: Model, doc: any, opts: { assetId: string, swatchH
 		end
 	end
 
-	-- 6. ids
+	-- 6. ids (and the real category: the shared step wrote its holding folder's name)
+	model:SetAttribute("Category", category)
 	model:SetAttribute("RigType", rig.rigType)
 	model:SetAttribute("HipHeight", rig.hipHeight)
 	for clip, id in opts.clips or {} do

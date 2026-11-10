@@ -1620,6 +1620,14 @@ test("Animations: every Mines monster and the Brood Mother have their clips (A4)
 	for _, activity in { "Idle", "Walk", "Attack", "Roar", "LayEggs", "Stagger", "Death" } do
 		expect(have["BroodMother:" .. activity], `the Brood Mother's {activity} clip`)
 	end
+	-- both Ash Raiders: a model's Rig attribute is its monster type, so the clips are keyed by it
+	for _, monsterType in { "AshRaider", "AshRaiderMelee" } do
+		for _, activity in { "Idle", "Walk", "Attack" } do
+			expect(have[monsterType .. ":" .. activity], `{monsterType}: an {activity} clip`)
+		end
+	end
+	expectEqual(Config.Get("Monsters", "AshRaider").Asset, "Monster_AshRaider", "the rifle raider's model")
+	expectEqual(Config.Get("Monsters", "AshRaiderMelee").Asset, "Monster_AshRaider_Melee", "the club raider has its own model (Prompt 20)")
 end)
 
 -- Disasters and repairs (Prompt 13) ---------------------------------------------------------

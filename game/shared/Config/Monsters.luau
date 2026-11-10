@@ -177,7 +177,8 @@ return {
 			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider",
 		},
 		-- Landon (Prompt 16): "melee or rifles": about a third of raiders charge in with a club or
-		-- pipe (Tuning.Surface.RaiderMeleeShare). Same raider, close in, no rifle.
+		-- pipe (Tuning.Surface.RaiderMeleeShare). Same raider, close in, no rifle; its own model and
+		-- clips since Prompt 20 (Monster_AshRaider_Melee: the raider with a spiked scrap club).
 		AshRaiderMelee = {
 			Name = "Ash Raider",
 			Where = { "Surface" },
@@ -187,7 +188,7 @@ return {
 			Targets = { "BlastDoor", "Residents", "Players", "Machines" },
 			ThreatCost = 5, Group = { Min = 2, Max = 5 },
 			Traits = { "Fades" },
-			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider",
+			Drops = "Raider", Era = 2, Asset = "Monster_AshRaider_Melee",
 		},
 		AshJackal = {
 			Name = "Ash Jackal",

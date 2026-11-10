@@ -14,7 +14,7 @@ local F = require(script.Parent._Fields)
 
 return {
 	Schema = Check.shape({
-		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider" }), -- a model's Rig attribute
+		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider", "AshRaiderMelee" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
@@ -130,19 +130,49 @@ return {
 			Looped = false,
 			Text = "An Ash Wraith rears and rakes with both hands (A5, AshWraith_Attack; Hit 0.55 s)",
 		},
+		-- The Ash Raiders (redone 2026-11-10 with the model's detail pass: the rifle has its own joint,
+		-- so it is carried in both hands and shouldered level; both raiders got an Idle)
+		AshRaiderIdle = {
+			Rig = "AshRaider",
+			Activity = "Idle",
+			AssetId = "rbxassetid://110323527317126",
+			Looped = true,
+			Text = "An Ash Raider stands guard, the rifle across its body, the mask sweeping the ash (AshRaider_Idle)",
+		},
 		AshRaiderWalk = {
 			Rig = "AshRaider",
 			Activity = "Walk",
-			AssetId = "rbxassetid://92909841950988",
+			AssetId = "rbxassetid://82004984617465",
 			Looped = true,
-			Text = "An Ash Raider prowls with the rifle up (A5, AshRaider_Walk)",
+			Text = "An Ash Raider prowls, the rifle carried in both hands (AshRaider_Walk)",
 		},
 		AshRaiderAttack = {
 			Rig = "AshRaider",
 			Activity = "Attack",
-			AssetId = "rbxassetid://71659501687501",
+			AssetId = "rbxassetid://77468723648840",
 			Looped = false,
-			Text = "An Ash Raider shoulders the rifle and fires (A5, AshRaider_Attack; Hit 0.45 s)",
+			Text = "An Ash Raider shoulders the rifle, fires and takes the kick (AshRaider_Attack; Hit 0.45 s)",
+		},
+		AshRaiderMeleeIdle = {
+			Rig = "AshRaiderMelee",
+			Activity = "Idle",
+			AssetId = "rbxassetid://113251330254817",
+			Looped = true,
+			Text = "An Ash Raider waits, tapping the club cocked beside its head (AshRaiderMelee_Idle)",
+		},
+		AshRaiderMeleeWalk = {
+			Rig = "AshRaiderMelee",
+			Activity = "Walk",
+			AssetId = "rbxassetid://77331770551937",
+			Looped = true,
+			Text = "An Ash Raider charges, leaning in, the club up (AshRaiderMelee_Walk)",
+		},
+		AshRaiderMeleeAttack = {
+			Rig = "AshRaiderMelee",
+			Activity = "Attack",
+			AssetId = "rbxassetid://115642778216092",
+			Looped = false,
+			Text = "An Ash Raider's overhead blow with the club (AshRaiderMelee_Attack; Hit 0.5 s)",
 		},
 		ResidentWalk = {
 			Rig = "R15",
