@@ -834,7 +834,9 @@ the logs `Config.RadioLogs`.
 Bible Sections 6, 8, 11, 12 and 14 (Prompt 18). `Shared.Rules.Expeditions` is pure: `Check(destination,
 members, cycles, medkits)` (1 to 3 residents, alive, in the bunker, not cut off; 1 to 3 cycles; up to
 `MedkitsMax` Medkits), `Supplies(members, cycles)` (Food and Water for every member for every cycle),
-`Risk(team)` (the team's average of Grit and Speed against `StatPivot`), `Odds(destination, team)`
+`Risk(team)` (the team's average of Grit and Speed against `StatPivot`), `Fast(team)` and
+`Trip(cycles, team)` (a team averaging `FastSpeed` is away a cycle less, never under 1; Landon,
+Prompt 18), `Odds(destination, team)`
 (hurt, distress, lost: the bible's odds times the destination's `Danger` and the Risk), `Event(odds,
 x)`, `RiskLabel`, `Carry(stats, effects)` and `Team(team, effects)` (Strength carries; a member's own
 `ExpeditionCarry`, `ExpeditionLoot`, `ExpeditionScrap`), `Scale(drops, team)`, `Expected(...)` (a
@@ -858,10 +860,15 @@ and ExpeditionDeep.
   below 1; a packed Medkit halves it), someone lost (`ResidentService:Lose`; a packed Medkit makes
   it a bad hurt instead) or a distress call. Lines go in the expedition's log and the members' run
   logs (`ResidentService:Note`). After the last cycle they step into the hall with the finds and
-  the supplies left (`EconomyService:Add`) and go back to their old jobs if there's room.
+  the supplies left (`EconomyService:Add`) and go back to their old jobs if there's room. A fast
+  team (`Trip` < `Cycles`) turns for home after `Trip` cycles with the finds of every cycle picked
+  (the missing cycles' loot is rolled as they leave; an `Early` line in the log), and the unused
+  Food and Water come back with them.
 * Distress calls: the call comes `CallDelay` running seconds into that day, less the team's best
   `DistressCallLeadSeconds` (the Radio Operator), on everyone's radio card (the `RadioLog` remote)
-  and in the alerts. The team is pinned down at `SurfaceService:DistressSpot()` (a free survivor
+  and in the alerts. Only a working Radio Room (staffed and powered: `RunState.RadioWorks`, which
+  the screen reads to warn before SEND) hears it (Landon, Prompt 18): unheard, every member still
+  out is lost at once with the finds (an `Unheard` log line, one alert, no radio card). The team is pinned down at `SurfaceService:DistressSpot()` (a free survivor
   spot) or `DeepService:DistressSpot()` (a piece of an open cave; with none, the rock face of the
   deepest floor): each member is a RescueService rescue of Kind `Expedition` (`Resident` = their id,
   a HELP prompt with their name, their own health). Helped, they follow home; the arrival

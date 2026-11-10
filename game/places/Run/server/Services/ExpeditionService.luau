@@ -21,11 +21,15 @@
 	  .Event): nothing, someone hurt (a packed Medkit halves it), someone lost (a packed Medkit makes
 	  it a bad hurt instead), or a distress call. The line goes in the expedition's log and in its
 	  members' run logs. After their last cycle they come home through the Blast Door with what they
-	  found and what's left of the supplies, and go back to their old jobs if there's room.
+	  found and what's left of the supplies, and go back to their old jobs if there's room. A
+	  fast team (average Speed FastSpeed or more when they set out) comes home a cycle sooner,
+	  never under 1, with the full trip's finds (Landon, Prompt 18).
 	* Distress calls (Section 12: "a marker appears and players have until the end of the next day
 	  phase to reach them, or they are lost along with their loot"): the call comes CallDelay seconds
-	  into that day, DistressCallLeadSeconds sooner (the Radio Operator), on everyone's radio card and
-	  in the alerts. The team is pinned down at a survivor spot in Brightwater Ruins
+	  into that day, DistressCallLeadSeconds sooner (the Radio Operator). Only a working Radio Room
+	  (staffed and powered) hears it (Landon, Prompt 18): unheard, the team and its finds are lost.
+	  Heard, it is on everyone's radio card and in the alerts. The team is pinned down at a survivor
+	  spot in Brightwater Ruins
 	  (SurfaceService:DistressSpot) or in a cave the bunker has opened (DeepService:DistressSpot), each
 	  member with a HELP prompt (RescueService, Kind Expedition); the Expeditions collection carries
 	  the marker. Helped, they follow home like a rescue; the first one home brings the finds. Whoever
@@ -47,8 +51,8 @@
 	Signals: Sent(id, destination, names), Returned(id, destination, names, finds), Lost(id, destination, names),
 	Distress(id, where), Reached(id, player), Recruited(residentId, how).
 	Replication: the Expeditions collection, id -> { Destination, Band, Members = { { Id, Name, Status } }, Cycles,
-	Done, LeftAt, Back, State, Log, Finds, Recruits, Food, Water, Medkits, CallCycle, Deadline, Marker = { X, Y, Z },
-	Where }.
+	Trip, Done, LeftAt, Back, State, Log, Finds, Recruits, Food, Water, Medkits, CallCycle, Deadline,
+	Marker = { X, Y, Z }, Where }; RunState RadioWorks (a Radio Room can hear a call).
 	Dev: exp, exp.send, exp.cycle, exp.call, exp.home, exp.deadline, recruit, radio.
 ]]
 
@@ -68,6 +72,7 @@ local Loot = require(Shared.Rules.Loot)
 local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
 local Residents = require(Shared.Rules.Residents)
+local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
 local BunkerKit = require(ServerScriptService.Lib.BunkerKit)
 
@@ -108,7 +113,8 @@ type Expedition = {
 	Band: string?,
 	Ore: string?,
 	Members: { Member },
-	Cycles: number,
+	Cycles: number, -- the length picked
+	Trip: number, -- the cycles they are away: one less for a fast team (Landon, Prompt 18)
 	Done: number,
 	LeftAt: number,
 	Food: number,
@@ -143,6 +149,8 @@ local expeditions: { [string]: Expedition } = {}
 local counter = 0
 local radioProgress = 0
 local lastHintCycle = 0
+local radioHeard: boolean? = nil
+local setState: (name: string, value: any) -> () = function() end
 local bunkerModifiers: { [string]: { [string]: number } } = {} -- key -> source -> value
 local rng = Random.new()
 
@@ -295,9 +303,10 @@ local function publish(e: Expedition)
 		Band = e.Band,
 		Members = members,
 		Cycles = e.Cycles,
+		Trip = e.Trip,
 		Done = e.Done,
 		LeftAt = e.LeftAt,
-		Back = e.LeftAt + e.Cycles,
+		Back = e.LeftAt + e.Trip,
 		State = e.State,
 		Log = table.clone(e.Log),
 		Finds = table.clone(e.Finds),
@@ -442,6 +451,7 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 	end
 	local seen: { [string]: boolean } = {}
 	local candidates = {}
+	local teamStats = {}
 	for _, id in memberIds do
 		local resident = residents:Get(id)
 		if not resident then
@@ -451,6 +461,7 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 		end
 		seen[id] = true
 		table.insert(candidates, { State = resident.State, Trapped = resident.Trapped })
+		table.insert(teamStats, resident.Stats)
 	end
 	local ok, why = Expeditions.Check(destination, candidates, cycles, medkits)
 	if not ok then
@@ -474,6 +485,7 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 		Ore = if band then band.Ore else nil,
 		Members = {},
 		Cycles = cycles,
+		Trip = Expeditions.Trip(cycles, teamStats),
 		Done = 0,
 		LeftAt = clock:Cycle(),
 		Food = supplies.Food,
@@ -500,7 +512,8 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 	local names = Expeditions.Names(namesOf(e))
 	note(e, line(e, "SetOut", { names = names, place = destinationText(e) }))
 	publish(e)
-	alertAll("Info", `{string.upper(names)} SET OUT FOR {string.upper(destinationText(e))}: BACK IN {cycles} CYCLE{if cycles == 1 then "" else "S"}`)
+	alertAll("Info", `{string.upper(names)} SET OUT FOR {string.upper(destinationText(e))}: BACK IN {e.Trip} CYCLE{if e.Trip == 1 then "" else "S"}`
+		.. (if e.Trip < e.Cycles then " (A FAST TEAM)" else ""))
 	log:Info("%s: %s to %s for %d cycle(s), %d Medkit(s)%s", e.Id, names, destination, cycles, medkits,
 		if player then ` (sent by {player.Name})` else "")
 	ExpeditionService.Sent:Fire(e.Id, destination, names)
@@ -604,7 +617,7 @@ end
 
 -- Losing members ------------------------------------------------------------------------------------
 
-local function lose(e: Expedition, m: Member, how: string)
+local function lose(e: Expedition, m: Member, how: string, quiet: boolean?)
 	if m.Status == "Lost" or m.Status == "Home" then
 		return
 	end
@@ -614,7 +627,9 @@ local function lose(e: Expedition, m: Member, how: string)
 	end
 	m.Status = "Lost"
 	residents:Lose(m.Id, how)
-	alertAll("Danger", `{string.upper(m.Name)} IS GONE: {string.upper(how)}`)
+	if not quiet then
+		alertAll("Danger", `{string.upper(m.Name)} IS GONE: {string.upper(how)}`)
+	end
 end
 
 -- Distress calls ------------------------------------------------------------------------------------
@@ -634,6 +649,18 @@ local function call(e: Expedition)
 		e.State = "Away"
 		e.CallIn = nil
 		publish(e)
+		return
+	end
+	if not radioWorks() then
+		-- no Radio Room staffed and powered: nobody hears the call (Landon, Prompt 18)
+		local names = Expeditions.Names(namesOf(e, { Away = true }))
+		note(e, line(e, "Unheard", { names = names, place = where }), pinned)
+		for _, m in pinned do
+			lose(e, m, "lost: no Radio Room heard their call", true)
+		end
+		alertAll("Danger", `NO RADIO ROOM HEARD THE {string.upper(e.Destination)} EXPEDITION'S CALL: {string.upper(names)} {if #pinned == 1 then "IS" else "ARE"} LOST`)
+		log:Info("%s radioed from %s, unheard: lost", e.Id, where)
+		finish(e, "Lost")
 		return
 	end
 	e.State = "Distress"
@@ -753,6 +780,19 @@ end
 
 -- Away: a cycle ------------------------------------------------------------------------------------
 
+-- A cycle's finds for the members still out (the destination's loot table, scaled by the team).
+local function find(e: Expedition, away: { Member })
+	local team = Expeditions.Team(statsOf(away), effectsOf(away))
+	local drops = Expeditions.Scale(Loot.Roll(Expeditions.LootTable(e.Destination), rng, { BandOre = e.Ore, Skip = SKIP }), team)
+	for _, drop in drops do
+		if drop.Resource then
+			e.Finds[drop.Resource] = (e.Finds[drop.Resource] or 0) + drop.Count
+		elseif drop.Special == "Recruit" and e.Recruits < t().RecruitsMax then
+			e.Recruits += 1
+		end
+	end
+end
+
 local function live(e: Expedition, forced: string?)
 	local away = membersWith(e, "Away")
 	if #away == 0 then
@@ -765,16 +805,7 @@ local function live(e: Expedition, forced: string?)
 	for _, m in away do
 		residents:GainXP(m.Id, residentTuning.XPPerExpeditionCycle)
 	end
-	-- finds
-	local team = Expeditions.Team(statsOf(away), effectsOf(away))
-	local drops = Expeditions.Scale(Loot.Roll(Expeditions.LootTable(e.Destination), rng, { BandOre = e.Ore, Skip = SKIP }), team)
-	for _, drop in drops do
-		if drop.Resource then
-			e.Finds[drop.Resource] = (e.Finds[drop.Resource] or 0) + drop.Count
-		elseif drop.Special == "Recruit" and e.Recruits < t().RecruitsMax then
-			e.Recruits += 1
-		end
-	end
+	find(e, away)
 	-- what happened
 	local odds = Expeditions.Odds(e.Destination, statsOf(away))
 	local event = forced or Expeditions.Event(odds, rng:NextNumber())
@@ -805,13 +836,21 @@ local function live(e: Expedition, forced: string?)
 	else
 		note(e, line(e, "Quiet", { names = Expeditions.Names(namesOf(e, { Away = true })), place = place }), away)
 	end
-	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Cycles, event, findsText(e.Finds, e.Recruits))
+	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Trip, event, findsText(e.Finds, e.Recruits))
 	if #membersWith(e, "Away") == 0 and e.State == "Away" then
 		publish(e)
 		settle(e)
 		return
 	end
-	if e.State == "Away" and e.Done >= e.Cycles then
+	if e.State == "Away" and e.Done >= e.Trip then
+		-- a fast team turns for home early, with the finds of the whole length picked (Landon, Prompt 18)
+		local still = membersWith(e, "Away")
+		for _ = e.Trip + 1, e.Cycles do
+			find(e, still)
+		end
+		if e.Trip < e.Cycles then
+			note(e, line(e, "Early", { names = Expeditions.Names(namesOf(e, { Away = true })), place = place }), still)
+		end
 		comeHome(e)
 		return
 	end
@@ -834,6 +873,11 @@ local function dawn(cycle: number)
 end
 
 local function tick(dt: number)
+	local works = radioWorks()
+	if works ~= radioHeard then
+		radioHeard = works
+		setState("RadioWorks", works)
+	end
 	if not clock:IsRunning() or director:Phase() ~= "Playing" then
 		return
 	end
@@ -997,15 +1041,17 @@ local function describe(): string
 		for _, m in e.Members do
 			table.insert(members, `{m.Id} {m.Name} ({m.Status}{if m.Rescue then ` {m.Rescue}` else ""})`)
 		end
-		table.insert(lines, string.format("%s %s%s: %s; cycle %d of %d (left at %d), %s%s; packs %d food %d water %d medkits; finds %s",
-			e.Id, e.Destination, if e.Band then ` ({e.Band})` else "", table.concat(members, ", "), e.Done, e.Cycles, e.LeftAt, e.State,
+		table.insert(lines, string.format("%s %s%s: %s; cycle %d of %d%s (left at %d), %s%s; packs %d food %d water %d medkits; finds %s",
+			e.Id, e.Destination, if e.Band then ` ({e.Band})` else "", table.concat(members, ", "), e.Done, e.Trip,
+			if e.Trip < e.Cycles then ` (a fast team: {e.Cycles} picked)` else "", e.LeftAt, e.State,
 			if e.CallIn then string.format(" in %.0fs", e.CallIn) elseif e.Deadline then ` deadline cycle {e.Deadline} at {e.Where}` else "",
 			e.Food, e.Water, e.Medkits, findsText(e.Finds, e.Recruits)))
 		for _, entry in e.Log do
 			table.insert(lines, `    {entry}`)
 		end
 	end
-	table.insert(lines, string.format("radio: %.3f recruits a cycle (RecruitRate %.2f), progress %.2f; lead %ds; residents %d of %d",
+	table.insert(lines, string.format("radio: %s; %.3f recruits a cycle (RecruitRate %.2f), progress %.2f; lead %ds; residents %d of %d",
+		if radioWorks() then "a Radio Room hears calls" else "NO working Radio Room (a call goes unheard)",
 		radioRate(), bunkerValue("RecruitRate"), radioProgress, bunkerValue("DistressCallLeadSeconds"), residents:Count(), Constants.CAPS.Residents))
 	return table.concat(lines, "\n")
 end
@@ -1018,6 +1064,7 @@ local function pickExpedition(id: any): Expedition?
 end
 
 function ExpeditionService:Init(registry)
+	setState = RunState.Writer("ExpeditionService")
 	grid = registry.BunkerGrid
 	clock = registry.CycleClock
 	director = registry.RunDirector

@@ -180,7 +180,7 @@ local Schemas: { [string]: Check.Checker } = {
 		StatPivot = N, StatStep = N, RiskMin = N, RiskMax = N, HurtShare = F.Range, MedkitsMax = I, MedkitHurtKept = Fr,
 		CarryBase = N, CarryPerStrength = N, CallDelay = F.Range, UseRange = N, LeaveSeconds = S,
 		RecruitRareChance = Fr, RecruitLevel = F.Range, RecruitsMax = I,
-		RadioRareChance = Fr, RadioLevel = F.Range, RadioHintCycles = I,
+		RadioRareChance = Fr, RadioLevel = F.Range, RadioHintCycles = I, FastSpeed = N,
 	}),
 	Surface = shape({
 		StormSirenSeconds = S, RadiationPerSecond = N, StormRadiationPerSecond = N, RefillEvery = Check.enum({ "Era" }),
@@ -468,6 +468,9 @@ return {
 			-- point (Rare this often); while a Lost Crew is out and a Radio Room is staffed and lit, it
 			-- picks up a crew's call every RadioHintCycles cycles (Section 12: crew hints)
 			RadioRareChance = 0.15, RadioLevel = { Min = 1, Max = 3 }, RadioHintCycles = 2,
+			-- Landon (Prompt 18): a team averaging this Speed comes home a cycle early (never under 1
+			-- cycle) with the full trip's finds; a distress call needs a working Radio Room to be heard
+			FastSpeed = 8,
 		},
 		Surface = { -- Section 12; rates prov. The rest is Prompt 16, prov.
 			StormSirenSeconds = 20, RadiationPerSecond = 0.2, StormRadiationPerSecond = 2, RefillEvery = "Era",

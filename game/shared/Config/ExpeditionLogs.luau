@@ -7,7 +7,8 @@
 	call itself, read out on the radio card. Draft text: Landon's to change.
 
 	Events: SetOut, Quiet, Hurt, Patched (a packed Medkit saved someone), Lost, Distress (the log's
-	line), Call (the radio message), Home.
+	line), Call (the radio message), Home, Early (a fast team turns for home a cycle early; Landon,
+	Prompt 18), Unheard (a call no Radio Room heard).
 ]]
 
 local Check = require(script.Parent.Parent.Utilities.Check)
@@ -20,7 +21,7 @@ end
 return {
 	Schema = Check.shape({
 		Destination = Check.enum({ "Surface", "Deep", "Any" }),
-		Event = Check.enum({ "SetOut", "Quiet", "Hurt", "Patched", "Lost", "Distress", "Call", "Home" }),
+		Event = Check.enum({ "SetOut", "Quiet", "Hurt", "Patched", "Lost", "Distress", "Call", "Home", "Early", "Unheard" }),
 		Text = F.Short,
 	}),
 	Entries = {
@@ -69,5 +70,10 @@ return {
 			"Bunker, this is {name}. The way back fell in behind us in {place}. We can hear them digging. Please hurry."),
 
 		HomeAny = line("Any", "Home", "came home through the Blast Door"),
+
+		EarlySurface = line("Surface", "Early", "covered the town fast and turned for home a cycle early"),
+		EarlyDeep = line("Deep", "Early", "moved fast through {place} and turned for home a cycle early"),
+
+		UnheardAny = line("Any", "Unheard", "radioed for help from {place}, but no Radio Room heard the call"),
 	},
 }

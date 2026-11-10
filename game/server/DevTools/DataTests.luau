@@ -844,7 +844,7 @@ test("Clock: completing nothing takes 100 cycles; crews and bosses make it 13 to
 end)
 
 test("RunState: every value has one owner, a type and its allowed values", function()
-	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true, PowerService = true,
+	local owners = { RunDirector = true, CycleClock = true, ObjectiveService = true, EconomyService = true, PowerService = true, ExpeditionService = true,
 		ThreatDirector = true, DisasterService = true, DigService = true, SurfaceService = true, DeepService = true }
 	for name, field in RunState.Fields do
 		expect(owners[field.By], `{name} to have a known owner`)
@@ -2334,7 +2334,7 @@ test("Expeditions: who goes, for how long and with what (Section 12)", function(
 	expectEqual(Expeditions.Place(Config.Get("DepthBands", "FloodedCaverns").Name), "the Flooded Caverns", "the Flooded Caverns")
 	-- every destination has lines for everything that can happen, and their blanks fill
 	for _, destination in Expeditions.Destinations() do
-		for _, event in { "SetOut", "Quiet", "Hurt", "Patched", "Lost", "Distress", "Call", "Home" } do
+		for _, event in { "SetOut", "Quiet", "Hurt", "Patched", "Lost", "Distress", "Call", "Home", "Early", "Unheard" } do
 			local lines = Expeditions.Lines(destination, event)
 			expect(#lines > 0, `a {event} line for the {destination}`)
 			for _, text in lines do
@@ -2398,6 +2398,15 @@ test("Expeditions: danger, finds, harm, distress calls and recruits (Sections 11
 	expectEqual(Expeditions.Harm(100, 1, true), 23, "a Medkit halves it")
 	expectEqual(Expeditions.Harm(1, 0, true), 1, "harm is at least 1")
 	expectEqual(Expeditions.Deadline(7), 8, "a call in cycle 7 can be answered until cycle 8's day ends")
+	-- Landon's answers (Prompt 18): a team averaging FastSpeed comes home a cycle early, never under 1
+	local fast, slow = { Speed = t.FastSpeed }, { Speed = t.FastSpeed - 1 }
+	expect(Expeditions.Fast({ fast, fast }), "a team averaging FastSpeed to be fast")
+	expect(Expeditions.Fast({ slow, { Speed = t.FastSpeed + 1 } }), "the average to count, not the slowest")
+	expect(not Expeditions.Fast({ slow, fast }), "a team just under the average not to be fast")
+	expect(not Expeditions.Fast({}), "nobody not to be fast")
+	expectEqual(Expeditions.Trip(3, { fast }), 2, "a fast team's 3 cycles to take 2")
+	expectEqual(Expeditions.Trip(1, { fast }), 1, "a trip never under 1 cycle")
+	expectEqual(Expeditions.Trip(2, { slow }), 2, "anyone else to take the length picked")
 	expectEqual(Expeditions.RecruitTier(0.1, 0.2), "Rare", "a low roll is Rare")
 	expectEqual(Expeditions.RecruitTier(0.5, 0.2), "Common", "a high roll is Common")
 	-- the Prompt 18 modifiers and the Radio Operator (Section 14)

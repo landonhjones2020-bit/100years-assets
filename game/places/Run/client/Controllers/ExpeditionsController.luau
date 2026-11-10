@@ -7,7 +7,9 @@
 	* It opens from the EXPEDITIONS consoles in the Blast Door hall and in each Radio Room (prompts
 	  with Kind Expeditions; ExpeditionService) and from DevTools (ui.open Expeditions).
 	* SURFACE and DEEP: the cards are the residents who can go (alive, in the bunker, not cut off by
-	  rubble), with the stats an expedition leans on (Grit, Speed, Strength); a card joins or leaves
+	  rubble), with the stats an expedition leans on (Grit, Speed, Strength; a fast team comes home
+	  a cycle early, and with no Radio Room working a distress call goes unheard: zone D says so);
+	  a card joins or leaves
 	  the team (three at most, lamp lit). The footer sets the length (1, 2 or 3 cycles) and the
 	  Medkits packed (0 to 3). Zone D: the destination, the team, when they'd be
 	  back, the supplies taken from the stockpile (the top bar shows what's in it), the risk each
@@ -226,7 +228,11 @@ local function showPlan(detail: any)
 	end
 	section(body, 1, "Team", if #names > 0 then Expeditions.Names(names) .. "." else "Pick 1 to 3 residents from the list.")
 	local cycle = tonumber(RunState.Get("Cycle")) or 1
-	section(body, 2, "Length", `{cycles} cycle{if cycles == 1 then "" else "s"}: back at the start of cycle {cycle + cycles}.`)
+	local trip = if #stats > 0 then Expeditions.Trip(cycles, stats) else cycles
+	section(body, 2, "Length", if trip < cycles
+		then `A fast team (average Speed {Expeditions.Tuning().FastSpeed}+): {cycles} cycles of finds in {trip} cycle{if trip == 1 then "" else "s"},`
+			.. ` back at the start of cycle {cycle + trip}.`
+		else `{cycles} cycle{if cycles == 1 then "" else "s"}: back at the start of cycle {cycle + cycles}.`)
 	local supplies = Expeditions.Supplies(math.max(#records, 1), cycles)
 	local food = if #records > 0 then supplies.Food else 0
 	local water = if #records > 0 then supplies.Water else 0
@@ -235,7 +241,8 @@ local function showPlan(detail: any)
 	if #records > 0 then
 		local odds = Expeditions.Odds(destination, stats)
 		section(body, 4, "Risk each cycle", `{Expeditions.RiskLabel(odds)}: hurt {percent(odds.Hurt)} · distress call {percent(odds.Distress)}`
-			.. ` · lost {percent(odds.Lost)}. Grit and Speed lower it; Medkits patch them up.`)
+			.. ` · lost {percent(odds.Lost)}. Grit and Speed lower it; Medkits patch them up.`
+			.. (if RunState.Get("RadioWorks") then "" else " No Radio Room is working: a distress call would go unheard, and they'd be lost."))
 		local expected = Expeditions.Expected(destination, Expeditions.Team(stats, nil), if band then band.Ore else nil,
 			{ Gear = true, Blueprint = true })
 		local parts = {}
@@ -329,7 +336,8 @@ local function stateText(e: any): (string, string)
 	elseif following > 0 then
 		return "ON THE WAY HOME", "Lamp_Amber"
 	end
-	return `AWAY · CYCLE {math.min(e.Done + 1, e.Cycles)} OF {e.Cycles}`, "Lamp_Green"
+	local trip = e.Trip or e.Cycles
+	return `AWAY · CYCLE {math.min(e.Done + 1, trip)} OF {trip}`, "Lamp_Green"
 end
 
 local function showActive(detail: any, id: string?)

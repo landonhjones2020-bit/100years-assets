@@ -24,8 +24,12 @@
 	  expeditions) times their ExpeditionCarry; Scrap also takes the team's ExpeditionScrap and
 	  everything its ExpeditionLoot (a member's own effects: traits from Prompt 26, a Legend's
 	  signature from Prompt 27).
+	* Speed and length (Landon, Prompt 18): a team whose average Speed is FastSpeed or more comes
+	  home a cycle sooner than the length picked (never under 1 cycle), with the full trip's finds
+	  (Trip).
 	* A distress call (Section 12): players have until the end of the next day phase to reach
-	  them: the day of the cycle after the one the call came in (Deadline).
+	  them: the day of the cycle after the one the call came in (Deadline). Only a working Radio
+	  Room hears it (Landon, Prompt 18); unheard, the team and its finds are lost.
 ]]
 
 local Config = require(script.Parent.Parent.Config)
@@ -210,6 +214,23 @@ function Expeditions.Harm(maxHealth: number, x: number, medkit: boolean): number
 	local share = t.HurtShare.Min + (t.HurtShare.Max - t.HurtShare.Min) * math.clamp(x, 0, 1)
 	local harm = maxHealth * share * (if medkit then t.MedkitHurtKept else 1)
 	return math.max(1, math.floor(harm + 0.5))
+end
+
+-- Whether a team is fast: its average Speed is FastSpeed or more (Landon, Prompt 18).
+function Expeditions.Fast(team: { Stats }): boolean
+	if #team == 0 then
+		return false
+	end
+	local sum = 0
+	for _, stats in team do
+		sum += stats.Speed or 0
+	end
+	return sum / #team >= Expeditions.Tuning().FastSpeed
+end
+
+-- How many cycles a trip of `cycles` keeps the team away: a fast team comes home one sooner, never under 1.
+function Expeditions.Trip(cycles: number, team: { Stats }): number
+	return if Expeditions.Fast(team) then math.max(1, cycles - 1) else cycles
 end
 
 -- The cycle whose day phase is the last chance to reach a team that radioed in `cycle`.

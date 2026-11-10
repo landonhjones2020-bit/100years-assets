@@ -26,6 +26,7 @@
 	Bunker or Deep), Radiation, ClearRad, PackUsed, PackSlots, Pack, Carrying and Riding attributes
 	(SurfaceService and InventoryService).
 	The Deep (DeepService, Prompt 17): Caves and CryoPods.
+	Expeditions (ExpeditionService, Prompt 18): RadioWorks.
 ]]
 
 local RunService = game:GetService("RunService")
@@ -36,7 +37,7 @@ export type RunPhase = "Waiting" | "Intro" | "Playing" | "Ended"
 export type CyclePhase = "Day" | "Surge"
 export type Outcome = "CenturyVictory" | "DeepVictory" | "Defeat"
 export type Writer = "RunDirector" | "CycleClock" | "ObjectiveService" | "EconomyService" | "PowerService" | "ThreatDirector"
-	| "DisasterService" | "DigService" | "SurfaceService" | "DeepService"
+	| "DisasterService" | "DigService" | "SurfaceService" | "DeepService" | "ExpeditionService"
 
 type Field = {
 	Type: "string" | "number" | "boolean",
@@ -112,6 +113,9 @@ local FIELDS: { [string]: Field } = {
 	-- DeepService (Prompt 17): the caves behind the grid and cryo pods
 	Caves = { Type = "number", By = "DeepService", Doc = "caves open behind dug cells (Section 12)" },
 	CryoPods = { Type = "number", By = "DeepService", Doc = "cryo pods hauled home and waiting for a Cryo Bay to thaw them (Section 6)" },
+
+	-- ExpeditionService (Prompt 18): whether the bunker can hear a distress call
+	RadioWorks = { Type = "boolean", By = "ExpeditionService", Doc = "a Radio Room is staffed and powered, so an expedition's distress call is heard (Landon, Prompt 18: unheard, the team is lost)" },
 }
 
 -- EconomyService: one value per stocked resource (Config.Resources, Kind "Stock"), its amount
