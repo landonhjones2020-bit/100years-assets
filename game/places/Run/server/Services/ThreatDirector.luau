@@ -36,6 +36,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
+local Grid = require(Shared.Rules.Grid)
 local Disasters = require(Shared.Rules.Disasters)
 local Log = require(Shared.Utilities.Log)
 local RunState = require(Shared.RunState)
@@ -113,14 +114,78 @@ function ThreatDirector:Level(): number
 	})
 end
 
--- Opens groups at up to `places` weighted points, in waves `spacing` seconds apart.
+-- Water (Prompt 23; the Appendix: Murklings "pour out of water"). A room flooded to
+-- Tuning.Disasters.Flood.MurklingLevel is a breach point of its own, "W:<room>", that only
+-- monsters with the FromWater trait use; when no room is that wet they come the usual ways.
+local waterPoints: { [string]: boolean } = {}
+
+local function syncWater()
+	local level = Config.Get("Tuning", "Disasters").Flood.MurklingLevel
+	local want: { [string]: boolean } = {}
+	for _, room in grid:Rooms() do
+		if room.Type ~= "Shaft" and (disasters:Flooded(room.Id) or 0) >= level then
+			want[`W:{room.Id}`] = true
+			if not waterPoints[`W:{room.Id}`] then
+				local cell = Grid.CellPosition(room.Floor, room.Column + (room.Span - 1) // 2)
+				local out = cell + Vector3.new(0, 0.5, 2)
+				breaches:SetExtraPoint(`W:{room.Id}`, {
+					Id = `W:{room.Id}`, Kind = "Water", RoomId = room.Id, Floor = room.Floor, Column = room.Column,
+					Weight = 1, Dark = false, At = CFrame.lookAt(out, out + Vector3.new(0, 0, 1)), Source = cell + Vector3.new(0, 1, 0),
+				})
+			end
+		end
+	end
+	for id in waterPoints do
+		if not want[id] then
+			breaches:SetExtraPoint(id, nil)
+		end
+	end
+	waterPoints = want
+end
+
+local function fromWater(monsterType: string): boolean
+	local spec = Config.Find("Monsters", monsterType)
+	return spec ~= nil and spec.Traits ~= nil and table.find(spec.Traits, "FromWater") ~= nil
+end
+
+local spendAt: (groups: { Threat.Group }, tag: string, places: number, spacing: number, water: boolean) -> number
+
+-- Opens groups at up to `places` weighted points, in waves `spacing` seconds apart. Groups that
+-- come out of water go to the flooded rooms when there are any.
 local function spend(groups: { Threat.Group }, tag: string, places: number, spacing: number): number
+	pcall(syncWater)
+	if next(waterPoints) == nil then
+		return spendAt(groups, tag, places, spacing, false)
+	end
+	local wet, dry = {}, {}
+	for _, group in groups do
+		table.insert(if fromWater(group.Type) then wet else dry, group)
+	end
+	return spendAt(dry, tag, places, spacing, false) + spendAt(wet, tag, places, spacing, true)
+end
+
+function spendAt(groups: { Threat.Group }, tag: string, places: number, spacing: number, water: boolean): number
 	if #groups == 0 then
 		return 0
 	end
-	local points = {}
+	local points: { any } = {}
 	local taken: { [string]: boolean } = {}
-	for _ = 1, math.max(1, places) do
+	if water then
+		for id in waterPoints do
+			table.insert(points, { Id = id })
+		end
+		table.sort(points, function(a, b)
+			return a.Id < b.Id
+		end)
+		while #points > math.max(1, places) do
+			table.remove(points, rng:NextInteger(1, #points))
+		end
+	else
+		for id in waterPoints do
+			taken[id] = true -- nothing but water's own creatures comes out of the water
+		end
+	end
+	for _ = 1, if water then 0 else math.max(1, places) do
 		local point = breaches:Pick(rng, taken)
 		if point then
 			taken[point.Id] = true
@@ -145,7 +210,13 @@ local function spend(groups: { Threat.Group }, tag: string, places: number, spac
 		end
 		local point = points[(w - 1) % #points + 1]
 		task.delay((w - 1) * spacing, function()
-			breaches:Open(point.Id, list, tag)
+			if not breaches:Open(point.Id, list, tag) and water then
+				-- the room dried out first: the usual way in instead
+				local other = breaches:Pick(rng, table.clone(waterPoints))
+				if other then
+					breaches:Open(other.Id, list, tag)
+				end
+			end
 			if surge and surge.Tag == tag then
 				surge.WavesLeft -= 1
 				surge.LastWaveAt = os.clock()
@@ -350,6 +421,12 @@ function ThreatDirector:Start()
 			end
 		end)
 	end)
+	-- a Bloat Toad's burst floods its room (Prompt 23): water and no pipe, so it drains by itself
+	monsters.Burst:Connect(function(_id: string, _type: string, _at: Vector3, unit: string?)
+		if unit and grid:Room(unit) then
+			disasters:StartFlood(unit, "BloatToad", Config.Get("Tuning", "Disasters").Flood.BurstLevel, false)
+		end
+	end)
 	monsters.Spawned:Connect(function(_id: string, _type: string, tag: string?)
 		if surge and tag == surge.Tag then
 			surge.Spawned += 1
@@ -362,6 +439,7 @@ function ThreatDirector:Start()
 			local dt = os.clock() - last
 			last = os.clock()
 			pcall(checkCleared)
+			pcall(syncWater)
 			pcall(trickleTick, dt)
 			pcall(function()
 				set("Threat", math.floor(ThreatDirector:Level() + 0.5))

@@ -167,6 +167,10 @@ local Schemas: { [string]: Check.Checker } = {
 		ResidentFleeRadius = N, ResidentCalmSeconds = S, ResidentSwatDamage = N, ResidentSwatSeconds = S,
 		-- Prompt 16: the surface
 		SurfaceAggro = N, PathSeconds = S, CircleRadius = N, CircleSeconds = F.Range, ShotAccuracy = Fr,
+		-- Prompt 23: the Flooded Caverns' monsters
+		BurstRadius = N, BurstSwellSeconds = S, HideSeconds = S, AmbushReach = N, RevealSeconds = S,
+		GrabBreakDamage = N, GrabBreakStun = S, GrabDamageMultiplier = N,
+		ArmorFront = Fr, ArmorArcDegrees = N, WeakBack = N, WeakArcDegrees = N,
 	}),
 	Residents = shape({
 		StatMin = I, StatMax = I, StatCap = I, LevelMax = I, MoraleStart = N, FoodPerCycle = N, WaterPerCycle = N,
@@ -515,6 +519,16 @@ return {
 			-- plan a path this often, Ash Jackals circle at CircleRadius between bites ("circle and
 			-- dart in"), and an Ash Raider's rifle hits this often
 			SurfaceAggro = 300, PathSeconds = 1.5, CircleRadius = 11, CircleSeconds = { Min = 2, Max = 3.5 }, ShotAccuracy = 0.45,
+			-- Prompt 23 (the Appendix's Flooded Caverns rows); prov. A Bloat Toad swells BurstSwellSeconds
+			-- on contact, then hurts everyone within BurstRadius. A Lurker lies in wait HideSeconds
+			-- before it goes hunting, strikes at its Range plus AmbushReach, is seen for RevealSeconds
+			-- after a hit, and lets go of a resident when hit for GrabBreakDamage (stunned
+			-- GrabBreakStun); held, the resident takes GrabDamageMultiplier of its bite each attack.
+			-- A Tide Crab takes ArmorFront of a blow from within ArmorArcDegrees of its front and
+			-- WeakBack times a blow from within WeakArcDegrees of its back.
+			BurstRadius = 9, BurstSwellSeconds = 0.7, HideSeconds = 25, AmbushReach = 5, RevealSeconds = 1.2,
+			GrabBreakDamage = 45, GrabBreakStun = 1.5, GrabDamageMultiplier = 0.6,
+			ArmorFront = 0.25, ArmorArcDegrees = 130, WeakBack = 2, WeakArcDegrees = 110,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,

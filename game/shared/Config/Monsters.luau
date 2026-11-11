@@ -29,6 +29,7 @@ return {
 			"Latches", "Slows", "Explodes", "Floods", "Hides", "Grabs", "ArmoredFront", "WeakPointBack",
 			"Shatters", "Invisible", "ShrugsSmallGuns", "Heals", "Hastes", "Fades", "StormOnly", "Radiates", "SmashesMachines",
 			"Shoots", -- Prompt 16: a rifle from range (Ash Raiders: "melee or rifles")
+			"FromWater", -- Prompt 23: comes out of flooded rooms when there are any (Murklings "pour out of water")
 		}), 6)),
 		Drops = Check.optional(Check.ref("LootTables")),
 		Era = Check.integer(1, 4),
@@ -86,6 +87,7 @@ return {
 			Health = 30, Damage = 6, AttackSeconds = 0.7, Range = 3, MoveSpeed = 18,
 			Targets = { "Residents", "Players", "Machines" },
 			ThreatCost = 1, Group = { Min = 5, Max = 10 },
+			Traits = { "FromWater" },
 			Drops = "FloodedMonster", Era = 2, Asset = "Monster_Murkling",
 		},
 		BloatToad = {

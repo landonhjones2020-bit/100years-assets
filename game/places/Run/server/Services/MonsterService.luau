@@ -44,10 +44,21 @@
 	  Slows (Spitter Grub) keeps its distance and spits goo that slows (players: the SlowedUntil
 	  attribute; residents: their walk); stunned monsters (StunnedUntil: melee, Shock Mines)
 	  stand still.
+	* The Flooded Caverns (Prompt 23). Explodes (Bloat Toad): on contact it swells for
+	  BurstSwellSeconds and bursts, and it bursts when killed: everyone within BurstRadius and the
+	  room's machines are hurt, and the Burst signal says where (ThreatDirector floods the room).
+	  Hides and Grabs (Lurker): it walks to the nearest room that is deep in water or dark and lies
+	  in wait there (the Hidden attribute; clients draw it almost unseen), strikes whoever comes
+	  within reach and takes hold of a resident (their Grabbed attribute: they can't move) until it
+	  is hit for GrabBreakDamage, stunned or killed; after HideSeconds with nobody in reach it
+	  hunts like the rest. ArmoredFront and WeakPointBack (Tide Crab): a damage filter, by where the
+	  blow comes from (the ShellHitAt and WeakHitAt attributes tell clients which it was).
+	  Murklings need nothing here: ThreatDirector sends them out of flooded rooms.
 
 	API:
 		MonsterService.Spawned: Signal<string, string, string?> -- id, type, tag
 		MonsterService.Died: Signal<string, string, string?>    -- id, type, tag
+		MonsterService.Burst: Signal<string, string, Vector3, string?> -- a Bloat Toad burst: id, type, where, unit
 		MonsterService:Spawn(type, at: CFrame, tag?, options?): string? -- nil when queued (or no such type); options.Guard
 		MonsterService:SetCaveExit(fn)                          -- fn(position in a cave): its mouth, in the bunker
 		MonsterService:Count(tag?): number                      -- alive plus queued
@@ -82,8 +93,9 @@ local log = Log.new("MonsterService")
 
 local MonsterService = {
 	Name = "MonsterService",
-	Dependencies = { "CombatService", "BunkerGrid", "ResidentService", "RunDirector", "DevService" },
+	Dependencies = { "CombatService", "BunkerGrid", "ResidentService", "RunDirector", "PowerService", "DevService" },
 	Spawned = Signal.new() :: Signal.Signal<string, string, string?>,
+	Burst = Signal.new() :: Signal.Signal<string, string, Vector3, string?>, -- id, type, where, its room or cell (Prompt 23)
 	Died = Signal.new() :: Signal.Signal<string, string, string?>,
 }
 
@@ -127,12 +139,21 @@ type Monster = {
 	CircleUntil: number, -- a PackRunner circles its target until then (os.clock)
 	CircleAngle: number,
 	Taunt: { Id: string, Until: number }?, -- Hold the Line (Prompt 20): this player comes first until then
+	-- Prompt 23: the Flooded Caverns' monsters
+	Bursting: boolean?, -- a Bloat Toad swelling, or burst
+	HideRoom: string?, -- a Lurker's room to lie in wait in
+	HideUntil: number, -- it lies in wait until then (os.clock), then hunts like the rest
+	Hunting: boolean?, -- it has given up lying in wait
+	Hidden: boolean?,
+	Grabbing: string?, -- the resident (a combatant id) a Lurker holds
+	GrabDamage: number, -- what it has been hit for since it grabbed
 }
 
 local combat: any = nil
 local grid: any = nil
 local residents: any = nil
 local director: any = nil
+local power: any = nil
 local dev: any = nil
 
 export type Options = { Guard: number? }
@@ -331,6 +352,8 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?, options: 
 		Path = nil,
 		CircleUntil = 0,
 		CircleAngle = rng:NextNumber() * math.pi * 2,
+		HideUntil = 0,
+		GrabDamage = 0,
 	}
 	MonsterService.Spawned:Fire(id, monsterType, tag)
 	return id
@@ -407,6 +430,14 @@ function MonsterService:InUnit(unit: string): number
 end
 
 local function unlatch(m: Monster)
+	if m.Grabbing then
+		local held = combat:Get(m.Grabbing)
+		if held and held.Model then
+			held.Model:SetAttribute("Grabbed", nil)
+		end
+		m.Grabbing = nil
+		m.GrabDamage = 0
+	end
 	if m.Latch then
 		m.Latch:Destroy()
 		m.Latch = nil
@@ -947,6 +978,23 @@ local function latch(m: Monster, c: any)
 	setActivity(m, "Latched")
 end
 
+-- The Flooded Caverns' monsters (Prompt 23) ----------------------------------------------------------
+
+local function has(m: Monster, trait: string): boolean
+	return m.Spec.Traits ~= nil and table.find(m.Spec.Traits, trait) ~= nil
+end
+
+local function setHidden(m: Monster, hidden: boolean)
+	if m.Hidden ~= hidden then
+		m.Hidden = hidden
+		m.Model:SetAttribute("Hidden", if hidden then true else nil)
+	end
+end
+
+local burst: (m: Monster) -> ()
+local swell: (m: Monster) -> ()
+local grab: (m: Monster, c: any) -> ()
+
 local function attack(m: Monster, target: Target)
 	if os.clock() < m.AttackReadyAt then
 		return
@@ -996,8 +1044,175 @@ local function attack(m: Monster, target: Target)
 		if c.Kind == "Resident" and spec.Traits and table.find(spec.Traits, "Latches") then
 			latch(m, c)
 		end
+		if c.Kind == "Resident" and has(m, "Grabs") and c.State == "Alive" then
+			grab(m, c)
+		end
 	end)
 end
+
+-- A Bloat Toad bursts (the Appendix: "Bursts on death or contact and floods the room"): everyone
+-- within BurstRadius is hurt, the room's machines too, and the room floods (the Burst signal:
+-- ThreatDirector passes it to DisasterService). It dies of it, if it isn't dead already.
+function burst(m: Monster)
+	if m.Bursting == true and m.Model:GetAttribute("Burst") then
+		return
+	end
+	m.Bursting = true
+	m.Model:SetAttribute("Burst", true)
+	local t = ai()
+	local at = m.Root.Position
+	local unit = unitOf(at)
+	for _, c in combat:All("Survivors") do
+		if c.State == "Alive" and c.Root.Parent and (c.Root.Position - at).Magnitude <= t.BurstRadius then
+			combat:Damage(c.Id, m.Spec.Damage, m.Id, "burst")
+		end
+	end
+	if unit and grid:Room(unit) then
+		hurtRoom(m, unit, m.Spec.Damage)
+	end
+	log:Info("%s burst in %s", m.Id, unit or "the open")
+	MonsterService.Burst:Fire(m.Id, m.Type, at, unit)
+	if monsters[m.Id] then
+		combat:Damage(m.Id, 1e9, nil, "burst")
+	end
+end
+
+-- It has reached what it came for: it swells for BurstSwellSeconds (the clip), then bursts.
+function swell(m: Monster)
+	if m.Bursting then
+		return
+	end
+	m.Bursting = true
+	halt(m)
+	m.Model:SetAttribute("AttackAt", os.clock())
+	setActivity(m, "Attack")
+	task.delay(ai().BurstSwellSeconds, function()
+		if monsters[m.Id] then
+			m.Bursting = false
+			burst(m)
+		end
+	end)
+end
+
+-- Where a Lurker lies in wait (the Appendix: "Hides in water or dark rooms"): the nearest room it
+-- can walk to that is deep enough in water, or dark.
+local function hidingRoom(m: Monster): string?
+	local wade = Config.Get("Tuning", "Disasters").Flood.WadeLevel
+	local best, bestScore = nil, math.huge
+	for _, room in grid:Rooms() do
+		if room.Type ~= "Shaft" and ((Hazards.Flood(room.Id) or 0) >= wade or (power and power:IsDark(room.Id))) then
+			local d = score(m.Root.Position, roomPoint(room))
+			if d < bestScore then
+				best, bestScore = room.Id, d
+			end
+		end
+	end
+	return best
+end
+
+-- A Lurker's ambush. Returns true while it is busy with it (walking to its room, lying in wait,
+-- striking from it); false once it hunts like any other monster.
+local function ambush(m: Monster): boolean
+	if m.Hunting or m.Zone ~= "Bunker" then
+		setHidden(m, false)
+		return false
+	end
+	local t = ai()
+	local room = if m.HideRoom then grid:Room(m.HideRoom) else nil
+	local wade = Config.Get("Tuning", "Disasters").Flood.WadeLevel
+	if not room or not ((Hazards.Flood(room.Id) or 0) >= wade or (power and power:IsDark(room.Id))) then
+		m.HideRoom = hidingRoom(m)
+		room = if m.HideRoom then grid:Room(m.HideRoom) else nil
+		if not room then
+			m.Hunting = true -- nowhere wet or dark: it hunts in the open
+			setHidden(m, false)
+			return false
+		end
+		m.HideUntil = os.clock() + t.HideSeconds
+	end
+	if unitOf(m.Root.Position) ~= room.Id then
+		setHidden(m, false)
+		walk(m, roomPoint(room))
+		return true
+	end
+	-- in its room: whoever comes within reach is struck
+	local victim: Target? = nil
+	local nearest = math.huge
+	for _, c in combat:All("Survivors") do
+		if c.State == "Alive" and c.Root.Parent and unitOf(c.Root.Position) == room.Id then
+			local d = (c.Root.Position - m.Root.Position).Magnitude
+			local kind = if c.Kind == "Player" then "Players" else "Residents"
+			-- residents first (it "grabs residents"); a player only when no resident is nearer than it
+			local weighted = if kind == "Residents" then d else d + 6
+			if d <= m.Spec.Range + t.AmbushReach and weighted < nearest then
+				nearest = weighted
+				victim = { Kind = kind, Id = c.Id, Position = c.Root.Position }
+			end
+		end
+	end
+	if victim then
+		setHidden(m, false)
+		m.Target = victim
+		m.TargetAt = os.clock()
+		m.HideUntil = os.clock() + t.HideSeconds
+		if inReach(m, victim, victim.Position) then
+			halt(m)
+			face(m, victim.Position)
+			attack(m, victim)
+		else
+			m.Humanoid:MoveTo(victim.Position)
+			setActivity(m, "Walk")
+		end
+		return true
+	end
+	if os.clock() > m.HideUntil then
+		m.Hunting = true -- nobody came: it goes looking (a Surge can't wait on it for ever)
+		setHidden(m, false)
+		return false
+	end
+	halt(m)
+	setHidden(m, os.clock() >= m.AttackReadyAt)
+	setActivity(m, "Idle")
+	return true
+end
+
+-- A Lurker takes hold of a resident: they can't move (ResidentBrain reads Grabbed) and it bites
+-- until it is hit for GrabBreakDamage, stunned or killed.
+function grab(m: Monster, c: any)
+	if m.Grabbing or not c.Model then
+		return
+	end
+	m.Grabbing = c.Id
+	m.GrabDamage = 0
+	c.Model:SetAttribute("Grabbed", true)
+	setActivity(m, "Latched")
+end
+
+-- A Tide Crab's shell (the Appendix: "Armoured front, weak point on its back"): what hits it from
+-- in front does ArmorFront of its damage, what hits it from behind WeakBack times it.
+local function shell(target: any, amount: number, source: any?, _how: string?): number
+	local m = monsters[target.Id]
+	if not m or not source or not source.Root or amount <= 0 or not (has(m, "ArmoredFront") or has(m, "WeakPointBack")) then
+		return amount
+	end
+	local to = source.Root.Position - m.Root.Position
+	local flat = Vector3.new(to.X, 0, to.Z)
+	if flat.Magnitude < 0.5 then
+		return amount
+	end
+	local look = m.Root.CFrame.LookVector
+	local dot = flat.Unit:Dot(Vector3.new(look.X, 0, look.Z).Unit)
+	local t = ai()
+	if has(m, "ArmoredFront") and dot >= math.cos(math.rad(t.ArmorArcDegrees / 2)) then
+		m.Model:SetAttribute("ShellHitAt", os.clock()) -- the client's sparks
+		return amount * t.ArmorFront
+	elseif has(m, "WeakPointBack") and dot <= -math.cos(math.rad(t.WeakArcDegrees / 2)) then
+		m.Model:SetAttribute("WeakHitAt", os.clock())
+		return amount * t.WeakBack
+	end
+	return amount
+end
+
 
 -- The tick -----------------------------------------------------------------------------------------
 
@@ -1024,6 +1239,33 @@ local function step(m: Monster)
 			end
 			return
 		end
+	end
+	if m.Grabbing then
+		-- a Lurker holding a resident (Prompt 23)
+		local c = combat:Get(m.Grabbing)
+		if not c or c.State ~= "Alive" or m.GrabDamage >= ai().GrabBreakDamage then
+			local broken = m.GrabDamage >= ai().GrabBreakDamage
+			unlatch(m)
+			if broken then
+				m.Model:SetAttribute("StunnedUntil", now() + ai().GrabBreakStun)
+				return
+			end
+		else
+			halt(m)
+			face(m, c.Root.Position)
+			if os.clock() >= m.AttackReadyAt then
+				m.AttackReadyAt = os.clock() + m.Spec.AttackSeconds
+				m.Model:SetAttribute("AttackAt", os.clock())
+				combat:Damage(c.Id, m.Spec.Damage * ai().GrabDamageMultiplier, m.Id, "grabbed")
+			end
+			return
+		end
+	end
+	if m.Bursting then
+		return -- a Bloat Toad swelling
+	end
+	if has(m, "Hides") and ambush(m) then
+		return
 	end
 	local post = m.Post
 	if post and m.Asleep then
@@ -1093,7 +1335,11 @@ local function step(m: Monster)
 			halt(m)
 		end
 		face(m, at)
-		attack(m, target)
+		if has(m, "Explodes") then
+			swell(m) -- contact: a Bloat Toad bursts
+		else
+			attack(m, target)
+		end
 		return
 	end
 	walk(m, at)
@@ -1134,6 +1380,7 @@ function MonsterService:Init(registry)
 	grid = registry.BunkerGrid
 	residents = registry.ResidentService
 	director = registry.RunDirector
+	power = registry.PowerService
 	dev = registry.DevService
 
 	pcall(function()
@@ -1195,6 +1442,7 @@ end
 
 function MonsterService:Start()
 	holder()
+	combat:AddDamageFilter("Shell", shell)
 	combat.Died:Connect(function(id: string)
 		local m = monsters[id]
 		if not m then
@@ -1202,11 +1450,21 @@ function MonsterService:Start()
 		end
 		unlatch(m)
 		monsters[id] = nil
+		if has(m, "Explodes") and not m.Model:GetAttribute("Burst") and m.Root.Parent then
+			burst(m) -- "Bursts on death or contact" (Prompt 23)
+		end
 		MonsterService.Died:Fire(id, m.Type, m.Tag)
 		task.defer(drainQueue)
 	end)
 	combat.Damaged:Connect(function(targetId: string, _amount: number, sourceId: string?)
 		local m = monsters[targetId]
+		if m and m.Grabbing then
+			m.GrabDamage += _amount -- hit it hard enough and it lets go
+		end
+		if m and m.Hidden then
+			setHidden(m, false) -- a hit shows where it lies
+			m.AttackReadyAt = math.max(m.AttackReadyAt, os.clock() + ai().RevealSeconds)
+		end
 		if m and sourceId and string.sub(sourceId, 1, 1) == "P" then
 			m.Aggro[sourceId] = os.clock() + ai().AggroSeconds
 			if m.Target == nil or m.Target.Kind ~= "Residents" then

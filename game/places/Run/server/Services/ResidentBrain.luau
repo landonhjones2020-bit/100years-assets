@@ -475,6 +475,11 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 		end
 		return "Leave", nil, nil, "Walk"
 	end
+	-- held by a Lurker (Prompt 23; MonsterService sets Grabbed): they can't move until it lets go
+	local held = bodies[id]
+	if held and held.Model:GetAttribute("Grabbed") then
+		return "Grabbed", nil, nil, "Flee"
+	end
 	local rallyGoal, rallyRoom, rallySpot, rallyActivity = rallyPlan(id, order)
 	if rallyGoal then
 		return rallyGoal, rallyRoom, rallySpot, rallyActivity :: string
