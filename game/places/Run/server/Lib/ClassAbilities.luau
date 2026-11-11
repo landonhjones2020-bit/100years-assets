@@ -705,7 +705,7 @@ local function triagePulse(state: State): (boolean, string?, string?, number?)
 		end
 	end
 	if healed == 0 and cleared == 0 then
-		return false, "NOBODY NEARBY NEEDS HEALING""
+		return false, "NOBODY NEARBY NEEDS HEALING"
 	end
 	fx(player, "Pulse", root.Position, { Radius = tt.TriageRadius })
 	return true, `TRIAGE PULSE: {healed} HEALED{if cleared > 0 then ` · {cleared} CLEARED` else ""}`

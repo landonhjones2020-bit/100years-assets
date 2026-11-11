@@ -2162,7 +2162,7 @@ test("Boss: the Brood Mother's health, phases and hits (Sections 5 and 22, Promp
 	for _, key in { "MoveSpeed", "AttackSeconds", "LaySeconds", "SacsPerLay" } do
 		expectEqual(#fight[key], phases, `{key}: one value per phase`)
 	end
-	expectEqual(Boss.Fight("CrystalColossus"), nil, "no fight yet for the Era III boss")
+	expectEqual(Boss.Fight("Source"), nil, "no fight yet for the Source (Prompt 25)")
 end)
 
 test("Boss: The Deluge's fight and the way it swims (Section 10, Prompt 23)", function()
