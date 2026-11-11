@@ -33,6 +33,7 @@ local SKELETON: { { string } } = {
 	{ "ReplicatedStorage.Shared.Rules.CameraRig", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Clock", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Grid", "ModuleScript" },
+	{ "ReplicatedStorage.Shared.Rules.Cutscene", "ModuleScript" }, -- Prompt 22 (shared: the data tests check it in both places)
 	{ "ReplicatedStorage.Shared.Rules.Hud", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.CommandView", "ModuleScript" },
 	{ "ReplicatedStorage.Shared.Rules.Construction", "ModuleScript" },
@@ -135,8 +136,7 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.ClassService", "ModuleScript" }, -- Prompt 20
 		{ "ServerScriptService.Lib.ClassAbilities", "ModuleScript" },
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.ClassController", "ModuleScript" },
-		{ "ReplicatedStorage.Shared.Rules.Cutscene", "ModuleScript" }, -- Prompt 22
-		{ "ServerScriptService.Services.CutsceneService", "ModuleScript" },
+		{ "ServerScriptService.Services.CutsceneService", "ModuleScript" }, -- Prompt 22
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController", "ModuleScript" },
 		{ "StarterGui.HUD.BossBar", "ImageLabel" },
 		{ "StarterGui.Reticle.Sight.Hit", "Frame" },

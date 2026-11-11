@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T02:52:42Z",
- "commit": "8c9025a71e49ecd30c2f03351391a73311f8ec7f",
- "label": "p22-8c9025a",
+ "built": "2026-11-11T02:54:09Z",
+ "commit": "284c06b7866fb7d32002e3a96c96b705fa686a12",
+ "label": "p22-284c06b",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -42,7 +42,7 @@
    "ReplicatedStorage.Shared.Config.CutscenePaths": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/CutscenePaths.luau",
-    "Hash": "e04cf25b"
+    "Hash": "5fe1962d"
    },
    "ReplicatedStorage.Shared.Config.Cutscenes": {
     "Class": "ModuleScript",
@@ -432,7 +432,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "4f1cc04b"
+    "Hash": "d4922fd4"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -654,7 +654,7 @@
    "ReplicatedStorage.Shared.Config.CutscenePaths": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/CutscenePaths.luau",
-    "Hash": "e04cf25b"
+    "Hash": "5fe1962d"
    },
    "ReplicatedStorage.Shared.Config.Cutscenes": {
     "Class": "ModuleScript",
@@ -1044,7 +1044,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "4f1cc04b"
+    "Hash": "d4922fd4"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",

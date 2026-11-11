@@ -37,7 +37,7 @@
 	  run's clock starts at the 30-second mark for everyone, so a plate counts down to it.
 
 	Dev (client): `cutscene` (state), `cutscene.play [from]`, `cutscene.at <seconds>` (hold a
-	moment), `cutscene.stop`, `cutscene.skip`.
+	moment), `cutscene.stop`, `cutscene.skip`, `cutscene.comfort [flash] [shake]` (true or false).
 ]]
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -149,6 +149,10 @@ local lastT = 0
 local startedClock = 0 -- os.clock() when this playing began
 local bulletinReady = false
 local lastShot = ""
+-- Bible Section 18: "screen shake and flashing can be turned off". The Settings screen (a later
+-- prompt) calls SetComfort; until then both are on.
+local flashing = true
+local shaking = true
 
 -- The screen -------------------------------------------------------------------------------------
 
@@ -362,7 +366,12 @@ local function applyLook(t: number)
 		end
 	end
 	local f = if to.At > from.At and not to.Cut then math.clamp((t - from.At) / (to.At - from.At), 0, 1) else 0
-	local a, b = words.Looks[from.Look], words.Looks[to.Look]
+	local fromLook, toLook = from.Look, to.Look
+	if not flashing then -- no burst of light: straight from the morning to the blast's own light
+		fromLook = if fromLook == "Flash" then "Blast" else fromLook
+		toLook = if toLook == "Flash" then "Blast" else toLook
+	end
+	local a, b = words.Looks[fromLook], words.Looks[toLook]
 	for field, property in LOOK_NUMBERS do
 		(Lighting :: any)[property] = mixNumber(a[field], b[field], f)
 	end
@@ -735,8 +744,8 @@ local function build(): World?
 	ash.CastShadow = false
 	ash.Size = Vector3.new(150, 70, 110)
 	for _, look in {
-		{ Name = "Flakes", Color = Color3.fromHex("#3B3431"), Size = 0.55, Rate = 170, Speed = 9, Light = 0, Life = 5 },
-		{ Name = "Embers", Color = Color3.fromHex("#FF8A3A"), Size = 0.32, Rate = 45, Speed = 5, Light = 1, Life = 3.5 },
+		{ Name = "Flakes", Color = Color3.fromHex("#3B3431"), Size = 0.36, Rate = 190, Speed = 9, Light = 0, Life = 5 },
+		{ Name = "Embers", Color = Color3.fromHex("#FF8A3A"), Size = 0.22, Rate = 50, Speed = 5, Light = 1, Life = 3.5 },
 	} do
 		local emitter = Instance.new("ParticleEmitter")
 		emitter.Name = look.Name
@@ -1038,7 +1047,7 @@ local function shake(t: number): Vector3
 	if t >= Cutscene.Beat(path, "DiveFrom") and t < Cutscene.Beat(path, "PlungeTo") then
 		amount = math.max(amount, tuning.PlungeShake)
 	end
-	if amount <= 0 then
+	if amount <= 0 or not shaking then
 		return Vector3.zero
 	end
 	return Vector3.new(math.noise(t * 23, 1.3), math.noise(t * 27, 7.7), math.noise(t * 19, 13.1)) * amount * 2
@@ -1172,6 +1181,9 @@ local function showScreen(t: number, target: World?)
 		white = (t - (flashAt - 0.14)) / 0.14
 	elseif t >= flashAt then
 		white = 1 - Cutscene.Smooth((t - flashAt - 0.18) / 0.9)
+	end
+	if not flashing then
+		white = math.min(white, 0.3) -- a soft wash where the flash would be, so the cut still reads
 	end
 	barsPart("Flash").BackgroundTransparency = 1 - math.clamp(white, 0, 1)
 	-- dust: the ring reaches the camera
@@ -1398,6 +1410,12 @@ local function begin(followClock: boolean, from: number?)
 	pcall(function()
 		ReplicatedFirst:RemoveDefaultLoadingScreen()
 	end)
+	-- "It doubles as the loading screen: the bunker and nearby zones stream in behind it" (Section 4)
+	task.spawn(function()
+		pcall(function()
+			Players.LocalPlayer:RequestStreamAroundAsync(Grid.CellPosition(1, 0), 10)
+		end)
+	end)
 	ui:Lock(REASON, true)
 	input:Block(REASON, true)
 	hud:Hide(REASON, true)
@@ -1452,6 +1470,12 @@ end
 
 function CutsceneController:IsPlaying(): boolean
 	return playing
+end
+
+-- The accessibility settings: no white flash, no camera shake (bible Section 18).
+function CutsceneController:SetComfort(flash: boolean, shake: boolean)
+	flashing = flash
+	shaking = shake
 end
 
 function CutsceneController:State(): { [string]: any }
@@ -1521,6 +1545,10 @@ function CutsceneController:Init(registry)
 	dev:Register("cutscene.skip", function(): string?
 		skip()
 		return describe()
+	end)
+	dev:Register("cutscene.comfort", function(args: { any }): string?
+		CutsceneController:SetComfort(args[1] ~= false, args[2] ~= false)
+		return `cutscene: flash {if flashing then "on" else "off"}, shake {if shaking then "on" else "off"}`
 	end)
 end
 
