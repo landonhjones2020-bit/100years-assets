@@ -162,6 +162,26 @@ Design Notes and Delivery Reports: `game/reports/`.
    (`game.CoreGui.FoundationOverlay...Sheet.Content.Actions.1.BuyButton`, clickable by instance
    path; a Studio purchase is a test purchase).
 
+## 4e. The intro cutscene (Prompt 22)
+
+The cutscene is data made here. `generators/Cutscene/cutscene_plan.py` is the set's plan (where
+the street, the hill, the door and the blast are; the runners; the beats). `Intro_Scene.py` puts
+the exported models together in Blender, keys the camera (`SHOTS`: time, position, look-at, field
+of view), and:
+`python3 generators/Cutscene/Intro_Scene.py` renders `previews/Cutscene/Storyboard.png` (24
+frames; `SF_AT=6.5,12` for single frames in `/tmp/cs`), and `--data` writes
+`cutscene/IntroPath.luau`; `python3 tools/cutscene_config.py` copies it to
+`game/shared/Config/CutscenePaths.luau` (never edit that by hand). Then the usual code build.
+Words and lighting: `game/shared/Config/Cutscenes.luau`. Blender set space to the game:
+(x, y, z) → (-x, z, y) from `Tuning.Cutscene.SetOrigin`; the plunge's shots are in the bunker's
+space (`Grid.CellPosition(1, 0)`), whose rock stands 19.2 studs out from the grid's plane. The set's
+models (`ServerStorage.Assets.Lobby`, `.Town`, `.Cutscene` in the Run place) are put together by
+`CutsceneService` from that data: a new piece needs only its row in the plan and its model set up.
+In a playtest `cutscene.at <seconds>` (client DevInvoke) holds a moment for a capture.
+A part the game moves or scales keeps its own name through `part=` and `role=` (the door's leaves,
+the cloud's parts, the eyes); a part of flat lettering alone fails the size check (give it depth).
+A clip must be loaded after its model is in `workspace`, or it plays with no length for ever.
+
 ## 4d. The bible
 
 The master copy is the live Claude Doc (https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU;

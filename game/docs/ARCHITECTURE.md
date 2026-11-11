@@ -975,6 +975,39 @@ experience), `Config.Classes` (kits, passives, abilities, level 2 and 3 as modif
 * Dev: classes, class <Id> [level] [player], class.level, class.own, ability [option],
   ability.ready, classxp <years>, resident.arm <id|all> [item|none], record <Class> [trial].
 
+## The intro cutscene (Run place)
+
+Bible Section 4; Prompt 22. `Shared.Rules.Cutscene` (pure), `Config.CutscenePaths` (generated from
+the Blender scene: `generators/Cutscene/Intro_Scene.py --data`, then `tools/cutscene_config.py`;
+never edited by hand), `Config.Cutscenes` (words and lighting), `Tuning.Cutscene`.
+
+* **One number.** Everything on screen is set each frame from the seconds since the cutscene
+  began: `Cutscene.Elapsed(30, RunState.TimeLeft())` in the Intro phase. No tweens, no timers.
+  That is why it ends with the run's clock, why a late joiner enters at the right moment, and how
+  `cutscene.at <seconds>` holds a moment.
+* **The data.** `Shots` (name, From, To, Space "Set" or "Bunker", Rate, Handover, Keys of
+  `{ x, y, z, qx, qy, qz, qw, field of view }`), `Set` (Asset, Category, P, Yaw, Scale, Kind,
+  Paint), `Ground`, `RunPath`, `Runners` (Delay, Side), `RunSpeed`, `Anchors`, `Beats`, `WaveReach`,
+  `Cloud`. A piece's Kind says what the blast does to it: Still, Block (sinks and leans), Car
+  (thrown), Tree and Tower (go over), Bunting (gone).
+* **The set.** `CutsceneService` builds `ReplicatedStorage.CutsceneSet` at the start (`Pieces`,
+  `Ground`, `Effects`) from `ServerStorage.Assets` and destroys it `KeepSetSeconds` into the run.
+  `CutsceneController` clones it to `Tuning.Cutscene.SetOrigin` for its own client and destroys the
+  clone when it finishes. "Set" shots are in that space; "Bunker" shots are at
+  `Grid.CellPosition(1, 0)`, in front of the real bunker shown by `CommandViewController:Present`.
+* **Taking and giving back.** It takes the camera (`CameraController:Suspend`), hides the HUD
+  (`HUDController:Hide`), locks the screens (`UIController:Lock`), blocks input, holds the
+  character and hides Roblox's own menus, all under the reason "Cutscene", and gives each back in
+  `finish`. The last shot (`Handover`) ends in code: `CommandViewController:Pose` over the
+  player's character, then `CameraController:Resume` and a push-in to the live camera.
+* **Skip.** `Cutscene.CanSkip(firstRun, elapsed, skipAfter)`: the player's `IntroFirstRun`
+  attribute (the profile's `FirstRunDone`, set by `CutsceneService`) and
+  `Tuning.Clock.IntroSkipAfterSeconds`. A skipper gets the `Cutscene.Wait` telegram until the run
+  starts.
+* **Runners.** Avatars from `Players:CreateHumanoidModelFromDescription` on the client (a copy of
+  the character until it arrives), then copies of `workspace.Bunker.Residents`. A runner's clip is
+  loaded only once its model is in `workspace` (a clip loaded before that never plays).
+
 ## The lobby (Lobby place)
 
 Bible Section 21 (the hub, elevator pads, teleport, rejoin), Section 14 (the Daily Class Shop, the
@@ -1183,6 +1216,8 @@ ClassShop, Account, Lobby).
 | both | ResidentsController | controller | UIController, ReplicaController | the Residents screen (Run) |
 | Run | CombatController | controller | InputController, CameraController, HUDController | the local player's fighting: input, feedback, aim assist, the hotbar, stamina, life overlays, clips |
 | Run | ClassController | controller | InputController, CameraController, HUDController | the class ability key (tap to use, hold for the next option), the class plate and ability gauge, the beacon chip, the grapple's zip, class-only prompts, ability effects |
+| Run | CutsceneService | service | RunDirector, SessionService, ProfileService, DevService | the intro cutscene's set in ReplicatedStorage (Prompt 22), each player's IntroFirstRun |
+| Run | CutsceneController | controller | InputController, CameraController, UIController, HUDController, CommandViewController, DevController | plays the intro cutscene from Config.CutscenePaths: camera, runners, the blast, the light, the bars, bulletin, title and Skip; hands the camera back |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
@@ -1333,3 +1368,8 @@ ClassShop, Account, Lobby).
   only the record's party. The Class Shop Reroll developer product (3730189637). The A9 lobby art:
   28 models on `generators/Town/townkit.py` (architecture as merged decoration with colliders and
   lights in the sidecar), `workspace.Lobby` built by `tools/lobby_world.py`.
+* **Prompt 22 (2026-11-10)**: the intro cutscene (Run). Rules.Cutscene, Config.CutscenePaths
+  (generated from Blender) and Config.Cutscenes, CutsceneService, CutsceneController, the
+  CutsceneBars and Cutscene screens. New on other modules: `UIController:Lock`,
+  `CommandViewController:Present` and `:Pose`, `DevController:Register`, `Screen.Insets` in the UI
+  contract. The A9 cutscene set: seven new models, the title sprites, `R15_IntroSprint`.

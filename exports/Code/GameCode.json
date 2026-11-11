@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T02:54:09Z",
- "commit": "284c06b7866fb7d32002e3a96c96b705fa686a12",
- "label": "p22-284c06b",
+ "built": "2026-11-11T03:00:21Z",
+ "commit": "f3335233165bfa310188f0acd2623fe234fbf475",
+ "label": "p22-f333523",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -437,7 +437,7 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "2a4fab98"
+    "Hash": "b1bb408c"
    },
    "ServerScriptService.Lib.BrightwaterMap": {
     "Class": "ModuleScript",
@@ -1049,7 +1049,7 @@
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "2a4fab98"
+    "Hash": "b1bb408c"
    },
    "ServerScriptService.Lib.BrightwaterMap": {
     "Class": "ModuleScript",
@@ -1304,7 +1304,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/CutsceneController.luau",
-    "Hash": "fb08479f"
+    "Hash": "df7d3d09"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DeepController": {
     "Class": "ModuleScript",

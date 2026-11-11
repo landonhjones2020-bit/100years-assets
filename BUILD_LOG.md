@@ -46,7 +46,9 @@ Newest first. Every "verified" line says how it was checked.
 | A2 weapons and tools | ✅ in Studio 2026-11-09 | All 34 models set up in Run (size and pivot measured, sockets written): the first seven (Prompts 11 to 14) and the 27 of Prompt 20 (15 weapons, 4 throwables, 2 tools, 2 items, the lamp, barricade, turret and combat drone); 17 player clips (the 11 of Prompt 11 and 6 for two-handed weapons, heavy swings and throws); 32 item icons in one atlas; held, fired, swung and thrown in Run playtests (`previews/Game/P20_rifle_*.jpg`, `P20_fireaxe_swing.jpg`, `P20_*_art.jpg`) |
 | Rubble kit (Prompt 13) | ✅ in Studio 2026-11-09 | `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` set up in Run (size and pivot measured), placed by real cave-ins in a playtest |
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
-| A3, A7, A8, A9's cutscene set and Digby, A10, A11 | not started | |
+| Prompt 22: the intro cutscene (Run) | ✅ done 2026-11-10 | Run playtests: the whole 30 seconds by the run's clock, every moment held and captured (`cutscene.at`), the first-run rule, Skip and the wait for the run, a stop mid-blast, quality level 1; two players, a late joiner and a phone still need the live game; `game/reports/P22_IntroCutscene.md`, `previews/Game/P22_Intro_sheet.jpg` |
+| A9 cutscene set: Mine Hill, the blast door, the blast, the ground cut open, the Source's glimpse | ✅ in Studio 2026-11-10 | 24 models set up in Run (17 of the lobby's and the town's, 7 new; size and pivot measured against their sidecars), assembled from `Config.CutscenePaths` and seen in the playtest; `previews/Cutscene/` |
+| A3, A7, A8, Digby, A10, A11 | not started | |
 
 ## Ids
 
@@ -84,7 +86,50 @@ Newest first. Every "verified" line says how it was checked.
 | A6 cave pieces (Flooded Caverns) | Entry 88005799323610, Tunnel 105408170372431, Junction 75060404030395, Pocket 75206193324335, Chamber 114211170875518, Cavern 119297962809184, Drop 130513581479117, CrewPocket 95172140422209 |
 | A6 props and the camp | Prop_CryoPod 132623260035104, Prop_RadioLog 98835439143608, Prop_OreVein_Iron 115510368510470, Prop_OreVein_Copper 95549982504888, Prop_GlowshardChest 86151759055326, Bldg_RaiderCamp 122967926196969 |
 | Tooling (one-off Studio setup batches as a Model) | ArtSetupBatch_A4detail 135542687260691, ArtSetupBatch_A5walls 126694463530516, ArtSetupBatch_A6 84423211905560 |
+| A9 cutscene set (Run) | Cutscene_Hill 97664216876618, Cutscene_BlastDoor 73041197801593 (revision 2: the SEALED lamp's letters have thickness), Cutscene_Bomb 113244382955605, Cutscene_Shockwave 116384609836382, Cutscene_MushroomCloud 129445007020017, Cutscene_Strata 85046200005989, Cutscene_SourceGlimpse 99512688533587 |
+| UI atlas: title | decal 87476621307051, image 71612230706016 (`Title_Years`, `Title_Below`) |
+| R15_IntroSprint | animation 70631532326043 (`Config.Animations.IntroSprint`) |
+| Tooling (Prompt 22's setup batches) | ArtSetupBatch_P22a 108135954041812, ArtSetupBatch_P22b 78236735280456 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-10 (evening, Chicago): Prompt 22, the intro cutscene; the A9 cutscene set
+
+Game code build `p22-f333523` (final for Prompt 22): code asset 95026446991297 revision 96,
+installed in Run and Lobby: StructureCheck 0 errors (Run 577 checks, Lobby 356), 121 data tests
+passed in each. Report: `game/reports/P22_IntroCutscene.md` (9 Bible Questions).
+
+| What | Ids | Status | Notes |
+|---|---|---|---|
+| Cutscene_Hill | 97664216876618 | in_studio | Mine Hill: the stepped path, the arch, the terrace, the STEADFAST letters, the old mine; 12,028 tris |
+| Cutscene_BlastDoor | 73041197801593 (rev 2) | in_studio | two leaves on a rail (LeafLeft, LeafRight), Wheel, beacons, the SEALED lamp, the hall behind; `LeafTravel` 10.6 |
+| Cutscene_Bomb, _Shockwave, _MushroomCloud | 113244382955605, 116384609836382, 129445007020017 | in_studio | the cloud's parts keep their names (Base, Stem, Cap, CapGlow, Skirt) for the game to scale |
+| Cutscene_Strata | 85046200005989 | in_studio | the ground above the bunker cut open, the lift shaft and its car; 7,814 tris |
+| Cutscene_SourceGlimpse | 99512688533587 | in_studio | the mouth, the mass, seven eyes (`Eye<n>`, `Eye<n>Pupil`) |
+| The lobby's and town's 17 set models | their own ids (`manifest.csv`) | in_studio (Run too) | inserted into the Run place and set up there (`ServerStorage.Assets.Lobby`, `.Town`) |
+| UI atlas: title | decal 87476621307051, image 71612230706016 | uploaded | see finding 3 |
+| R15_IntroSprint | 70631532326043 | verified | seen playing on the avatar and the six founders in the playtest |
+
+**Verified in Studio (Run playtests)**: see the report's testing checklist. In short: the intro ran
+with the run's clock to exactly 30.0 s; each of 16 moments was held with `cutscene.at` and
+captured; first run, Skip, the wait for the run, stopping mid-blast and quality level 1 were each
+tried for real.
+
+**Findings**
+1. `Animator:LoadAnimation` on a model that is not yet in `workspace` returns a track that plays
+   with length 0 and weight 0 for ever, with no error. Load the clip after parenting.
+2. `execute_luau` with a `require` of a big setup module (48 KB of setup for 22 models) came back
+   "Target is not reachable" twice although the module had run to the end: check the result with a
+   second call instead of running it again.
+3. The Run studio's process kept a failed download of the title atlas (a timeout) for the rest of
+   the session: `rbxassetid://71612230706016` stayed blank there while the same id loaded in the
+   Lobby's Studio and through `https://assetdelivery.roblox.com/v1/asset/?id=...`. A Studio restart
+   should clear it. The title card has a typed fallback for a real slow connection.
+4. A flat (`flat=True`) lettering part of its own is 0.001 studs thick in Studio and fails
+   AssetSetup's size check: give a role part's letters real depth.
+5. The game's rock cells stand 19.2 studs out from the grid's plane (measured), and are coloured
+   by depth band (the Source Chamber's row is red with glowing green veins).
+6. The Lobby studio's id changed during the session (now `d30af1a1-...`): call
+   `list_roblox_studios` before using a remembered id.
 
 ## 2026-11-10 (afternoon, Chicago): the 15 class looks; Prompt 21 complete
 

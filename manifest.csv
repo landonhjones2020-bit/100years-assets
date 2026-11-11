@@ -227,5 +227,5 @@ Cutscene_Shockwave,Cutscene,model,A9,101.629x7.996x101.2,6500,1600,cream;porcela
 Cutscene_MushroomCloud,Cutscene,model,A9,193.255x247.472x194.566,9000,3764,cream;leather;porcelain;rust;sandstone;signal;stone,in_studio,129445007020017,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
 Cutscene_Strata,Cutscene,model,A9,520x130.198x4.535,8000,7814,ash;basalt;brass;chrome;copper;cream;gunmetal;hazard;leather;mint;navy;pine;rubber;rust;sandstone;skyblue;steel;stone;teal;walnut,in_studio,85046200005989,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
 Cutscene_SourceGlimpse,Cutscene,model,A9,260x126.721x9.188,6000,3776,basalt;glow;plum;rubber;rust,in_studio,99512688533587,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
-R15_IntroSprint,Animations/R15,clip,,,,,,exported,,
-R15_IntroSprint,Animations/R15,clip,P22,,,,,uploaded,70631532326043,"Prompt 22 clip: the sprint to the shelter in the intro cutscene, R15, Action priority, 0.4 s loop; generators/Clips/R15_IntroSprint.py"
+R15_IntroSprint,Animations/R15,clip,,,,,,verified,,; seen playing on the avatar and the six founders in a Run playtest (Nov 10)
+R15_IntroSprint,Animations/R15,clip,P22,,,,,verified,70631532326043,"Prompt 22 clip: the sprint to the shelter in the intro cutscene, R15, Action priority, 0.4 s loop; generators/Clips/R15_IntroSprint.py; seen playing on the avatar and the six founders in a Run playtest (Nov 10)"

@@ -1,6 +1,6 @@
 # 100 Years Below: handoff for the next chat
 
-Written 2026-11-10 (late afternoon, Chicago), after Prompt 21. The game was called 100 Years Of
+Written 2026-11-10 (evening, Chicago), after Prompt 22. The game was called 100 Years Of
 Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
 here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
@@ -12,15 +12,26 @@ refreshed from it the same day).
    runbook) and `BUILD_LOG.md` (status, every id, what is open).
 2. Start installing Blender in the background (`pip install --break-system-packages bpy==5.2.3`).
 3. Studio: `list_roblox_studios` shows "100 Years Of Fallout" (the Lobby) and "run" (the Run
-   place). Never touch the Night Shift studio. Studio asked for a restart on Nov 10 (its Assistant
-   plugin changed version): ask Landon to restart it if tools misbehave.
-4. Work in this order unless Landon says otherwise: the open work below, then Prompt 22, 23, 24.
+   place). Their ids change when a Studio restarts or reconnects (the Lobby's did on Nov 10): list
+   them again instead of using a remembered id. Never touch the Night Shift studio. Studio asked
+   for a restart on Nov 10 (its Assistant plugin changed version): ask Landon to restart it if
+   tools misbehave.
+4. Work in this order unless Landon says otherwise: Prompt 23, Prompt 24, then the open work below.
 
 ## Where things stand
 
-* **Prompts 0 to 21 are built and tested in Studio.** Code build `p21-2c777a7` (code asset
-  95026446991297, revision 91) is installed in both places: StructureCheck 0 errors (Lobby 352
-  checks, Run 534), 116 data tests.
+* **Prompts 0 to 22 are built and tested in Studio.** Code build `p22-f333523` (code asset
+  95026446991297, revision 96) is installed in both places: StructureCheck 0 errors (Lobby 356
+  checks, Run 577), 121 data tests.
+* **Prompt 22 (the intro cutscene).** Every run opens with the 30 seconds of bible Section 4,
+  played by each client from data made in Blender: the billboard and Main Street, the party's
+  avatars and the six founders sprinting up Mine Hill into the blast door, the bomb, the door
+  sealing, the flash, the shockwave flattening the town, the cloud, the plunge down the lift shaft
+  past the run's real rooms to the Source opening its eyes, the title and "Survive. Dig. Don't wake
+  it.", then a push-in to the player's own camera. First run in full; Skip from 2 s after that,
+  personal, with a telegram counting down to the run. No sound yet (Prompt 32). Report:
+  `game/reports/P22_IntroCutscene.md` (9 Bible Questions); captures
+  `previews/Game/P22_Intro_sheet.jpg`. How to change it is in `CLAUDE.md` section 4e.
 * **Prompt 21 (the Lobby).** The Lobby place is Brightwater's Main Street on a sunny morning with
   the Steadfast showroom in the middle (`workspace.Lobby`, built by the script
   `tools/lobby_world.py` prints). Inside: six elevator pads (Solo, Private, Public Normal, Public
@@ -37,7 +48,9 @@ refreshed from it the same day).
   Bible Questions).
 * **Art in Studio.** Run place: A1 bunker kit, A2 (all 34 weapons, tools and devices), A4 Mines
   monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
-  detail pass. Lobby place: A9's lobby half, 28 models (`ServerStorage.Assets.Lobby` and `.Town`).
+  detail pass, and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
+  seven new models in `ServerStorage.Assets.Cutscene`). Lobby place: A9's lobby half, 28 models
+  (`ServerStorage.Assets.Lobby` and `.Town`).
   Class looks: all 19 (outfits on the resident rig in `generators/Residents/outfits.py`,
   portraits on the class cards; `previews/Residents/Class_Portraits.jpg`). They are portraits
   only: nothing is worn in a run yet (class cosmetics are art step A11).
@@ -55,7 +68,9 @@ refreshed from it the same day).
    lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
    (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
    survivors, the raider camp, the checkpoint and the storms all hang off that map).
-2. **Prompts 22, 23 and 24** (prep below).
+2. **Prompts 23 and 24** (prep below) come first: Landon's instruction of Nov 10 was the next
+   three prompts, and 22 is done.
+3. **Digby the Gopher** (the mascot: the lobby's greeter and Prompt 31's tips) is still unmade.
 
 The bible was brought up to date on Nov 10 (it had been behind since Nov 9): the title, Landon's
 30 answers to the Prompt 13, 14, 16 and 17 questions, RescueService and the nests' split in
@@ -75,42 +90,11 @@ Years Below — Game Bible v1.0".
 * His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
   detailed, bosses scary; art made in Blender here and it has to actually look good.
 
-## Next: Prompts 22, 23 and 24
+## Next: Prompts 23 and 24
 
 Standing rules (bible Section 24): one system per prompt, the bible wins, never invent gameplay
 (suggest it in the Design Notes), content is data, a real playtest for timing, permissions and
 saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
-
-### Prompt 22: the intro cutscene (Run)
-
-* Bible: Section 4 (the six shots over 30 seconds, the rules, how it is built), Section 19 (the
-  set is modelled here), Section 23 (the cutscene pre-streams the bunker).
-* The shots: 0 to 5 s sunny Main Street, sirens, a radio bulletin scrolling; 5 to 10 s the party's
-  avatars sprint up the hillside path into the Steadfast blast door with six residents; 10 to 15 s
-  a bomb crosses the sky, the door rolls shut; 15 to 21 s white flash, a shockwave flattens the
-  town, a mushroom cloud; 21 to 27 s the camera plunges through the rock past the bunker's rooms to
-  something glowing that opens its eyes; 27 to 30 s the title card and "Survive. Dig. Don't wake
-  it.", then the camera settles into the Command View and zooms down to your character.
-* Rules: an account's first run plays it in full; after that each player can skip after 2 s;
-  skipping is personal and the run clock starts at the 30 s mark for everyone; letterbox bars, the
-  HUD hidden, a small Skip button bottom right; text and sound only (sound is Prompt 32).
-* Already in the code: `RunDirector`'s Intro phase (`IntroEndsAt`, 30 s; Studio's `SkipIntro`
-  DevTools attribute and dev `run.skipintro`), `Tuning.Clock.IntroSeconds` and
-  `IntroSkipAfterSeconds`, the profile's `FirstRunDone` (ResultsService sets it),
-  `CameraController:Suspend(reason)` and `Resume` for a view that takes the camera, the Command
-  View's camera to hand over to.
-* To build: a client `CutsceneController` that plays a camera path from a Luau data module
-  (keyframes of time, position, rotation, exported from Blender and committed), rebuilds each
-  party member's avatar from their avatar description and runs them along a path, shows the
-  bulletin, the bars, the title card and Skip, and hands the camera to the Command View at 30 s.
-* Art (A9's other half): the set. Main Street before the bomb is the lobby's blocks
-  (`Lobby_Block*`, already made; the Run place needs them inserted and set up). New: the hillside
-  path and the blast door from outside, the bomb, the mushroom cloud, the shockwave ring, the rock
-  layers, the glimpse of the Source, and Digby the Gopher (the mascot who waves a shovel: the
-  lobby's greeter and Prompt 31's tips). The flash, blast and cloud are particles, beams and
-  tweened meshes.
-* For the Design Notes: where the set stands in the Run place (it must not be reachable in play),
-  what the six residents are (the founders), what the radio bulletin says.
 
 ### Prompt 23: Flooded Caverns monsters, floods and gas, The Deluge (Run)
 
@@ -151,13 +135,29 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * **The live test of Prompt 21** in the published game (the list is in `game/reports/P21_Lobby.md`):
   a pad to a real Run server, rejoin, Play Again, Return to Lobby, a friend on a private pad, one
   real 99 Robux reroll.
-* His answers to the Bible Questions of Prompt 19 (7), Prompt 20 (15) and Prompt 21 (15).
+* His answers to the Bible Questions of Prompt 19 (7), Prompt 20 (15), Prompt 21 (15) and
+  Prompt 22 (9: the path, the door's design, the names on the set, the bulletin's words, the
+  Source's eyes, what a skipper sees, press or hold, the Run place's leftovers).
+* His look at the intro (`previews/Game/P22_Intro_sheet.jpg`, or press Play in the Run place), and
+  the things only the live game can show: two or more players in it, someone joining during it, a
+  phone.
+* A Studio restart: the Run studio kept a failed download of the title's atlas on Nov 10, so the
+  title card showed its typed fallback there (BUILD_LOG, finding 3).
 * His look at the lobby (`previews/Game/P21_*.jpg`, or the Lobby place itself), at the town's
   names (Prompt 21, question 11) and at the 15 new class looks
   (`previews/Residents/Class_Portraits.jpg`; questions 14 and 15).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
 
 ## Testing tips
+
+* **The intro.** It plays at the start of every Run playtest (the `SkipIntro` attribute on
+  `ServerScriptService.DevTools` skips the phase). Client commands
+  (`PlayerScripts.DevInvoke:Invoke(cmd)`): `cutscene` (state), `cutscene.at <seconds>` (holds that
+  moment: wait a second, then `screen_capture`), `cutscene.play [from]`, `cutscene.stop`,
+  `cutscene.skip`, `cutscene.comfort <flash> <shake>`. Server: `intro`, `intro.first <true|false>`
+  (set it in the first second of a playtest to see a first run: no Skip). A dev replay is always
+  skippable. A big `require` through `execute_luau` can come back "Target is not reachable"
+  although it ran: look before running it twice.
 
 * **The lobby.** Server dev commands (`ServerScriptService.DevTools.Invoke:Invoke(cmd)`): `shop`,
   `shop.new`, `shop.day <n>`, `shop.rerolls <n>`, `shop.trial <used|unused>`, `pads`, `pad.go <id>`,
