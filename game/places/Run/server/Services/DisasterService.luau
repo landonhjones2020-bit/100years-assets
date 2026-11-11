@@ -545,11 +545,13 @@ local function fusePosition(): Vector3?
 	return Grid.CellPosition(reactor.Floor, reactor.Column) + Vector3.new(-12, 4, -6)
 end
 
--- A crystal seam splits the back wall where nothing stands against it: the first clear stretch of
--- a few, low ones first, then high above the furniture (Prompt 24's playtest: the first seam grew
--- behind the Medbay's cabinet, where nobody could see it). Walls, floors and long runs of pipe are
--- as wide as the cell and don't count.
+-- A crystal seam splits the back wall where nothing stands in front of it: the first clear stretch
+-- of a few, low ones first, then above the furniture, then under the ceiling (Prompt 24's
+-- playtests: the first seam grew behind the Medbay's cabinet and the second behind the Kitchen's
+-- stove, where nobody could see them). Walls, floors and long runs of pipe are as wide as the
+-- cell and don't count.
 local SEAM_SIZE = Vector3.new(5.6, 5.2, 1.6)
+local SEAM_VIEW = 5 -- studs in front of the wall that must be clear, so nothing hides it
 local function wallClear(model: Instance, centre: Vector3, size: Vector3, widest: number): boolean
 	local half = size / 2
 	for _, d in model:GetDescendants() do
@@ -572,21 +574,24 @@ local function seamSpot(room: any): CFrame
 	local g = Grid.Tuning()
 	local model = grid:RoomModel(room.Id)
 	local back = -(g.CellDepth / 2 - 0.8)
-	local first: CFrame? = nil
-	for _, height in { 3, g.CellHeight * 0.6 } do
+	local view = Vector3.new(SEAM_SIZE.X, SEAM_SIZE.Y, SEAM_VIEW)
+	local last: CFrame? = nil
+	for _, height in { 3, g.CellHeight * 0.6, g.CellHeight * 0.735 } do
 		for span = 0, (room.Span or 1) - 1 do
 			local cell = Grid.CellPosition(room.Floor, room.Column + span)
 			for _, x in { -0.25, 0.25, 0, -0.38, 0.38, -0.12, 0.12 } do
 				local at = cell + Vector3.new(g.CellWidth * x, height, back)
-				first = first or CFrame.new(at)
-				-- what stands in front of the wall there (the seam itself comes 1.5 studs out of it)
-				if not model or wallClear(model, at + Vector3.new(0, 0, 1.1), SEAM_SIZE, g.CellWidth * 0.8) then
+				-- the seam itself comes 1.5 studs out of the wall; the box starts just in front of the wall's trim
+				if not model or wallClear(model, at + Vector3.new(0, 0, 0.3 + SEAM_VIEW / 2), view, g.CellWidth * 0.8) then
 					return CFrame.new(at)
+				end
+				if x == -0.25 and span == 0 then
+					last = CFrame.new(at) -- nothing clear anywhere: under the ceiling, where the least stands
 				end
 			end
 		end
 	end
-	return first :: CFrame
+	return last :: CFrame
 end
 
 -- The door's seal clamps the jamb, this far along the wall from the door's middle: the lift's own
