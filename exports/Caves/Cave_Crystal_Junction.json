@@ -1,0 +1,356 @@
+{
+ "asset": "Cave_Crystal_Junction",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  64.895,
+  21.117,
+  39.043
+ ],
+ "tris": 6958,
+ "pivot": [
+  -0.468,
+  2.289,
+  12.928
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -6.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    12.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -6.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    12.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Floor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -19.0
+   ],
+   "size": [
+    52.0,
+    1.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -19.0
+   ],
+   "size": [
+    52.0,
+    1.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    16.5,
+    6.0,
+    -11.5
+   ],
+   "size": [
+    19.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -16.5,
+    6.0,
+    -11.5
+   ],
+   "size": [
+    19.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    6.0,
+    -26.5
+   ],
+   "size": [
+    52.0,
+    12.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    6.0,
+    -6.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    12.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    6.0,
+    -6.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    12.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "crystal",
+    "gunmetal",
+    "hazard",
+    "plum",
+    "rubber"
+   ],
+   "offset": [
+    0.205,
+    8.318,
+    -13.281
+   ],
+   "size": [
+    61.938,
+    18.42,
+    36.168
+   ],
+   "tris": 6578
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "glow"
+   ],
+   "offset": [
+    -1.131,
+    5.658,
+    -15.342
+   ],
+   "size": [
+    42.31,
+    10.234,
+    20.955
+   ],
+   "tris": 272
+  }
+ ],
+ "meta": {
+  "band": "CrystalHollows",
+  "kind": "Junction",
+  "weight": 3,
+  "box": {
+   "min": [
+    -30.0,
+    -1.5,
+    -30.0
+   ],
+   "max": [
+    30.0,
+    16.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Exit1": {
+   "p": [
+    26.0,
+    0.0,
+    -19.0
+   ],
+   "yaw": -90.0
+  },
+  "Exit2": {
+   "p": [
+    -26.0,
+    0.0,
+    -19.0
+   ],
+   "yaw": 90.0
+  },
+  "Find1": {
+   "p": [
+    0.0,
+    0.0,
+    -23.0
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    10.4,
+    -19.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "39cb2ce033916ea5"
+}

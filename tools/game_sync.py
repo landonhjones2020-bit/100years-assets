@@ -181,7 +181,25 @@ def to_xml(n: dict, counter: list) -> str:
             f'</Properties>{kids}</Item>')
 
 
+def check_dev_commands() -> None:
+    """A dev command registered twice stops its service at Init (2026-11-11: `rad` in DisasterService
+    and SurfaceService broke six services, and Edit's StructureCheck can't see it: it runs no Init)."""
+    import glob
+    import re
+    for place in PLACES:
+        seen: dict[str, str] = {}
+        files = glob.glob(os.path.join(GAME, "server", "**", "*.luau"), recursive=True) \
+            + glob.glob(os.path.join(GAME, "places", place, "server", "**", "*.luau"), recursive=True)
+        for path in sorted(files):
+            for name in re.findall(r'dev:Register\("([A-Za-z0-9_.]+)"', read(path)):
+                if name in seen and seen[name] != path:
+                    raise SystemExit(f"dev command {name!r} is registered in both {os.path.relpath(seen[name], REPO)} "
+                                     f"and {os.path.relpath(path, REPO)} ({place})")
+                seen[name] = path
+
+
 def build() -> None:
+    check_dev_commands()
     info = build_info()
     counter = [0]
     items, summary = [], {}

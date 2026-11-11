@@ -111,7 +111,7 @@
 		DisasterService.Ended: Signal<string, string, string> -- id, kind, how
 	Dev: disasters, fire, fire.out, blackout, blackout.end, cavein, rubble.clear, meltdown,
 	meltdown.stop, valve, esurge, disaster.surge, flood, flood.patch, flood.drain, gas, gas.seal,
-	gas.clear, pocket.
+	gas.clear, pocket, leak, leak.storm, leak.seal, leak.clear, outbreak, outbreak.cure, outbreak.deep.
 ]]
 
 local CollectionService = game:GetService("CollectionService")
@@ -2380,9 +2380,9 @@ local function registerCommands(dev: any)
 			return `a hazard pocket at {floor},{column}: {kind or "nothing (no gas or water in that band)"}\n{describe()}`
 		end,
 	})
-	dev:Register("rad", {
+	dev:Register("leak", {
 		Description = "A radiation leak: with no room, the storm through the Blast Door (its whole floor); with a room, a crystal seam there.",
-		Usage = "rad [roomId|RoomType] [strength]",
+		Usage = "leak [roomId|RoomType] [strength]",
 		Run = function(_player, args): string?
 			local roomId = if args[1] and args[1] ~= "door" then roomArg(args[1]) else nil
 			if args[1] and args[1] ~= "door" and not roomId then
@@ -2392,14 +2392,14 @@ local function registerCommands(dev: any)
 			return `{id or "no leak (one is on there already, or no Blast Door)"}\n{describe()}`
 		end,
 	})
-	dev:Register("rad.storm", {
+	dev:Register("leak.storm", {
 		Description = "Roll the storm against the Blast Door now, as each Surge does.",
 		Run = function(): string?
 			stormAtTheDoor()
 			return describe()
 		end,
 	})
-	dev:Register("rad.seal", {
+	dev:Register("leak.seal", {
 		Description = "Seal every radiation leak (as a player at the door or the seam).",
 		Run = function(player): string?
 			local n = 0
@@ -2411,7 +2411,7 @@ local function registerCommands(dev: any)
 			return `{n} sealed\n{describe()}`
 		end,
 	})
-	dev:Register("rad.clear", {
+	dev:Register("leak.clear", {
 		Description = "End every radiation leak at once.",
 		Run = function(): string?
 			local n = 0

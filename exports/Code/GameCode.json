@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T22:19:27Z",
- "commit": "d480909441aee01b97fe6bdd9292f02804d2a5ec",
- "label": "p24-d480909",
+ "built": "2026-11-11T22:49:06Z",
+ "commit": "306940731a59c54e2027205ff6b50632956e33e5",
+ "label": "p24-3069407",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -12,7 +12,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "e14fc03f"
+    "Hash": "0fd239bb"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -624,7 +624,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "e14fc03f"
+    "Hash": "0fd239bb"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
