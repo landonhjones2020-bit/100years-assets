@@ -1,7 +1,7 @@
 {
- "built": "2026-11-10T22:33:05Z",
- "commit": "2c777a74e9796599af53e7cdd994ada295b9b890",
- "label": "p21-2c777a7",
+ "built": "2026-11-11T02:29:08Z",
+ "commit": "9ada85b0d57ded4a4851ba6104a2d6adda199596",
+ "label": "p21-9ada85b",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -38,6 +38,16 @@
     "Class": "ModuleScript",
     "From": "game/shared/Config/Conditions.luau",
     "Hash": "75851e83"
+   },
+   "ReplicatedStorage.Shared.Config.CutscenePaths": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/CutscenePaths.luau",
+    "Hash": "f49cd0aa"
+   },
+   "ReplicatedStorage.Shared.Config.Cutscenes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Cutscenes.luau",
+    "Hash": "71dd3832"
    },
    "ReplicatedStorage.Shared.Config.DepthBands": {
     "Class": "ModuleScript",
@@ -202,7 +212,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "3b526e52"
+    "Hash": "8e1896ae"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -273,6 +283,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Construction.luau",
     "Hash": "f4fbe2d0"
+   },
+   "ReplicatedStorage.Shared.Rules.Cutscene": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Cutscene.luau",
+    "Hash": "973a5d87"
    },
    "ReplicatedStorage.Shared.Rules.Deep": {
     "Class": "ModuleScript",
@@ -367,7 +382,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "63aad8c0"
+    "Hash": "0dd1fa57"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -417,12 +432,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "d9c60ea3"
+    "Hash": "f87c3203"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "6541ac18"
+    "Hash": "2a4fab98"
    },
    "ServerScriptService.Lib.BrightwaterMap": {
     "Class": "ModuleScript",
@@ -512,12 +527,12 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/CommandViewController.luau",
-    "Hash": "611d854c"
+    "Hash": "e528fe03"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/DevController.luau",
-    "Hash": "c1c19935"
+    "Hash": "3fa45e5f"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.HUDController": {
     "Class": "ModuleScript",
@@ -562,7 +577,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "4e20a42d"
+    "Hash": "6554b1fb"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
@@ -592,7 +607,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "b3a90fcf"
+    "Hash": "af547590"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
@@ -635,6 +650,16 @@
     "Class": "ModuleScript",
     "From": "game/shared/Config/Conditions.luau",
     "Hash": "75851e83"
+   },
+   "ReplicatedStorage.Shared.Config.CutscenePaths": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/CutscenePaths.luau",
+    "Hash": "f49cd0aa"
+   },
+   "ReplicatedStorage.Shared.Config.Cutscenes": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Config/Cutscenes.luau",
+    "Hash": "71dd3832"
    },
    "ReplicatedStorage.Shared.Config.DepthBands": {
     "Class": "ModuleScript",
@@ -799,7 +824,7 @@
    "ReplicatedStorage.Shared.Config.Tuning": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Tuning.luau",
-    "Hash": "3b526e52"
+    "Hash": "8e1896ae"
    },
    "ReplicatedStorage.Shared.Config.Votes": {
     "Class": "ModuleScript",
@@ -870,6 +895,11 @@
     "Class": "ModuleScript",
     "From": "game/shared/Rules/Construction.luau",
     "Hash": "f4fbe2d0"
+   },
+   "ReplicatedStorage.Shared.Rules.Cutscene": {
+    "Class": "ModuleScript",
+    "From": "game/shared/Rules/Cutscene.luau",
+    "Hash": "973a5d87"
    },
    "ReplicatedStorage.Shared.Rules.Deep": {
     "Class": "ModuleScript",
@@ -964,7 +994,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "63aad8c0"
+    "Hash": "0dd1fa57"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -1014,12 +1044,12 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "d9c60ea3"
+    "Hash": "f87c3203"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/StructureCheck.luau",
-    "Hash": "6541ac18"
+    "Hash": "2a4fab98"
    },
    "ServerScriptService.Lib.BrightwaterMap": {
     "Class": "ModuleScript",
@@ -1095,6 +1125,11 @@
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/CombatService.luau",
     "Hash": "4d00b2d5"
+   },
+   "ServerScriptService.Services.CutsceneService": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/server/Services/CutsceneService.luau",
+    "Hash": "158c4543"
    },
    "ServerScriptService.Services.CycleClock": {
     "Class": "ModuleScript",
@@ -1264,7 +1299,12 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CommandViewController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/CommandViewController.luau",
-    "Hash": "611d854c"
+    "Hash": "e528fe03"
+   },
+   "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController": {
+    "Class": "ModuleScript",
+    "From": "game/places/Run/client/Controllers/CutsceneController.luau",
+    "Hash": "f318d5ed"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DeepController": {
     "Class": "ModuleScript",
@@ -1274,7 +1314,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.DevController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/DevController.luau",
-    "Hash": "c1c19935"
+    "Hash": "3fa45e5f"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DigController": {
     "Class": "ModuleScript",
@@ -1344,7 +1384,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.UIController": {
     "Class": "ModuleScript",
     "From": "game/client/Controllers/UIController.luau",
-    "Hash": "4e20a42d"
+    "Hash": "6554b1fb"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.VoteController": {
     "Class": "ModuleScript",
@@ -1374,7 +1414,7 @@
    "StarterPlayer.StarterPlayerScripts.Lib.UIKit": {
     "Class": "ModuleScript",
     "From": "game/client/Lib/UIKit.luau",
-    "Hash": "b3a90fcf"
+    "Hash": "af547590"
    },
    "StarterPlayer.StarterPlayerScripts.Lib.UISamples": {
     "Class": "ModuleScript",
