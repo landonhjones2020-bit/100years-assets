@@ -512,18 +512,43 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
     (`Skip`) and plans again when `Lib.Hazards` changes,
     spits goo (`SlowedUntil`), latches ticks (a weld, bites every `AttackSeconds` ×
     `LatchIntervalMultiplier`), and obeys `StunnedUntil`.
-  * Signals `Spawned` and `Died`; dev commands `monster`, `monsters`, `monsters.clear`.
+  * The Flooded Caverns' four (Prompt 23), by trait: `FromWater` (the Murkling: ThreatDirector
+    keeps a breach point `W:<room>` for every room flooded to `Flood.MurklingLevel`, and a
+    Surge's FromWater groups open there); `Explodes` and `Floods` (the Bloat Toad swells for
+    `BurstSwellSeconds` on reaching something, then bursts: its Damage within `BurstRadius`, the
+    `Burst` signal, and ThreatDirector floods the room to `Flood.BurstLevel`; it bursts when
+    killed too); `Hides` and `Grabs` (the Lurker walks to the nearest flooded or dark room, sets
+    the model's `Hidden` attribute, strikes whoever comes within Range + `AmbushReach`, holds a
+    resident it hits (their `Grabbed` attribute) until `GrabBreakDamage`, a stun or its death,
+    and hunts in the open after `HideSeconds`); `ArmoredFront` and `WeakPointBack` (the Tide
+    Crab: the `Shell` damage filter, `Rules.Threat.Shell`, by where the attacker stands;
+    attributes `ShellHitAt` and `WeakHitAt`; standing to fight it turns only
+    `ShellTurnDegreesPerSecond` and strikes only within `ShellFaceDegrees`).
+  * Stairs: a monster about to climb or on the Shaft's stairs keeps its plan, and a plan made
+    again part-way to its next point skips the waypoints behind it (Prompt 23: before this, the
+    2.5 s replan sent every monster at the foot of the stairs back to the aisle, for good).
+  * Signals `Spawned`, `Died` and `Burst`; dev commands `monster`, `monster.hit`, `monsters`,
+    `monsters.clear`.
 * `ResidentBrain` (Prompt 12): residents near a monster flee to a safe room (no monster in or
   next to it) until `ResidentCalmSeconds` pass, swat a lone Burrow Tick, and walk slower while
   `SlowedUntil` lasts.
 * `ThreatController` (client): the breach alert and mini-map blink, the Command View's Threat
   overlay (monsters, breach countdowns, likely dark rooms, vents) and the Slowed movement reason.
+  From Prompt 23 it also draws what the new monsters' attributes say: a `Hidden` Lurker fades to
+  almost nothing (`LocalTransparencyModifier`; its lure less) and isn't counted in the overlay,
+  sparks on `ShellHitAt` and `WeakHitAt`, a burst of water on `Burst`.
 * `NPCAnimator` plays monsters' clips by `Rig:Activity` too (Attack replays on each
   `AttackAt`; Flee and Run fall back to Walk, Fight to Attack).
 * Bosses: `Boss_BroodMother` in `ServerStorage.Assets.Bosses` has a `Belly` part with Role
   `WeakPoint`, sockets `Ovipositor`, `Maw` and `Slam`, `HitTime` 0.8 and `LayTime` 1.4, and seven
   clips in `Config.Animations` (Rig `BroodMother`); `Boss_BroodMother_EggSac` is what she lays.
   Her fight is `BossService` (see "Bosses and results").
+* `Boss_Deluge` (A8): `Crown` and `Maw` parts with Role `WeakPoint` (on its Head bone), sockets
+  `Bite` and `Maw`, `HitTime` 0.7, six clips (Rig `Deluge`: Idle, Swim, Attack, Roar, Stagger,
+  Death). Its pivot is the floor under its neck, not the bottom of its bounds.
+* The A8 monsters: `Monster_Murkling`, `Monster_BloatToad` (three see-through bladder lobes on
+  their own bones: the swell is the lobes sliding apart), `Monster_Lurker` (a `Latched` clip too),
+  `Monster_TideCrab`, each with Idle, Walk and Attack (Rig = the monster's type).
 
 ## Disasters and repairs (Run place)
 
@@ -561,9 +586,30 @@ The numbers are `Config.Disasters` and `Tuning.Disasters` / `Tuning.Repairs` (pr
     they expire into a fire or a floor blackout;
   * `SurgeDisaster(budget, rng)` buys the Surge's one disaster (started `SurgeDelaySeconds` in);
     `HoldsSurge()` keeps the Surge open while it, any fire or a meltdown is on.
+  * floods (Prompt 23; ids `W:<room>`, RunState `Floods`): `StartFlood(room, cause, level?,
+    pipe?)` puts water in a room and, unless `pipe` is false, hangs `Kit_BurstPipe` on its back
+    wall (`Pipe:<room>` in `workspace.Bunker.Disasters`, prompt PatchPipe). The level rises
+    `RisePerSecond` while the pipe runs, follows a deeper neighbour on its floor or above
+    (`FloodFed`), and drains `DrainPerSecond` (times `FloodDrainSpeed`) otherwise; from
+    `SpreadMinLevel` it pours on every `SpreadSeconds` (`FloodSpreadTargets`: the Shaft below
+    first, else rooms beside it; never up, never into dug cells). Depth past `WadeLevel` hurts
+    players (the Firefighter a quarter), residents and the room. `PatchPipe`, `Drain` (Foam
+    Burst), `Flooded`;
+  * gas leaks (ids `G:<room>`, RunState `GasLeaks`): `StartGasLeak(room, cause, strength?)`
+    hangs `Kit_GasVent` at the room's Vent socket (prompt SealVent); strength fills
+    `FillPerSecond` while it leaks, clears `ClearPerSecond` once sealed or after
+    `Config.Disasters.GasLeak.DurationSeconds`; it hurts everyone in the room (times
+    `GasStrength`; `GasImmune` players none). `SealVent`, `ClearGas` (Decon Field), `Gassed`;
+  * `HazardPocket(floor, column, player?)` (DigService's roll): the band's `Hazards` decide gas
+    or water (`Rules.Disasters.HazardKind`), into the room the digger stands in or the nearest
+    on that floor;
+  * players carry `Wading` and `InGas` attributes; `Lib.Hazards` has `SetFlood`, `SetGas` and
+    `Unsafe(unit, floodAt, gasAt)`, which ResidentBrain reads (residents leave at
+    `ResidentFleeLevel` and `ResidentFleeStrength`, and wade at `Rules.Disasters.WadeSpeed`);
   * Signals `Started` and `Ended`; dev commands `disasters`, `fire`, `fire.out`, `blackout`,
     `blackout.end`, `cavein`, `rubble.clear`, `meltdown`, `meltdown.stop`, `valve`, `esurge`,
-    `disaster.surge`.
+    `disaster.surge`, `flood`, `flood.patch`, `flood.drain`, `gas`, `gas.seal`, `gas.clear`,
+    `pocket`.
 * Wrecked rooms (`Rules.Bunker`): a room at 0 HP is `Wrecked` (no output, power made or drawn,
   crew or machine target) until it is back to `RepairedAt` (25%) of its HP. `BunkerGrid` fires
   `Wrecked` and `Repaired` and applies HP modifiers (`SetHPModifier`, Reinforced Walls).
@@ -583,9 +629,14 @@ The numbers are `Config.Disasters` and `Tuning.Disasters` / `Tuning.Repairs` (pr
   prompt shown only to Drill and Pickaxe holders, statuses and blinking in the Command View and
   on the mini-map (`CommandViewController:SetStatus`, `SetConditionNote`), and the named sounds
   once Prompt 32 adds them.
+* From Prompt 23 `DisasterController` also draws water (a see-through block and a rippling
+  surface per flooded cell, an underwater tint when the camera is in it; never Glass, which hides
+  what is behind it), gas clouds and their light, the spray and the hiss at a fitting's
+  `Socket_Spray` or `Socket_Leak`, the Wading movement reason and the gas tint.
 * Art: `Tool_Extinguisher` and `Tool_Welder` in `ServerStorage.Assets.Weapons` (Grip and Muzzle
   sockets), `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` in `ServerStorage.Assets.Kit`, their
-  icons in the items atlas.
+  icons in the items atlas; `Kit_BurstPipe` and `Kit_GasVent` in `ServerStorage.Assets.Kit`
+  (Prompt 23; each is one MeshPart with its pivot where DisasterService places it).
 
 ## Digging, Disturbance and Push Deeper (Run place)
 
@@ -699,8 +750,24 @@ facts)` (lines, total and the new ledger, so a run that ends twice pays only wha
     Rising, Fighting, Dying), At, ArriveAt, Sacs. API `BeginFight`, `Active`, `IsBoss(combatId)`,
     `IsEggSac(combatId)`; dev `boss`, `boss.start [id]`, `boss.hurt <n> [weak]`, `boss.lay`,
     `boss.freeze [s]`, `boss.end`.
+  * **The Deluge** (Prompt 23; `Tuning.Deluge`) is the second fight in the same service: the
+    tick is chosen by boss id, and a table (`LOOK`) holds each boss's light, burst colours, clips
+    and alert words. It arrives the same way, then the fight's `Mode` (published with the Fight)
+    cycles: `Up` (turns to the nearest survivor on its floor, bites at the `Bite` socket on the
+    Attack clip's `HitTime`: `BiteDamage` within `BiteRadius`; `SurfaceSeconds`, or
+    `AloneSeconds` with nobody within twice `BiteReach`), `Diving` (`DiveSeconds`), `Swim` (sunk
+    `SwimDepth`; `Rules.Bunker.CellPath` to the nearest standing player it can reach, re-aimed
+    at each cell, at `SwimSpeed` for at most `SwimSeconds`; each room passed gets
+    `DisasterService:StartFlood(room, "Deluge", FloodLevel, pipe)`, no pipe in a Shaft; hits do
+    `SubmergedMultiplier`), `Surfacing` (`SurfaceRiseSeconds`; never in a Shaft; `Murklings` by
+    phase come with it). It moves every frame on Heartbeat (the 0.1 s tick only decides). A
+    phase that begins under water roars as it comes up. Its staggers extend its time up. Dev
+    `boss.start Deluge`, `boss.dive`, `boss.surface`. `Rules.Boss.Title(name)` writes a boss's
+    name with one THE.
 * `BossController` (client): the HUD's `BossBar` (name, BREAKING THROUGH, PHASE n OF m, DEAD, the
-  fill) and camera shakes when the boss rises and when its slam lands near the player.
+  fill; for The Deluge also UNDER THE FLOOR or UP: HIT ITS HEAD from the fight's `Mode`) and
+  camera shakes when the boss rises, when its slam or bite lands near the player and when The
+  Deluge surfaces near them (`SurfacedAt`).
 * `ResultsService` counts each player's Damage, Kills, BossDamage (`BossService:IsBoss`; a broken
   sac isn't a kill), Revives, CellsDug (`DigService.Dug`'s finisher) and Repairs
   (`BuildService.Repaired`), the team's totals, and the story (`story(text)`: resident deaths,
@@ -1195,7 +1262,7 @@ ClassShop, Account, Lobby).
 | Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, InventoryService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests; cells with a fixed roll), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
-| Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
+| Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, DisasterService, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
 | Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ExpeditionService, DraftService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
 | Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
@@ -1219,7 +1286,7 @@ ClassShop, Account, Lobby).
 | Run | CutsceneService | service | RunDirector, SessionService, ProfileService, DevService | the intro cutscene's set in ReplicatedStorage (Prompt 22), each player's IntroFirstRun |
 | Run | CutsceneController | controller | InputController, CameraController, UIController, HUDController, CommandViewController, DevController | plays the intro cutscene from Config.CutscenePaths: camera, runners, the blast, the light, the bars, bulletin, title and Skip; hands the camera back |
 | Run | PromptController | controller | HUDController, CombatController | the themed interaction prompts |
-| Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | breach alerts, the Threat overlay, the Slowed movement reason |
+| Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController, CameraController | breach alerts, the Threat overlay, the Slowed movement reason, the Flooded Caverns monsters' effects (hiding, shell hits, bursts) |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
 | Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
 | Run | BossController | controller | ReplicaController, HUDController, CameraController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
@@ -1373,3 +1440,10 @@ ClassShop, Account, Lobby).
   CutsceneBars and Cutscene screens. New on other modules: `UIController:Lock`,
   `CommandViewController:Present` and `:Pose`, `DevController:Register`, `Screen.Insets` in the UI
   contract. The A9 cutscene set: seven new models, the title sprites, `R15_IntroSprint`.
+* **Prompt 23 (2026-11-11)**: the Flooded Caverns (Run). Floods, gas leaks and hazard pockets in
+  Rules.Disasters, Lib.Hazards and DisasterService; the Murkling, Bloat Toad, Lurker and Tide
+  Crab's behaviours in MonsterService (and `Rules.Threat.Shell`); flooded rooms as breach points
+  in ThreatDirector; The Deluge in BossService (`Rules.Bunker.CellPath`, `Tuning.Deluge`); Foam
+  Burst, Decon Field, Sump Pumps and Gas Filters wired; residents keep out of flooded and gassed
+  rooms. Fixed: monsters never climbed the Shaft's stairs. The A8 art: four monsters, Boss_Deluge,
+  Kit_BurstPipe, Kit_GasVent, 19 clips.

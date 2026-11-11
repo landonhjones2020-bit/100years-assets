@@ -1,10 +1,11 @@
 # 100 Years Below: handoff for the next chat
 
-Written 2026-11-10 (evening, Chicago), after Prompt 22. The game was called 100 Years Of
+Written 2026-11-11 (afternoon, Chicago), after Prompt 23. The game was called 100 Years Of
 Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
 here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
-refreshed from it the same day).
+refreshed from it the same day). Nothing of Prompt 23 is in the bible yet: its nine questions wait
+for Landon in the report.
 
 ## Start here
 
@@ -16,13 +17,31 @@ refreshed from it the same day).
    them again instead of using a remembered id. Never touch the Night Shift studio. Studio asked
    for a restart on Nov 10 (its Assistant plugin changed version): ask Landon to restart it if
    tools misbehave.
-4. Work in this order unless Landon says otherwise: Prompt 23, Prompt 24, then the open work below.
+4. Work in this order unless Landon says otherwise: Prompt 24, Prompt 25, then the open work below.
 
 ## Where things stand
 
-* **Prompts 0 to 22 are built and tested in Studio.** Code build `p22-f333523` (code asset
-  95026446991297, revision 96) is installed in both places: StructureCheck 0 errors (Lobby 356
-  checks, Run 577), 121 data tests.
+* **Prompts 0 to 23 are built and tested in Studio.** Code build `p23-2c5a6ae` (code asset
+  95026446991297, revision 103) is installed in both places: StructureCheck 0 errors (Lobby 356
+  checks, Run 577), 126 data tests.
+* **Prompt 23 (the Flooded Caverns).** Era II plays. Floods: a burst pipe fills a room (rise 2.5
+  a second, wading from 25, drowning damage at the top), water pours down the Shaft to the rooms
+  below, a player patches the pipe and the room drains; residents leave a flooded room. Gas leaks:
+  a vent fills a room, 6 damage a second, sealed at the vent or gone after 90 seconds. Hazard
+  pockets found by digging now let water or gas into the room beside them. Surges pick floods and
+  gas from Era II. The four monsters: Murklings (a swarm, out of flooded rooms when there are
+  any), the Bloat Toad (bursts and floods the room it dies in), the Lurker (unseen in water or
+  the dark, strikes and holds a resident) and the Tide Crab (a quarter damage from the front,
+  double from the back; it turns slowly). The Deluge (Year 50): rises through the floor, bites,
+  dives, swims under the bunker along a real path through the Shaft, bursts the pipe of every room
+  it passes, surfaces beside a player with Murklings in phases 2 and 3; its crown and maw are the
+  weak points when it is up, and it takes a quarter damage under the floor. Class effects that
+  waited on this: Foam Burst, Decon Field, the Hazmat Tech's immunity, the draft's Sump Pumps and
+  Gas Filters. Report: `game/reports/P23_FloodedCaverns.md` (8 decisions, a "not tested" list, 9
+  Bible Questions); captures `previews/Game/P23_*.jpg`.
+* **A bug older than Prompt 23, fixed in it:** monsters never climbed the Shaft's stairs (a plan
+  made again every 2.5 seconds sent them back to the aisle). They climb now; small rigs still wait
+  at the foot and are stepped up by the stuck rule.
 * **Prompt 22 (the intro cutscene).** Every run opens with the 30 seconds of bible Section 4,
   played by each client from data made in Blender: the billboard and Main Street, the party's
   avatars and the six founders sprinting up Mine Hill into the blast door, the bomb, the door
@@ -48,7 +67,9 @@ refreshed from it the same day).
   Bible Questions).
 * **Art in Studio.** Run place: A1 bunker kit, A2 (all 34 weapons, tools and devices), A4 Mines
   monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
-  detail pass, and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
+  detail pass, A8 (Murkling, Bloat Toad, Lurker, Tide Crab, The Deluge at 11,408 triangles with
+  six clips, the burst pipe and the gas vent; ids in `exports/A8_ids.json` and `BUILD_LOG.md`;
+  sheets in `previews/Monsters`, `previews/Bosses`, `previews/Kit`), and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
   seven new models in `ServerStorage.Assets.Cutscene`). Lobby place: A9's lobby half, 28 models
   (`ServerStorage.Assets.Lobby` and `.Town`).
   Class looks: all 19 (outfits on the resident rig in `generators/Residents/outfits.py`,
@@ -68,8 +89,8 @@ refreshed from it the same day).
    lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
    (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
    survivors, the raider camp, the checkpoint and the storms all hang off that map).
-2. **Prompts 23 and 24** (prep below) come first: Landon's instruction of Nov 10 was the next
-   three prompts, and 22 is done.
+2. **Prompts 24 and 25** (prep below) come first: Landon's instruction of Nov 11 was the recap
+   and handoff, then the next three prompts, and 23 is done.
 3. **Digby the Gopher** (the mascot: the lobby's greeter and Prompt 31's tips) is still unmade.
 
 The bible was brought up to date on Nov 10 (it had been behind since Nov 9): the title, Landon's
@@ -87,36 +108,16 @@ Years Below — Game Bible v1.0".
   good". The raider at about 3,700 of 4,000 triangles is the bar for a human enemy.
 * Nov 10: he left for classes with "finish up prompt 20 and 21", then "IF you finish before I
   return I want you to create the recap and handoff and then begin on the next 3 prompts".
+* Nov 11, 10:56: the same instruction again as he left for afternoon classes. Read as: finish
+  Prompt 22 with its recap and handoff, then Prompts 23, 24 and on, keeping this file current.
 * His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
   detailed, bosses scary; art made in Blender here and it has to actually look good.
 
-## Next: Prompts 23 and 24
+## Next: Prompts 24 and 25
 
 Standing rules (bible Section 24): one system per prompt, the bible wins, never invent gameplay
 (suggest it in the Design Notes), content is data, a real playtest for timing, permissions and
 saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
-
-### Prompt 23: Flooded Caverns monsters, floods and gas, The Deluge (Run)
-
-* Bible: Section 10 (the Flood and Gas leak rows, The Deluge's row), Section 5 (Era II), the
-  Appendix's monster table, Section 11 (hazard pockets when digging).
-* Already in the code: `Config.Monsters` rows for Murkling (swarmer, pours out of water), Bloat
-  Toad (bursts on death or contact and floods the room), Lurker (hides in water or dark rooms and
-  grabs residents) and Tide Crab (armoured front, weak point on its back), with stats, traits and
-  `Asset` names; `Config.Disasters.Flood` and `GasLeak` (Surge weights already set: Landon wants
-  Surges to bring them from Era II; `Rules.Disasters.SurgePick` takes them once DisasterService can
-  start them); `Config.Bosses.Deluge` (Year 50, 12,000 health, 3 phases, Murkling minions);
-  `Lib.Hazards` (what disasters do that pathing must see); hazard pockets found by digging are
-  empty until this prompt (Landon); class effects waiting on it: Foam Burst on floods, the Hazmat
-  Tech's gas immunity and Decon Field on gas (one call each in `Lib.ClassAbilities`); the draft's
-  FloodDrainSpeed and GasStrength keys.
-* To build: the four monsters' behaviours (MonsterService), floods (water rising in a room,
-  pouring down the Shaft, the burst pipe to patch, draining) and gas leaks (a room fills, the vent
-  to seal or airing out) in DisasterService, The Deluge in BossService (it floods every room it
-  passes; its head is the weak point when it surfaces; rooms behind it need draining).
-* Art (A8): Monster_Murkling, Monster_BloatToad, Monster_Lurker, Monster_TideCrab and Boss_Deluge
-  with their clips (`generators/Monsters/_beast.py`; a monster uses most of its 4,000 triangles, a
-  boss up to 15,000 and has to be scary), water and gas as effects, the burst pipe and vent seal.
 
 ### Prompt 24: Crystal Hollows monsters, radiation leaks, outbreaks, the Crystal Colossus (Run)
 
@@ -128,7 +129,20 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   RadiationLeak and Outbreak; `Config.Bosses.CrystalColossus` (Year 75: huge, slow, armoured;
   flares show its weak points; its shards stun). The Crystal Hollows' cave pieces are A10 (not
   made); the Deep builds caves from a band's pieces.
+* What Prompt 23 left ready to copy: a disaster with a fitting to fix (`DisasterService`'s flood
+  and gas, `Lib.Hazards`, `Kit_Hazards.py`), a hidden monster (`Hidden` attribute, the client's
+  fade in `ThreatController`), a damage filter by direction (`Rules.Threat.Shell`), a boss with
+  modes and its own frame step (`BossService`'s `tickDeluge` and `frameDeluge`, `LOOK`),
+  `_beast.web` and `B.run(pivot=...)`.
 * Art (A10): the four monsters, the Colossus, Crystal Hollows cave pieces.
+
+### Prompt 25: The Source: chamber fight, final Surge, both victories, Endless (Run)
+
+* Bible: Section 5 (Winning: Century Victory, Deep Victory, Keep Going and Endless; Losing; Era
+  IV), Section 10 (the Source's row: several phases, tendrils in many rooms at once, then the
+  core, so the team splits up and regroups), Section 6 (floor 10 is the Source Chamber and is
+  never built on). Look for the payouts and the results screen's victory rows before starting.
+* Art (A10's last part): the Source and its chamber.
 
 ## Waiting on Landon
 
@@ -147,6 +161,14 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   names (Prompt 21, question 11) and at the 15 new class looks
   (`previews/Residents/Class_Portraits.jpg`; questions 14 and 15).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
+* **Prompt 23**: his answers to its 9 Bible Questions (what "air the room out" asks of players;
+  water in bare tunnels; whether the Lurker holds players; Murklings only from water; whether The
+  Deluge bursts pipes or leaves water, and whether that scales with the party; what it hunts; how
+  fast the Tide Crab turns; residents' Hardy trait and gas-proof outfit; the flood and gas
+  numbers), and his look at the A8 art (`previews/Game/P23_*.jpg`, `previews/Monsters/*.png`,
+  `previews/Bosses/Boss_Deluge*.png`). Not tested by me, his to try: two or more players, a phone,
+  Hazmat immunity and Gas Filters in play, a Surge picking flood or gas by itself, breaking a
+  Lurker's grab, gunfire on The Deluge under the floor, patching and sealing by hand.
 
 ## Testing tips
 
@@ -201,6 +223,16 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * Prompt visibility: Roblox shows one prompt per key, by distance and what the camera sees; a
   prompt on a small floor item shows only when the camera looks at it. Log
   `ProximityPromptService.PromptShown` on the client to see which prompt a key will press.
+* **Floods, gas and Era II.** `flood <room> [level] [nopipe]`, `flood.patch`, `flood.drain`,
+  `gas [room]`, `gas.seal`, `gas.clear`, `pocket <floor> <column>` (a hazard pocket there),
+  `disasters`. `monster <Type> [n]`, `monster.hit <Type> <amount> [front|back|side]` (turns the
+  monster, then damages it as the player: the Tide Crab's 25, 100 and 200), `monsters` (also
+  lists hidden, holding, lair). `boss.start [BroodMother|Deluge]`, `boss.dive`, `boss.surface`.
+  A real Deluge: `year 49`, then `clock.next` to the Surge. `god` from the server needs the
+  player's name and its time can't be shortened or ended (`god 0` does nothing): measure damage
+  before turning it on. Unpowered rooms are dark: raise the client's `Lighting.Ambient` for an art
+  capture and say so. Never move a character to a spot worked out from a monster's position
+  without keeping it inside the cell: both fall out of the bunker.
 * `god [seconds] [player]` keeps a player alive through a boss fight; `boss.freeze [s]` holds her
   still so a shot can be lined up; `boss.start`, `boss.hurt <n> [weak]`, `boss.lay`, `boss.end`.
   A real boss Surge: `year 24`, then `clock.next` until cycle 2's Surge.
@@ -234,8 +266,10 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 * A melee weapon held with an empty hotbar hangs into the floor.
 * The A0 sample scripts print a line on every monster swing; remove them once Landon approves
   the monsters.
-* A monster after a target on another floor can stand in a room or under the Shaft stair (its
-  stuck check restarts with every re-plan); seen in the Prompt 17 playtest.
+* Small monster rigs can't walk the Shaft's ramp: they wait 2.5 seconds at its foot and the stuck
+  rule steps them to the top (Prompt 23 fixed the worse half: they never climbed at all).
+* The HUD's input hints flip between Gamepad and Keyboard in Studio when the mouse moves (a
+  controller is plugged in on Landon's PC).
 * The lobby: the Loadout a pad opens stays open if the server moves the player off the pad (dev
   only; a player closes it with Backspace before walking off).
 * The lobby is about 330,000 triangles, over the bible's 150,000 for phones: measure on a phone

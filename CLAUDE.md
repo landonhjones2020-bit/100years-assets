@@ -41,6 +41,9 @@ must be aimed gets its own bone, jointed at the grip (fixed to a forearm it poin
 arm does); solve two-handed poses instead of guessing angles. Give a rig an Idle clip: an attack
 plays over it (NPCAnimator), so the monster keeps its stance between attacks. A model's `Rig`
 attribute in play is its monster type (`Config.Monsters` key), so clips are keyed by that.
+A model's pivot is the bottom centre of its bounds; one with parts meant to stay under the floor
+(The Deluge's coil and tail) passes `pivot=(0, 0, 0)` to `B.run` (2026-11-11). `_beast.web` makes
+fins and frills between two polylines. A `transparency` part previews opaque.
 Never run two preview renders at once into the same `previews/<Category>` folder. Re-exporting a model that is already in `manifest.csv` resets
 its `status` to `exported`: put the real status back before committing.
 
@@ -153,7 +156,11 @@ Design Notes and Delivery Reports: `game/reports/`.
 6. Captures: `screen_capture` saves to `/tmp/claude-tool-results/<id>/...jpg`; copy the good ones
    to `previews/Game/`. To point the camera (and the aim, which is the screen centre) at
    something, bind a `ShotCam` render step on the client that sets `workspace.CurrentCamera`;
-   unbind it after. Landon's avatar uses AnimationConstraint joints (`Waist`), not Motor6Ds. A
+   unbind it after. Unpowered rooms are dark: to judge art in play, raise the client's
+   `Lighting.Ambient` or add a review lamp, and say so in the report. Never teleport a character
+   to a spot worked out from another model's position without keeping it inside the cell (a
+   character put through a wall falls out of the bunker). `god` can't be shortened: measure damage
+   before it. Landon's avatar uses AnimationConstraint joints (`Waist`), not Motor6Ds. A
    controller is plugged in on his PC, so the input type is often Gamepad (D-pad up: a tap
    pings, a hold heals). Review clones in `workspace` must be removed after the capture.
    Captures leave out AlwaysOnTop BillboardGuis and CoreGui. They are scaled down: in Edit as

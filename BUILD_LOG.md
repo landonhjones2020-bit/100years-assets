@@ -48,7 +48,9 @@ Newest first. Every "verified" line says how it was checked.
 | Dig finds (Prompt 14) | ✅ in Studio 2026-11-09 | `Prop_Nest` and `Kit_CaveMouth` set up in Run (size and pivot measured), placed by dug cells in a playtest |
 | Prompt 22: the intro cutscene (Run) | ✅ done 2026-11-10 | Run playtests: the whole 30 seconds by the run's clock, every moment held and captured (`cutscene.at`), the first-run rule, Skip and the wait for the run, a stop mid-blast, quality level 1; two players, a late joiner and a phone still need the live game; `game/reports/P22_IntroCutscene.md`, `previews/Game/P22_Intro_sheet.jpg` |
 | A9 cutscene set: Mine Hill, the blast door, the blast, the ground cut open, the Source's glimpse | ✅ in Studio 2026-11-10 | 24 models set up in Run (17 of the lobby's and the town's, 7 new; size and pivot measured against their sidecars), assembled from `Config.CutscenePaths` and seen in the playtest; `previews/Cutscene/` |
-| A3, A7, A8, Digby, A10, A11 | not started | |
+| Prompt 23: the Flooded Caverns: floods, gas leaks, hazard pockets, four monsters, The Deluge (Run) | ✅ done 2026-11-11 | Run playtests: water and gas measured on a player (13 health in 3 s, 6.0 a second), residents fleeing, Foam Burst, Decon Field, Sump Pumps, an Era II Surge with Murklings out of a flooded room, each monster's behaviour, The Deluge by its own Year 50 Surge to its death, real pistol shots at its crown (24) and neck (6); `game/reports/P23_FloodedCaverns.md` (9 Bible Questions) |
+| A8 Flooded Caverns monsters, The Deluge, the burst pipe and the vent | ✅ in Studio 2026-11-11 | 7 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips uploaded and in `Config.Animations` (The Deluge's and the Lurker's confirmed on the Animator in play); captures `previews/Game/P23_*.jpg` |
+| A3, A7, Digby, A10, A11 | not started | |
 
 ## Ids
 
@@ -90,7 +92,56 @@ Newest first. Every "verified" line says how it was checked.
 | UI atlas: title | decal 87476621307051, image 71612230706016 (`Title_Years`, `Title_Below`) |
 | R15_IntroSprint | animation 70631532326043 (`Config.Animations.IntroSprint`) |
 | Tooling (Prompt 22's setup batches) | ArtSetupBatch_P22a 108135954041812, ArtSetupBatch_P22b 78236735280456 |
+| A8 monsters (Run) | Monster_Murkling 109000021848899, Monster_BloatToad 115170946108890, Monster_Lurker 134693577126222, Monster_TideCrab 88928594222130, Boss_Deluge 91215696648630 (revision 2: its pivot at the floor) |
+| A8 clips | Murkling Idle 126727867019879, Walk 72461237019448, Attack 97490931375904; BloatToad Idle 104676773168415, Walk 86454017758567, Attack 125893017027333; Lurker Idle 137042514986992, Walk 81974677655333, Attack 87853039930001, Latched 119068396924711; TideCrab Idle 75129578118638, Walk 132566020387133, Attack 108800921269804; Deluge Idle 95692287945819, Swim 100572039117676, Attack 80936107848048, Roar 136648293887224, Stagger 115956492649708, Death 135611914410917 (`exports/A8_ids.json`) |
+| Prompt 23 fittings | Kit_BurstPipe 72928487965400, Kit_GasVent 119760463920682 |
+| Tooling (Prompt 23's setup batch) | ArtSetupBatch_P23 91427723929662 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-11 (Chicago): Prompt 23, the Flooded Caverns; the A8 art
+
+Game code build `p23-2c5a6ae` (final for Prompt 23): code asset 95026446991297 revision 103,
+installed in Run and Lobby: StructureCheck 0 errors (Run 577 checks, Lobby 356), 126 data tests
+passed in each. Report: `game/reports/P23_FloodedCaverns.md` (9 Bible Questions).
+
+| What | Ids | Status | Notes |
+|---|---|---|---|
+| Monster_Murkling | 109000021848899 | in_studio | 2,776 tris, 9 Motor6Ds; Idle, Walk, Attack (Hit 0.25 s) |
+| Monster_BloatToad | 115170946108890 | in_studio | 3,468 tris, 10 Motor6Ds; the bladder is three lobes (transparency 0.45) on their own bones round a glowing core; Attack is the swell (0.7 s) |
+| Monster_Lurker | 134693577126222 | in_studio | 3,880 tris, 17 Motor6Ds; Idle, Walk, Attack (Hit 0.5 s), Latched; sockets Grab, Lure |
+| Monster_TideCrab | 88928594222130 | in_studio | 3,972 tris, 15 Motor6Ds; Idle, Walk, Attack (Hit 0.55 s); socket Back (the glowing sacs) |
+| Boss_Deluge | 91215696648630 (rev 2) | in_studio | 11,408 tris, 14 Motor6Ds; Crown and Maw are WeakPoint parts; sockets Bite, Maw; six clips; pivot at the floor |
+| Kit_BurstPipe, Kit_GasVent | 72928487965400, 119760463920682 | in_studio | one MeshPart each; sockets Spray and Leak |
+| 19 clips | see Ids | uploaded | confirmed on the Animator in play: The Deluge's Idle, Swim and Stagger (lengths 3.20, 1.33, 3.00 s), the Lurker's Idle and Attack (3.00, 1.13 s); the rest loaded with no error in the logs read but weren't checked track by track |
+
+**Verified in Studio (Run playtests)**: see the report's testing checklist.
+
+**Findings**
+1. **A rig's pivot is the bottom centre of its bounds unless the generator says otherwise.** The
+   Deluge is modelled down through the floor, so its first upload stood 1.9 studs high and 1.4
+   off-centre, and its sockets were about that point. `B.run(..., pivot=(0, 0, 0))` fixes it
+   (revision 2). Any model with a part meant to stay under the floor needs it.
+2. **Monsters never climbed the Shaft's stairs** before this prompt: the 2.5 s replan sent a
+   monster at the foot of the stairs back to the aisle each time, which also kept resetting the
+   "stuck" timer that would have stepped it up. Fixed in `MonsterService.walk`. Small rigs still
+   don't walk up the ramp itself (they wait 2.5 s and are stepped to the top).
+3. **A teleport next to a wall drops a character out of the bunker.** A dev command that put the
+   player 9 studs behind a monster put them outside the cell; both fell to -500 and the monster's
+   parts were destroyed at `FallenPartsDestroyHeight`, leaving a model with only its Humanoid.
+   `monster.hit` now turns the monster instead.
+4. **`Enum.Material.Glass` hides what is behind it** and draws black from inside: water is
+   SmoothPlastic at 0.42 transparency with an underwater tint.
+5. **`CombatService:SetInvulnerable` only ever extends**: `god 0` does not end god mode. A damage
+   test has to run before `god`, or after a respawn.
+6. **`table.insert(t, string.gsub(...))` errors**: gsub returns two values and the second becomes
+   insert's position. Wrap it in parentheses.
+7. **Anchored models moved on a 0.1 s tick look like a slideshow** at 14 to 21 studs a second; The
+   Deluge moves on Heartbeat and only decides on the tick.
+8. **Play captures here came back 1159 by 651** (not the 554 by 311 noted on Nov 10), big enough
+   to judge art in an unpowered room only by its glow: raise the client's `Lighting.Ambient` or
+   add a review lamp for an art check, and say so.
+9. Small-rig clip previews: the renderer shows a `transparency` part as opaque (the Bloat Toad's
+   bladder is see-through only in Studio).
 
 ## 2026-11-10 (evening, Chicago): Prompt 22, the intro cutscene; the A9 cutscene set
 
