@@ -246,10 +246,10 @@ local function makeFlood(id: string, roomId: string): Effect
 	local g = Grid.Tuning()
 	for _, cell in cellsOf(roomId) do
 		local water = anchor(cell, "Water")
-		water.Material = Enum.Material.Glass
+		-- plain and see-through: Glass hides what is behind it and goes black from inside (playtest)
+		water.Material = Enum.Material.SmoothPlastic
 		water.Color = WATER
-		water.Transparency = 0.45
-		water.Reflectance = 0.08
+		water.Transparency = 0.42
 		water.Size = Vector3.new(g.CellWidth - 0.4, 0.2, g.CellDepth - 0.4)
 		water:SetAttribute("Floor", cell.Y)
 		table.insert(effect.Parts, water)
@@ -879,8 +879,10 @@ local function sync()
 end
 
 -- Lights flicker and the alarm pulses, every frame.
+local underwater: ColorCorrectionEffect? = nil
 local function animate()
 	local t = os.clock()
+	local under = false
 	for _, effect in effects do
 		if effect.Kind == "Flood" then
 			-- the water climbs and falls smoothly between the server's levels
@@ -890,6 +892,16 @@ local function animate()
 			shown += (want - shown) * 0.06
 			effect.Shown = shown
 			local swell = math.sin(t * 1.7) * 0.06
+			local eye = workspace.CurrentCamera.CFrame.Position
+			for _, part in effect.Parts do
+				if part.Name == "Water" and shown > 0.3 then
+					local half = part.Size / 2
+					local d = eye - part.Position
+					if math.abs(d.X) <= half.X and math.abs(d.Y) <= half.Y and math.abs(d.Z) <= half.Z then
+						under = true -- the camera is below this room's water
+					end
+				end
+			end
 			for _, part in effect.Parts do
 				local floor = part:GetAttribute("Floor")
 				if type(floor) == "number" then
@@ -927,6 +939,19 @@ local function animate()
 				end
 			end
 		end
+	end
+	-- under the water the picture goes green-blue
+	if under and not underwater then
+		local tint = Instance.new("ColorCorrectionEffect")
+		tint.Name = "Underwater"
+		tint.TintColor = Color3.fromRGB(128, 196, 204)
+		tint.Brightness = -0.06
+		tint.Contrast = -0.1
+		tint.Parent = game:GetService("Lighting")
+		underwater = tint
+	elseif not under and underwater then
+		underwater:Destroy()
+		underwater = nil
 	end
 end
 
