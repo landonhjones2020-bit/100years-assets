@@ -2815,7 +2815,8 @@ test("Cutscene: the intro's shots cover its 30 seconds, key by key (Section 4, P
 	for _, shot in path.Shots do
 		expectEqual(shot.From, at, `{shot.Name} starts where the last one ended`)
 		expect(shot.To > shot.From, `{shot.Name} lasts`)
-		expectEqual(#shot.Keys, math.round((shot.To - shot.From) * shot.Rate) + 1, `{shot.Name}: {shot.Rate} keys a second, both ends`)
+		-- a shot whose length is not a whole number of keys holds its last key for under a key's time
+		expectEqual(#shot.Keys, math.floor((shot.To - shot.From) * shot.Rate + 1e-6) + 1, `{shot.Name}: {shot.Rate} keys a second from its start`)
 		for i, key in shot.Keys do
 			expectEqual(#key, 8, `{shot.Name} key {i}: position, rotation, field of view`)
 			local length = math.sqrt(key[4] ^ 2 + key[5] ^ 2 + key[6] ^ 2 + key[7] ^ 2)
@@ -2855,7 +2856,8 @@ test("Cutscene: the camera passes through its keys, smoothly, and stays in reach
 			before = now
 			t += step
 		end
-		expect(fastest < 400, `{shot.Name}: no jump inside a shot (fastest {math.round(fastest)} studs a second)`)
+		-- the hand-over shot drops from the Command View's distance to the player in a second and a half
+		expect(fastest < (if shot.Handover then 650 else 400), `{shot.Name}: no jump inside a shot (fastest {math.round(fastest)} studs a second)`)
 	end
 	-- the lowest graphics level draws about 500 studs: the set's cameras stay that close to the
 	-- street, the hill and the blast
@@ -2964,7 +2966,7 @@ test("Cutscene: the set, the words and the looks (Config.CutscenePaths and Confi
 		expect(string.find(spot.Asset, "^" .. spot.Category .. "_") ~= nil, `{spot.Asset} is a {spot.Category} asset`)
 	end
 	expectEqual(names.Door, 1, "one blast door")
-	expectEqual(names.Hill, 1, "one Mine Hill")
+	expectEqual(names.MineHill, 1, "one Mine Hill")
 	expect((names.CarSedan or 0) + (names.CarPickup or 0) >= 12, "cars on Main Street")
 	expect(#path.Ground >= 20, "roads, pavements and grass")
 	for _, name in { "Door", "StairFoot", "StairHead", "Blast", "BombFrom", "BombTo", "StrataFoot", "Source" } do

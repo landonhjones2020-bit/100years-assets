@@ -283,6 +283,7 @@ local UIContract: { [string]: Screen } = {
 			"Title",
 			"Title.Years",
 			"Title.Below",
+			"Title.Words",
 			"Title.Tagline",
 			"Skip",
 			"Skip.Content.Fill",

@@ -1,0 +1,425 @@
+{
+ "asset": "Cutscene_SourceGlimpse",
+ "category": "Cutscene",
+ "format": 1,
+ "size": [
+  260.0,
+  126.721,
+  9.188
+ ],
+ "tris": 3776,
+ "pivot": [
+  0.0,
+  62.0,
+  3.375
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "plum",
+    "rubber",
+    "rust"
+   ],
+   "offset": [
+    0.0,
+    0.0,
+    -3.375
+   ],
+   "size": [
+    260.0,
+    124.0,
+    9.188
+   ],
+   "tris": 2636
+  },
+  {
+   "name": "DecorNeonGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -8.224,
+    1.368,
+    -5.361
+   ],
+   "size": [
+    235.88,
+    126.705,
+    3.268
+   ],
+   "tris": 664
+  },
+  {
+   "name": "Eye1",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye1",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    0.0,
+    -4.25
+   ],
+   "size": [
+    19.2,
+    9.681,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye1Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye1Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    0.0,
+    -4.61
+   ],
+   "size": [
+    3.84,
+    9.016,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye2",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye2",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    15.0,
+    6.6,
+    -4.25
+   ],
+   "size": [
+    6.21,
+    3.284,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye2Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye2Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    15.0,
+    6.6,
+    -4.61
+   ],
+   "size": [
+    1.395,
+    3.027,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye3",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye3",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -14.0,
+    8.0,
+    -4.25
+   ],
+   "size": [
+    7.434,
+    3.847,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye3Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye3Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -14.0,
+    8.0,
+    -4.61
+   ],
+   "size": [
+    1.545,
+    3.593,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye4",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye4",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    9.0,
+    -9.4,
+    -4.25
+   ],
+   "size": [
+    5.121,
+    2.63,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye4Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye4Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    9.0,
+    -9.4,
+    -4.61
+   ],
+   "size": [
+    1.024,
+    2.455,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye5",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye5",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -17.5,
+    -5.0,
+    -4.25
+   ],
+   "size": [
+    5.575,
+    3.103,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye5Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye5Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -17.5,
+    -5.0,
+    -4.61
+   ],
+   "size": [
+    1.374,
+    2.829,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye6",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye6",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    21.5,
+    -3.2,
+    -4.25
+   ],
+   "size": [
+    4.376,
+    2.212,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye6Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye6Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    21.5,
+    -3.2,
+    -4.61
+   ],
+   "size": [
+    0.875,
+    2.064,
+    0.22
+   ],
+   "tris": 16
+  },
+  {
+   "name": "Eye7",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye7",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    -5.5,
+    12.6,
+    -4.25
+   ],
+   "size": [
+    3.99,
+    2.002,
+    0.5
+   ],
+   "tris": 52
+  },
+  {
+   "name": "Eye7Pupil",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Eye7Pupil",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -5.5,
+    12.6,
+    -4.61
+   ],
+   "size": [
+    0.798,
+    1.866,
+    0.22
+   ],
+   "tris": 16
+  }
+ ],
+ "meta": {
+  "face": "front -Y; origin the great eye; Eye<n> and Eye<n>Pupil open by their height"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Eye": {
+   "p": [
+    0.0,
+    0.0,
+    -4.5
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "be332d69f23a1aa3"
+}

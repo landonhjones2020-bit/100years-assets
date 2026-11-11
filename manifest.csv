@@ -225,3 +225,5 @@ Cutscene_Hill,Cutscene,model,A9,206x105.156x530,14000,12028,ash;avocado;basalt;b
 Cutscene_Bomb,Cutscene,model,A9,3.64x3.462x10.1,600,364,gunmetal;hazard;rubber;rust;steel,in_studio,113244382955605,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
 Cutscene_Shockwave,Cutscene,model,A9,101.629x7.996x101.2,6500,1600,cream;porcelain;sandstone;stone,in_studio,116384609836382,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
 Cutscene_MushroomCloud,Cutscene,model,A9,193.255x247.472x194.566,9000,3764,cream;leather;porcelain;rust;sandstone;signal;stone,in_studio,129445007020017,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
+Cutscene_Strata,Cutscene,model,A9,520x130.198x4.535,8000,7814,ash;basalt;brass;chrome;copper;cream;gunmetal;hazard;leather;mint;navy;pine;rubber;rust;sandstone;skyblue;steel;stone;teal;walnut,in_studio,85046200005989,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
+Cutscene_SourceGlimpse,Cutscene,model,A9,260x126.721x9.188,6000,3776,basalt;glow;plum;rubber;rust,in_studio,99512688533587,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"

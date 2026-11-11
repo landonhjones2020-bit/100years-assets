@@ -34,6 +34,7 @@ sg.Enabled = false
 local title = new("Frame", sg, "Title", { pos = { 0.5, 0.46 }, anchor = { 0.5, 0.5 }, size = { 0.5, 0.62 }, aspect = 1.52, visible = false })
 new("ImageLabel", title, "Years", { pos = { 0.5, 0 }, anchor = { 0.5, 0 }, size = { 0.86, 0.3 }, aspect = 1016 / 236, sprite = "Title_Years" })
 new("ImageLabel", title, "Below", { pos = { 0.5, 0.32 }, anchor = { 0.5, 0 }, size = { 1, 0.5 }, aspect = 1016 / 336, sprite = "Title_Below" })
+text(title, "Words", "100 YEARS BELOW", { pos = { 0.5, 0.42 }, anchor = { 0.5, 0.5 }, size = { 1, 0.5 }, font = F.title, color = COL.cream, alignX = CENTER, max = 240, visible = false })
 text(title, "Tagline", "", { pos = { 0.5, 0.93 }, anchor = { 0.5, 0.5 }, size = { 1, 0.1 }, font = F.typed, color = COL.cream, alignX = CENTER, max = 120 })
 
 -- Skip: bottom right, small. A press of the key fills it; a click or a tap skips at once.

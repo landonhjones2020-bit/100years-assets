@@ -56,6 +56,7 @@ def G(x: float, y: float, z: float) -> tuple[float, float, float]:
 # Each key: (seconds, where the camera is, what it looks at, vertical field of view[, up]).
 # "linear" shots drift at a steady pace (a cut lands on a camera already moving); "smooth" ones ease.
 CMD_DIST = 440.0                            # the Command View's distance (Tuning.CommandView.MaxDistance)
+ROCK_FACE = 19.2                            # how far the game's rock cells stand out from the grid's plane (measured in Studio)
 PLUNGE_H = 72.0                             # studs of the bunker the plunge shows top to bottom: four floors
 SOURCE_X, SOURCE_Y = CP.SOURCE_AT
 MEDBAY = (2 * CP.GRID_PITCH[0], -CP.GRID_PITCH[1] + 3.0)      # where players stand at the start: column 2, floor 2
@@ -68,6 +69,17 @@ def fov_for(height: float, distance: float = CMD_DIST) -> float:
 def cmd(x: float, y: float, height: float):
     """A Command View style key: straight at the bunker's front from CMD_DIST, showing `height` studs."""
     return G(x, y, CMD_DIST), G(x, y, 0.0), fov_for(height)
+
+
+def plunge(t0: float, t1: float, y0: float, y1: float, n: int = 28, power: float = 1.5):
+    """The fall: already at speed as the shot begins (it is cut from the dive), past the ground and the
+    bunker's rooms at an even rush, braking to a stop over the Source. power 1.5: half as fast again as
+    its average at the start, still by the end; the bunker's two floors are in the picture for a second."""
+    keys = []
+    for i in range(n + 1):
+        u = i / n
+        keys.append((t0 + (t1 - t0) * u, *cmd(SOURCE_X, y0 + (y1 - y0) * (1 - (1 - u) ** power), PLUNGE_H)))
+    return keys
 
 
 SHOTS = [
@@ -110,11 +122,8 @@ SHOTS = [
          (21.55, (330.0, AX, 86.0), (296.0, AX, 8.0), 60.0, (-0.7, 0.0, 0.7)),
          (22.2, (348.0, AX, CP.TERRACE_Z + 3.0), (348.5, AX, CP.TERRACE_Z), 62.0, (-1.0, 0.0, 0.0)),
      ]},
-    {"Name": "Plunge", "From": 22.2, "To": 25.7, "Space": "Bunker", "Ease": "plunge", "Text": "Down through the rock, past the bunker's rooms, deeper.",
-     "Keys": [
-         (22.2, *cmd(0.0, CP.STRATA["Top"] - 42.0, PLUNGE_H)),
-         (25.7, *cmd(SOURCE_X, SOURCE_Y + 6.0, PLUNGE_H)),
-     ]},
+    {"Name": "Plunge", "From": 22.2, "To": 25.7, "Space": "Bunker", "Ease": "linear", "Text": "Down through the rock, past the bunker's rooms, deeper.",
+     "Keys": plunge(22.2, 25.7, CP.STRATA["Top"] - 42.0, SOURCE_Y + 6.0)},
     {"Name": "Source", "From": 25.7, "To": 27.0, "Space": "Bunker", "Ease": "linear", "Text": "Something glowing opens its eyes.",
      "Keys": [
          (25.7, *cmd(SOURCE_X, SOURCE_Y + 6.0, PLUNGE_H)),
@@ -233,7 +242,7 @@ def placements() -> list[dict]:
         put("Town_" + a, "Town", x, y, z, yaw, sc, kind="Tree" if a.startswith("Tree") else ("Tower" if a == "WaterTower" else "Still"))
     for a, x, y, z, yaw, sc in CP.hill_trees():
         put("Town_" + a, "Town", x, y, z, yaw, sc, kind="Tree")
-    put("Cutscene_Hill", "Cutscene", 0, 0, 0, 0, name="Hill")
+    put("Cutscene_Hill", "Cutscene", 0, 0, 0, 0, name="MineHill")
     put("Cutscene_BlastDoor", "Cutscene", *DOOR_AT, DOOR_YAW, name="Door")
     return out
 
@@ -335,12 +344,12 @@ class Scene:
             for i in range(n):
                 prim("cube", "Strata", G(0.0, CP.STRATA["Top"] - h * (i + 0.5), 16.0), (CP.STRATA["HalfWidth"] * 2, 1.0, h), cols[i])
         else:
-            SL.place("Cutscene_Strata", "Cutscene", G(0.0, CP.STRATA["Bottom"], 17.0), 180.0, name="Strata")
+            SL.place("Cutscene_Strata", "Cutscene", G(0.0, CP.STRATA["Bottom"], ROCK_FACE + 0.2), 180.0, name="Strata")
         if not exported("Cutscene_SourceGlimpse", "Cutscene"):
             prim("cube", "Hollow", G(SOURCE_X, SOURCE_Y, 17.0), (150.0, 1.0, 60.0), "#16100E")
             self.eye = prim("sphere", "Eye", G(SOURCE_X, SOURCE_Y, 19.0), (9.0, 1.0, 4.5), "#7CFF9B", emission=6.0)
         else:
-            SL.place("Cutscene_SourceGlimpse", "Cutscene", G(SOURCE_X, -CP.GRID_PITCH[1] * 9 - 2.0, 17.0), 180.0, name="Source")
+            SL.place("Cutscene_SourceGlimpse", "Cutscene", G(SOURCE_X, SOURCE_Y, ROCK_FACE + 0.4), 180.0, name="Source")
             self.eye = None
 
     def at(self, t: float):
@@ -557,7 +566,7 @@ def data(curves) -> str:
     anchors = {
         "Door": game_point(DOOR_AT), "StairFoot": game_point((CP.STAIR_FOOT_X, AX, 0.0)), "StairHead": game_point((CP.STAIR_TOP_X, AX, CP.TERRACE_Z)),
         "Blast": game_point(CP.BLAST), "BombFrom": game_point(CP.BOMB_FROM), "BombTo": game_point(CP.BOMB_TO),
-        "StrataFoot": (0.0, CP.STRATA["Bottom"], 17.0), "Source": (SOURCE_X, SOURCE_Y, 17.0),
+        "StrataFoot": (0.0, CP.STRATA["Bottom"], ROCK_FACE + 0.2), "Source": (SOURCE_X, SOURCE_Y, ROCK_FACE + 0.4),
     }
     L.append("\t\t\tAnchors = {")
     for k, v in anchors.items():

@@ -74,6 +74,7 @@ local CORE_GUI = { Enum.CoreGuiType.Chat, Enum.CoreGuiType.Backpack, Enum.CoreGu
 -- What the Run place still has from its first days, standing where the plunge's camera looks: the
 -- template's baseplate and spawn pad and the style test's room (workspace, around the origin).
 local LEFTOVERS = { "Baseplate", "SpawnLocation", "A0_Showroom" }
+local TITLE_SCRIM = 0.5 -- how dark the picture stays behind the title card
 local SEALED_OFF, SEALED_ON = Color3.fromHex("#3A1E18"), Color3.fromHex("#FF4A2A")
 local BEACON_DIM, BEACON_LIT = Color3.fromHex("#8A6A20"), Color3.fromHex("#FFC83A")
 
@@ -83,8 +84,12 @@ local CutsceneController = {
 	Finished = Signal.new() :: Signal.Signal<boolean>, -- true: the player skipped it
 }
 
-type Piece = { Model: Model, Kind: string, Rest: CFrame, Away: Vector3, Arrival: number, Height: number, Seed: number, Hidden: { BasePart }? }
-type Runner = { Model: Model, Root: BasePart, Lift: number, Track: AnimationTrack?, Running: boolean, Shown: boolean }
+type Lamp = { Part: BasePart, Color: Color3 }
+type Piece = {
+	Model: Model, Kind: string, Rest: CFrame, Away: Vector3, Arrival: number, Height: number, Seed: number,
+	Hidden: { BasePart }?, Lamps: { Lamp }, Dark: boolean?,
+}
+type Runner = { Model: Model, Root: BasePart, Lift: number, Animator: Animator?, Track: AnimationTrack?, Tried: boolean, Running: boolean, Shown: boolean }
 type Door = { Model: Model, Travel: number, Right: Vector3, Parts: { [string]: BasePart }, Rest: { [string]: CFrame }, Sealed: boolean?, Lit: boolean? }
 type World = {
 	Set: Model,
@@ -94,13 +99,15 @@ type World = {
 	Bomb: Model?,
 	BombRest: CFrame?,
 	Fireball: BasePart?,
+	Trail: { BasePart },
+	Ash: BasePart?,
 	Cloud: Model?,
 	CloudParts: { [string]: BasePart },
 	CloudRest: { [string]: { CFrame: CFrame, Size: Vector3 } },
 	Ring: BasePart?,
 	Strata: Model?,
 	Source: Model?,
-	Eyes: { { Part: BasePart, Size: Vector3, CFrame: CFrame } },
+	Eyes: { { Part: BasePart, Size: Vector3, Order: number } }, -- Order: the number in its name; an eye and its pupil share it
 	Runners: { Runner },
 	Loaded: boolean,
 	RevealedAt: number?, -- os.clock() when the picture began to come up out of black
@@ -466,20 +473,35 @@ local function readyRunner(model: Model): Runner?
 		made_.Parent = humanoid or model
 		animator = made_
 	end
-	local track: AnimationTrack? = nil
+	model.Name = "Runner"
+	return { Model = model, Root = root, Lift = lift, Animator = animator, Track = nil, Tried = false, Running = false, Shown = false }
+end
+
+-- The sprint, loaded the first time the runner stands in the world: a clip loaded on an Animator
+-- that is not in workspace yet never gets its keys (it "plays" with no length and no weight).
+local function sprintTrack(runner: Runner): AnimationTrack?
+	if runner.Track or runner.Tried then
+		return runner.Track
+	end
+	local animator = runner.Animator
+	if not animator or not animator:IsDescendantOf(workspace) then
+		return nil
+	end
+	runner.Tried = true
 	local clip = Config.Find("Animations", "IntroSprint")
 	local animation = Instance.new("Animation")
 	animation.AnimationId = if clip then clip.AssetId else DEFAULT_RUN
 	local ok, loaded = pcall(function()
-		return (animator :: Animator):LoadAnimation(animation)
+		return animator:LoadAnimation(animation)
 	end)
 	if ok and loaded then
-		track = loaded
 		loaded.Looped = true
 		loaded.Priority = Enum.AnimationPriority.Action
+		runner.Track = loaded
+	else
+		log:Debug("no sprint for a runner: %s", tostring(loaded))
 	end
-	model.Name = "Runner"
-	return { Model = model, Root = root, Lift = lift, Track = track, Running = false, Shown = false }
+	return runner.Track
 end
 
 local function copyOf(source: Model): Model?
@@ -571,7 +593,7 @@ local function build(): World?
 	local origin = setCFrame()
 	local set = source:Clone()
 	local target: World = {
-		Set = set, Origin = origin, Pieces = {}, CloudParts = {}, CloudRest = {}, Eyes = {}, Runners = {}, Loaded = false,
+		Set = set, Origin = origin, Pieces = {}, Trail = {}, CloudParts = {}, CloudRest = {}, Eyes = {}, Runners = {}, Loaded = false,
 	}
 	local blast = anchor("Blast")
 	local piecesFolder = set:FindFirstChild("Pieces")
@@ -623,9 +645,16 @@ local function build(): World?
 					Arrival = Cutscene.WaveArrival(path, flat.Magnitude),
 					Height = size.Y,
 					Seed = ((model:GetAttribute("Index") :: number?) or 1) * 0.6180339 % 1,
+					Lamps = {},
 				}
 				if kind == "Bunting" then
 					piece.Hidden = baseParts(model)
+				else
+					for _, part in baseParts(model) do -- shop signs, street lamps, headlamps: out when the ring arrives
+						if part.Material == Enum.Material.Neon then
+							table.insert(piece.Lamps, { Part = part, Color = part.Color })
+						end
+					end
 				end
 				table.insert(target.Pieces, piece)
 			end
@@ -662,7 +691,7 @@ local function build(): World?
 			target.Source = hollow
 			for _, part in baseParts(hollow) do
 				if string.sub(part.Name, 1, 3) == "Eye" then
-					table.insert(target.Eyes, { Part = part, Size = part.Size, CFrame = part.CFrame })
+					table.insert(target.Eyes, { Part = part, Size = part.Size, Order = tonumber(string.match(part.Name, "%d+")) or 1 })
 				end
 			end
 		end
@@ -679,6 +708,55 @@ local function build(): World?
 	fireball.Transparency = 1
 	fireball.Parent = set
 	target.Fireball = fireball
+	-- the bomb's vapour trail: a thin bright line behind it and a wider, fainter one further back
+	for index, look in { { Width = 1.5, Transparency = 0.08 }, { Width = 3.4, Transparency = 0.5 } } do
+		local trail = Instance.new("Part")
+		trail.Name = "Trail" .. index
+		trail.Shape = Enum.PartType.Cylinder
+		trail.Material = Enum.Material.SmoothPlastic
+		trail.Color = Color3.fromHex("#FFFFFF")
+		trail.Anchored = true
+		trail.CastShadow = false
+		trail.Size = Vector3.new(1, look.Width, look.Width)
+		trail.Transparency = look.Transparency
+		trail.LocalTransparencyModifier = 1
+		trail.Parent = set
+		table.insert(target.Trail, trail)
+	end
+	-- ash and embers drifting past the camera once the dust has gone by
+	local ash = Instance.new("Part")
+	ash.Name = "Ash"
+	ash.Anchored = true
+	ash.Transparency = 1
+	ash.CastShadow = false
+	ash.Size = Vector3.new(150, 70, 110)
+	for _, look in {
+		{ Name = "Flakes", Color = Color3.fromHex("#3B3431"), Size = 0.55, Rate = 170, Speed = 9, Light = 0, Life = 5 },
+		{ Name = "Embers", Color = Color3.fromHex("#FF8A3A"), Size = 0.32, Rate = 45, Speed = 5, Light = 1, Life = 3.5 },
+	} do
+		local emitter = Instance.new("ParticleEmitter")
+		emitter.Name = look.Name
+		emitter.Texture = "rbxasset://textures/particles/smoke_main.dds"
+		emitter.Color = ColorSequence.new(look.Color)
+		emitter.Size = NumberSequence.new(look.Size)
+		emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.15, 0.1), NumberSequenceKeypoint.new(0.8, 0.2), NumberSequenceKeypoint.new(1, 1) })
+		emitter.Lifetime = NumberRange.new(look.Life * 0.7, look.Life)
+		emitter.Rate = look.Rate
+		emitter.Speed = NumberRange.new(look.Speed * 0.6, look.Speed)
+		emitter.EmissionDirection = Enum.NormalId.Bottom
+		emitter.SpreadAngle = Vector2.new(25, 25)
+		emitter.Acceleration = Vector3.new(7, -2, 0) -- the wind off the blast
+		emitter.Rotation = NumberRange.new(0, 360)
+		emitter.RotSpeed = NumberRange.new(-90, 90)
+		emitter.LightEmission = look.Light
+		emitter.LightInfluence = 1 - look.Light
+		emitter.Shape = Enum.ParticleEmitterShape.Box
+		emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+		emitter.Enabled = false
+		emitter.Parent = ash
+	end
+	ash.Parent = set
+	target.Ash = ash
 	quiet(set)
 	set.Name = "CutsceneSet"
 	set.Parent = workspace
@@ -688,7 +766,15 @@ end
 local function preload(target: World)
 	task.spawn(function()
 		pcall(function()
-			ContentProvider:PreloadAsync({ target.Set })
+			-- the screens too: an image in a ScreenGui that was never shown has not been fetched
+			local list: { Instance } = { target.Set }
+			for _, name in { "CutsceneBars", "Cutscene" } do
+				local screen = gui(name)
+				if screen then
+					table.insert(list, screen)
+				end
+			end
+			ContentProvider:PreloadAsync(list)
 		end)
 		target.Loaded = true
 		target.RevealedAt = os.clock()
@@ -750,6 +836,14 @@ local function movePiece(piece: Piece, t: number, origin: CFrame)
 		end
 		return
 	end
+	local dark = since > 0
+	if piece.Dark ~= dark then
+		piece.Dark = dark
+		for _, lamp in piece.Lamps do
+			lamp.Part.Material = if dark then Enum.Material.SmoothPlastic else Enum.Material.Neon
+			lamp.Part.Color = if dark then lamp.Color:Lerp(Color3.new(0, 0, 0), 0.72) else lamp.Color
+		end
+	end
 	if since <= 0 then
 		if piece.Model:GetPivot() ~= piece.Rest then
 			piece.Model:PivotTo(piece.Rest)
@@ -791,6 +885,26 @@ local function moveBlast(target: World, t: number)
 			end
 		elseif bomb.Parent then
 			bomb.Parent = nil
+		end
+		-- the trail: from where it came into the sky to its tail, the last stretch bright
+		local from = origin * anchor("BombFrom")
+		local tail = if at then origin * at else nil
+		for index, trail in target.Trail do
+			if not tail or (tail - from).Magnitude < 2 then
+				trail.LocalTransparencyModifier = 1
+				continue
+			end
+			local length = (tail - from).Magnitude
+			local near = math.min(length, 110)
+			local a = if index == 1 then tail + (from - tail).Unit * near else from
+			local b = if index == 1 then tail else tail + (from - tail).Unit * near
+			if (b - a).Magnitude < 1 then
+				trail.LocalTransparencyModifier = 1
+				continue
+			end
+			trail.LocalTransparencyModifier = 0
+			trail.Size = Vector3.new((b - a).Magnitude, trail.Size.Y, trail.Size.Z)
+			trail.CFrame = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.rad(90), 0)
 		end
 	end
 	-- the fireball: swells, then dims into the cloud
@@ -867,6 +981,7 @@ local function moveRunners(target: World, t: number)
 		local show = not inside and t < Cutscene.Beat(path, "DoorTo")
 		if show ~= runner.Shown or (show and runner.Model.Parent == nil) then
 			runner.Shown = show
+			runner.Running = false -- a track stops when its model leaves the world
 			runner.Model.Parent = if show then target.Set else nil
 		end
 		if not show then
@@ -878,7 +993,7 @@ local function moveRunners(target: World, t: number)
 		local feet = origin * position
 		local lean = if running then math.rad(-10) - math.asin(math.clamp(direction.Y, -0.7, 0.7)) * 0.35 else 0
 		runner.Root.CFrame = CFrame.lookAt(feet + Vector3.yAxis * runner.Lift, feet + Vector3.yAxis * runner.Lift + heading) * CFrame.Angles(lean, 0, 0)
-		local track = runner.Track
+		local track = sprintTrack(runner)
 		if track and running ~= runner.Running then
 			runner.Running = running
 			if running then
@@ -893,9 +1008,9 @@ end
 
 local function moveEyes(target: World, t: number)
 	local open = Cutscene.EyesOpen(path, t)
-	for i, eye in target.Eyes do
-		-- each a little after the last; a slit, then wide
-		local mine = math.clamp(open * 1.6 - (i - 1) * 0.12, 0, 1)
+	for _, eye in target.Eyes do
+		-- the great eye first, each of the others a little after the last; a slit, then wide
+		local mine = math.clamp(open * 1.7 - (eye.Order - 1) * 0.1, 0, 1)
 		local tall = 0.04 + 0.96 * Cutscene.Smooth(mine)
 		eye.Part.Size = Vector3.new(eye.Size.X, eye.Size.Y * tall, eye.Size.Z)
 		eye.Part.LocalTransparencyModifier = if mine <= 0 then 1 else 0
@@ -924,6 +1039,21 @@ local function shake(t: number): Vector3
 	return Vector3.new(math.noise(t * 23, 1.3), math.noise(t * 27, 7.7), math.noise(t * 19, 13.1)) * amount * 2
 end
 
+-- Between the Command View's pose and the player's own camera: what the picture shows at the
+-- player's depth shrinks steadily (in proportion, so the push feels even) while the lens opens, and
+-- the distance follows from the two. A plain blend of the two cameras backs away before it closes in.
+local function pushIn(pose: CFrame, poseFov: number, mine: CFrame, mineFov: number, subject: Vector3, f: number): (CFrame, number)
+	local far = math.max((subject - pose.Position):Dot(pose.LookVector), 1)
+	local near = math.max((subject - mine.Position):Dot(mine.LookVector), 1)
+	local tallFar = 2 * far * math.tan(math.rad(poseFov) / 2)
+	local tallNear = 2 * near * math.tan(math.rad(mineFov) / 2)
+	local fieldOfView = poseFov + (mineFov - poseFov) * f
+	local tall = tallFar * (tallNear / tallFar) ^ f
+	local distance = tall / (2 * math.tan(math.rad(fieldOfView) / 2))
+	local centre = (pose.Position + pose.LookVector * far):Lerp(mine.Position + mine.LookVector * near, f)
+	return CFrame.new(centre) * pose.Rotation:Lerp(mine.Rotation, f) * CFrame.new(0, 0, distance), fieldOfView
+end
+
 local function moveCamera(target: World?, t: number)
 	local camera = workspace.CurrentCamera
 	local cframe, fieldOfView, shot = Cutscene.CameraAt(path, t)
@@ -941,14 +1071,15 @@ local function moveCamera(target: World?, t: number)
 		if zoom > 0 and root then
 			if not resumed then
 				resumed = true
+				cameraController:SetLook(0, -6) -- into the bunker, the way the Command View looks: the move is a push, not a turn
 				cameraController:Resume(REASON)
 				return -- the player's camera takes a frame to come round
 			end
-			-- the player's own camera has just set this frame's picture: blend down to it
-			local mine, mineFov = camera.CFrame, camera.FieldOfView
+			-- the player's own camera has just set this frame's picture: push in to it
 			local eased = Cutscene.Smooth(zoom)
-			camera.CFrame = pose:Lerp(mine, eased)
-			camera.FieldOfView = poseFov + (mineFov - poseFov) * eased
+			local cframe_, fov_ = pushIn(pose, poseFov, camera.CFrame, camera.FieldOfView, root.Position, eased)
+			camera.CFrame = cframe_
+			camera.FieldOfView = fov_
 			return
 		end
 		world_, fieldOfView = pose, poseFov
@@ -1023,7 +1154,10 @@ local function showScreen(t: number, target: World?)
 	end
 	local title = Cutscene.Beat(path, "Title")
 	if t >= title then
-		black = math.max(black, 1 - Cutscene.Smooth((t - title - 0.45) / 0.85))
+		-- the card lands on black; the bunker comes up behind it, dimmed until the card has gone
+		local up = Cutscene.Smooth((t - title - 0.45) / 0.85)
+		local clear = Cutscene.Smooth((t - words.TitleTo) / 0.5)
+		black = math.max(black, 1 - up * (1 - TITLE_SCRIM * (1 - clear)))
 	end
 	barsPart("Black").BackgroundTransparency = 1 - black
 	-- white: the flash, and the instant before it on the door
@@ -1032,7 +1166,7 @@ local function showScreen(t: number, target: World?)
 	if t >= flashAt - 0.14 and t < flashAt then
 		white = (t - (flashAt - 0.14)) / 0.14
 	elseif t >= flashAt then
-		white = 1 - Cutscene.Smooth((t - flashAt - 0.3) / 1.2)
+		white = 1 - Cutscene.Smooth((t - flashAt - 0.18) / 0.9)
 	end
 	barsPart("Flash").BackgroundTransparency = 1 - math.clamp(white, 0, 1)
 	-- dust: the ring reaches the camera
@@ -1063,6 +1197,13 @@ local function showScreen(t: number, target: World?)
 		scale.Parent = card
 		card.Years.ImageTransparency = math.max(1 - land, leave)
 		card.Below.ImageTransparency = math.max(1 - math.clamp((t - words.TitleFrom - 0.12) / 0.22, 0, 1), leave)
+		-- the title in type, should its pictures not have arrived (a slow connection)
+		local plain = card:FindFirstChild("Words")
+		if plain and plain:IsA("TextLabel") then
+			plain.Visible = not (card.Years.IsLoaded and card.Below.IsLoaded)
+			plain.Text = words.Title
+			plain.TextTransparency = math.max(1 - land, leave)
+		end
 		local said = ""
 		for _, part in words.Tagline do
 			if t >= part.At then
@@ -1198,6 +1339,19 @@ local function step(dt: number)
 		moveEyes(target, t)
 	end
 	moveCamera(target, t)
+	if target and target.Ash then
+		local falling = not inBunker and t >= Cutscene.Beat(path, "DustTo") - 0.4
+		local camera = workspace.CurrentCamera.CFrame
+		target.Ash.CFrame = CFrame.new(camera.Position + camera.LookVector * 62 + Vector3.yAxis * 6)
+		for _, emitter in target.Ash:GetChildren() do
+			if emitter:IsA("ParticleEmitter") and emitter.Enabled ~= falling then
+				emitter.Enabled = falling
+				if not falling then
+					emitter:Clear()
+				end
+			end
+		end
+	end
 	showScreen(t, target)
 	local shot = Cutscene.ShotAt(path, t)
 	if shot.Name ~= lastShot then

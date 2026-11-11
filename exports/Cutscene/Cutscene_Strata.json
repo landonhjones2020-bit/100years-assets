@@ -1,0 +1,137 @@
+{
+ "asset": "Cutscene_Strata",
+ "category": "Cutscene",
+ "format": 1,
+ "size": [
+  520.0,
+  130.198,
+  4.535
+ ],
+ "tris": 7814,
+ "pivot": [
+  0.0,
+  2.0,
+  1.932
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "chrome",
+    "copper",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "leather",
+    "mint",
+    "navy",
+    "pine",
+    "rubber",
+    "rust",
+    "sandstone",
+    "skyblue",
+    "steel",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    0.0,
+    63.099,
+    -1.932
+   ],
+   "size": [
+    520.0,
+    130.198,
+    4.535
+   ],
+   "tris": 7502
+  },
+  {
+   "name": "DecorNeonCream",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream"
+   ],
+   "offset": [
+    0.0,
+    70.7,
+    -1.985
+   ],
+   "size": [
+    11.8,
+    112.8,
+    1.47
+   ],
+   "tris": 252
+  },
+  {
+   "name": "DecorNeonHazard",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "hazard"
+   ],
+   "offset": [
+    30.2,
+    34.8,
+    -1.5
+   ],
+   "size": [
+    212.02,
+    0.5,
+    0.5
+   ],
+   "tris": 60
+  }
+ ],
+ "meta": {
+  "face": "front -Y; the game turns it to face the Command View's camera"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Foot": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 0.0
+  },
+  "Top": {
+   "p": [
+    0.0,
+    128.0,
+    0.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "5eb044ab337374a3"
+}
