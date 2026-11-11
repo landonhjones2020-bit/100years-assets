@@ -738,11 +738,12 @@ local function describe(resident: Resident): string
 		table.insert(stats, `{string.sub(stat, 1, 3)} {resident.Stats[stat]}`)
 	end
 	local room = if resident.Job then grid:Room(resident.Job) else nil
-	return string.format("%s %s, %d, L%d (%d/%d xp): %s; job %s; HP %d/%d, rest %d, morale %d (%s)%s%s",
+	return string.format("%s %s, %d, L%d (%d/%d xp): %s; job %s; HP %d/%d, rest %d, morale %d (%s)%s%s%s%s",
 		resident.Id, Residents.Name(resident), resident.Age, resident.Level, resident.XP, Residents.XPToLevel(resident.Level),
 		table.concat(stats, ", "), if room then `{room.Id} {room.Type}` else "none", resident.Health, resident.MaxHealth,
 		resident.Rest, resident.Morale, (Residents.MoraleState(resident.Morale)),
-		if resident.Hungry then ", HUNGRY" else "", if resident.State ~= "Alive" then `, {string.upper(resident.State)}` else "")
+		if resident.Hungry then ", HUNGRY" else "", if resident.Sick then ", SICK" else "",
+		if resident.Irradiated then ", IRRADIATED" else "", if resident.State ~= "Alive" then `, {string.upper(resident.State)}` else "")
 end
 
 local function describeAll(): string

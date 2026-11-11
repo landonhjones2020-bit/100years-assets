@@ -161,7 +161,7 @@ return {
 			Where = { "CrystalHollows" },
 			Role = "Support",
 			Text = "Hums to heal and speed up nearby monsters; kill it first.",
-			Health = 150, Damage = 0, AttackSeconds = 1, Range = 30, MoveSpeed = 10,
+			Health = 150, Damage = 0, AttackSeconds = 4, Range = 30, MoveSpeed = 10, -- Prompt 24: a hum every 4 s
 			Targets = { "Players", "Residents", "Machines" },
 			ThreatCost = 8, Group = { Min = 1, Max = 1 },
 			Traits = { "Heals", "Hastes" },

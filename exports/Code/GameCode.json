@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T22:49:06Z",
- "commit": "306940731a59c54e2027205ff6b50632956e33e5",
- "label": "p24-3069407",
+ "built": "2026-11-11T22:51:22Z",
+ "commit": "570f2eb6526af9f6c666c827c573e803867b2725",
+ "label": "p24-570f2eb",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -1154,7 +1154,7 @@
    "ServerScriptService.Services.DisasterService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DisasterService.luau",
-    "Hash": "592dc83c"
+    "Hash": "ad0286f3"
    },
    "ServerScriptService.Services.DraftService": {
     "Class": "ModuleScript",

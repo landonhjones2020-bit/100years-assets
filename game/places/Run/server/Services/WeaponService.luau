@@ -1528,6 +1528,7 @@ function WeaponService:Init(registry)
 	dev:Register("flare", {
 		Description = "Light a flare at your feet (Prompt 24: it shows Prism Stalkers and the Colossus's cores).",
 		Run = function(player): string?
+			player = player or Players:GetPlayers()[1]
 			local character = player and player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			local throwable = Config.Get("Items", "Flare").Throwable

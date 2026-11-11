@@ -2290,6 +2290,26 @@ test("Boss: the Crystal Colossus's fight (Section 10, Prompt 24)", function()
 	expect(Config.Get("Items", "Flare").Throwable.LightSeconds > t.FlashSeconds, "a flare shows them far longer")
 	expect(entry.Health > Config.Get("Bosses", "Deluge").Health, "the Era III boss has more health than Era II's")
 	expectEqual(Boss.Phase("CrystalColossus", 0.5), 2, "its second phase from two thirds of its health")
+	expect(t.MaxShardlings >= t.Shardlings[entry.Phases] and t.MaxShardlings < Config.Get("Tuning", "Threat").MaxMonsters,
+		"its Shardlings never fill the map")
+	expectEqual(Config.Get("Monsters", "Resonator").AttackSeconds, 4, "a Resonator hums every 4 s (a Golem would out-heal a revolver at 1 s)")
+end)
+
+test("Deep: radiation in the Crystal Hollows' caves, and its Lost Crew (Section 12, Prompt 24)", function()
+	expect(Deep.CaveRadiation("CrystalHollows") > 0, "a Crystal Hollows cave raises radiation")
+	expectEqual(Deep.CaveRadiation("Mines"), 0, "the Mines' caves don't")
+	expectEqual(Deep.CaveRadiation("FloodedCaverns"), 0, "nor the Flooded Caverns'")
+	expectEqual(Deep.CaveRadiation("CrystalHollows"), Config.Get("Tuning", "Surface").RadiationPerSecond, "the surface's calm rate")
+	local floors = Deep.Tuning().CrewFloors.CrystalHollows
+	expectEqual({ floors.Min, floors.Max }, { 7, 9 }, "the Crystal Hollows' crew hides on its own floors")
+	expect(#Deep.Pieces("CrystalHollows", "CrewPocket") > 0, "and has a pocket to be trapped in")
+	local pieces = 0
+	for _, piece in Config.All("CavePieces") do
+		if piece.Band == "CrystalHollows" then
+			pieces += 1
+		end
+	end
+	expectEqual(pieces, 8, "eight pieces for the band (Section 12)")
 end)
 
 test("Boss: the arena is the deepest tunnel, else a room, else a cell (Section 10)", function()
@@ -2549,7 +2569,7 @@ test("Deep: finds, cryo pods, crews, hints, drops and guards (Sections 6, 12 and
 	local function isOpen(floor: number, column: number): boolean
 		return floor <= 2 and math.abs(column) <= 1
 	end
-	for _, band in { "Mines", "FloodedCaverns" } do
+	for _, band in { "Mines", "FloodedCaverns", "CrystalHollows" } do
 		local floor, column = Deep.CrewCell(1234, band, isOpen)
 		expect(floor ~= nil and column ~= nil, `{band}: a cell for its crew`)
 		local f, col = floor :: number, column :: number

@@ -353,6 +353,13 @@ function Deep.LightRange(multiplier: number?): number
 	return Deep.Tuning().LightRange * math.max(multiplier or 1, 0)
 end
 
+-- Section 12: "radiation in the Crystal Hollows". How fast a player's radiation climbs in a cave of
+-- this band (0 in the others), before their class's RadiationGain.
+function Deep.CaveRadiation(band: string): number
+	return Deep.Tuning().CaveRadiationPerSecond[band] or 0
+end
+
+
 -- The monsters that guard a band's caves: its own (Config.Monsters Where), those `usable` says can
 -- come out now (their model is in); the Mines' when none of the band's can. Sorted.
 function Deep.Roster(band: string, usable: (string) -> boolean): { string }

@@ -263,6 +263,11 @@ local function radiationTick(player: Player, root: BasePart, dt: number)
 		if type(leak) == "number" and leak > 0 then
 			value += Disasters.RadiationPlayerRate(leak, classValue(player, "RadiationGain")) * dt
 		end
+		-- Prompt 24: the Crystal Hollows' caves (DeepService marks who stands in one)
+		local cave = player:GetAttribute("CaveRadiation")
+		if type(cave) == "number" and cave > 0 then
+			value += cave * math.max(classValue(player, "RadiationGain") or 1, 0) * dt
+		end
 		if zone == "Bunker" and value > 0 and inDecon(root.Position) then
 			value -= tuning.DeconPerSecond * dt
 		end
@@ -278,6 +283,7 @@ local function radiationTick(player: Player, root: BasePart, dt: number)
 	if level > (warned[player] or 0) then
 		if level == 1 then
 			alert(player, "Warning", if player:GetAttribute("InRadiation") then "RADIATION HIGH: GET OUT OF THE LEAK"
+				elseif player:GetAttribute("CaveRadiation") then "RADIATION HIGH: GET OUT OF THE CRYSTAL CAVES"
 				else "RADIATION HIGH: HEAD BACK TO THE ELEVATOR")
 		else
 			alert(player, "Danger", "RADIATION SICKNESS: YOU'RE LOSING HEALTH · CLEAR-RAD PILLS OR A DECON ROOM CLEAR IT")

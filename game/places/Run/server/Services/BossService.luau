@@ -1246,7 +1246,7 @@ local function shardMark(f: Fight, at: Vector3, hatch: boolean)
 		if hatch and f.State == "Fighting" then
 			local entry = Config.Get("Bosses", f.BossId)
 			local kind = if entry.Minions then entry.Minions[1] else nil
-			if kind then
+			if kind and monsters:Count(HATCH_TAG_PREFIX .. f.BossId) < t.MaxShardlings then
 				monsters:Spawn(kind, CFrame.new(centre + Vector3.new(0, 0.5, 0)), HATCH_TAG_PREFIX .. f.BossId)
 			end
 		end

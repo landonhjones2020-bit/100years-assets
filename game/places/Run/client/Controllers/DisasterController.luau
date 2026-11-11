@@ -377,10 +377,10 @@ end
 local function setRadiationStrength(effect: Effect, strength: number)
 	local k = math.clamp(strength / 100, 0, 1)
 	for _, e in effect.Emitters do
-		e.Rate = if e.Name == "Motes" then 6 + 30 * k else 1 + 5 * k
+		e.Rate = if e.Name == "Motes" then 6 + 30 * k else 1 + 3 * k
 	end
 	for _, light in effect.Lights do
-		light.Brightness = 0.25 + 0.9 * k
+		light.Brightness = 0.2 + 0.5 * k -- the room keeps its colours (the playtest's first pass washed it one green)
 	end
 end
 
@@ -508,6 +508,9 @@ local radHaze: ColorCorrectionEffect? = nil
 local function updateRadiationHaze()
 	local inRadiation = player:GetAttribute("InRadiation")
 	local k = if type(inRadiation) == "number" then math.clamp(inRadiation / 100, 0, 1) else 0
+	if player:GetAttribute("CaveRadiation") then
+		k = math.max(k, 0.3) -- the Crystal Hollows' caves: a faint haze the whole way in
+	end
 	if k <= 0 then
 		if radHaze then
 			radHaze:Destroy()
@@ -522,8 +525,8 @@ local function updateRadiationHaze()
 		haze.Parent = game:GetService("Lighting")
 		radHaze = haze
 	end
-	haze.TintColor = Color3.new(1, 1, 1):Lerp(Color3.fromRGB(206, 255, 214), 0.6 * k)
-	haze.Brightness = 0.06 * k
+	haze.TintColor = Color3.new(1, 1, 1):Lerp(Color3.fromRGB(206, 255, 214), 0.45 * k)
+	haze.Brightness = 0.04 * k
 	haze.Contrast = 0.1 * k
 	haze.Saturation = -0.15 * k
 end
@@ -1314,6 +1317,7 @@ function DisasterController:Start()
 	player:GetAttributeChangedSignal("Wading"):Connect(updateStanding)
 	player:GetAttributeChangedSignal("InGas"):Connect(updateStanding)
 	player:GetAttributeChangedSignal("InRadiation"):Connect(updateStanding)
+	player:GetAttributeChangedSignal("CaveRadiation"):Connect(updateStanding)
 	-- Prompt 24: the sick cough
 	replica:Changed("Residents"):Connect(function()
 		task.defer(syncCoughs)

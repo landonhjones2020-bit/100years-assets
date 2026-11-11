@@ -123,7 +123,7 @@ local Schemas: { [string]: Check.Checker } = {
 	CrystalColossus = shape({
 		MoveSpeed = list(N, 3), AttackSeconds = list(S, 3), SlamDamage = N, SlamRadius = N, SlamReach = N,
 		VolleySeconds = list(S, 3), Shards = list(I, 3), ShardWarnSeconds = S, ShardDamage = N, ShardRadius = N,
-		StunSeconds = S, VolleyRange = N, Shardlings = list(I, 3), ArmourMultiplier = Fr, LitSeconds = S, FlashSeconds = S,
+		StunSeconds = S, VolleyRange = N, Shardlings = list(I, 3), MaxShardlings = I, ArmourMultiplier = Fr, LitSeconds = S, FlashSeconds = S,
 		StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S, ArenaMargin = N,
 		TurnDegreesPerSecond = N, EmergeSeconds = S,
 	}),
@@ -251,6 +251,7 @@ local Schemas: { [string]: Check.Checker } = {
 		LampRange = N, LampBrightness = N,
 		ThawPoints = N, LegendaryChance = Fr, CryoLevel = F.Range, MinerRareChance = Fr, MinerLevel = F.Range,
 		CrewLevel = F.Range, CrewFloors = Check.map(Check.ref("DepthBands"), F.Range, 4), CrewMinDepth = I,
+		CaveRadiationPerSecond = Check.map(Check.ref("DepthBands"), N, 4),
 		HintChance = Fr, NestBudget = N, RevealRange = N, CampWakeRange = N, CampSleepSeconds = S,
 	}),
 	Draft = shape({ -- Prompt 19
@@ -452,11 +453,12 @@ return {
 			-- AttackSeconds (SlamDamage within SlamRadius). Every VolleySeconds it throws Shards crystal
 			-- shards at survivors within VolleyRange: each lands ShardWarnSeconds after its mark shows,
 			-- for ShardDamage and a stun of StunSeconds within ShardRadius, and from its second phase
-			-- Shardlings crawl out of the broken shards. StaggerFraction of its health dealt to lit
+			-- Shardlings crawl out of the broken shards (never more than MaxShardlings of its own alive
+			-- at once: the playtest's fight reached 12 in 40 s without it). StaggerFraction of its health dealt to lit
 			-- cores within StaggerWindowSeconds drops it for StaggerSeconds.
 			MoveSpeed = { 3, 3.5, 4.5 }, AttackSeconds = { 4.5, 4, 3.2 }, SlamDamage = 45, SlamRadius = 10, SlamReach = 16,
 			VolleySeconds = { 11, 9, 7 }, Shards = { 2, 3, 4 }, ShardWarnSeconds = 1.2, ShardDamage = 15, ShardRadius = 6,
-			StunSeconds = 1.5, VolleyRange = 70, Shardlings = { 0, 2, 4 }, ArmourMultiplier = 0.2, LitSeconds = 10, FlashSeconds = 2.5,
+			StunSeconds = 1.5, VolleyRange = 70, Shardlings = { 0, 2, 4 }, MaxShardlings = 8, ArmourMultiplier = 0.2, LitSeconds = 10, FlashSeconds = 2.5,
 			StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.5, RoarSeconds = 2.6, ArenaMargin = 9,
 			TurnDegreesPerSecond = 35, EmergeSeconds = 3,
 		},
@@ -740,7 +742,10 @@ return {
 			ThawPoints = 2, LegendaryChance = 0.15, CryoLevel = { Min = 2, Max = 5 },
 			-- trapped miners and the Lost Crews (Section 12)
 			MinerRareChance = 0.25, MinerLevel = { Min = 1, Max = 4 }, CrewLevel = { Min = 2, Max = 5 },
-			CrewFloors = { Mines = { Min = 2, Max = 3 }, FloodedCaverns = { Min = 4, Max = 6 } }, CrewMinDepth = 2,
+			CrewFloors = { Mines = { Min = 2, Max = 3 }, FloodedCaverns = { Min = 4, Max = 6 }, CrystalHollows = { Min = 7, Max = 9 } }, CrewMinDepth = 2,
+			-- Section 12's "radiation in the Crystal Hollows" (Prompt 24, prov.): a player's radiation
+			-- climbs this fast in that band's caves, the surface's calm rate, so a trip has its limit
+			CaveRadiationPerSecond = { CrystalHollows = 0.2 },
 			-- a radio log found while a crew is still lost is a crew's log this often (with where they were heard)
 			HintChance = 0.6, NestBudget = 6,
 			-- the Spelunker's RevealCaveLayouts: finds, nests and the trapped show through rock this close

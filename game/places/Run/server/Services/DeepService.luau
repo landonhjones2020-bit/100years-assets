@@ -1209,13 +1209,39 @@ end
 
 -- Loop --------------------------------------------------------------------------------------------
 
+-- Section 12's "radiation in the Crystal Hollows" (Prompt 24): who stands in a cave of a band that
+-- has it carries CaveRadiation (a rate per second); SurfaceService's radiation tick adds it, and the
+-- client hazes the picture.
+local function radiationTick()
+	for _, player in Players:GetPlayers() do
+		local root = rootOf(player)
+		local rate = 0
+		if root and Surface.Zone(root.Position) == "Deep" then
+			local key = DeepService:CaveAt(root.Position)
+			local c = if key then caves[key] else nil
+			rate = if c then Deep.CaveRadiation(c.Band) else 0
+		end
+		local had = player:GetAttribute("CaveRadiation")
+		if rate > 0 then
+			if had ~= rate then
+				player:SetAttribute("CaveRadiation", rate)
+				if not had then
+					alert(player, "Warning", "THE CRYSTAL GLOWS HOT: YOUR RADIATION CLIMBS IN THESE CAVES")
+				end
+			end
+		elseif had ~= nil then
+			player:SetAttribute("CaveRadiation", nil)
+		end
+	end
+end
+
 local function loop()
 	local last = os.clock()
 	while true do
 		task.wait(1)
 		local dt = math.min(os.clock() - last, 3)
 		last = os.clock()
-		for name, fn in { wake = wakeTick, light = lightTick, thaw = function()
+		for name, fn in { wake = wakeTick, light = lightTick, radiation = radiationTick, thaw = function()
 			-- the Cryo Bay works like any room: while the clock runs, at its speed (EconomyService)
 			if clock:IsRunning() then
 				thawTick(dt * clock:TimeScale())

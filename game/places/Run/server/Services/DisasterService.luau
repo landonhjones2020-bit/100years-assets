@@ -545,6 +545,11 @@ local function fusePosition(): Vector3?
 	return Grid.CellPosition(reactor.Floor, reactor.Column) + Vector3.new(-12, 4, -6)
 end
 
+-- The door's seal clamps the jamb, this far along the wall from the door's middle: the lift's own
+-- prompt (RIDE UP) is at the middle, and of two prompts on one key Roblox shows the one nearer the
+-- middle of the screen, so a seal there could not be reached (Prompt 24's playtest).
+local DOOR_SEAL_SIDE = 8
+
 local function promptPart(name: string, position: Vector3): BasePart?
 	local parent = holder()
 	if not parent then
@@ -1632,7 +1637,7 @@ function DisasterService:StartRadiationLeak(cause: string, roomId: string?, stre
 	else
 		local model = grid:RoomModel(room.Id)
 		local socket = if model then BunkerKit.Socket(model, "Door") else nil
-		at = if socket then CFrame.new(socket.Position + Vector3.new(0, 3, 1.2))
+		at = if socket then CFrame.new(socket.Position + Vector3.new(DOOR_SEAL_SIDE, 3, 1.2))
 			else CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 4, -(g.CellDepth / 2 - 1.5)))
 	end
 	local prop = fitting(if roomId then `RadSeam:{roomId}` else "DoorSeal", if roomId then "Kit_CrystalSeam" else "Kit_DoorSeal", at,

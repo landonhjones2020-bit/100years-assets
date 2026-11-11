@@ -1,42 +1,52 @@
 {
-  "models": {
-    "Monster_Shardling": "74669648887269",
-    "Monster_PrismStalker": "130393825412411",
-    "Monster_GeodeGolem": "105667984441424",
-    "Monster_Resonator": "139798192367537",
-    "Boss_CrystalColossus": "100985849078817",
-    "Kit_DoorSeal": "116537539059684",
-    "Kit_CrystalSeam": "111950606351593"
+ "models": {
+  "Monster_Shardling": "74669648887269",
+  "Monster_PrismStalker": "130393825412411",
+  "Monster_GeodeGolem": "105667984441424",
+  "Monster_Resonator": "139798192367537",
+  "Boss_CrystalColossus": "100985849078817",
+  "Kit_DoorSeal": "116537539059684",
+  "Kit_CrystalSeam": "111950606351593"
+ },
+ "clips": {
+  "Shardling": {
+   "Idle": "97873691999290",
+   "Walk": "77941776120785",
+   "Attack": "103513336103243"
   },
-  "clips": {
-    "Shardling": {
-      "Idle": "97873691999290",
-      "Walk": "77941776120785",
-      "Attack": "103513336103243"
-    },
-    "PrismStalker": {
-      "Idle": "121017758616327",
-      "Walk": "90504403398881",
-      "Attack": "120335199648341"
-    },
-    "GeodeGolem": {
-      "Idle": "121739575432742",
-      "Walk": "78406809910812",
-      "Attack": "106115790644696"
-    },
-    "Resonator": {
-      "Idle": "84027818082893",
-      "Walk": "70969580809227",
-      "Attack": "110970025145339"
-    },
-    "CrystalColossus": {
-      "Idle": "92071238039702",
-      "Walk": "80414932215543",
-      "Attack": "125667580394018",
-      "Volley": "110812867505641",
-      "Roar": "121631002445443",
-      "Stagger": "103101122241503",
-      "Death": "83559829469455"
-    }
+  "PrismStalker": {
+   "Idle": "121017758616327",
+   "Walk": "90504403398881",
+   "Attack": "120335199648341"
+  },
+  "GeodeGolem": {
+   "Idle": "121739575432742",
+   "Walk": "78406809910812",
+   "Attack": "106115790644696"
+  },
+  "Resonator": {
+   "Idle": "84027818082893",
+   "Walk": "70969580809227",
+   "Attack": "110970025145339"
+  },
+  "CrystalColossus": {
+   "Idle": "92071238039702",
+   "Walk": "80414932215543",
+   "Attack": "125667580394018",
+   "Volley": "110812867505641",
+   "Roar": "121631002445443",
+   "Stagger": "103101122241503",
+   "Death": "83559829469455"
   }
+ },
+ "caves": {
+  "Cave_Crystal_Cavern": "117892511992627",
+  "Cave_Crystal_Chamber": "136395288449065",
+  "Cave_Crystal_CrewPocket": "91698303854579",
+  "Cave_Crystal_Drop": "116981217365849",
+  "Cave_Crystal_Entry": "95216540770603",
+  "Cave_Crystal_Junction": "140320557322624",
+  "Cave_Crystal_Pocket": "137720474401999",
+  "Cave_Crystal_Tunnel": "83967828713485"
+ }
 }
