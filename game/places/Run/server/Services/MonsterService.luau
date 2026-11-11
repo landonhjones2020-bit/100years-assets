@@ -1435,7 +1435,7 @@ function MonsterService:Init(registry)
 		end,
 	})
 	dev:Register("monster.hit", {
-		Description = "Hit the nearest monster of a type from in front of it, behind it or its side (a Tide Crab's shell and back).",
+		Description = "Hit a monster of a type as if from in front of it, beside it or behind it: it is turned, then hit (a Tide Crab's shell and back).",
 		Usage = "monster.hit <Type> <amount> [front|back|side]",
 		Run = function(player, args): string?
 			local monsterType = tostring(args[1] or "")
@@ -1453,11 +1453,13 @@ function MonsterService:Init(registry)
 			if not me or not target then
 				return `no {monsterType} to hit (or no player)`
 			end
-			local facing = target.Root.CFrame
-			local offset = if from == "back" then Vector3.new(0, 0, 9) elseif from == "side" then Vector3.new(9, 0, 0) else Vector3.new(0, 0, -9)
-			local character = player.Character
-			if character then
-				character:PivotTo(CFrame.new(facing:PointToWorldSpace(offset) + Vector3.new(0, 2, 0)))
+			-- nobody is moved (a teleport by a wall drops them out of the bunker): the monster is turned
+			-- so that the player stands in front of it, beside it or behind it, and is hit at once
+			local here = target.Root.Position
+			local to = Vector3.new(me.Root.Position.X, here.Y, me.Root.Position.Z)
+			if (to - here).Magnitude > 0.5 then
+				local turn = if from == "back" then math.pi elseif from == "side" then math.pi / 2 else 0
+				target.Root.CFrame = CFrame.lookAt(here, to) * CFrame.Angles(0, turn, 0)
 			end
 			local before = combat:HealthOf(target.Id)
 			local dealt = combat:Damage(target.Id, amount, me.Id, "dev")
