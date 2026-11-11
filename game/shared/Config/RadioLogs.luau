@@ -21,7 +21,7 @@ return {
 	}),
 	Order = {
 		"SiteSurvey", "CrewSeven", "DigbyMemo", "CivilDefense", "SampleG11", "FloodedGalleries",
-		"ChairmansCable", "ShiftChange", "RaiderBroadcast", "TrainingFilm",
+		"ChairmansCable", "ShiftChange", "RaiderBroadcast", "TrainingFilm", "CrystalGallery",
 	},
 	Entries = {
 		SiteSurvey = {
@@ -63,6 +63,11 @@ return {
 			Title = "On the open band", From = "The Ash Raiders",
 			Text = "Steadfast! We've got three of yours in the pen. Bring us Scrap and maybe they walk home. Or come and take them.",
 			Crew = "CrewSurface",
+		},
+		CrystalGallery = { -- Prompt 24: the Crystal Hollows' crew
+			Title = "Blasting crew, deep gallery", From = "A Steadfast blasting crew",
+			Text = "We broke through into a gallery of crystal as tall as a house, and it hums. The dosimeters went off the dial an hour ago. We've walled ourselves in with the lamps turned low. Something out there only shows when the light hits it.",
+			Crew = "CrewCrystal",
 		},
 		TrainingFilm = {
 			Title = "Training film 12, sound reel", From = "Digby the Gopher",
