@@ -2151,6 +2151,8 @@ test("Monsters: the Flooded Caverns' four (Section 10, Prompt 23)", function()
 	expectEqual((Threat.Shell(-1, true, false)), 1, "no weak back, no bonus")
 	expect(t.ArmorFront < 1 and t.WeakBack > 1, "the shell lowers a hit and the back raises it")
 	expect(t.ArmorArcDegrees + t.WeakArcDegrees <= 360, "the arcs don't overlap")
+	expect(t.ShellFaceDegrees < t.ArmorArcDegrees / 2, "what it can strike is in front of its shell")
+	expect(t.ShellTurnDegreesPerSecond < 150, "it turns slower than a player circles it")
 	local flood = Config.Get("Tuning", "Disasters").Flood
 	expect(flood.BurstLevel >= flood.WadeLevel, "a Bloat Toad's burst leaves water to wade in")
 	expect(flood.MurklingLevel > flood.StartLevel, "a room must fill before Murklings come out of it")

@@ -87,7 +87,7 @@ end
 -- The Flooded Caverns' monsters ------------------------------------------------------------------
 
 local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
-local HIDDEN_BODY, HIDDEN_GLOW, HIDDEN_LURE = 0.95, 0.85, 0.35 -- how far each kind of part fades
+local HIDDEN_BODY, HIDDEN_GLOW, HIDDEN_LURE = 0.95, 0.93, 0.35 -- how far each kind of part fades
 local FADE_PER_SECOND = 2.5
 
 type Watched = {

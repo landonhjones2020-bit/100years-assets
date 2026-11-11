@@ -654,11 +654,29 @@ local function halt(m: Monster)
 	m.Humanoid:MoveTo(m.Root.Position)
 end
 
-local function face(m: Monster, at: Vector3)
-	local flat = Vector3.new(at.X, m.Root.Position.Y, at.Z)
-	if (flat - m.Root.Position).Magnitude > 0.2 then
-		m.Root.CFrame = CFrame.lookAt(m.Root.Position, flat)
+-- Turns it to look at a point; returns whether it now faces it. A shelled monster (ArmoredFront:
+-- the Tide Crab) turns only ShellTurnDegreesPerSecond while it stands and fights, so someone
+-- quick, or anyone it isn't looking at, can get round to its back; it strikes only at what is
+-- within ShellFaceDegrees of its front.
+local function face(m: Monster, at: Vector3): boolean
+	local here = m.Root.Position
+	local flat = Vector3.new(at.X, here.Y, at.Z)
+	if (flat - here).Magnitude <= 0.2 then
+		return true
 	end
+	if m.Spec.Traits == nil or table.find(m.Spec.Traits, "ArmoredFront") == nil then
+		m.Root.CFrame = CFrame.lookAt(here, flat)
+		return true
+	end
+	local t = ai()
+	local look = m.Root.CFrame.LookVector
+	local have = math.atan2(-look.X, -look.Z)
+	local want = math.atan2(-(flat.X - here.X), -(flat.Z - here.Z))
+	local delta = (want - have + math.pi) % (math.pi * 2) - math.pi
+	local step = math.rad(t.ShellTurnDegreesPerSecond) * t.TickSeconds
+	local turn = math.clamp(delta, -step, step)
+	m.Root.CFrame = CFrame.new(here) * CFrame.Angles(0, have + turn, 0)
+	return math.abs(delta - turn) <= math.rad(t.ShellFaceDegrees)
 end
 
 local function plan(m: Monster, goal: Vector3)
@@ -1332,11 +1350,13 @@ local function step(m: Monster)
 		else
 			halt(m)
 		end
-		face(m, at)
+		local facing = face(m, at)
 		if has(m, "Explodes") then
 			swell(m) -- contact: a Bloat Toad bursts
-		else
+		elseif facing then
 			attack(m, target)
+		else
+			setActivity(m, "Walk") -- a Tide Crab still turning to bring its claws round
 		end
 		return
 	end
@@ -1439,7 +1459,6 @@ function MonsterService:Init(registry)
 			if character then
 				character:PivotTo(CFrame.new(facing:PointToWorldSpace(offset) + Vector3.new(0, 2, 0)))
 			end
-			task.wait(0.1) -- so the combatant's root is where the character now stands
 			local before = combat:HealthOf(target.Id)
 			local dealt = combat:Damage(target.Id, amount, me.Id, "dev")
 			return `{target.Id} {monsterType} hit for {amount} from its {from}: {dealt} dealt ({math.ceil(before)} -> {math.ceil((combat:HealthOf(target.Id)))} hp)`

@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T17:42:36Z",
- "commit": "79d3cc8376a852f1261fc4cdafe8a72b900a4583",
- "label": "p23-79d3cc8",
+ "built": "2026-11-11T17:47:11Z",
+ "commit": "068592600ce8dc5f123e49ebba232ba8660ee898",
+ "label": "p23-0685926",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -1099,7 +1099,7 @@
    "ServerScriptService.Services.BossService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/BossService.luau",
-    "Hash": "6be22b0a"
+    "Hash": "cc43cb8c"
    },
    "ServerScriptService.Services.BreachService": {
     "Class": "ModuleScript",
@@ -1179,7 +1179,7 @@
    "ServerScriptService.Services.MonsterService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/MonsterService.luau",
-    "Hash": "b27e681a"
+    "Hash": "1763212f"
    },
    "ServerScriptService.Services.ObjectiveService": {
     "Class": "ModuleScript",

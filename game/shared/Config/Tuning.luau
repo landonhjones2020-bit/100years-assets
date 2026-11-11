@@ -177,6 +177,7 @@ local Schemas: { [string]: Check.Checker } = {
 		BurstRadius = N, BurstSwellSeconds = S, HideSeconds = S, AmbushReach = N, RevealSeconds = S,
 		GrabBreakDamage = N, GrabBreakStun = S, GrabDamageMultiplier = N,
 		ArmorFront = Fr, ArmorArcDegrees = N, WeakBack = N, WeakArcDegrees = N,
+		ShellTurnDegreesPerSecond = N, ShellFaceDegrees = N,
 	}),
 	Residents = shape({
 		StatMin = I, StatMax = I, StatCap = I, LevelMax = I, MoraleStart = N, FoodPerCycle = N, WaterPerCycle = N,
@@ -550,10 +551,13 @@ return {
 			-- after a hit, and lets go of a resident when hit for GrabBreakDamage (stunned
 			-- GrabBreakStun); held, the resident takes GrabDamageMultiplier of its bite each attack.
 			-- A Tide Crab takes ArmorFront of a blow from within ArmorArcDegrees of its front and
-			-- WeakBack times a blow from within WeakArcDegrees of its back.
+			-- WeakBack times a blow from within WeakArcDegrees of its back. Standing to fight it turns
+			-- only ShellTurnDegreesPerSecond (a player circling at its reach goes round at about 170), and
+			-- it strikes only at what is within ShellFaceDegrees of dead ahead.
 			BurstRadius = 9, BurstSwellSeconds = 0.7, HideSeconds = 25, AmbushReach = 5, RevealSeconds = 1.2,
 			GrabBreakDamage = 45, GrabBreakStun = 1.5, GrabDamageMultiplier = 0.6,
 			ArmorFront = 0.25, ArmorArcDegrees = 130, WeakBack = 2, WeakArcDegrees = 110,
+			ShellTurnDegreesPerSecond = 80, ShellFaceDegrees = 40,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,
