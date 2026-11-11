@@ -820,8 +820,13 @@ local function walk(m: Monster, goal: Vector3)
 	end
 	setMode(m, "Graph")
 	local goalUnit = unitOf(goal + Vector3.new(0, 1, 0))
-	if m.PlannedFor ~= goalUnit or os.clock() - m.PlannedAt > REPLAN_SECONDS or #m.Points == 0
-		or m.PlannedVersion ~= Hazards.Version() then
+	local feet = m.Root.Position.Y - m.Humanoid.HipHeight - m.Root.Size.Y / 2
+	local heading = m.Points[m.Index]
+	-- its next waypoint is on another floor: it is on a Shaft's stairs, and a fresh plan (which
+	-- starts from the aisle of whatever floor it is level with) would walk it off them
+	local climbing = heading ~= nil and math.abs(heading.Y - feet) > 3
+	if m.PlannedFor ~= goalUnit or #m.Points == 0 or m.PlannedVersion ~= Hazards.Version()
+		or (os.clock() - m.PlannedAt > REPLAN_SECONDS and not climbing) then
 		local chasing = m.Target ~= nil -- a guard walking back to its post has none
 		plan(m, goal)
 		if chasing and not m.Target then
@@ -829,6 +834,24 @@ local function walk(m: Monster, goal: Vector3)
 			halt(m)
 			setActivity(m, "Idle")
 			return
+		end
+		-- A plan starts from the aisle. Planned again part-way to its next point (the foot of the
+		-- stairs, a doorway), it carries on from where it is instead of walking back to the aisle:
+		-- it skips each waypoint whose successor, on its own floor, is no farther away. (Found in
+		-- Prompt 23's playtest: a whole Surge stood at the foot of the Shaft's stairs, sent back to
+		-- the aisle every REPLAN_SECONDS, and never climbed.)
+		local at = m.Root.Position
+		while m.Index < #m.Points do
+			local here, after = m.Points[m.Index], m.Points[m.Index + 1]
+			if math.abs(after.Y - feet) > 3 then
+				break
+			end
+			local near = Vector3.new(here.X - at.X, 0, here.Z - at.Z).Magnitude
+			local nearAfter = Vector3.new(after.X - at.X, 0, after.Z - at.Z).Magnitude
+			if nearAfter > near then
+				break
+			end
+			m.Index += 1
 		end
 	end
 	-- the last point follows a moving target
