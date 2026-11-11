@@ -796,23 +796,35 @@ local function wakeRate(f: Fight, rate: number)
 	if emitter then
 		emitter.Rate = rate
 	end
+	local light = wake and wake:FindFirstChildOfClass("PointLight")
+	if light then
+		light.Enabled = rate > 0
+	end
 end
 
--- The spray where its fin cuts the floor.
+-- The spray and the light where its crest cuts the floor: what players follow while it is under.
 local function makeWake(f: Fight)
 	local part = effectPart(Vector3.new(f.X, f.Y + 0.4, f.Z), "DelugeWake")
 	part.Size = Vector3.new(6, 0.4, 6)
 	local spray = Instance.new("ParticleEmitter")
 	spray.Texture = "rbxasset://textures/particles/smoke_main.dds"
 	spray.Color = ColorSequence.new(look(f).Chips)
-	spray.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 3.4) })
-	spray.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) })
-	spray.Lifetime = NumberRange.new(0.5, 1)
-	spray.Speed = NumberRange.new(6, 12)
+	spray.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.6), NumberSequenceKeypoint.new(1, 4.6) })
+	spray.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
+	spray.Lifetime = NumberRange.new(0.6, 1.2)
+	spray.Speed = NumberRange.new(8, 16)
 	spray.SpreadAngle = Vector2.new(40, 40)
 	spray.Acceleration = Vector3.new(0, -30, 0)
+	spray.LightEmission = 0.4
 	spray.Rate = 0
 	spray.Parent = part
+	local light = Instance.new("PointLight")
+	light.Color = look(f).Glow
+	light.Range = 20
+	light.Brightness = 2.2
+	light.Shadows = false
+	light.Enabled = false
+	light.Parent = part
 	f.Wake = part
 	table.insert(f.Effects, part)
 end
