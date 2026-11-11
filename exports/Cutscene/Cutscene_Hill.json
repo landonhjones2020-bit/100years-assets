@@ -1,0 +1,180 @@
+{
+ "asset": "Cutscene_Hill",
+ "category": "Cutscene",
+ "format": 1,
+ "size": [
+  206.0,
+  105.156,
+  530.0
+ ],
+ "tris": 12028,
+ "pivot": [
+  377.0,
+  3.0,
+  95.0
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "basalt",
+    "blush",
+    "brass",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "pine",
+    "porcelain",
+    "rubber",
+    "rust",
+    "sandstone",
+    "signal",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -377.0,
+    49.578,
+    -228.908
+   ],
+   "size": [
+    206.0,
+    105.156,
+    262.184
+   ],
+   "tris": 6014
+  },
+  {
+   "name": "Decor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "avocado",
+    "blush",
+    "brass",
+    "cream",
+    "forest",
+    "gunmetal",
+    "hazard",
+    "leaf",
+    "leather",
+    "navy",
+    "porcelain",
+    "rubber",
+    "sandstone",
+    "signal",
+    "stone",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -377.0,
+    46.69,
+    12.65
+   ],
+   "size": [
+    206.0,
+    99.381,
+    314.7
+   ],
+   "tris": 6014
+  }
+ ],
+ "meta": {
+  "colliders": [
+   [
+    "Bench",
+    349.0,
+    -124.0,
+    29.1,
+    6.6,
+    2.2,
+    2.2,
+    180.0
+   ],
+   [
+    "Bench",
+    349.0,
+    -68.0,
+    29.1,
+    6.6,
+    2.2,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    347.4,
+    -120.0,
+    29.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ],
+   [
+    "Tub",
+    347.4,
+    -72.0,
+    29.1,
+    2.6,
+    2.6,
+    2.2,
+    0.0
+   ]
+  ]
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Door": {
+   "p": [
+    -356.0,
+    28.0,
+    -96.0
+   ],
+   "yaw": 90.0
+  },
+  "StairFoot": {
+   "p": [
+    -286.0,
+    0.0,
+    -96.0
+   ],
+   "yaw": 90.0
+  },
+  "StairHead": {
+   "p": [
+    -342.0,
+    28.0,
+    -96.0
+   ],
+   "yaw": 90.0
+  }
+ },
+ "fbx_sha1": "36665072479f47d6"
+}

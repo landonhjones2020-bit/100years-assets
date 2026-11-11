@@ -15,6 +15,7 @@ export type Screen = {
 	Places: { string }, -- "Lobby", "Run"
 	DisplayOrder: number,
 	Paths: { string },
+	Insets: string?, -- "None": the ScreenGui covers the whole screen (letterbox bars, a flash); else the safe area (Section 18, rule 7)
 }
 
 local UIContract: { [string]: Screen } = {
@@ -257,6 +258,42 @@ local UIContract: { [string]: Screen } = {
 		},
 	},
 	-- Prompt 21: what stays on screen in the lobby (studio/ui/Lobby.lua; LobbyController, PadController)
+	CutsceneBars = { -- the intro cutscene (Prompt 22): what covers the whole screen, edge to edge
+		Places = { "Run" },
+		DisplayOrder = 20,
+		Insets = "None",
+		Paths = {
+			"Dust",
+			"Flash",
+			"Black",
+			"Top",
+			"Bottom",
+			"Bottom.Bulletin",
+			"Bottom.Bulletin.Ticker.Line",
+			"Bottom.Bulletin.Plate.LampOn",
+			"Bottom.Bulletin.Plate.LampOff",
+			"Bottom.Bulletin.Plate.Station",
+			"Bottom.Bulletin.Plate.Tag",
+		},
+	},
+	Cutscene = { -- the intro cutscene: the title card, Skip and the plate that counts down to the run
+		Places = { "Run" },
+		DisplayOrder = 21,
+		Paths = {
+			"Title",
+			"Title.Years",
+			"Title.Below",
+			"Title.Tagline",
+			"Skip",
+			"Skip.Content.Fill",
+			"Skip.Content.Label",
+			"Skip.Key",
+			"Skip.Key.Text",
+			"Wait",
+			"Wait.Label",
+			"Wait.Time",
+		},
+	},
 	Lobby = {
 		Places = { "Lobby" },
 		DisplayOrder = 4,

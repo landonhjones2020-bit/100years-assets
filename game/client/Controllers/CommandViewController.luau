@@ -1102,6 +1102,21 @@ local function liftLighting(on: boolean)
 	end
 end
 
+-- The view's look without the view: the front walls faded and the lighting lifted, for as long as
+-- any reason holds it. The view itself holds it while it is open; the intro cutscene holds it
+-- while its camera passes the bunker and settles into the view's pose (Prompt 22).
+local presenting: { [string]: boolean } = {}
+
+local function present(reason: string, on: boolean)
+	local was = next(presenting) ~= nil
+	presenting[reason] = if on then true else nil
+	local now = next(presenting) ~= nil
+	if now ~= was then
+		fadeFrontWalls(now)
+		liftLighting(now)
+	end
+end
+
 local function flashEdge()
 	local edge = part("DamageEdge")
 	edge.Visible = true
@@ -1167,8 +1182,7 @@ local function onOpen(_page: Frame)
 	selected = nil
 	choice = nil
 	labelsDirty = true
-	fadeFrontWalls(true)
-	liftLighting(true)
+	present(SCREEN, true)
 	selectionMark = clone("CellMark")
 	selectionMark.Visible = false
 	selectionMark.Parent = part("Cabinet.Pages.CommandView.View.Marks")
@@ -1211,8 +1225,7 @@ local function onClose()
 		connection:Disconnect()
 	end
 	table.clear(rowConnections)
-	fadeFrontWalls(false)
-	liftLighting(false)
+	present(SCREEN, false)
 	holdCharacter(false)
 	local camera = workspace.CurrentCamera
 	local back = before
@@ -1252,6 +1265,20 @@ end
 
 function CommandViewController:IsOpen(): boolean
 	return open
+end
+
+-- Shows the bunker as the view does (front walls faded, lighting lifted) without opening it.
+function CommandViewController:Present(reason: string, on: boolean)
+	present(reason, on)
+end
+
+-- The view's camera over a point of the bunker's front (world X and Y) showing `floors` floors,
+-- with the point in the middle of the whole screen: the pose the view opens in, less its zone.
+function CommandViewController:Pose(at: Vector2, floors: number?): (CFrame, number)
+	local tall = (floors or t.StartFloors) * Grid.Pitch().Y
+	local distance, fieldOfView = CV.Lens(tall)
+	local position = Vector3.new(at.X, at.Y, Grid.CellPosition(1, 0).Z + distance)
+	return CFrame.lookAt(position, position - Vector3.zAxis), fieldOfView
 end
 
 -- A proposal's handler: "Build", "Upgrade", "Merge" or "TearDown" (the votes, Prompt 8).
@@ -1520,8 +1547,9 @@ function CommandViewController:Start()
 	RunState.Changed("ReadyNeeded"):Connect(soon)
 	Remotes.OnClient("CellPinged", onPinged)
 	CollectionService:GetInstanceAddedSignal(FRONT_WALL_TAG):Connect(function(item: Instance)
-		if open and item:IsA("BasePart") then
+		if next(presenting) ~= nil and item:IsA("BasePart") then
 			Fade.Set(item, FADE_SOURCE, 1)
+			frontWalls[item] = true
 		end
 	end)
 	input.DeviceChanged:Connect(function()

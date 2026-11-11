@@ -1293,6 +1293,24 @@
    40
   ]
  },
+ "Title_Below": {
+  "group": "title",
+  "note": "title card, lower line",
+  "size": [
+   1016,
+   336
+  ],
+  "slice": null
+ },
+ "Title_Years": {
+  "group": "title",
+  "note": "title card, upper line",
+  "size": [
+   1016,
+   236
+  ],
+  "slice": null
+ },
  "Touch_Down": {
   "group": "hud",
   "note": "touch button (down): navy cap, icon on top",

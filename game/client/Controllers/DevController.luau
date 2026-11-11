@@ -68,6 +68,7 @@ local registryInput: any = nil
 local commandView: any = nil
 local voteView: any = nil
 local devCursorFree = false
+local extra: { [string]: (args: { any }) -> string? } = {} -- client commands other controllers add (DevController:Register)
 local lastNotice: string? = nil
 local commandMade = false
 
@@ -283,6 +284,10 @@ end
 -- Runs a command line; client-side commands answer here, the rest go to the server.
 local function run(text: string): string?
 	local name, args = parse(text)
+	local handler = extra[name]
+	if handler then
+		return handler(args)
+	end
 	if name == "replica" then
 		local collection = tostring(args[1] or "")
 		local values = replica:All(collection)
@@ -437,6 +442,12 @@ local function makeChatCommand()
 	end)
 	command.Parent = TextChatService
 	log:Debug("/dev ready")
+end
+
+-- Adds a command that runs on this client: a place's own controllers use it (the Run place's
+-- CutsceneController: `cutscene.play`). The handler returns the answer.
+function DevController:Register(name: string, handler: (args: { any }) -> string?)
+	extra[name] = handler
 end
 
 function DevController:Init(registry)

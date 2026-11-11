@@ -1,0 +1,155 @@
+{
+ "asset": "Cutscene_MushroomCloud",
+ "category": "Cutscene",
+ "format": 1,
+ "size": [
+  193.255,
+  247.472,
+  194.566
+ ],
+ "tris": 3764,
+ "pivot": [
+  1.464,
+  6.807,
+  0.706
+ ],
+ "parts": [
+  {
+   "name": "Cap",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Cap",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "leather",
+    "porcelain",
+    "rust",
+    "sandstone"
+   ],
+   "offset": [
+    -2.242,
+    194.952,
+    -0.706
+   ],
+   "size": [
+    191.699,
+    91.425,
+    194.566
+   ],
+   "tris": 2190
+  },
+  {
+   "name": "CapGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "CapGlow",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    -0.225,
+    155.18,
+    -1.634
+   ],
+   "size": [
+    95.68,
+    6.44,
+    95.68
+   ],
+   "tris": 40
+  },
+  {
+   "name": "Skirt",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Skirt",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "leather",
+    "sandstone"
+   ],
+   "offset": [
+    -0.218,
+    119.815,
+    0.824
+   ],
+   "size": [
+    110.607,
+    15.042,
+    110.727
+   ],
+   "tris": 352
+  },
+  {
+   "name": "Stem",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Stem",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "leather",
+    "sandstone"
+   ],
+   "offset": [
+    0.876,
+    80.581,
+    -2.195
+   ],
+   "size": [
+    83.923,
+    162.348,
+    81.515
+   ],
+   "tris": 280
+  },
+  {
+   "name": "Base",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": "Base",
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "sandstone",
+    "stone"
+   ],
+   "offset": [
+    1.356,
+    6.034,
+    0.564
+   ],
+   "size": [
+    187.617,
+    25.683,
+    189.501
+   ],
+   "tris": 902
+  }
+ ],
+ "meta": {},
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "5cfae980e012fbb7"
+}

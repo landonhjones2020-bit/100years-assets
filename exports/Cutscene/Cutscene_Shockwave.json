@@ -1,0 +1,77 @@
+{
+ "asset": "Cutscene_Shockwave",
+ "category": "Cutscene",
+ "format": 1,
+ "size": [
+  101.629,
+  7.996,
+  101.2
+ ],
+ "tris": 1600,
+ "pivot": [
+  0.214,
+  0.299,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "cream",
+    "porcelain",
+    "sandstone",
+    "stone"
+   ],
+   "offset": [
+    -0.901,
+    3.699,
+    -0.078
+   ],
+   "size": [
+    100.256,
+    7.996,
+    101.001
+   ],
+   "tris": 1312
+  },
+  {
+   "name": "DecorNeonPorcelain",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "porcelain"
+   ],
+   "offset": [
+    0.0,
+    1.5,
+    0.0
+   ],
+   "size": [
+    101.2,
+    3.0,
+    101.2
+   ],
+   "tris": 288
+  }
+ ],
+ "meta": {},
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "fbx_sha1": "b5d6ebd2cdfee201"
+}

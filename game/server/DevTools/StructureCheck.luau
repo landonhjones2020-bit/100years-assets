@@ -135,6 +135,9 @@ local PLACE_SKELETON: { [string]: { { string } } } = {
 		{ "ServerScriptService.Services.ClassService", "ModuleScript" }, -- Prompt 20
 		{ "ServerScriptService.Lib.ClassAbilities", "ModuleScript" },
 		{ "StarterPlayer.StarterPlayerScripts.Controllers.ClassController", "ModuleScript" },
+		{ "ReplicatedStorage.Shared.Rules.Cutscene", "ModuleScript" }, -- Prompt 22
+		{ "ServerScriptService.Services.CutsceneService", "ModuleScript" },
+		{ "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController", "ModuleScript" },
 		{ "StarterGui.HUD.BossBar", "ImageLabel" },
 		{ "StarterGui.Reticle.Sight.Hit", "Frame" },
 		{ "StarterGui.Reticle.Sight.Kill", "Frame" },
@@ -515,12 +518,10 @@ function StructureCheck.Run(options: Options?): Result
 				continue
 			end
 			pass()
-			if
-				gui.ResetOnSpawn
-				or gui.ZIndexBehavior ~= Enum.ZIndexBehavior.Sibling
-				or gui.ScreenInsets ~= Enum.ScreenInsets.CoreUISafeInsets
-			then
-				fail(`StarterGui.{screenName} needs ScreenInsets CoreUISafeInsets, ResetOnSpawn off and ZIndexBehavior Sibling (bible Section 18)`)
+			-- a screen that must reach every edge (the cutscene's bars and flash) says Insets = "None"
+			local insets = if screen.Insets == "None" then Enum.ScreenInsets.None else Enum.ScreenInsets.CoreUISafeInsets
+			if gui.ResetOnSpawn or gui.ZIndexBehavior ~= Enum.ZIndexBehavior.Sibling or gui.ScreenInsets ~= insets then
+				fail(`StarterGui.{screenName} needs ScreenInsets {insets.Name}, ResetOnSpawn off and ZIndexBehavior Sibling (bible Section 18)`)
 			else
 				pass()
 			end

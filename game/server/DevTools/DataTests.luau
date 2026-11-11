@@ -45,6 +45,7 @@ local Draft = require(Shared.Rules.Draft)
 local Classes = require(Shared.Rules.Classes)
 local ClassShop = require(Shared.Rules.ClassShop)
 local Lobby = require(Shared.Rules.Lobby)
+local Cutscene = require(Shared.Rules.Cutscene)
 local UIContract = require(Shared.UIContract)
 local Clock = require(Shared.Rules.Clock)
 local Grid = require(Shared.Rules.Grid)
@@ -2803,6 +2804,196 @@ test("Lobby: difficulty unlocks, pads and who may board (Sections 5 and 21)", fu
 	-- the paid reroll: the bible's price, and its developer product
 	expectEqual(Config.Get("Tuning", "ClassShop").RerollRobux, 99, "99 Robux per reroll")
 	expectEqual(Config.Get("Tuning", "ClassShop").RerollProductId, 3730189637, "the Class Shop Reroll product")
+end)
+
+test("Cutscene: the intro's shots cover its 30 seconds, key by key (Section 4, Prompt 22)", function()
+	local path = Config.Get("CutscenePaths", "Intro")
+	expectEqual(path.Seconds, Config.Get("Tuning", "Clock").IntroSeconds, "as long as the Intro phase")
+	expect(#path.Shots >= 6, "Section 4's six shots (some are two set-ups)")
+	local at = 0
+	local spaces: { [string]: boolean } = {}
+	for _, shot in path.Shots do
+		expectEqual(shot.From, at, `{shot.Name} starts where the last one ended`)
+		expect(shot.To > shot.From, `{shot.Name} lasts`)
+		expectEqual(#shot.Keys, math.round((shot.To - shot.From) * shot.Rate) + 1, `{shot.Name}: {shot.Rate} keys a second, both ends`)
+		for i, key in shot.Keys do
+			expectEqual(#key, 8, `{shot.Name} key {i}: position, rotation, field of view`)
+			local length = math.sqrt(key[4] ^ 2 + key[5] ^ 2 + key[6] ^ 2 + key[7] ^ 2)
+			expect(math.abs(length - 1) < 0.01, `{shot.Name} key {i}: a unit rotation`)
+			expect(key[8] > 1 and key[8] < 100, `{shot.Name} key {i}: a field of view`)
+		end
+		spaces[shot.Space] = true
+		at = shot.To
+	end
+	expectEqual(at, path.Seconds, "the last shot ends with the cutscene")
+	expect(spaces.Set and spaces.Bunker, "it is shot on the set and in front of the bunker")
+	local last = path.Shots[#path.Shots]
+	expect(last.Handover and last.Space == "Bunker", "the last shot hands over to the player at the bunker")
+	local shot, index = Cutscene.ShotAt(path, 0)
+	expectEqual(index, 1, "the first shot at 0")
+	expectEqual((select(2, Cutscene.ShotAt(path, path.Seconds + 5))), #path.Shots, "the last shot after the end")
+	expectEqual(Cutscene.ShotAt(path, shot.To).Name, path.Shots[2].Name, "a shot's last instant belongs to the next: a cut")
+end)
+
+test("Cutscene: the camera passes through its keys, smoothly, and stays in reach of what it shows", function()
+	local path = Config.Get("CutscenePaths", "Intro")
+	for _, shot in path.Shots do
+		for _, i in { 1, math.ceil(#shot.Keys / 2), #shot.Keys } do
+			local key = shot.Keys[i]
+			local cframe, fieldOfView = Cutscene.ShotCamera(shot, shot.From + (i - 1) / shot.Rate)
+			expect((cframe.Position - Vector3.new(key[1], key[2], key[3])).Magnitude < 0.01, `{shot.Name}: on key {i}`)
+			expect(math.abs(fieldOfView - key[8]) < 0.01, `{shot.Name}: key {i}'s field of view`)
+		end
+		-- between two keys the camera is between them, and never jumps within a shot
+		local before = Cutscene.ShotCamera(shot, shot.From)
+		local step = 1 / 60
+		local t = shot.From + step
+		local fastest = 0
+		while t < shot.To do
+			local now = Cutscene.ShotCamera(shot, t)
+			fastest = math.max(fastest, (now.Position - before.Position).Magnitude / step)
+			before = now
+			t += step
+		end
+		expect(fastest < 400, `{shot.Name}: no jump inside a shot (fastest {math.round(fastest)} studs a second)`)
+	end
+	-- the lowest graphics level draws about 500 studs: the set's cameras stay that close to the
+	-- street, the hill and the blast
+	local blast = path.Anchors.Blast
+	for _, shot in path.Shots do
+		if shot.Space == "Set" then
+			for _, key in shot.Keys do
+				local far = (Vector3.new(key[1], key[2], key[3]) - Vector3.new(blast[1], blast[2], blast[3])).Magnitude
+				expect(far < 520, `{shot.Name}: within reach of the blast ({math.round(far)} studs)`)
+			end
+		else
+			for _, key in shot.Keys do
+				expect(key[3] <= Config.Get("Tuning", "CommandView").MaxDistance + 1, `{shot.Name}: no farther from the bunker than the Command View`)
+			end
+		end
+	end
+end)
+
+test("Cutscene: the party and the founders run in their files and are inside before the door shuts", function()
+	local path = Config.Get("CutscenePaths", "Intro")
+	expectEqual(#path.Runners, 12, "six players and six founders at most")
+	expectEqual(Config.Get("Tuning", "StartingBunker").Residents, 6, "six founders (Section 4)")
+	local length = Cutscene.PathLength(path.RunPath)
+	expect(length > 150, "a real run")
+	local first, direction = Cutscene.PathAt(path.RunPath, 0)
+	expectEqual(first, Vector3.new(path.RunPath[1][1], path.RunPath[1][2], path.RunPath[1][3]), "it starts at the path's first point")
+	expect(math.abs(direction.Magnitude - 1) < 0.001, "a unit heading")
+	local last = Cutscene.PathAt(path.RunPath, length + 50)
+	expect((last - Vector3.new(path.RunPath[#path.RunPath][1], path.RunPath[#path.RunPath][2], path.RunPath[#path.RunPath][3])).Magnitude < 0.01, "and stops at its last")
+	local start = Cutscene.Beat(path, "RunStart")
+	for index, runner in path.Runners do
+		local _, _, run, inside = Cutscene.Runner(path, index, start + runner.Delay - 0.01)
+		expect(run == 0 and not inside, `runner {index} waits for its turn`)
+		local _, _, _, home = Cutscene.Runner(path, index, Cutscene.Beat(path, "DoorFrom"))
+		expect(home, `runner {index} is inside before the door starts to shut`)
+		expect(math.abs(runner.Side) >= 2, `runner {index} keeps clear of the path's handrail`)
+	end
+	-- nobody runs through anybody: once the pack has closed up, two runners are never on the same spot
+	for _, t in { 5, 6, 7, 8 } do
+		for a = 1, #path.Runners do
+			for b = a + 1, #path.Runners do
+				local pa, _, _, ina = Cutscene.Runner(path, a, t)
+				local pb, _, _, inb = Cutscene.Runner(path, b, t)
+				if not ina and not inb then
+					expect((pa - pb).Magnitude > 1.8, `runners {a} and {b} at {t} s`)
+				end
+			end
+		end
+	end
+	local lead = Cutscene.Runner(path, 1, 6)
+	local behind = Cutscene.Runner(path, #path.Runners, 6)
+	expect(lead.X < behind.X, "the first runner leads (the set's east is -X)")
+end)
+
+test("Cutscene: skipping, the clock and the blast's arithmetic (Section 4)", function()
+	local path = Config.Get("CutscenePaths", "Intro")
+	local skipAfter = Config.Get("Tuning", "Clock").IntroSkipAfterSeconds
+	expectEqual(skipAfter, 2, "skip after 2 seconds")
+	expect(not Cutscene.CanSkip(true, 20, skipAfter), "an account's first run plays in full")
+	expect(not Cutscene.CanSkip(false, 1.9, skipAfter), "not before 2 seconds")
+	expect(Cutscene.CanSkip(false, 2, skipAfter), "then anyone who has seen it")
+	expectEqual(Cutscene.Elapsed(30, 30), 0)
+	expectEqual(Cutscene.Elapsed(30, 12.5), 17.5)
+	expectEqual(Cutscene.Elapsed(30, -1), 30, "never past the end")
+	expectEqual(Cutscene.Smooth(0), 0)
+	expectEqual(Cutscene.Smooth(1), 1)
+	expectError(function()
+		Cutscene.Beat(path, "NoSuchBeat")
+	end, "no beat")
+	-- Section 4's order: the bomb is seen, the door shuts, then the flash
+	local b = path.Beats
+	expect(b.RunStart < 5 and b.BombFrom >= 10 and b.BombFrom < 15, "the bomb in shot 3")
+	expect(b.DoorFrom > b.BombFrom and b.DoorTo < b.Flash, "the door shuts before the flash")
+	expectEqual(b.BombTo, b.Flash, "the flash is the bomb landing")
+	expectEqual(b.Flash, 15, "white at 15 seconds")
+	expect(b.CloudFrom > b.Flash and b.WaveFrom > b.Flash and b.WaveTo < 21, "the shockwave and the cloud in shot 4")
+	expect(b.DiveFrom >= 21 and b.PlungeTo <= 27 and b.EyesFrom > b.PlungeFrom and b.EyesTo < 27, "the plunge and the eyes in shot 5")
+	expectEqual(b.Title, 27, "the title at 27 seconds")
+	expectEqual(b.ZoomTo, path.Seconds, "the zoom to the player ends with the cutscene")
+	expectEqual(Cutscene.DoorShut(path, b.DoorFrom), 0)
+	expectEqual(Cutscene.DoorShut(path, b.DoorTo), 1)
+	expect(Cutscene.DoorShut(path, (b.DoorFrom + b.DoorTo) / 2) > 0.4, "half shut half way")
+	expectEqual((Cutscene.Bomb(path, b.BombFrom - 0.1)), nil, "no bomb before its flight")
+	expectEqual((Cutscene.Bomb(path, b.BombTo)), nil, "nor after it lands")
+	local from = Cutscene.Bomb(path, b.BombFrom) :: Vector3
+	expect((from - Vector3.new(path.Anchors.BombFrom[1], path.Anchors.BombFrom[2], path.Anchors.BombFrom[3])).Magnitude < 0.01, "it starts at BombFrom")
+	expectEqual(Cutscene.WaveRadius(path, b.WaveFrom - 0.1), nil, "no ring before the wave")
+	expectEqual(Cutscene.WaveRadius(path, b.WaveFrom), 0)
+	expect(math.abs((Cutscene.WaveRadius(path, b.WaveTo) :: number) - path.WaveReach) < 0.01, "the ring's reach at WaveTo")
+	expectEqual(Cutscene.WaveArrival(path, 0), b.WaveFrom)
+	expect(math.abs(Cutscene.WaveArrival(path, path.WaveReach) - b.WaveTo) < 0.001, "the ring's edge arrives at WaveTo")
+	local low, high = Cutscene.CloudAt(path, b.CloudFrom), Cutscene.CloudAt(path, b.CloudTo)
+	expect(low.Top < high.Top and low.CapRadius < high.CapRadius, "the cloud climbs and spreads")
+	expectEqual(high.Top, path.Cloud.Top)
+	expectEqual(Cutscene.EyesOpen(path, b.EyesFrom), 0)
+	expectEqual(Cutscene.EyesOpen(path, b.EyesTo), 1)
+end)
+
+test("Cutscene: the set, the words and the looks (Config.CutscenePaths and Config.Cutscenes)", function()
+	local words = Config.Get("Cutscenes", "Intro")
+	local path = Config.Get("CutscenePaths", words.Path)
+	-- the set: every piece has somewhere to come from; the street's blocks and the hill's door are there
+	local names: { [string]: number } = {}
+	for _, spot in path.Set do
+		names[spot.Name] = (names[spot.Name] or 0) + 1
+		expect(string.find(spot.Asset, "^" .. spot.Category .. "_") ~= nil, `{spot.Asset} is a {spot.Category} asset`)
+	end
+	expectEqual(names.Door, 1, "one blast door")
+	expectEqual(names.Hill, 1, "one Mine Hill")
+	expect((names.CarSedan or 0) + (names.CarPickup or 0) >= 12, "cars on Main Street")
+	expect(#path.Ground >= 20, "roads, pavements and grass")
+	for _, name in { "Door", "StairFoot", "StairHead", "Blast", "BombFrom", "BombTo", "StrataFoot", "Source" } do
+		expect(path.Anchors[name] ~= nil, `the {name} anchor`)
+	end
+	-- Section 4: "a radio bulletin scrolls across the screen" in shot 1; the title card and its line
+	expect(words.Bulletin.From < 5 and words.Bulletin.To <= path.Beats.DoorFrom, "the bulletin runs through the first shots")
+	expect(string.find(words.Bulletin.Text, "THIS IS NOT A TEST", 1, true) ~= nil, "the bulletin")
+	expectEqual(words.Title, "100 YEARS BELOW")
+	local line = {}
+	local at = words.TitleFrom
+	for _, part in words.Tagline do
+		expect(part.At >= at, "the line's words in order")
+		at = part.At
+		table.insert(line, part.Text)
+	end
+	expectEqual(table.concat(line, " "), "Survive. Dig. Don't wake it.")
+	expectEqual(words.TitleFrom, path.Beats.Title, "the card lands on the Title beat")
+	expect(words.TitleTo < path.Seconds, "and is gone before the player has the camera")
+	local last = -1
+	for _, key in words.LookKeys do
+		expect(words.Looks[key.Look] ~= nil, `the look {key.Look}`)
+		expect(key.At >= last, "look keys in order")
+		last = key.At
+	end
+	expect(last < path.Beats.DiveTo, "from the dive on the light is the run's own")
+	local t = Config.Get("Tuning", "Cutscene")
+	expect(t.SetOrigin.Y >= 1000, "the set stands high above the run's world")
+	expect(t.BarFraction > 0.05 and t.BarFraction < 0.2, "letterbox bars")
 end)
 
 local DataTests = {}

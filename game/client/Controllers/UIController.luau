@@ -81,6 +81,7 @@ local gui: ScreenGui? = nil
 local screens: { [string]: Screen } = {}
 local pages: { [string]: Frame } = {}
 local current: string? = nil
+local locks: { [string]: boolean } = {} -- reasons no screen may open (UIController:Lock)
 local currentTab: string? = nil
 local mainPress: (() -> ())? = nil
 local tabButtons: { [string]: ImageButton } = {}
@@ -231,10 +232,26 @@ function UIController:IsRegistered(name: string): boolean
 	return screens[name] ~= nil
 end
 
+-- Keeps every screen shut for as long as any reason holds the lock (the intro cutscene: nothing
+-- opens over it, not even the Command View). Locking closes the open screen.
+function UIController:Lock(reason: string, on: boolean)
+	locks[reason] = if on then true else nil
+	if on and current then
+		UIController:Close()
+	end
+end
+
+function UIController:IsLocked(): boolean
+	return next(locks) ~= nil
+end
+
 function UIController:Open(name: string, args: any?): boolean
 	local screen = screens[name]
 	if not screen or not gui then
 		log:Warn("can't open %s: %s", name, if gui then "not registered" else "no Frame")
+		return false
+	end
+	if next(locks) ~= nil then
 		return false
 	end
 	if current == name then

@@ -149,6 +149,8 @@ UIKit.Sprites["Stamp_Wishlist"] = {image = "rbxassetid://85214114089895", offset
 UIKit.Sprites["Tab_Off"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(780, 412), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
 UIKit.Sprites["Tab_On"] = {image = "rbxassetid://108416061266181", offset = Vector2.new(4, 532), size = Vector2.new(224, 112), slice = Rect.new(60, 50, 174, 62)}
 UIKit.Sprites["Telegram"] = {image = "rbxassetid://85214114089895", offset = Vector2.new(268, 868), size = Vector2.new(256, 128), slice = Rect.new(72, 40, 184, 88)}
+UIKit.Sprites["Title_Below"] = {image = "rbxassetid://71612230706016", offset = Vector2.new(4, 4), size = Vector2.new(1016, 336), slice = nil}
+UIKit.Sprites["Title_Years"] = {image = "rbxassetid://71612230706016", offset = Vector2.new(4, 348), size = Vector2.new(1016, 236), slice = nil}
 UIKit.Sprites["Touch_Down"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(532, 4), size = Vector2.new(192, 192), slice = nil}
 UIKit.Sprites["Touch_Fire_Down"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(4, 4), size = Vector2.new(256, 256), slice = nil}
 UIKit.Sprites["Touch_Fire_Up"] = {image = "rbxassetid://129337851835347", offset = Vector2.new(268, 4), size = Vector2.new(256, 256), slice = nil}

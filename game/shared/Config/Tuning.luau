@@ -93,6 +93,12 @@ local Schemas: { [string]: Check.Checker } = {
 		Ambient = F.Hex, OutdoorAmbient = F.Hex, ExposureCompensation = F.Number,
 	}),
 	Ping = shape({ Seconds = S }),
+	Cutscene = shape({
+		SetOrigin = shape({ X = F.Number, Y = F.Number, Z = F.Number }),
+		BarFraction = Fr, FadeInSeconds = S, PreloadSeconds = S, LateJoinSeconds = S, KeepSetSeconds = S,
+		DoorShake = N, WaveShake = N, WaveShakeSeconds = S, PlungeShake = N,
+		AvatarSeconds = S, SkipHoldSeconds = S,
+	}),
 	Digging = shape({
 		DisturbancePerCell = N, StackPlayers = Check.boolean(), PushDeeperFloors = list(I, 3),
 		ResidentDigMultiplier = N,
@@ -339,6 +345,20 @@ return {
 			Ambient = "#6E7680", OutdoorAmbient = "#8C949E", ExposureCompensation = 0.4,
 		},
 		Ping = { Seconds = 6 }, -- Section 7: a pinged cell shows on every player's mini-map; prov.
+		Cutscene = { -- Section 4 (its length and the skip rule are Clock.IntroSeconds and IntroSkipAfterSeconds); the rest prov.
+			-- Where the set is put up: far above the run's world, over the bunker, where only the
+			-- cutscene's camera goes. Its own ground hides everything below it.
+			SetOrigin = { X = 0, Y = 1400, Z = 0 },
+			BarFraction = 0.11, -- each letterbox bar's share of the screen's height
+			-- The picture comes up out of black over FadeInSeconds, or when the set's meshes have
+			-- loaded if that takes longer, but never later than PreloadSeconds.
+			FadeInSeconds = 0.9, PreloadSeconds = 3,
+			LateJoinSeconds = 3, -- arriving with less than this left: no cutscene, straight to the character
+			KeepSetSeconds = 10, -- the server keeps the set for the clients this long into the run
+			DoorShake = 0.35, WaveShake = 1.8, WaveShakeSeconds = 1.5, PlungeShake = 0.1, -- studs the camera is thrown about
+			AvatarSeconds = 4, -- how long a party member's avatar may take to arrive before their stand-in runs instead
+			SkipHoldSeconds = 0, -- 0: one press skips (Landon may want a hold)
+		},
 		Digging = { -- Section 6 (dig times are Config.DepthBands' DigSeconds), Section 10 (Disturbance)
 			DisturbancePerCell = 5, StackPlayers = true, PushDeeperFloors = { 4, 7, 10 }, ResidentDigMultiplier = 0.25,
 			-- Prompt 14, prov. A Drill or a Pickaxe digs; a dig prompt answers within PromptReach. A Drill
