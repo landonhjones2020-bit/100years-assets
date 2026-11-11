@@ -2815,8 +2815,9 @@ test("Cutscene: the intro's shots cover its 30 seconds, key by key (Section 4, P
 	for _, shot in path.Shots do
 		expectEqual(shot.From, at, `{shot.Name} starts where the last one ended`)
 		expect(shot.To > shot.From, `{shot.Name} lasts`)
-		-- a shot whose length is not a whole number of keys holds its last key for under a key's time
-		expectEqual(#shot.Keys, math.floor((shot.To - shot.From) * shot.Rate + 1e-6) + 1, `{shot.Name}: {shot.Rate} keys a second from its start`)
+		-- a whole number of keys from the shot's first instant to its last
+		expect(shot.Rate >= 15 and shot.Rate < 17, `{shot.Name}: about 15 keys a second`)
+		expect(math.abs((shot.To - shot.From) * shot.Rate - (#shot.Keys - 1)) < 0.001, `{shot.Name}: its keys fill it exactly ({#shot.Keys} at {shot.Rate} a second)`)
 		for i, key in shot.Keys do
 			expectEqual(#key, 8, `{shot.Name} key {i}: position, rotation, field of view`)
 			local length = math.sqrt(key[4] ^ 2 + key[5] ^ 2 + key[6] ^ 2 + key[7] ^ 2)

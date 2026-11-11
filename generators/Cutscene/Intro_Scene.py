@@ -531,15 +531,17 @@ def data(curves) -> str:
     L.append("\t\t\tShots = {")
     total = 0
     for shot in SHOTS:
-        n = int(round((shot["To"] - shot["From"]) * RATE))
+        # a whole number of keys from the shot's first instant to its last: at least RATE a second
+        n = int(math.ceil((shot["To"] - shot["From"]) * RATE - 1e-6))
+        rate = n / (shot["To"] - shot["From"])
         keys = []
         for i in range(n + 1):
-            t = shot["From"] + i / RATE
+            t = shot["From"] + i / rate
             at, rot, fov, _ = pose_at(curves, min(t, shot["To"] - 1e-4) if i == n else t)
             p, q = to_game(at, rot, shot["Space"])
             keys.append("{ " + ", ".join(num(x) for x in (*p, *q)) + f", {num(fov)} }}")
         total += len(keys)
-        L.append(f"\t\t\t\t{{ Name = \"{shot['Name']}\", From = {num(shot['From'])}, To = {num(shot['To'])}, Space = \"{shot['Space']}\", Rate = {RATE},"
+        L.append(f"\t\t\t\t{{ Name = \"{shot['Name']}\", From = {num(shot['From'])}, To = {num(shot['To'])}, Space = \"{shot['Space']}\", Rate = {f'{rate:.6f}'.rstrip('0').rstrip('.')},"
                  f" Handover = {'true' if shot.get('Handover') else 'false'},")
         L.append(f"\t\t\t\t\tText = \"{shot['Text']}\",")
         L.append("\t\t\t\t\tKeys = {")
@@ -588,7 +590,8 @@ def data(curves) -> str:
 	(generators/Cutscene/cutscene_plan.py): don't edit by hand, change those and run it again.
 	The art repo's copy is cutscene/IntroPath.luau; tools/cutscene_config.py puts it here.
 
-	* Shots: the camera, shot by shot. Keys are {RATE} a second from From to To, each
+	* Shots: the camera, shot by shot. Keys are Rate a second ({RATE} or a little more, so that a whole number of them
+	  fills the shot) from From to To, each
 	  {{ x, y, z, qx, qy, qz, qw, field of view }} in the game's axes from the shot's Space: "Set" is
 	  the cutscene's set (its origin is Tuning.Cutscene.SetOrigin), "Bunker" the grid's origin
 	  (Rules.Grid.CellPosition(1, 0)). A shot never blends into the next: that is a cut. Handover:
@@ -613,7 +616,7 @@ return {{
 	Schema = Check.shape({{
 		Seconds = F.Seconds,
 		Shots = Check.array(Check.shape({{
-			Name = F.Name, From = F.Seconds, To = F.Seconds, Space = Check.enum({{ "Set", "Bunker" }}), Rate = F.PositiveInt,
+			Name = F.Name, From = F.Seconds, To = F.Seconds, Space = Check.enum({{ "Set", "Bunker" }}), Rate = Check.number({{ min = 1 }}),
 			Handover = Check.boolean(), Text = F.Short, Keys = Check.array(Key, 200),
 		}}), 16),
 		Set = Check.array(Check.shape({{

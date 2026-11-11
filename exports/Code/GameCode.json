@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T02:50:36Z",
- "commit": "e863bffa8ee3085ec10174d69c22dac039c88789",
- "label": "p22-e863bff",
+ "built": "2026-11-11T02:52:42Z",
+ "commit": "8c9025a71e49ecd30c2f03351391a73311f8ec7f",
+ "label": "p22-8c9025a",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -12,7 +12,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "820e1793"
+    "Hash": "044e6be6"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -624,7 +624,7 @@
    "ReplicatedStorage.Shared.Config.Animations": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/Animations.luau",
-    "Hash": "820e1793"
+    "Hash": "044e6be6"
    },
    "ReplicatedStorage.Shared.Config.Badges": {
     "Class": "ModuleScript",
@@ -1304,7 +1304,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/CutsceneController.luau",
-    "Hash": "77c1a311"
+    "Hash": "fb08479f"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DeepController": {
     "Class": "ModuleScript",
