@@ -38,6 +38,12 @@ function Boss.Fight(bossId: string): { [string]: any }?
 	return Config.Find("Tuning", bossId)
 end
 
+-- A boss's name for an alert: capitals, with one THE ("THE BROOD MOTHER", "THE DELUGE").
+function Boss.Title(name: string): string
+	local upper = string.upper(name)
+	return if string.sub(upper, 1, 4) == "THE " then upper else `THE {upper}`
+end
+
 -- The value for this phase from a by-phase list (the last one carries on).
 function Boss.ByPhase(list: { any }, phase: number): any
 	return list[math.clamp(phase, 1, #list)]

@@ -14,7 +14,8 @@ local F = require(script.Parent._Fields)
 
 return {
 	Schema = Check.shape({
-		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider", "AshRaiderMelee" }), -- a model's Rig attribute
+		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider", "AshRaiderMelee",
+			"Murkling", "BloatToad", "Lurker", "TideCrab", "Deluge" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
@@ -22,6 +23,7 @@ return {
 			"RifleHold", "RifleAim", "RifleReload", "HeavySwing1", "HeavySwing2", "Throw", -- players, A2's weapons (Prompt 20)
 			"Attack", "Run", "Stunned", "Latched", "Fight", "Flee", -- monsters and residents in danger (Prompt 12)
 			"Roar", "LayEggs", "Stagger", "Death", -- bosses (A4: the Brood Mother; played from Prompt 15)
+			"Swim", -- The Deluge under the floor (A8, Prompt 23)
 		}),
 		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
@@ -272,6 +274,46 @@ return {
 			Text = "A two-handed sweep back from the left, a Heavy weapon's second hit (Prompt 20, R15_HeavySwing2)" },
 		PlayerThrow = { Rig = "R15", Activity = "Throw", AssetId = "rbxassetid://124031410096479", Looped = false,
 			Text = "An overhand throw, the release at 40% (Prompt 20, R15_Throw)" },
+		-- The Flooded Caverns' monsters (A8; Prompt 23). Each has an Idle: an attack plays over it.
+		MurklingIdle = { Rig = "Murkling", Activity = "Idle", AssetId = "rbxassetid://126727867019879", Looped = true,
+			Text = "The Murkling breathes, gills and tail drifting (A8, Murkling_Idle)" },
+		MurklingWalk = { Rig = "Murkling", Activity = "Walk", AssetId = "rbxassetid://72461237019448", Looped = true,
+			Text = "A fast splayed scuttle, the body and tail snaking (A8, Murkling_Walk)" },
+		MurklingAttack = { Rig = "Murkling", Activity = "Attack", AssetId = "rbxassetid://97490931375904", Looped = false,
+			Text = "A lunge and snap (A8, Murkling_Attack; Hit 0.25 s)" },
+		BloatToadIdle = { Rig = "BloatToad", Activity = "Idle", AssetId = "rbxassetid://104676773168415", Looped = true,
+			Text = "The Bloat Toad breathes, its throat pulsing (A8, BloatToad_Idle)" },
+		BloatToadWalk = { Rig = "BloatToad", Activity = "Walk", AssetId = "rbxassetid://86454017758567", Looped = true,
+			Text = "A heavy waddle, the bladder sloshing (A8, BloatToad_Walk)" },
+		BloatToadAttack = { Rig = "BloatToad", Activity = "Attack", AssetId = "rbxassetid://125893017027333", Looped = false,
+			Text = "The swell: the bladder's lobes strain apart, held at its fullest (A8, BloatToad_Attack; bursts at 0.7 s)" },
+		LurkerIdle = { Rig = "Lurker", Activity = "Idle", AssetId = "rbxassetid://137042514986992", Looped = true,
+			Text = "Flat and still; only the lure sways (A8, Lurker_Idle)" },
+		LurkerWalk = { Rig = "Lurker", Activity = "Walk", AssetId = "rbxassetid://81974677655333", Looped = true,
+			Text = "It drags itself on its arms, the tail snaking (A8, Lurker_Walk)" },
+		LurkerAttack = { Rig = "Lurker", Activity = "Attack", AssetId = "rbxassetid://87853039930001", Looped = false,
+			Text = "It rears and both arms shoot out and close (A8, Lurker_Attack; Hit 0.5 s)" },
+		LurkerLatched = { Rig = "Lurker", Activity = "Latched", AssetId = "rbxassetid://119068396924711", Looped = true,
+			Text = "It has someone: the arms hold, the head worries at them (A8, Lurker_Latched)" },
+		TideCrabIdle = { Rig = "TideCrab", Activity = "Idle", AssetId = "rbxassetid://75129578118638", Looped = true,
+			Text = "Guard up, breathing, the eye stalks turning (A8, TideCrab_Idle)" },
+		TideCrabWalk = { Rig = "TideCrab", Activity = "Walk", AssetId = "rbxassetid://132566020387133", Looped = true,
+			Text = "A heavy six-legged march behind its claws (A8, TideCrab_Walk)" },
+		TideCrabAttack = { Rig = "TideCrab", Activity = "Attack", AssetId = "rbxassetid://108800921269804", Looped = false,
+			Text = "The right claw lifts and hammers down (A8, TideCrab_Attack; Hit 0.55 s)" },
+		-- The Deluge (A8; Rig Deluge; BossService plays these on the server: Prompt 23)
+		DelugeIdle = { Rig = "Deluge", Activity = "Idle", AssetId = "rbxassetid://95692287945819", Looped = true,
+			Text = "The Deluge sways over the room, hood half open (A8, Deluge_Idle)" },
+		DelugeSwim = { Rig = "Deluge", Activity = "Swim", AssetId = "rbxassetid://100572039117676", Looped = true,
+			Text = "Its head tucked under the arch of its neck: sunk, only the crest cuts the floor (A8, Deluge_Swim)" },
+		DelugeAttack = { Rig = "Deluge", Activity = "Attack", AssetId = "rbxassetid://80936107848048", Looped = false,
+			Text = "It draws back and throws its head at the floor in front (A8, Deluge_Attack; Hit 0.7 s)" },
+		DelugeRoar = { Rig = "Deluge", Activity = "Roar", AssetId = "rbxassetid://136648293887224", Looped = false,
+			Text = "Up to the ceiling, the hood wide and shaking, both jaws out (A8, Deluge_Roar)" },
+		DelugeStagger = { Rig = "Deluge", Activity = "Stagger", AssetId = "rbxassetid://115956492649708", Looped = false,
+			Text = "Its head drops to the floor and lies there, 3 s (A8, Deluge_Stagger)" },
+		DelugeDeath = { Rig = "Deluge", Activity = "Death", AssetId = "rbxassetid://135611914410917", Looped = false,
+			Text = "A last scream, then all of it comes down (A8, Deluge_Death)" },
 		-- The intro cutscene (Prompt 22): CutsceneController plays it on the party's avatars and the founders
 		IntroSprint = { Rig = "R15", Activity = "Run", AssetId = "rbxassetid://70631532326043", Looped = true,
 			Text = "A flat-out sprint, 0.4 s a stride, made for 27 studs a second (Prompt 22, R15_IntroSprint)" },

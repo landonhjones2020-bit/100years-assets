@@ -1202,15 +1202,13 @@ local function shell(target: any, amount: number, source: any?, _how: string?): 
 	end
 	local look = m.Root.CFrame.LookVector
 	local dot = flat.Unit:Dot(Vector3.new(look.X, 0, look.Z).Unit)
-	local t = ai()
-	if has(m, "ArmoredFront") and dot >= math.cos(math.rad(t.ArmorArcDegrees / 2)) then
-		m.Model:SetAttribute("ShellHitAt", os.clock()) -- the client's sparks
-		return amount * t.ArmorFront
-	elseif has(m, "WeakPointBack") and dot <= -math.cos(math.rad(t.WeakArcDegrees / 2)) then
-		m.Model:SetAttribute("WeakHitAt", os.clock())
-		return amount * t.WeakBack
+	local multiplier, what = Threat.Shell(dot, has(m, "ArmoredFront"), has(m, "WeakPointBack"))
+	if what == "Shell" then
+		m.Model:SetAttribute("ShellHitAt", now()) -- the client's sparks
+	elseif what == "Weak" then
+		m.Model:SetAttribute("WeakHitAt", now())
 	end
-	return amount
+	return amount * multiplier
 end
 
 

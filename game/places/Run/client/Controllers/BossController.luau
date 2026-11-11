@@ -6,8 +6,9 @@
 
 	* The HUD's boss bar under the cycle bar: the boss's name, BREAKING THROUGH while it comes,
 	  its phase (PHASE 1 OF 2), and its health draining; DEAD when it falls.
-	* The camera shakes when the boss breaks through the floor and when its slam lands near the
-	  player (the model's AttackAt plus its HitTime).
+	* The camera shakes when the boss breaks through the floor, when its slam or bite lands near
+	  the player (the model's AttackAt plus its HitTime) and when The Deluge surfaces near them
+	  (SurfacedAt). The bar says whether The Deluge is under the floor or up (the fight's Mode).
 	The boss's clips play through NPCAnimator (workspace.Monsters, Rig and Activity); the cracks,
 	dust and rock bursts are the server's parts.
 ]]
@@ -16,6 +17,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Boss = require(Shared.Rules.Boss)
 local Log = require(Shared.Utilities.Log)
 
 local log = Log.new("BossController")
@@ -55,14 +57,15 @@ local function update()
 		return
 	end
 	b.Visible = true
-	b:FindFirstChild("Name").Text = `THE {string.upper(f.Name or "BOSS")}`
+	b:FindFirstChild("Name").Text = Boss.Title(f.Name or "Boss")
 	local phase = b:FindFirstChild("Phase")
 	if f.State == "Warning" or f.State == "Rising" then
 		phase.Text = "BREAKING THROUGH"
 	elseif f.State == "Dying" then
 		phase.Text = "DEAD"
 	else
-		phase.Text = `PHASE {f.Phase or 1} OF {f.Phases or 1}`
+		local where = if f.Mode == "Swim" or f.Mode == "Diving" then " · UNDER THE FLOOR" elseif f.Mode ~= nil then " · UP: HIT ITS HEAD" else ""
+		phase.Text = `PHASE {f.Phase or 1} OF {f.Phases or 1}{where}`
 	end
 	local fill = b:FindFirstChild("Back") and b.Back:FindFirstChild("Fill")
 	if fill then
@@ -94,6 +97,13 @@ local function watch(model: Instance)
 				camera:Shake(0.5, 1.6)
 			end
 		end)
+	end)
+	-- The Deluge coming up out of the floor shakes it too.
+	model:GetAttributeChangedSignal("SurfacedAt"):Connect(function()
+		local me = myPosition()
+		if me and model.Parent and (me - model:GetPivot().Position).Magnitude < 60 then
+			camera:Shake(1.2, 1.4)
+		end
 	end)
 	model.AncestryChanged:Connect(function(_, parent)
 		if parent == nil and watched[model] then

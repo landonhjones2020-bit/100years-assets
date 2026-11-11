@@ -1,0 +1,70 @@
+{
+ "asset": "Kit_GasVent",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  3.882,
+  4.863,
+  1.672
+ ],
+ "tris": 1040,
+ "pivot": [
+  0.155,
+  2.514,
+  -0.236
+ ],
+ "parts": [
+  {
+   "name": "Collar",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "basalt",
+    "gunmetal",
+    "hazard",
+    "navy",
+    "rubber",
+    "rust",
+    "steel"
+   ],
+   "offset": [
+    -0.155,
+    -0.083,
+    0.236
+   ],
+   "size": [
+    3.882,
+    4.863,
+    1.672
+   ],
+   "tris": 1040
+  }
+ ],
+ "meta": {
+  "kit": "hazard",
+  "disaster": "GasLeak"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Leak": {
+   "p": [
+    0.0,
+    -0.7,
+    0.4
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "f70dd668ffe9969a"
+}

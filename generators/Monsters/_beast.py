@@ -165,6 +165,41 @@ def vein(b, bone, points, radius, name):
                           name="Vein"), bone, name)
 
 
+def web(base, top, thickness=0.05, name="Web"):
+    """A membrane (fin, frill, webbing) between two polylines of the same length, given a
+    thickness. Where a base point and its top point meet, the strip closes to a point."""
+    bm = bmesh.new()
+    a = [bm.verts.new(Vector(p)) for p in base]
+    c = [bm.verts.new(Vector(p)) for p in top]
+    for i in range(len(a) - 1):
+        ring = [a[i], a[i + 1], c[i + 1], c[i]]
+        corners = []
+        for v in ring:
+            if all((v.co - w.co).length > 1e-5 for w in corners):
+                corners.append(v)
+        if len(corners) >= 3:
+            bm.faces.new(corners)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    o = sf.from_bmesh(bm, name)
+    mod = o.modifiers.new("Solid", "SOLIDIFY")
+    mod.thickness = thickness
+    mod.offset = 0.0
+    return o
+
+
+def along(points, t):
+    """The point a fraction t (0 to 1) of the way along a polyline, and the direction there."""
+    pts = [Vector(p) for p in points]
+    lengths = [(pts[i + 1] - pts[i]).length for i in range(len(pts) - 1)]
+    want = max(0.0, min(1.0, t)) * sum(lengths)
+    for i, ln in enumerate(lengths):
+        if want <= ln or i == len(lengths) - 1:
+            d = (pts[i + 1] - pts[i])
+            return pts[i] + d * (want / ln if ln > 0 else 0), d.normalized()
+        want -= ln
+    return pts[-1], (pts[-1] - pts[-2]).normalized()
+
+
 def contact_sheet(asset, category, arm, act, frames, name, yaw=-60):
     from PIL import Image
     arm.animation_data.action = act
@@ -189,8 +224,10 @@ def contact_sheet(asset, category, arm, act, frames, name, yaw=-60):
 
 
 def run(asset, category, beast_factory, build, clips, *, budget, hrp_center, hrp_size, meta, sockets=None,
-        markers=None, step="A4"):
-    """Build, preview, export the rigged model (SF_EXPORT=1) and its clips, render clip sheets."""
+        markers=None, step="A4", pivot=None):
+    """Build, preview, export the rigged model (SF_EXPORT=1) and its clips, render clip sheets.
+    pivot: the model's pivot in Blender space (default: the bottom centre of its bounds; a model
+    part of which is meant to stay under the floor, like The Deluge, gives its floor point)."""
     sf.reset()
     b = beast_factory()
     build(b)
@@ -201,7 +238,7 @@ def run(asset, category, beast_factory, build, clips, *, budget, hrp_center, hrp
         print(sf.render_preview(asset, category, views=[(-35, 12, False), (130, 16, True)]))
     if os.environ.get("SF_EXPORT") == "1":
         doc = sf.export_asset(asset, category, rig=b.arm, rig_meta=rig_meta, budget=budget, step=step,
-                              meta=meta, sockets=sockets or {})
+                              meta=meta, sockets=sockets or {}, pivot=pivot)
         print(f"[{asset}] {len(doc['parts'])} MeshParts, {doc['tris']} tris, size {doc['size']}")
     acts = clips(b)
     if os.environ.get("SF_EXPORT") == "1":

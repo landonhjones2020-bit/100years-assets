@@ -11,6 +11,7 @@
 	  IV everything before). Surface monsters come with storms and raids (Prompt 16), not breaches.
 	* Groups: a budget spent on groups of monsters (each type's Group size and ThreatCost), with
 	  variety; Pick: one breach point, weighted.
+	* Shell: what a hit on a shelled monster does, by where it comes from (Prompt 23).
 ]]
 
 local Config = require(script.Parent.Parent.Config)
@@ -168,6 +169,19 @@ function Threat.Choose(targets: { string }, available: { [string]: boolean }): s
 		end
 	end
 	return nil
+end
+
+-- A shelled monster's hit (the Tide Crab: "Armoured front, weak point on its back"; Tuning.MonsterAI).
+-- `dot` is how far in front the attacker stands (1: dead ahead, -1: straight behind). Returns the
+-- damage multiplier and what was hit: "Shell", "Weak" or nil.
+function Threat.Shell(dot: number, armoredFront: boolean, weakBack: boolean): (number, string?)
+	local t = Config.Get("Tuning", "MonsterAI")
+	if armoredFront and dot >= math.cos(math.rad(t.ArmorArcDegrees / 2)) then
+		return t.ArmorFront, "Shell"
+	elseif weakBack and dot <= -math.cos(math.rad(t.WeakArcDegrees / 2)) then
+		return t.WeakBack, "Weak"
+	end
+	return 1, nil
 end
 
 return Threat

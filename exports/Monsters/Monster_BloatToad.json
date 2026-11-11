@@ -1,0 +1,553 @@
+{
+ "asset": "Monster_BloatToad",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  4.821,
+  4.718,
+  4.88
+ ],
+ "tris": 3468,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream",
+    "murk",
+    "plum",
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    1.358,
+    -0.025
+   ],
+   "size": [
+    3.504,
+    2.19,
+    4.625
+   ],
+   "tris": 1352
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    2.6,
+    -0.21
+   ],
+   "size": [
+    2.156,
+    1.406,
+    3.207
+   ],
+   "tris": 228
+  },
+  {
+   "name": "Jaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Jaw",
+   "tint": null,
+   "swatches": [
+    "cream",
+    "murk",
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    1.054,
+    -1.486
+   ],
+   "size": [
+    2.76,
+    0.64,
+    1.908
+   ],
+   "tris": 340
+  },
+  {
+   "name": "JawGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Jaw",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    1.154,
+    -1.252
+   ],
+   "size": [
+    1.68,
+    0.24,
+    1.2
+   ],
+   "tris": 48
+  },
+  {
+   "name": "Throat",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Throat",
+   "tint": null,
+   "swatches": [
+    "sandstone"
+   ],
+   "offset": [
+    0.0,
+    0.654,
+    -1.332
+   ],
+   "size": [
+    1.712,
+    0.893,
+    1.296
+   ],
+   "tris": 100
+  },
+  {
+   "name": "ThroatGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Throat",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    0.555,
+    -1.708
+   ],
+   "size": [
+    1.282,
+    0.486,
+    0.446
+   ],
+   "tris": 72
+  },
+  {
+   "name": "SacTop",
+   "material": "SmoothPlastic",
+   "transparency": 0.45,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": "SacTop",
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.003,
+    3.217,
+    0.852
+   ],
+   "size": [
+    2.956,
+    2.832,
+    3.175
+   ],
+   "tris": 144
+  },
+  {
+   "name": "SacLeft",
+   "material": "SmoothPlastic",
+   "transparency": 0.45,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": "SacLeft",
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    -0.716,
+    2.615,
+    0.699
+   ],
+   "size": [
+    2.564,
+    2.575,
+    2.94
+   ],
+   "tris": 144
+  },
+  {
+   "name": "SacRight",
+   "material": "SmoothPlastic",
+   "transparency": 0.45,
+   "collision": "query",
+   "castShadow": false,
+   "role": null,
+   "bone": "SacRight",
+   "tint": null,
+   "swatches": [
+    "skyblue"
+   ],
+   "offset": [
+    0.718,
+    2.605,
+    0.693
+   ],
+   "size": [
+    2.541,
+    2.566,
+    2.951
+   ],
+   "tris": 144
+  },
+  {
+   "name": "SacTop_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "SacTop",
+   "tint": null,
+   "swatches": [
+    "plum"
+   ],
+   "offset": [
+    -0.059,
+    3.996,
+    0.58
+   ],
+   "size": [
+    2.022,
+    1.445,
+    2.972
+   ],
+   "tris": 120
+  },
+  {
+   "name": "SacLeft_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "SacLeft",
+   "tint": null,
+   "swatches": [
+    "plum"
+   ],
+   "offset": [
+    -1.642,
+    2.62,
+    0.731
+   ],
+   "size": [
+    0.924,
+    1.685,
+    2.883
+   ],
+   "tris": 104
+  },
+  {
+   "name": "SacRight_",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "SacRight",
+   "tint": null,
+   "swatches": [
+    "plum"
+   ],
+   "offset": [
+    1.642,
+    2.62,
+    0.731
+   ],
+   "size": [
+    0.924,
+    1.685,
+    2.883
+   ],
+   "tris": 104
+  },
+  {
+   "name": "LeftArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "murk",
+    "plum"
+   ],
+   "offset": [
+    -1.573,
+    0.67,
+    -1.521
+   ],
+   "size": [
+    1.343,
+    1.307,
+    1.781
+   ],
+   "tris": 104
+  },
+  {
+   "name": "RightArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "murk",
+    "plum"
+   ],
+   "offset": [
+    1.573,
+    0.67,
+    -1.521
+   ],
+   "size": [
+    1.343,
+    1.307,
+    1.781
+   ],
+   "tris": 104
+  },
+  {
+   "name": "LeftLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "murk",
+    "plum"
+   ],
+   "offset": [
+    -1.554,
+    0.92,
+    0.808
+   ],
+   "size": [
+    1.682,
+    1.839,
+    1.49
+   ],
+   "tris": 180
+  },
+  {
+   "name": "RightLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "murk",
+    "plum"
+   ],
+   "offset": [
+    1.554,
+    0.92,
+    0.808
+   ],
+   "size": [
+    1.682,
+    1.839,
+    1.49
+   ],
+   "tris": 180
+  }
+ ],
+ "meta": {
+  "role": "Exploder",
+  "band": "FloodedCaverns",
+  "hitTime": 0.7
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Burst": {
+   "p": [
+    0.0,
+    2.804,
+    0.748
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.0,
+     1.204,
+     0.048
+    ]
+   },
+   {
+    "name": "Jaw",
+    "parent": "Body",
+    "jointName": "JawJoint",
+    "joint": [
+     0.0,
+     1.104,
+     -0.952
+    ]
+   },
+   {
+    "name": "Throat",
+    "parent": "Body",
+    "jointName": "ThroatJoint",
+    "joint": [
+     0.0,
+     0.854,
+     -1.152
+    ]
+   },
+   {
+    "name": "SacTop",
+    "parent": "Body",
+    "jointName": "SacTopJoint",
+    "joint": [
+     0.0,
+     2.654,
+     0.748
+    ]
+   },
+   {
+    "name": "SacLeft",
+    "parent": "Body",
+    "jointName": "SacLeftJoint",
+    "joint": [
+     -0.8,
+     2.154,
+     0.848
+    ]
+   },
+   {
+    "name": "SacRight",
+    "parent": "Body",
+    "jointName": "SacRightJoint",
+    "joint": [
+     0.8,
+     2.154,
+     0.848
+    ]
+   },
+   {
+    "name": "LeftArm",
+    "parent": "Body",
+    "jointName": "LeftArmJoint",
+    "joint": [
+     -1.1,
+     1.004,
+     -1.002
+    ]
+   },
+   {
+    "name": "RightArm",
+    "parent": "Body",
+    "jointName": "RightArmJoint",
+    "joint": [
+     1.1,
+     1.004,
+     -1.002
+    ]
+   },
+   {
+    "name": "LeftLeg",
+    "parent": "Body",
+    "jointName": "LeftLegJoint",
+    "joint": [
+     -1.1,
+     1.054,
+     1.048
+    ]
+   },
+   {
+    "name": "RightLeg",
+    "parent": "Body",
+    "jointName": "RightLegJoint",
+    "joint": [
+     1.1,
+     1.054,
+     1.048
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   2.6,
+   1.6,
+   3.2
+  ],
+  "hrpCenter": [
+   0.0,
+   1.204,
+   0.048
+  ],
+  "hipHeight": 0.35
+ },
+ "fbx_sha1": "e4bf2ab5260fb846"
+}

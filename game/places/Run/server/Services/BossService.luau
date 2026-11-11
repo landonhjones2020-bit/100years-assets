@@ -1,8 +1,8 @@
 --!strict
 --[[
 	BossService: boss fights (bible Sections 5, 10 and 22). Run place only; Prompt 15 brings the
-	Era I boss, the Brood Mother. The arithmetic is Shared.Rules.Boss; the numbers are
-	Config.Bosses, Tuning.Bosses and Tuning.BroodMother (provisional).
+	Era I boss, the Brood Mother, Prompt 23 the Era II boss, The Deluge. The arithmetic is
+	Shared.Rules.Boss; the numbers are Config.Bosses, Tuning.Bosses and Tuning.<BossId> (provisional).
 
 	* A boss Surge (CycleClock.SurgeStarted with kind Boss) starts its boss's fight. Section 5: the
 	  Surge has no timer and ends when the boss dies (ObjectiveService:BossBeaten, which also adds
@@ -27,9 +27,26 @@
 	  - each new phase (Config.Bosses' Phases) she roars, lays more often and moves faster.
 	* Death: the Death clip, her sacs wither, BossBeaten ends the Surge, Defeated fires; after
 	  DeathSeconds she dissolves.
+	* The Deluge (Section 10: "A giant eel surging up the flooded tunnels. Floods every room it
+	  passes; strike its head when it surfaces and drain the rooms behind it."; Tuning.Deluge). It
+	  arrives like any boss, in Rules.Boss.Arena, but it doesn't stay there. The fight's Mode:
+	  - Up: it stands out of the floor, turns to whoever is near and bites (the Attack clip's
+	    HitTime: BiteDamage within BiteRadius of its Bite socket). Its head is the model's WeakPoint
+	    part; enough damage to it staggers it. After SurfaceSeconds (sooner with nobody near for
+	    AloneSeconds) it dives;
+	  - Diving, Swim: it sinks SwimDepth so only its back fin cuts the floor (hits on it do
+	    SubmergedMultiplier), and swims Rules.Bunker.CellPath to the nearest standing player it can
+	    reach, re-aimed at every cell, for at most SwimSeconds. Every room it passes bursts a pipe
+	    and takes FloodLevel of water (DisasterService:StartFlood, cause "Deluge"; the Shaft takes the
+	    water but has no pipe): patching those pipes is "drain the rooms behind it";
+	  - Surfacing: it comes up where it is (never in a Shaft), and from its second phase Murklings
+	    pour out with it (Config.Bosses' Minions).
+	  It moves every frame (an anchored model isn't smoothed between server ticks); it decides every
+	  TickSeconds like the Brood Mother.
 
 	Replication: the Boss collection, "Fight" -> { Id, Name, Health, Max, Phase, Phases, State,
-	At = { X, Y, Z } (where she breaks in), ArriveAt (server time), Sacs } while a fight is on.
+	At = { X, Y, Z } (where it breaks in; The Deluge: where it is), ArriveAt (server time), Sacs,
+	Mode (The Deluge: Up, Diving, Swim, Surfacing) } while a fight is on.
 	The model is in workspace.Monsters with Rig, Activity and AttackAt attributes. Unlike other
 	monsters (Section 23: clips play on clients), her clips play here on the server and replicate
 	(ServerAnimated, which NPCAnimator skips): one model, and the server must see her belly where
@@ -43,7 +60,7 @@
 		BossService:IsEggSac(combatId): boolean         -- one of its egg sacs (a broken sac isn't a kill)
 		BossService.Started: Signal<string>             -- bossId
 		BossService.Defeated: Signal<string, Player?>   -- bossId, who struck the last blow
-	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end.
+	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end, boss.dive, boss.surface.
 ]]
 
 local Players = game:GetService("Players")
@@ -66,14 +83,31 @@ local BossService = {
 	Name = "BossService",
 	Dependencies = {
 		"CycleClock", "RunDirector", "BunkerGrid", "SessionService", "CombatService", "MonsterService", "WeaponService",
-		"ObjectiveService", "ThreatDirector", "ReplicationService", "DevService",
+		"ObjectiveService", "ThreatDirector", "DisasterService", "ReplicationService", "DevService",
 	},
 	Started = Signal.new() :: Signal.Signal<string>,
 	Defeated = Signal.new() :: Signal.Signal<string, Player?>,
 }
 
 local RISE_DEPTH = 13 -- how far under the floor she starts
+local DELUGE_RISE_DEPTH = 15 -- The Deluge stands 14.5 studs to the tips of its hood
 local HATCH_TAG_PREFIX = "Boss:"
+
+-- How each boss's arrival and glow look, and the words for it. Water: its bursts are water, not rock.
+local LOOK: { [string]: { Glow: Color3, Dust: Color3, Chips: Color3, Water: boolean, Clips: { string }, Up: string, Phase: string } } = {
+	BroodMother = {
+		Glow = Color3.fromRGB(124, 255, 155), Dust = Color3.fromRGB(140, 128, 112), Chips = Color3.fromRGB(70, 64, 58), Water = false,
+		Clips = { "Idle", "Walk", "Attack", "LayEggs", "Stagger", "Death" },
+		Up = "BREAKS THROUGH! HIT HER GLOWING BELLY, BREAK HER EGG SACS",
+		Phase = "SHRIEKS: SHE LAYS FASTER AND HITS HARDER",
+	},
+	Deluge = {
+		Glow = Color3.fromRGB(88, 214, 232), Dust = Color3.fromRGB(150, 196, 204), Chips = Color3.fromRGB(196, 232, 238), Water = true,
+		Clips = { "Idle", "Swim", "Attack", "Stagger", "Death" },
+		Up = "SURFACES! STRIKE ITS HEAD WHEN IT IS UP, PATCH THE PIPES IT BURSTS",
+		Phase = "ROARS: IT SWIMS FASTER AND BRINGS MORE WITH IT",
+	},
+}
 
 type Sac = { CombatId: string, Model: Model, HatchAt: number }
 type Fight = {
@@ -105,6 +139,20 @@ type Fight = {
 	Effects: { Instance },
 	Tracks: { [string]: AnimationTrack },
 	Playing: AnimationTrack?,
+	-- The Deluge
+	Mode: string, -- "" | "Up" | "Diving" | "Swim" | "Surfacing"
+	ModeUntil: number,
+	SwimFrom: number,
+	Sink: number, -- studs under the floor
+	Floor: number,
+	Column: number,
+	Path: { { number } },
+	PathIndex: number,
+	Passed: { [string]: boolean }, -- rooms flooded on this swim
+	Face: Vector3?,
+	AloneSince: number?,
+	Roar: boolean, -- a phase began under water: it roars as it comes up
+	Wake: Part?,
 }
 
 local clock: any = nil
@@ -116,7 +164,9 @@ local monsters: any = nil
 local weapons: any = nil
 local objectives: any = nil
 local threat: any = nil
+local disasters: any = nil
 local collection: any = nil
+local rng = Random.new()
 
 local fight: Fight? = nil
 local sacIds: { [string]: boolean } = {} -- every egg sac's combatant id this run (ids aren't reused)
@@ -207,7 +257,11 @@ local function setActivity(activity: string, restart: boolean?)
 end
 
 local function pivot(f: Fight): CFrame
-	return CFrame.new(f.X, f.Y, f.Z) * CFrame.Angles(0, f.Yaw, 0)
+	return CFrame.new(f.X, f.Y - f.Sink, f.Z) * CFrame.Angles(0, f.Yaw, 0)
+end
+
+local function look(f: Fight)
+	return LOOK[f.BossId] or LOOK.BroodMother
 end
 
 local function where(arena: Boss.Arena): string
@@ -230,7 +284,7 @@ local function publish(force: boolean?)
 	for _ in f.Sacs do
 		count += 1
 	end
-	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}`
+	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}|{f.Mode}|{f.Floor}|{f.Column}`
 	if not force and (sent == f.Sent or os.clock() - f.PublishedAt < Boss.Tuning().PublishSeconds) then
 		return
 	end
@@ -245,9 +299,10 @@ local function publish(force: boolean?)
 		Phase = f.Phase,
 		Phases = Config.Get("Bosses", f.BossId).Phases,
 		State = f.State,
-		At = { X = f.X, Y = at.Y, Z = f.Z },
+		At = { X = f.X, Y = if f.Mode ~= "" then f.Y else at.Y, Z = f.Z },
 		ArriveAt = f.ArriveAt,
 		Sacs = count,
+		Mode = if f.Mode ~= "" then f.Mode else nil,
 	})
 end
 
@@ -267,11 +322,13 @@ local function effectPart(at: Vector3, name: string): Part
 	return part
 end
 
-local function rockBurst(at: Vector3, chips: number)
+local function rockBurst(at: Vector3, chips: number, f: Fight?)
+	local colours = if f then LOOK[f.BossId] or LOOK.BroodMother else LOOK.BroodMother
 	local part = effectPart(at + Vector3.new(0, 0.5, 0), "BossBurst")
+	part:SetAttribute("Water", colours.Water)
 	local dust = Instance.new("ParticleEmitter")
 	dust.Texture = "rbxasset://textures/particles/smoke_main.dds"
-	dust.Color = ColorSequence.new(Color3.fromRGB(140, 128, 112))
+	dust.Color = ColorSequence.new(colours.Dust)
 	dust.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 4), NumberSequenceKeypoint.new(1, 12) })
 	dust.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
 	dust.Lifetime = NumberRange.new(1.5, 3)
@@ -281,8 +338,8 @@ local function rockBurst(at: Vector3, chips: number)
 	dust.Rate = 0
 	dust.Parent = part
 	local rocks = Instance.new("ParticleEmitter")
-	rocks.Color = ColorSequence.new(Color3.fromRGB(70, 64, 58))
-	rocks.Size = NumberSequence.new(0.6)
+	rocks.Color = ColorSequence.new(colours.Chips)
+	rocks.Size = NumberSequence.new(if colours.Water then 0.35 else 0.6)
 	rocks.Lifetime = NumberRange.new(1, 1.6)
 	rocks.Speed = NumberRange.new(20, 34)
 	rocks.SpreadAngle = Vector2.new(45, 45)
@@ -302,7 +359,7 @@ local function warning(f: Fight, seconds: number)
 	local part = effectPart(at, "BossWarning")
 	local dust = Instance.new("ParticleEmitter")
 	dust.Texture = "rbxasset://textures/particles/smoke_main.dds"
-	dust.Color = ColorSequence.new(Color3.fromRGB(140, 128, 112))
+	dust.Color = ColorSequence.new(look(f).Dust)
 	dust.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.5), NumberSequenceKeypoint.new(1, 5) })
 	dust.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) })
 	dust.Lifetime = NumberRange.new(1.2, 2.4)
@@ -311,7 +368,7 @@ local function warning(f: Fight, seconds: number)
 	dust.Rate = 18
 	dust.Parent = part
 	local light = Instance.new("PointLight")
-	light.Color = Color3.fromRGB(232, 80, 59)
+	light.Color = if look(f).Water then Color3.fromRGB(70, 150, 232) else Color3.fromRGB(232, 80, 59)
 	light.Range = 26
 	light.Brightness = 2
 	light.Parent = part
@@ -370,10 +427,51 @@ local function graybox(bossId: string): Model
 	return model
 end
 
+-- The Deluge before its art: a neck standing out of the floor, a head (its weak point), a back fin.
+local function grayboxEel(bossId: string): Model
+	local model = Instance.new("Model")
+	model.Name = bossId
+	local root = Instance.new("Part")
+	root.Name = "HumanoidRootPart"
+	root.Size = Vector3.new(5, 4, 5)
+	root.Transparency = 1
+	root.Anchored = true
+	root.CFrame = CFrame.new(0, 4, 0)
+	root.Parent = model
+	local function block(name: string, size: Vector3, at: Vector3, colour: string, weak: boolean)
+		local part = Instance.new("Part")
+		part.Name = name
+		part.Size = size
+		part.Color = Color3.fromHex(colour)
+		part.Material = if weak then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part.CFrame = CFrame.new(at)
+		part.CanCollide = false
+		if weak then
+			part:SetAttribute("Role", "WeakPoint")
+		end
+		part.Parent = model
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = root
+		weld.Part1 = part
+		weld.Parent = part
+	end
+	block("Neck", Vector3.new(5, 12, 5), Vector3.new(0, 4, 0), "#2F4A52", false)
+	block("Head", Vector3.new(5, 4, 8), Vector3.new(0, 11, -2), "#58D6E8", true)
+	block("Fin", Vector3.new(0.6, 5, 14), Vector3.new(0, 11.5, 8), "#3B6A72", false)
+	block("Back", Vector3.new(5, 5, 16), Vector3.new(0, 6.5, 9), "#2F4A52", false)
+	local humanoid = Instance.new("Humanoid")
+	humanoid.Parent = model
+	Instance.new("Animator").Parent = humanoid
+	model.PrimaryPart = root
+	root.PivotOffset = CFrame.new(0, -4, 0)
+	model:SetAttribute("Graybox", true)
+	return model
+end
+
 local function makeModel(f: Fight): (Model, BasePart)
 	local entry = Config.Get("Bosses", f.BossId)
 	local template = art(entry.Asset)
-	local model = if template then template:Clone() else graybox(f.BossId)
+	local model = if template then template:Clone() elseif f.BossId == "Deluge" then grayboxEel(f.BossId) else graybox(f.BossId)
 	model.Name = f.BossId
 	local root = (model:FindFirstChild("HumanoidRootPart") or model.PrimaryPart) :: BasePart
 	for _, part in model:GetDescendants() do
@@ -401,7 +499,7 @@ local function makeModel(f: Fight): (Model, BasePart)
 	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * Vector3.new(0, 10, 2))
 	glowAt.Parent = root
 	local glow = Instance.new("PointLight")
-	glow.Color = Color3.fromRGB(124, 255, 155)
+	glow.Color = look(f).Glow
 	glow.Range = 24
 	glow.Brightness = 1.2
 	glow.Shadows = false
@@ -615,6 +713,9 @@ local function stagger(f: Fight)
 	setActivity("Stagger")
 	f.Busy = os.clock() + f.T.StaggerSeconds
 	f.NextAttack = math.max(f.NextAttack, f.Busy + 0.5)
+	if f.Mode == "Up" then
+		f.ModeUntil += f.T.StaggerSeconds -- it stays up that much longer
+	end
 	table.clear(f.Hits)
 	if f.Model then
 		f.Model:SetAttribute("StaggeredAt", now())
@@ -622,9 +723,8 @@ local function stagger(f: Fight)
 	log:Info("%s staggered", f.Name)
 end
 
-local function tick(dt: number)
-	local f = fight
-	if not f or f.State ~= "Fighting" or not f.Model or not f.CombatId then
+local function tickBroodMother(f: Fight, dt: number)
+	if not f.Model or not f.CombatId then
 		return
 	end
 	local health, max = combat:HealthOf(f.CombatId)
@@ -634,7 +734,7 @@ local function tick(dt: number)
 		setActivity("Roar")
 		f.Busy = os.clock() + f.T.RoarSeconds
 		f.NextLay = math.min(f.NextLay, os.clock() + f.T.RoarSeconds + 1)
-		announce("Danger", `THE {string.upper(f.Name)} SHRIEKS: SHE LAYS FASTER AND HITS HARDER`)
+		announce("Danger", `{Boss.Title(f.Name)} {look(f).Phase}`)
 		log:Info("%s phase %d", f.Name, phase)
 	end
 	for id, sac in table.clone(f.Sacs) do
@@ -682,6 +782,354 @@ local function tick(dt: number)
 	f.Model:PivotTo(pivot(f))
 end
 
+-- The Deluge ------------------------------------------------------------------------------------------------
+
+local function wakeRate(f: Fight, rate: number)
+	local wake = f.Wake
+	local emitter = wake and wake:FindFirstChildOfClass("ParticleEmitter")
+	if emitter then
+		emitter.Rate = rate
+	end
+end
+
+-- The spray where its fin cuts the floor.
+local function makeWake(f: Fight)
+	local part = effectPart(Vector3.new(f.X, f.Y + 0.4, f.Z), "DelugeWake")
+	part.Size = Vector3.new(6, 0.4, 6)
+	local spray = Instance.new("ParticleEmitter")
+	spray.Texture = "rbxasset://textures/particles/smoke_main.dds"
+	spray.Color = ColorSequence.new(look(f).Chips)
+	spray.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 3.4) })
+	spray.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) })
+	spray.Lifetime = NumberRange.new(0.5, 1)
+	spray.Speed = NumberRange.new(6, 12)
+	spray.SpreadAngle = Vector2.new(40, 40)
+	spray.Acceleration = Vector3.new(0, -30, 0)
+	spray.Rate = 0
+	spray.Parent = part
+	f.Wake = part
+	table.insert(f.Effects, part)
+end
+
+-- Every room it passes bursts a pipe and takes water (the Shaft takes the water, with no pipe).
+local function floodPassed(f: Fight)
+	local room = grid:Bunker():RoomAt(f.Floor, f.Column)
+	if room and not f.Passed[room.Id] then
+		f.Passed[room.Id] = true
+		disasters:StartFlood(room.Id, "Deluge", f.T.FloodLevel, room.Type ~= "Shaft")
+	end
+end
+
+-- Where it comes up for someone in this cell: the cell itself, or the nearest open cell on that
+-- floor that isn't a Shaft.
+local function surfaceCell(bunker: any, floor: number, column: number): (number, number)
+	if not bunker:IsShaft(floor, column) then
+		return floor, column
+	end
+	for reach = 1, 4 do
+		for _, c in { column - reach, column + reach } do
+			if bunker:IsOpen(floor, c) and not bunker:IsShaft(floor, c) then
+				return floor, c
+			end
+		end
+	end
+	return floor, column
+end
+
+-- The way to the nearest standing player it can reach; with nobody, to a room picked at random.
+local function delugeRoute(f: Fight)
+	local bunker = grid:Bunker()
+	local here = Vector3.new(f.X, f.Y, f.Z)
+	local wanted: { { Distance: number, Floor: number, Column: number } } = {}
+	for _, player in session:ReadyPlayers() do
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root and root:IsA("BasePart") and player:GetAttribute("Life") == "Alive" then
+			local floor, column = Grid.CellAt(root.Position)
+			if floor and column and bunker:IsOpen(floor, column) then
+				table.insert(wanted, { Distance = (root.Position - here).Magnitude, Floor = floor, Column = column })
+			end
+		end
+	end
+	table.sort(wanted, function(a, b)
+		return a.Distance < b.Distance
+	end)
+	for _, w in wanted do
+		local floor, column = surfaceCell(bunker, w.Floor, w.Column)
+		local path = bunker:CellPath(f.Floor, f.Column, floor, column)
+		if path then
+			f.Path, f.PathIndex = path, 2
+			return
+		end
+	end
+	if f.PathIndex <= #f.Path then
+		return -- nobody to hunt: it carries on where it was going
+	end
+	local rooms = {}
+	for _, room in bunker:AllRooms() do
+		if room.Type ~= "Shaft" then
+			table.insert(rooms, room)
+		end
+	end
+	if #rooms > 0 then
+		local room = rooms[rng:NextInteger(1, #rooms)]
+		local path = bunker:CellPath(f.Floor, f.Column, room.Floor, room.Column)
+		if path then
+			f.Path, f.PathIndex = path, 2
+			return
+		end
+	end
+	f.Path, f.PathIndex = {}, 1
+end
+
+local function delugeDive(f: Fight)
+	f.Mode = "Diving"
+	f.ModeUntil = os.clock() + f.T.DiveSeconds
+	f.Face = nil
+	f.AloneSince = nil
+	table.clear(f.Passed)
+	local room = grid:Bunker():RoomAt(f.Floor, f.Column)
+	if room then
+		f.Passed[room.Id] = true -- it flooded this one as it came up
+	end
+	setActivity("Swim")
+	if f.Model then
+		f.Model:SetAttribute("DivedAt", now())
+	end
+	publish(true)
+	log:Info("%s dives at floor %d column %d", f.Name, f.Floor, f.Column)
+end
+
+local function delugeSurface(f: Fight)
+	f.Mode = "Surfacing"
+	f.ModeUntil = os.clock() + f.T.SurfaceRiseSeconds
+	wakeRate(f, 0)
+	floodPassed(f)
+	local at = Vector3.new(f.X, f.Y, f.Z)
+	rockBurst(at, 60, f)
+	if f.Roar then
+		setActivity("Roar", true)
+	else
+		setActivity("Idle")
+	end
+	if f.Model then
+		f.Model:SetAttribute("SurfacedAt", now())
+	end
+	-- Murklings pour out with it (Config.Bosses' Minions)
+	local entry = Config.Get("Bosses", f.BossId)
+	local kind = if entry.Minions then entry.Minions[1] else nil
+	local count = Boss.ByPhase(f.T.Murklings, f.Phase)
+	if kind and count > 0 then
+		for i = 1, count do
+			local angle = (i / count) * math.pi * 2
+			local spot = at + Vector3.new(math.cos(angle) * 7, 0.5, math.sin(angle) * 7)
+			monsters:Spawn(kind, CFrame.new(spot), HATCH_TAG_PREFIX .. f.BossId)
+		end
+	end
+	publish(true)
+	log:Info("%s surfaces at floor %d column %d (%d %s with it)", f.Name, f.Floor, f.Column, count, tostring(kind))
+end
+
+-- Its bite: whoever is within BiteRadius of where its jaws come down.
+local function bite(f: Fight)
+	local model = f.Model :: Model
+	local hitTime = (model:GetAttribute("HitTime") :: number?) or 0.7
+	setActivity("Attack", true)
+	model:SetAttribute("AttackAt", now())
+	f.Busy = os.clock() + hitTime + 0.8
+	f.NextAttack = os.clock() + Boss.ByPhase(f.T.AttackSeconds, f.Phase)
+	task.delay(hitTime, function()
+		if fight ~= f or f.State ~= "Fighting" or f.Mode ~= "Up" or not f.CombatId or not f.Model then
+			return
+		end
+		local at = if f.Model:GetAttribute("Socket_Bite") ~= nil
+			then socket(f.Model, "Bite").Position
+			else (pivot(f) * CFrame.new(0, 1, -f.T.BiteReach * 0.7)).Position
+		local hit = 0
+		for _, c in combat:All("Survivors") do
+			local offset = c.Root.Position - at
+			if c.State == "Alive" and Vector3.new(offset.X, 0, offset.Z).Magnitude <= f.T.BiteRadius and math.abs(offset.Y) < 9 then
+				if combat:Damage(c.Id, f.T.BiteDamage, f.CombatId, "bitten") > 0 then
+					hit += 1
+				end
+			end
+		end
+		rockBurst(at, 14, f)
+		if hit > 0 then
+			log:Debug("bite hit %d", hit)
+		end
+	end)
+end
+
+-- The nearest standing survivor (players and residents) on its floor, and how far.
+local function nearestSurvivor(f: Fight): (Vector3?, number)
+	local best, bestDistance = nil, math.huge
+	for _, c in combat:All("Survivors") do
+		if c.State == "Alive" then
+			local offset = c.Root.Position - Vector3.new(f.X, f.Y, f.Z)
+			local flat = Vector3.new(offset.X, 0, offset.Z).Magnitude
+			if math.abs(offset.Y) < 9 and flat < bestDistance then
+				best, bestDistance = c.Root.Position, flat
+			end
+		end
+	end
+	return best, bestDistance
+end
+
+-- Its decisions, every TickSeconds.
+local function tickDeluge(f: Fight, _dt: number)
+	if not f.Model or not f.CombatId then
+		return
+	end
+	local at0 = os.clock()
+	local health, max = combat:HealthOf(f.CombatId)
+	local phase = Boss.Phase(f.BossId, if max > 0 then health / max else 0)
+	if phase > f.Phase then
+		f.Phase = phase
+		announce("Danger", `{Boss.Title(f.Name)} {look(f).Phase}`)
+		log:Info("%s phase %d", f.Name, phase)
+		if f.Mode == "Up" then
+			setActivity("Roar", true)
+			f.Busy = at0 + f.T.RoarSeconds
+			f.ModeUntil += f.T.RoarSeconds
+		else
+			f.Roar = true
+		end
+	end
+	publish()
+	if f.Mode ~= "Up" or at0 < f.Busy then
+		return
+	end
+	if at0 >= f.ModeUntil then
+		delugeDive(f)
+		return
+	end
+	local position, distance = nearestSurvivor(f)
+	f.Face = position
+	if not position or distance > f.T.BiteReach * 2 then
+		-- nobody near: it doesn't wait about
+		f.AloneSince = f.AloneSince or at0
+		if at0 - f.AloneSince >= f.T.AloneSeconds then
+			delugeDive(f)
+			return
+		end
+	else
+		f.AloneSince = nil
+	end
+	if position and distance <= f.T.BiteReach and at0 >= f.NextAttack then
+		local flat = Vector3.new(position.X - f.X, 0, position.Z - f.Z)
+		local facing = pivot(f).LookVector
+		if flat.Magnitude < 1 or flat.Unit:Dot(Vector3.new(facing.X, 0, facing.Z).Unit) > 0.75 then
+			bite(f)
+			return
+		end
+	end
+	setActivity("Idle")
+end
+
+-- Its movement, every frame.
+local function frameDeluge(f: Fight, dt: number)
+	local model = f.Model
+	if not model or f.State ~= "Fighting" or f.Mode == "" then
+		return
+	end
+	local t = f.T
+	local at0 = os.clock()
+	if f.Mode == "Up" then
+		if f.Face and at0 >= f.Busy then
+			local before = f.Yaw
+			turnTowards(f, f.Face, dt)
+			if f.Yaw ~= before then
+				model:PivotTo(pivot(f))
+			end
+		end
+		return
+	end
+	if f.Mode == "Diving" then
+		f.Sink = math.min(t.SwimDepth, f.Sink + t.SwimDepth / t.DiveSeconds * dt)
+		if f.Sink >= t.SwimDepth then
+			f.Mode = "Swim"
+			f.SwimFrom = at0
+			f.ModeUntil = at0 + Boss.ByPhase(t.SwimSeconds, f.Phase)
+			delugeRoute(f)
+			wakeRate(f, 60)
+			publish(true)
+		end
+	elseif f.Mode == "Swim" then
+		local remaining = Boss.ByPhase(t.SwimSpeed, f.Phase) * dt
+		local bunker = grid:Bunker()
+		while remaining > 0 and f.Mode == "Swim" do
+			local cell = f.Path[f.PathIndex]
+			local late = at0 >= f.ModeUntil
+			if not cell then
+				-- there: up it comes (after a breath under, so a dive is never a blink), or on to the next
+				if at0 - f.SwimFrom >= 2 or late then
+					delugeSurface(f)
+				end
+				break
+			end
+			local goal = Grid.CellPosition(cell[1], cell[2])
+			local offset = goal - Vector3.new(f.X, f.Y, f.Z)
+			local distance = offset.Magnitude
+			if math.abs(offset.X) > 0.05 then
+				-- its front is -Z
+				local want = math.atan2(-offset.X, -offset.Z)
+				local delta = (want - f.Yaw + math.pi) % (math.pi * 2) - math.pi
+				local step = math.rad(360) * dt
+				f.Yaw += math.clamp(delta, -step, step)
+			end
+			if distance <= remaining then
+				f.X, f.Y, f.Z = goal.X, goal.Y, goal.Z
+				f.Floor, f.Column = cell[1], cell[2]
+				f.PathIndex += 1
+				remaining -= distance
+				floodPassed(f)
+				if late and not bunker:IsShaft(f.Floor, f.Column) then
+					delugeSurface(f)
+				else
+					delugeRoute(f) -- whoever it hunts has moved
+				end
+			else
+				local step = offset.Unit * remaining
+				f.X += step.X
+				f.Y += step.Y
+				f.Z += step.Z
+				remaining = 0
+			end
+		end
+	elseif f.Mode == "Surfacing" then
+		f.Sink = math.max(0, f.Sink - t.SwimDepth / t.SurfaceRiseSeconds * dt)
+		if f.Sink <= 0 then
+			f.Mode = "Up"
+			f.ModeUntil = at0 + Boss.ByPhase(t.SurfaceSeconds, f.Phase)
+			f.NextAttack = at0 + 0.8
+			f.AloneSince = nil
+			if f.Roar then
+				f.Roar = false
+				f.Busy = at0 + t.RoarSeconds
+				f.ModeUntil += t.RoarSeconds
+			end
+			publish(true)
+		end
+	end
+	model:PivotTo(pivot(f))
+	if f.Wake then
+		f.Wake.CFrame = CFrame.new(f.X, f.Y + 0.4, f.Z)
+	end
+end
+
+local function tick(dt: number)
+	local f = fight
+	if not f or f.State ~= "Fighting" then
+		return
+	end
+	if f.BossId == "Deluge" then
+		tickDeluge(f, dt)
+	else
+		tickBroodMother(f, dt)
+	end
+end
+
 local function cleanup(f: Fight)
 	for _, t in f.Tracks do
 		t:Stop(0)
@@ -710,7 +1158,8 @@ local function rise(f: Fight)
 	f.Root = root
 	f.State = "Rising"
 	local finalPivot = pivot(f)
-	model:PivotTo(finalPivot - Vector3.new(0, RISE_DEPTH, 0))
+	local riseDepth = if f.BossId == "Deluge" then DELUGE_RISE_DEPTH else RISE_DEPTH
+	model:PivotTo(finalPivot - Vector3.new(0, riseDepth, 0))
 	model.Parent = holder()
 	local id = combat:Register(model, {
 		Kind = "Monster", Team = "Monsters", Health = f.Max, MonsterType = f.BossId, Root = root, KeepModel = true,
@@ -725,18 +1174,18 @@ local function rise(f: Fight)
 	f.CombatId = id
 	model.Name = `{f.BossId}_{id}`
 	play(f, "Roar", true)
-	for _, activity in { "Idle", "Walk", "Attack", "LayEggs", "Stagger", "Death" } do
+	for _, activity in look(f).Clips do
 		track(f, activity) -- loaded now, so each is ready (and its length known) when she needs it
 	end
-	rockBurst(Vector3.new(f.X, f.Y, f.Z), 40)
+	rockBurst(Vector3.new(f.X, f.Y, f.Z), 40, f)
 	publish(true)
-	announce("Danger", `THE {string.upper(f.Name)} BREAKS THROUGH! HIT HER GLOWING BELLY, BREAK HER EGG SACS`)
+	announce("Danger", `{Boss.Title(f.Name)} {look(f).Up}`)
 	local seconds = Boss.Tuning().RiseSeconds
 	local started = os.clock()
 	while fight == f and os.clock() - started < seconds do
 		local k = math.clamp((os.clock() - started) / seconds, 0, 1)
 		local eased = 1 - (1 - k) * (1 - k)
-		model:PivotTo(finalPivot - Vector3.new(0, RISE_DEPTH * (1 - eased), 0))
+		model:PivotTo(finalPivot - Vector3.new(0, riseDepth * (1 - eased), 0))
 		task.wait()
 	end
 	if fight ~= f then
@@ -746,7 +1195,14 @@ local function rise(f: Fight)
 	f.State = "Fighting"
 	f.Busy = os.clock() + f.T.RoarSeconds
 	f.NextAttack = f.Busy + 1
-	f.NextLay = os.clock() + Boss.ByPhase(f.T.LaySeconds, 1) * 0.5
+	if f.BossId == "Deluge" then
+		f.Mode = "Up"
+		f.ModeUntil = f.Busy + Boss.ByPhase(f.T.SurfaceSeconds, 1)
+		makeWake(f)
+		floodPassed(f)
+	else
+		f.NextLay = os.clock() + Boss.ByPhase(f.T.LaySeconds, 1) * 0.5
+	end
 	publish(true)
 	log:Info("%s is up (%d health, arena floor %d, columns %d to %d)", f.Name, f.Max, f.Arena.Floor, f.Arena.From, f.Arena.To)
 end
@@ -797,11 +1253,27 @@ function BossService:BeginFight(bossId: string): (boolean, string?)
 		Effects = {},
 		Tracks = {},
 		Playing = nil,
+		Mode = "",
+		ModeUntil = 0,
+		SwimFrom = 0,
+		Sink = 0,
+		Floor = arena.Floor,
+		Column = Boss.ArenaMiddle(arena),
+		Path = {},
+		PathIndex = 1,
+		Passed = {},
+		Face = nil,
+		AloneSince = nil,
+		Roar = false,
+		Wake = nil,
 	}
+	if bossId == "Deluge" then
+		f.X, f.Z = cell.X, cell.Z -- it comes up in the middle of its cell
+	end
 	fight = f
 	warning(f, warningSeconds)
 	publish(true)
-	announce("Danger", `THE {string.upper(entry.Name)} IS BREAKING THROUGH: {where(arena)} · {warningSeconds} S`)
+	announce("Danger", `{Boss.Title(entry.Name)} IS BREAKING THROUGH: {where(arena)} · {warningSeconds} S`)
 	log:Info("%s breaks in at %s in %d s (%d health, %d players)", entry.Name, where(arena), warningSeconds, f.Max, players)
 	BossService.Started:Fire(bossId)
 	task.delay(warningSeconds, rise, f)
@@ -815,6 +1287,9 @@ function BossService:Stun(combatId: string, why: string): boolean
 	local f = fight
 	if not f or f.CombatId ~= combatId or f.State ~= "Fighting" or os.clock() < f.Busy then
 		return false
+	end
+	if f.Mode ~= "" and f.Mode ~= "Up" then
+		return false -- under water
 	end
 	if os.clock() - lastStun < Config.Get("Tuning", "Classes").BossStunCooldown then
 		return false
@@ -855,6 +1330,15 @@ local function onDied(id: string)
 	end
 	f.State = "Dying"
 	f.CombatId = nil -- CombatService unregistered her
+	if f.Mode ~= "" then
+		-- The Deluge dies where it is, out of the floor
+		f.Mode = "Up"
+		f.Sink = 0
+		wakeRate(f, 0)
+		if f.Model then
+			f.Model:PivotTo(pivot(f))
+		end
+	end
 	setActivity("Death")
 	local death = f.Tracks.Death
 	if death then
@@ -879,7 +1363,7 @@ local function onDied(id: string)
 			killer = player
 		end
 	end
-	announce("Info", `THE {string.upper(f.Name)} IS DEAD{if killer then ` · FINISHED BY {string.upper(killer.DisplayName)}` else ""}`)
+	announce("Info", `{Boss.Title(f.Name)} IS DEAD{if killer then ` · FINISHED BY {string.upper(killer.DisplayName)}` else ""}`)
 	log:Info("%s is dead (last blow: %s)", f.Name, if killer then killer.Name else "-")
 	-- Defeated first: BossBeaten ends the Surge and the year moves on, and the run's story
 	-- should say the year she fell.
@@ -902,7 +1386,7 @@ local function onDamaged(id: string, amount: number, source: string?, how: strin
 	if source then
 		f.LastHitBy = source
 	end
-	if how == "weakpoint" and f.State == "Fighting" then
+	if how == "weakpoint" and f.State == "Fighting" and (f.Mode == "" or f.Mode == "Up") then
 		table.insert(f.Hits, { At = os.clock(), Amount = amount })
 		while #f.Hits > 0 and os.clock() - f.Hits[1].At > f.T.StaggerWindowSeconds do
 			table.remove(f.Hits, 1)
@@ -921,6 +1405,9 @@ local function hitModifier(target: any, point: Vector3?, how: string, player: Pl
 		return 1, nil
 	end
 	if target.Id == f.CombatId and f.Model then
+		if f.Mode == "Swim" or f.Mode == "Diving" then
+			return f.T.SubmergedMultiplier, nil -- only its back fin shows
+		end
 		local weak = false
 		if point then
 			local tolerance = Boss.Tuning().WeakPointTolerance + (if how == "struck" or how == "smashed" then 2 else 0)
@@ -956,6 +1443,11 @@ local function describe(): string
 	for _ in f.Sacs do
 		count += 1
 	end
+	if f.Mode ~= "" then
+		return string.format("%s: %s (%s, %.0f s left), %d/%d health, phase %d, floor %d column %d (%.0f, %.0f, %.0f), %.1f under, path %d of %d, %s",
+			f.Name, f.State, f.Mode, math.max(f.ModeUntil - os.clock(), 0), math.ceil(health), max, f.Phase, f.Floor, f.Column,
+			f.X, f.Y, f.Z, f.Sink, f.PathIndex, #f.Path, tostring(f.Model and f.Model:GetAttribute("Activity")))
+	end
 	return string.format("%s: %s, %d/%d health, phase %d, arena floor %d columns %d to %d (x %.0f to %.0f), at x %.1f, %d egg sacs, %s",
 		f.Name, f.State, math.ceil(health), max, f.Phase, f.Arena.Floor, f.Arena.From, f.Arena.To, f.Left, f.Right, f.X, count,
 		tostring(f.Model and f.Model:GetAttribute("Activity")))
@@ -970,7 +1462,7 @@ local function registerCommands(dev: any)
 	})
 	dev:Register("boss.start", {
 		Description = "Start a boss's fight now, outside its Surge (Studio testing).",
-		Usage = "boss.start [BroodMother]",
+		Usage = "boss.start [BroodMother|Deluge]",
 		Run = function(_player, args): string?
 			local ok, why = BossService:BeginFight(tostring(args[1] or "BroodMother"))
 			return if ok then describe() else `can't: {why}`
@@ -1012,8 +1504,35 @@ local function registerCommands(dev: any)
 			end
 			local seconds = tonumber(args[1]) or 20
 			f.Busy = os.clock() + seconds
+			if f.Mode == "Up" then
+				f.ModeUntil = f.Busy + 1
+			end
 			setActivity("Idle")
 			return `frozen for {seconds} s\n{describe()}`
+		end,
+	})
+	dev:Register("boss.dive", {
+		Description = "The Deluge dives now (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or f.State ~= "Fighting" or f.Mode ~= "Up" then
+				return "The Deluge isn't up"
+			end
+			f.Busy = 0
+			delugeDive(f)
+			return describe()
+		end,
+	})
+	dev:Register("boss.surface", {
+		Description = "The Deluge comes up at the next cell it reaches (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or f.State ~= "Fighting" or f.Mode ~= "Swim" then
+				return "The Deluge isn't swimming"
+			end
+			f.ModeUntil = 0
+			f.SwimFrom = 0
+			return describe()
 		end,
 	})
 	dev:Register("boss.end", {
@@ -1043,6 +1562,7 @@ function BossService:Init(registry)
 	weapons = registry.WeaponService
 	objectives = registry.ObjectiveService
 	threat = registry.ThreatDirector
+	disasters = registry.DisasterService
 	collection = registry.ReplicationService:Collection("Boss")
 	registerCommands(registry.DevService)
 end
@@ -1068,6 +1588,13 @@ function BossService:Start()
 	weapons:SetHitModifier(hitModifier)
 	local acc = 0
 	RunService.Heartbeat:Connect(function(dt: number)
+		local f = fight
+		if f and f.Mode ~= "" then
+			local ok, err = pcall(frameDeluge, f, math.min(dt, 0.1))
+			if not ok then
+				log:Warn("frame: %s", tostring(err))
+			end
+		end
 		acc += dt
 		local step = Boss.Tuning().TickSeconds
 		if acc >= step then

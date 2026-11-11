@@ -120,6 +120,12 @@ local Schemas: { [string]: Check.Checker } = {
 		BurnMultiplier = N, StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S,
 		ArenaMargin = N, TurnDegreesPerSecond = N,
 	}),
+	Deluge = shape({
+		SwimSpeed = list(N, 4), SwimSeconds = list(S, 4), SurfaceSeconds = list(S, 4), SurfaceRiseSeconds = S, DiveSeconds = S,
+		AttackSeconds = list(S, 4), BiteDamage = N, BiteRadius = N, BiteReach = N, Murklings = list(I, 4),
+		FloodLevel = N, SubmergedMultiplier = Fr, SwimDepth = N, StaggerFraction = Fr, StaggerWindowSeconds = S,
+		StaggerSeconds = S, RoarSeconds = S, ArenaMargin = N, TurnDegreesPerSecond = N, AloneSeconds = S,
+	}),
 	Results = shape({
 		OpenDelaySeconds = S, StoriesMax = I,
 		MVP = shape({ Damage = N, Kills = N, Revives = N, CellsDug = N, Repairs = N, BossDamage = N, Hauled = N, Rescues = N }),
@@ -414,6 +420,25 @@ return {
 			LaySeconds = { 16, 10 }, SacsPerLay = { 1, 2 }, MaxSacs = 6, SacHealth = 90, HatchSeconds = 14, HatchCount = 3,
 			BurnMultiplier = 2, StaggerFraction = 0.05, StaggerWindowSeconds = 3, StaggerSeconds = 2.5, RoarSeconds = 2.5,
 			ArenaMargin = 10, TurnDegreesPerSecond = 60,
+		},
+		Deluge = { -- Section 10: "A giant eel surging up the flooded tunnels. Floods every room it passes;
+			-- strike its head when it surfaces and drain the rooms behind it." Prompt 23, prov. Lists are
+			-- by phase (Config.Bosses' Phases: 3, a new one at each third of its health). It swims under
+			-- the floors at SwimSpeed (only its crest shows: SwimDepth under, which suits Boss_Deluge's
+			-- Swim clip, whose body tops out 9.5 studs up and whose crest 12.8; hits on it do
+			-- SubmergedMultiplier) towards the nearest standing player, for at most SwimSeconds, and every
+			-- room it passes bursts a pipe and takes FloodLevel of water. Then it surfaces
+			-- (SurfaceRiseSeconds) for SurfaceSeconds, Murklings pouring out with it: its head is its
+			-- weak point, and it bites whoever is within BiteReach of it (BiteDamage within BiteRadius of
+			-- the bite) every AttackSeconds. StaggerFraction of its health dealt to its head within
+			-- StaggerWindowSeconds drops it for StaggerSeconds (and it stays up that much longer). Then
+			-- it dives (DiveSeconds), sooner with nobody within twice BiteReach for AloneSeconds. It roars
+			-- RoarSeconds as it arrives and at each new phase.
+			SwimSpeed = { 14, 17, 21 }, SwimSeconds = { 9, 8, 6 }, SurfaceSeconds = { 12, 10, 8 }, SurfaceRiseSeconds = 1.2,
+			DiveSeconds = 1.4, AttackSeconds = { 3, 2.5, 2 }, BiteDamage = 35, BiteRadius = 7, BiteReach = 17,
+			Murklings = { 0, 3, 5 }, FloodLevel = 30, SubmergedMultiplier = 0.25, SwimDepth = 10,
+			StaggerFraction = 0.04, StaggerWindowSeconds = 3, StaggerSeconds = 3, RoarSeconds = 2.2,
+			ArenaMargin = 10, TurnDegreesPerSecond = 80, AloneSeconds = 4,
 		},
 		Results = { -- Prompt 15, prov. (Section 18: Results; Section 16's payouts are Config.GlowshardRewards)
 			-- The screen opens OpenDelaySeconds after the run ends; StoriesMax lines of the run's story.

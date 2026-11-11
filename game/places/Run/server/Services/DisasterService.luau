@@ -1206,7 +1206,9 @@ function DisasterService:StartFlood(roomId: string, cause: string, level: number
 	publishCounts()
 	log:Info("flood in %s (%s): %s, level %.0f%s", roomId, room.Type, cause, flood.Level, if flood.Pipe then ", a burst pipe" else "")
 	if cause ~= "Spread" then
-		announce("Danger", if flood.Pipe then `A PIPE HAS BURST IN {nameOf(roomId)}: PATCH IT` else `{nameOf(roomId)} IS FLOODING`)
+		announce("Danger", if cause == "Deluge" then `THE DELUGE FLOODS {nameOf(roomId)}{if flood.Pipe then ": PATCH ITS PIPE" else ""}`
+			elseif flood.Pipe then `A PIPE HAS BURST IN {nameOf(roomId)}: PATCH IT`
+			else `{nameOf(roomId)} IS FLOODING`)
 	elseif room.Type == "Shaft" then
 		announce("Danger", `WATER IS POURING DOWN THE SHAFT TO FLOOR {room.Floor}`)
 	else

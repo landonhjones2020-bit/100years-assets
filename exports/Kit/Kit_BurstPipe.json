@@ -1,0 +1,70 @@
+{
+ "asset": "Kit_BurstPipe",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  6.042,
+  2.934,
+  1.922
+ ],
+ "tris": 1732,
+ "pivot": [
+  0.016,
+  1.534,
+  0.402
+ ],
+ "parts": [
+  {
+   "name": "Pipe",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "brass",
+    "copper",
+    "cream",
+    "gunmetal",
+    "rubber",
+    "rust",
+    "signal",
+    "steel"
+   ],
+   "offset": [
+    -0.016,
+    -0.033,
+    -0.403
+   ],
+   "size": [
+    6.042,
+    2.866,
+    1.692
+   ],
+   "tris": 1732
+  }
+ ],
+ "meta": {
+  "kit": "hazard",
+  "disaster": "Flood"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Spray": {
+   "p": [
+    -0.05,
+    -0.05,
+    -0.35
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "345414da5f260c4b"
+}

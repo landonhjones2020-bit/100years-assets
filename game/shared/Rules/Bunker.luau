@@ -493,6 +493,55 @@ function Bunker.Graph(self: Bunker): { [string]: { string } }
 	return graph
 end
 
+-- The shortest way from one open cell to another, cell by cell, as { floor, column } pairs (both
+-- ends included): sideways between open cells, up and down between Shaft cells (the same rule as
+-- Neighbors). nil when there is none. Prompt 23: The Deluge swims it.
+function Bunker.CellPath(self: Bunker, fromFloor: number, fromColumn: number, toFloor: number, toColumn: number): { { number } }?
+	if not self:IsOpen(fromFloor, fromColumn) or not self:IsOpen(toFloor, toColumn) then
+		return nil
+	end
+	local start, goal = Grid.Key(fromFloor, fromColumn), Grid.Key(toFloor, toColumn)
+	local cameFrom: { [string]: string } = { [start] = start }
+	local queue = { { fromFloor, fromColumn } }
+	local index = 1
+	while index <= #queue and cameFrom[goal] == nil do
+		local floor, column = queue[index][1], queue[index][2]
+		local here = Grid.Key(floor, column)
+		local function visit(f: number, c: number)
+			local key = Grid.Key(f, c)
+			if cameFrom[key] == nil and self:IsOpen(f, c) then
+				cameFrom[key] = here
+				table.insert(queue, { f, c })
+			end
+		end
+		visit(floor, column - 1)
+		visit(floor, column + 1)
+		if self:IsShaft(floor, column) then
+			if self:IsShaft(floor - 1, column) then
+				visit(floor - 1, column)
+			end
+			if self:IsShaft(floor + 1, column) then
+				visit(floor + 1, column)
+			end
+		end
+		index += 1
+	end
+	if cameFrom[goal] == nil then
+		return nil
+	end
+	local path = {}
+	local key = goal
+	while true do
+		local floor, column = Grid.Parse(key)
+		table.insert(path, 1, { floor :: number, column :: number })
+		if key == start then
+			break
+		end
+		key = cameFrom[key]
+	end
+	return path
+end
+
 -- Every node reachable from `from` (including it).
 function Bunker.Reachable(self: Bunker, from: string): { [string]: boolean }
 	local seen: { [string]: boolean } = { [from] = true }

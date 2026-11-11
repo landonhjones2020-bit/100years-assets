@@ -229,3 +229,29 @@ Cutscene_Strata,Cutscene,model,A9,520x130.198x4.535,8000,7814,ash;basalt;brass;c
 Cutscene_SourceGlimpse,Cutscene,model,A9,260x126.721x9.188,6000,3776,basalt;glow;plum;rubber;rust,in_studio,99512688533587,"Run place: ServerStorage.Assets.Cutscene (the intro's set, Prompt 22)"
 R15_IntroSprint,Animations/R15,clip,,,,,,verified,,; seen playing on the avatar and the six founders in a Run playtest (Nov 10)
 R15_IntroSprint,Animations/R15,clip,P22,,,,,verified,70631532326043,"Prompt 22 clip: the sprint to the shelter in the intro cutscene, R15, Action priority, 0.4 s loop; generators/Clips/R15_IntroSprint.py; seen playing on the avatar and the six founders in a Run playtest (Nov 10)"
+Monster_Murkling,Monsters,model,A8,3.048x1.723x4.839,3000,2776,basalt;cream;glow;murk;plum;sandstone,in_studio,109000021848899,"A8 Flooded Caverns swarmer: 9 Motor6Ds, glow welded; Idle, Walk and Attack clips; HitTime 0.25. Set up in the Run place 2026-11-11 (ArtSetupBatch_P23, 91427723929662)"
+Murkling_Idle,Animations/Murkling,clip,,,,,,uploaded,126727867019879,A8 clip; Config.Animations MurklingIdle
+Murkling_Walk,Animations/Murkling,clip,,,,,,uploaded,72461237019448,A8 clip; Config.Animations MurklingWalk
+Murkling_Attack,Animations/Murkling,clip,,,,,,uploaded,97490931375904,A8 clip; Config.Animations MurklingAttack
+Monster_BloatToad,Monsters,model,A8,4.821x4.718x4.88,4000,3468,basalt;cream;glow;murk;plum;sandstone;skyblue,in_studio,115170946108890,"A8 Flooded Caverns exploder: 10 Motor6Ds; a see-through bladder in three lobes (transparency 0.45) round a glowing core; Idle, Walk and Attack (the swell, bursts at 0.7 s). Set up in the Run place 2026-11-11"
+BloatToad_Idle,Animations/BloatToad,clip,,,,,,uploaded,104676773168415,A8 clip; Config.Animations BloatToadIdle
+BloatToad_Walk,Animations/BloatToad,clip,,,,,,uploaded,86454017758567,A8 clip; Config.Animations BloatToadWalk
+BloatToad_Attack,Animations/BloatToad,clip,,,,,,uploaded,125893017027333,A8 clip; Config.Animations BloatToadAttack
+Monster_Lurker,Monsters,model,A8,5.301x3.775x12.359,4000,3880,basalt;cream;glow;murk;plum;sandstone,in_studio,134693577126222,"A8 Flooded Caverns ambusher: 17 Motor6Ds; Idle, Walk, Attack (Hit 0.5 s) and Latched clips; sockets Grab and Lure. Set up in the Run place 2026-11-11"
+Lurker_Idle,Animations/Lurker,clip,,,,,,uploaded,137042514986992,A8 clip; Config.Animations LurkerIdle
+Lurker_Walk,Animations/Lurker,clip,,,,,,uploaded,81974677655333,A8 clip; Config.Animations LurkerWalk
+Lurker_Attack,Animations/Lurker,clip,,,,,,uploaded,87853039930001,A8 clip; Config.Animations LurkerAttack
+Lurker_Latched,Animations/Lurker,clip,,,,,,uploaded,119068396924711,A8 clip; Config.Animations LurkerLatched
+Monster_TideCrab,Monsters,model,A8,10.24x4.625x8.633,4000,3972,basalt;cream;glow;murk;plum;rust;sandstone;stone,in_studio,88928594222130,"A8 Flooded Caverns tank: 15 Motor6Ds; Idle, Walk and Attack (Hit 0.55 s); glowing sacs on its back are the weak point (socket Back). Set up in the Run place 2026-11-11"
+TideCrab_Idle,Animations/TideCrab,clip,,,,,,uploaded,75129578118638,A8 clip; Config.Animations TideCrabIdle
+TideCrab_Walk,Animations/TideCrab,clip,,,,,,uploaded,132566020387133,A8 clip; Config.Animations TideCrabWalk
+TideCrab_Attack,Animations/TideCrab,clip,,,,,,uploaded,108800921269804,A8 clip; Config.Animations TideCrabAttack
+Boss_Deluge,Bosses,model,A8,13.007x16.374x20.793,15000,11408,basalt;cream;glow;murk;plum;sandstone;stone,in_studio,91215696648630,"A8 Era II boss: 14 Motor6Ds (Coil root, Neck1-3, Head, Jaw, InnerJaw, 2 frills, 2 fins, Hump, Tail1-2); Crown and Maw are WeakPoint parts; sockets Bite and Maw; pivot at the floor where its neck comes up (revision 2); Idle, Swim, Attack (Hit 0.7 s), Roar, Stagger, Death. Set up in the Run place 2026-11-11"
+Deluge_Idle,Animations/Deluge,clip,,,,,,uploaded,95692287945819,A8 clip; Config.Animations DelugeIdle
+Deluge_Swim,Animations/Deluge,clip,,,,,,uploaded,100572039117676,A8 clip; Config.Animations DelugeSwim
+Deluge_Attack,Animations/Deluge,clip,,,,,,uploaded,80936107848048,A8 clip; Config.Animations DelugeAttack
+Deluge_Roar,Animations/Deluge,clip,,,,,,uploaded,136648293887224,A8 clip; Config.Animations DelugeRoar
+Deluge_Stagger,Animations/Deluge,clip,,,,,,uploaded,115956492649708,A8 clip; Config.Animations DelugeStagger
+Deluge_Death,Animations/Deluge,clip,,,,,,uploaded,135611914410917,A8 clip; Config.Animations DelugeDeath
+Kit_BurstPipe,Kit,model,A8,6.042x2.934x1.922,1800,1732,brass;copper;cream;gunmetal;rubber;rust;signal;steel,in_studio,72928487965400,Prompt 23: the burst water main DisasterService hangs on a flooding room's back wall; socket Spray. Set up in the Run place 2026-11-11
+Kit_GasVent,Kit,model,A8,3.882x4.863x1.672,1100,1040,avocado;basalt;gunmetal;hazard;navy;rubber;rust;steel,in_studio,119760463920682,Prompt 23: the blown vent of a gas leak; socket Leak. Set up in the Run place 2026-11-11

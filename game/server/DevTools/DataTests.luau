@@ -1630,6 +1630,19 @@ test("Animations: every Mines monster and the Brood Mother have their clips (A4)
 			expect(have[monsterType .. ":" .. activity], `{monsterType}: an {activity} clip`)
 		end
 	end
+	-- A8 (Prompt 23): the Flooded Caverns' four, each with an Idle (an attack plays over it), and The Deluge
+	for _, monster in all("Monsters") do
+		if table.find(monster.Where, "FloodedCaverns") then
+			for _, activity in { "Idle", "Walk", "Attack" } do
+				expect(have[monster.Id .. ":" .. activity], `{monster.Id}: an {activity} clip`)
+			end
+			expectEqual(monster.Asset, "Monster_" .. monster.Id, `{monster.Id}: its model is named for it (clips are keyed by the monster type)`)
+		end
+	end
+	expect(have["Lurker:Latched"], "the Lurker holding someone")
+	for _, activity in { "Idle", "Swim", "Attack", "Roar", "Stagger", "Death" } do
+		expect(have["Deluge:" .. activity], `The Deluge's {activity} clip`)
+	end
 	expectEqual(Config.Get("Monsters", "AshRaider").Asset, "Monster_AshRaider", "the rifle raider's model")
 	expectEqual(Config.Get("Monsters", "AshRaiderMelee").Asset, "Monster_AshRaider_Melee", "the club raider has its own model (Prompt 20)")
 end)
@@ -1663,6 +1676,84 @@ test("Disasters: fire spreads through doorways to rooms on its floor, never up t
 	expectEqual(Disasters.SpreadTargets(bunker, purifier.Id, { [kitchen.Id] = true }), {}, "the Kitchen burns already; the Shaft doesn't burn")
 	expectEqual(Disasters.SpreadTargets(bunker, reactor.Id, {}), { medbay.Id }, "the Reactor Core: the Medbay, not the Shaft")
 	expect(not Disasters.Burns("Shaft") and Disasters.Burns("Kitchen") and Disasters.Burns("ReactorCore"), "the Shaft's bare steel")
+end)
+
+test("Disasters: a flood rises from a burst pipe, drains once it is patched, slows and hurts (Section 10, Prompt 23)", function()
+	local f = Config.Get("Tuning", "Disasters").Flood
+	local function near(actual: number, expected: number, label: string)
+		expect(math.abs(actual - expected) < 1e-9, `{label} (got {actual}, expected {expected})`)
+	end
+	near(Disasters.FloodStep(20, 4, true), 20 + f.RisePerSecond * 4, "a burst pipe fills the room")
+	near(Disasters.FloodStep(99, 10, true), 100, "up to 100")
+	near(Disasters.FloodStep(40, 2, false), 40 - f.DrainPerSecond * 2, "patched: it drains")
+	near(Disasters.FloodStep(40, 2, false, nil, 2), 40 - f.DrainPerSecond * 4, "Drain Pumps: twice as fast")
+	near(Disasters.FloodStep(3, 10, false), 0, "down to dry")
+	near(Disasters.FloodStep(20, 2, false, 80), 20 + f.OverflowPerSecond * 2, "water pouring in from next door")
+	near(Disasters.FloodStep(79.5, 10, false, 80), 80, "never above where it comes from")
+	near(Disasters.FloodStep(60, 1, false, 50), 60 - f.DrainPerSecond, "lower water next door feeds nothing")
+	near(Disasters.FloodDepth(f.WadeLevel), 0, "ankle deep at WadeLevel")
+	near(Disasters.FloodDepth(100), 1, "full: as deep as it gets")
+	near(Disasters.WadeSpeed(nil), 1, "dry: full speed")
+	near(Disasters.WadeSpeed(f.WadeLevel - 1), 1, "shallow water slows nobody")
+	near(Disasters.WadeSpeed(f.WadeLevel), f.WadeSpeed, "wading")
+	near(Disasters.WadeSpeed(100), f.DeepSpeed, "deep water")
+	near(Disasters.FloodPlayerDamage(f.WadeLevel, 1), 0, "ankle-deep water hurts nobody")
+	near(Disasters.FloodPlayerDamage(100, 2), f.PlayerDamagePerSecond * 2, "a full room")
+	near(Disasters.FloodPlayerDamage(100, 2, 0.25), f.PlayerDamagePerSecond * 0.5, "a Firefighter takes a quarter")
+	near(Disasters.FloodResidentDamage(100, 1), f.ResidentDamagePerSecond, "residents")
+	near(Disasters.FloodRoomDamage(100, 1), Config.Get("Disasters", "Flood").RoomDamagePerSecond, "the room itself")
+	expectEqual(Disasters.FloodSpreadSeconds(), 20, "it spreads every 20 seconds")
+	expect(Disasters.FloodCanSpread(f.SpreadMinLevel) and not Disasters.FloodCanSpread(f.SpreadMinLevel - 1), "shallow water stays put")
+	expect(f.ResidentFleeLevel <= f.WadeLevel, "residents leave before the water hurts them")
+end)
+
+test("Disasters: water pours down the Shaft and along its floor, never up and never into bare tunnels", function()
+	local bunker = Bunker.FromStart()
+	local upper = bunker:RoomAt(1, 0) :: any
+	local lower = bunker:RoomAt(2, 0) :: any
+	local quarters = bunker:RoomAt(1, 1) :: any
+	local purifier = bunker:RoomAt(2, -1) :: any
+	local reactor = bunker:RoomAt(2, 1) :: any
+	local medbay = bunker:RoomAt(2, 2) :: any
+	expectEqual(Disasters.FloodSpreadTargets(bunker, medbay.Id, {}), { reactor.Id }, "the Medbay: the Reactor Core, not the tunnel beside it")
+	expectEqual(Disasters.FloodSpreadTargets(bunker, quarters.Id, {}), { upper.Id }, "the Quarters: the Shaft")
+	expectEqual(Disasters.FloodSpreadTargets(bunker, upper.Id, {}), { lower.Id }, "the Shaft: down first")
+	local across = { purifier.Id, reactor.Id }
+	table.sort(across)
+	expectEqual(Disasters.FloodSpreadTargets(bunker, lower.Id, {}), across, "the bottom of the Shaft: the rooms beside it, never back up")
+	expectEqual(Disasters.FloodSpreadTargets(bunker, lower.Id, { [purifier.Id] = true, [reactor.Id] = true }), {}, "nowhere left")
+	expectEqual(Disasters.FloodFed(bunker, lower.Id, { [upper.Id] = 80 }), 80, "the Shaft above feeds the Shaft below")
+	expectEqual(Disasters.FloodFed(bunker, upper.Id, { [lower.Id] = 80 }), nil, "but never the other way")
+	local low = Config.Get("Tuning", "Disasters").Flood.SpreadMinLevel - 1
+	expectEqual(Disasters.FloodFed(bunker, reactor.Id, { [medbay.Id] = low }), nil, "water too shallow to spread feeds nothing")
+	expectEqual(Disasters.FloodFed(bunker, reactor.Id, { [medbay.Id] = 90, [reactor.Id] = 95 }), nil, "nor does lower water")
+end)
+
+test("Disasters: gas fills while the vent leaks, clears once sealed; hazard pockets (Sections 7 and 10, Prompt 23)", function()
+	local g = Config.Get("Tuning", "Disasters").Gas
+	local function near(actual: number, expected: number, label: string)
+		expect(math.abs(actual - expected) < 1e-9, `{label} (got {actual}, expected {expected})`)
+	end
+	near(Disasters.GasStep(20, 2, true), 20 + g.FillPerSecond * 2, "a leaking vent fills the room")
+	near(Disasters.GasStep(99, 10, true), 100, "up to 100")
+	near(Disasters.GasStep(50, 2, false), 50 - g.ClearPerSecond * 2, "sealed: the room airs out")
+	near(Disasters.GasStep(5, 10, false), 0, "down to clean air")
+	expectEqual(Disasters.GasSeconds(), 90, "left alone the vent stops after 90 seconds (Config.Disasters)")
+	near(Disasters.GasPlayerDamage(100, 1), g.PlayerDamagePerSecond, "a room full of gas")
+	near(Disasters.GasPlayerDamage(50, 2), g.PlayerDamagePerSecond, "half as strong, twice as long")
+	near(Disasters.GasPlayerDamage(100, 1, 0.5), g.PlayerDamagePerSecond * 0.5, "Gas Filters halve it")
+	near(Disasters.GasPlayerDamage(100, 1, 1, true), 0, "the Hazmat Tech is immune")
+	near(Disasters.GasResidentDamage(100, 1), g.ResidentDamagePerSecond, "residents")
+	expect(g.ResidentFleeStrength < g.StartStrength, "residents leave a leak from its start")
+	local rng = Random.new(11)
+	local seen: { [string]: number } = {}
+	for _ = 1, 200 do
+		local kind = Disasters.HazardKind(Config.Get("DepthBands", "FloodedCaverns").Hazards, rng) or ""
+		seen[kind] = (seen[kind] or 0) + 1
+	end
+	expect((seen.GasLeak or 0) > 50 and (seen.Flood or 0) > 50, "the Flooded Caverns: gas or water (Section 7)")
+	expectEqual(Disasters.HazardKind(Config.Get("DepthBands", "Mines").Hazards, rng), "GasLeak", "the Mines: gas")
+	expectEqual(Disasters.HazardKind({ "RadiationLeak", "CaveIn" }, rng), nil, "a band with neither: nothing bursts out")
 end)
 
 test("Disasters: a Surge's disaster is one Surges cause, of its era, within its budget (Section 5)", function()
@@ -1878,7 +1969,7 @@ test("Dig: faces to dig from and Push Deeper's floors (Sections 6 and 8)", funct
 end)
 
 test("Dig: a cell's roll is fixed for the run and keeps Section 6's odds", function()
-	local available = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true }
+	local available = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true, HazardPocket = true }
 	expectEqual(Dig.Roll(77, 3, 1, 1, available), Dig.Roll(77, 3, 1, 1, available), "the same roll every time")
 	local counts: { [string]: number } = {}
 	local n = 0
@@ -1898,9 +1989,14 @@ test("Dig: a cell's roll is fixed for the run and keeps Section 6's odds", funct
 	expect(math.abs(share("CaveOpening") - 0.08) < 0.03, `cave openings near 8% (got {share("CaveOpening")})`)
 	expect(math.abs(share("Cache") - 0.04) < 0.02, `caches near 4% (got {share("Cache")})`)
 	expect(share("Nest") < 0.025, `nests rare (got {share("Nest")})`)
-	expectEqual(counts.HazardPocket, nil, "hazard pockets wait for gas and floods (Prompt 23): Empty")
+	expect(math.abs(share("HazardPocket") - 0.06) < 0.025, `hazard pockets near 6% (got {share("HazardPocket")}; Prompt 23)`)
 	expectEqual(counts.CryoPod, nil, "no cryo pods in Era I")
-	expect(math.abs(share("Empty") - 0.67) < 0.05, `the rest is empty (got {share("Empty")})`)
+	expect(math.abs(share("Empty") - 0.61) < 0.05, `the rest is empty (got {share("Empty")})`)
+	local without = table.clone(available)
+	without.HazardPocket = nil
+	for column = -6, 6 do
+		expect(Dig.Roll(4242, 5, column, 1, without) ~= "HazardPocket", "a result whose system is missing rolls Empty")
+	end
 	local withPods = table.clone(available)
 	withPods.CryoPod = true
 	local pods = 0
@@ -2002,7 +2098,62 @@ test("Boss: the Brood Mother's health, phases and hits (Sections 5 and 22, Promp
 	for _, key in { "MoveSpeed", "AttackSeconds", "LaySeconds", "SacsPerLay" } do
 		expectEqual(#fight[key], phases, `{key}: one value per phase`)
 	end
-	expectEqual(Boss.Fight("Deluge"), nil, "no fight yet for the Era II boss")
+	expectEqual(Boss.Fight("CrystalColossus"), nil, "no fight yet for the Era III boss")
+end)
+
+test("Boss: The Deluge's fight and the way it swims (Section 10, Prompt 23)", function()
+	expectEqual(Boss.Health("Deluge", 1, false), 12000, "solo")
+	expectEqual(Boss.Phase("Deluge", 0.67), 1, "just under a third lost: phase 1")
+	expectEqual(Boss.Phase("Deluge", 0.66), 2, "a third lost: phase 2")
+	expectEqual(Boss.Phase("Deluge", 0.33), 3, "two thirds lost: phase 3")
+	expectEqual(Boss.Title("The Deluge"), "THE DELUGE", "one THE in an alert")
+	expectEqual(Boss.Title("Brood Mother"), "THE BROOD MOTHER", "and one added where the name has none")
+	local fight = Boss.Fight("Deluge") :: any
+	expect(fight ~= nil and fight.BiteDamage > 0, "its fight's numbers")
+	local entry = Config.Get("Bosses", "Deluge")
+	for _, key in { "SwimSpeed", "SwimSeconds", "SurfaceSeconds", "AttackSeconds", "Murklings" } do
+		expectEqual(#fight[key], entry.Phases, `{key}: one value per phase`)
+	end
+	expect(fight.SubmergedMultiplier < Boss.HitMultiplier(false), "under the floor it takes less than its armour does")
+	expect(fight.FloodLevel >= Config.Get("Tuning", "Disasters").Flood.WadeLevel, "the rooms it passes are deep enough to wade in")
+	expectEqual(entry.Minions[1], "Murkling", "Murklings come with it")
+	expect(table.find(Config.Get("Monsters", "Murkling").Traits, "FromWater") ~= nil, "and they pour out of water")
+	-- Rules.Bunker.CellPath: sideways between open cells, up and down the Shaft only
+	local bunker = Bunker.FromStart()
+	local path = bunker:CellPath(2, 3, 1, 3) :: { { number } }
+	expect(path ~= nil, "a way from floor 2's tunnel to floor 1's")
+	expectEqual(#path, 8, "along floor 2 to the Shaft, up it, and along floor 1")
+	expectEqual({ path[1], path[4], path[5], path[8] }, { { 2, 3 }, { 2, 0 }, { 1, 0 }, { 1, 3 } }, "both ends, and the Shaft in the middle")
+	expectEqual(#(bunker:CellPath(1, 1, 2, 1) :: { { number } }), 4, "never straight down through a floor: by the Shaft")
+	expectEqual(bunker:CellPath(2, -2, 2, -2), { { 2, -2 } }, "from a cell to itself: the cell")
+	expectEqual(bunker:CellPath(2, 3, 3, 3), nil, "none into rock")
+	expectEqual(bunker:CellPath(4, 0, 2, 0), nil, "and none out of it")
+end)
+
+test("Monsters: the Flooded Caverns' four (Section 10, Prompt 23)", function()
+	local function traits(id: string): { string }
+		return Config.Get("Monsters", id).Traits or {}
+	end
+	expect(table.find(traits("BloatToad"), "Explodes") and table.find(traits("BloatToad"), "Floods"), "the Bloat Toad bursts and floods")
+	expect(table.find(traits("Lurker"), "Hides") and table.find(traits("Lurker"), "Grabs"), "the Lurker hides and grabs")
+	expect(table.find(traits("TideCrab"), "ArmoredFront") and table.find(traits("TideCrab"), "WeakPointBack"), "the Tide Crab's shell and back")
+	local t = Config.Get("Tuning", "MonsterAI")
+	local multiplier, what = Threat.Shell(1, true, true)
+	expectEqual({ multiplier, what }, { t.ArmorFront, "Shell" }, "from dead ahead: its shell")
+	multiplier, what = Threat.Shell(-1, true, true)
+	expectEqual({ multiplier, what }, { t.WeakBack, "Weak" }, "from straight behind: its weak point")
+	multiplier, what = Threat.Shell(0, true, true)
+	expectEqual({ multiplier, what :: any }, { 1 }, "from the side: a plain hit")
+	local edge = math.cos(math.rad(t.ArmorArcDegrees / 2))
+	expectEqual((Threat.Shell(edge + 0.01, true, true)), t.ArmorFront, "just inside the shell's arc")
+	expectEqual((Threat.Shell(edge - 0.01, true, true)), 1, "just outside it")
+	expectEqual((Threat.Shell(1, false, true)), 1, "no shell, no armour")
+	expectEqual((Threat.Shell(-1, true, false)), 1, "no weak back, no bonus")
+	expect(t.ArmorFront < 1 and t.WeakBack > 1, "the shell lowers a hit and the back raises it")
+	expect(t.ArmorArcDegrees + t.WeakArcDegrees <= 360, "the arcs don't overlap")
+	local flood = Config.Get("Tuning", "Disasters").Flood
+	expect(flood.BurstLevel >= flood.WadeLevel, "a Bloat Toad's burst leaves water to wade in")
+	expect(flood.MurklingLevel > flood.StartLevel, "a room must fill before Murklings come out of it")
 end)
 
 test("Boss: the arena is the deepest tunnel, else a room, else a cell (Section 10)", function()

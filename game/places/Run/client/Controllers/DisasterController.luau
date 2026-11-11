@@ -331,11 +331,16 @@ local function watchFitting(item: Instance)
 	if not base then
 		return
 	end
-	local socket = item:FindFirstChild("Spray", true) or item:FindFirstChild("Leak", true)
+	-- the art's socket (a CFrame attribute about the model's pivot: Socket_Spray, Socket_Leak), else the block's face
+	local socket = item:GetAttribute(if isPipe then "Socket_Spray" else "Socket_Leak")
 	local from = Instance.new("Attachment")
 	from.Name = "SprayFx"
-	from.CFrame = if socket and socket:IsA("Attachment") then socket.CFrame else CFrame.new(0, 0, base.Size.Z / 2)
 	from.Parent = base
+	if typeof(socket) == "CFrame" and item:IsA("Model") then
+		from.WorldCFrame = item:GetPivot() * socket
+	else
+		from.CFrame = CFrame.new(0, 0, base.Size.Z / 2)
+	end
 	if isPipe then
 		emitter(from, {
 			Name = "Water", Texture = SMOKE_TEXTURE, LightEmission = 0.2, LightInfluence = 1,
