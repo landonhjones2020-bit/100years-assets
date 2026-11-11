@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T22:18:07Z",
- "commit": "fddee8aac76af8b3ce7b416f8b0fa4ffba258934",
- "label": "p23-fddee8a",
+ "built": "2026-11-11T22:19:19Z",
+ "commit": "7c36d6dddf047058000fcd4434cc232b3719344d",
+ "label": "p23-7c36d6d",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -432,7 +432,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "ef29389e"
+    "Hash": "a00da6d3"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -1044,7 +1044,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "ef29389e"
+    "Hash": "a00da6d3"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -1064,7 +1064,7 @@
    "ServerScriptService.Lib.ClassAbilities": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Lib/ClassAbilities.luau",
-    "Hash": "3f7ffccc"
+    "Hash": "eadd491c"
    },
    "ServerScriptService.Lib.Hazards": {
     "Class": "ModuleScript",
