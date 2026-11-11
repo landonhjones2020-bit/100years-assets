@@ -1,11 +1,11 @@
 # 100 Years Below: handoff for the next chat
 
-Written 2026-11-11 (afternoon, Chicago), after Prompt 23. The game was called 100 Years Of
+Written 2026-11-11 (evening, Chicago), after Prompt 24. The game was called 100 Years Of
 Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
 here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
-refreshed from it the same day). Nothing of Prompt 23 is in the bible yet: its nine questions wait
-for Landon in the report.
+refreshed from it the same day). Nothing of Prompts 23 and 24 is in the bible yet: their 9 and 13
+questions wait for Landon in the reports.
 
 ## Start here
 
@@ -17,13 +17,36 @@ for Landon in the report.
    them again instead of using a remembered id. Never touch the Night Shift studio. Studio asked
    for a restart on Nov 10 (its Assistant plugin changed version): ask Landon to restart it if
    tools misbehave.
-4. Work in this order unless Landon says otherwise: Prompt 24, Prompt 25, then the open work below.
+4. Work in this order unless Landon says otherwise: Prompt 25, Prompt 26, then the open work below.
 
 ## Where things stand
 
-* **Prompts 0 to 23 are built and tested in Studio.** Code build `p23-2c5a6ae` (code asset
-  95026446991297, revision 103) is installed in both places: StructureCheck 0 errors (Lobby 356
-  checks, Run 577), 126 data tests.
+* **Prompts 0 to 24 are built and tested in Studio.** Code build `p24-968bd49` (code asset
+  95026446991297, revision 113) is installed in both places: StructureCheck 0 errors (Lobby 356
+  checks, Run 577), 131 data tests.
+* **Prompt 24 (the Crystal Hollows).** Era III plays. Radiation leaks: from Era III each Surge's
+  storm is rolled against the Blast Door (60%, 30%, 0% by its level, more when damaged); a clamp
+  appears on the door's jamb and floor 1 fills with radiation (15 rising 2.5 a second) until a
+  player seals it (hold 4 s), the door is upgraded, or 120 seconds pass; a Decon Room halves the
+  fill; residents leave and the ones caught are Irradiated until a Decon Room clears them at the
+  next cycle. A hazard pocket in the Crystal Hollows leaks into one room through a crystal seam.
+  Outbreaks: someone rescued in the Deep or home from a Deep expedition carries a sickness 10% of
+  the time; it spreads within a room (25% every 20 s), a sick resident with no job quarantines in
+  a Quarters bed, a working Medbay cures one patient in 45 s. The four monsters: Shardlings (their
+  shards do 6 within 7 studs when one dies), the Prism Stalker (a glint until a flare, a cave
+  lantern or a Flare Ping lights it), the Geode Golem (a fifth of the damage from the Pocket
+  Pistol and Rivet SMG) and the Resonator (every 4 s it heals 8% and hastes the pack). The Crystal
+  Colossus (Year 75, 20,000 health): armoured everywhere (a fifth) until its four cores are lit
+  by a flare, a Flare Ping, or its own charge as it throws; it slams (45), throws marked shards
+  that stun for 1.5 s, and from phase 2 Shardlings crawl out of them (8 at most). The Crystal
+  Hollows' eight cave pieces are in: caves on floors 7 to 9, their radiation (0.2 a second on a
+  player), and the band's Lost Crew with its radio log. Report:
+  `game/reports/P24_CrystalHollows.md` (7 decisions, a "not tested" list, 13 Bible Questions);
+  captures `previews/Game/P24_*.jpg`.
+* **Two bugs older than Prompt 24, fixed in it:** wide monsters (the Geode Golem, the Tide Crab)
+  jammed in doorways (the walking line was off the doorway's middle), and a dev command
+  registered twice could stop six services at start without the installer noticing (the build
+  checks now).
 * **Prompt 23 (the Flooded Caverns).** Era II plays. Floods: a burst pipe fills a room (rise 2.5
   a second, wading from 25, drowning damage at the top), water pours down the Shaft to the rooms
   below, a player patches the pipe and the room drains; residents leave a flooded room. Gas leaks:
@@ -69,7 +92,10 @@ for Landon in the report.
   monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
   detail pass, A8 (Murkling, Bloat Toad, Lurker, Tide Crab, The Deluge at 11,408 triangles with
   six clips, the burst pipe and the gas vent; ids in `exports/A8_ids.json` and `BUILD_LOG.md`;
-  sheets in `previews/Monsters`, `previews/Bosses`, `previews/Kit`), and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
+  sheets in `previews/Monsters`, `previews/Bosses`, `previews/Kit`), A10 except the Source
+  (Shardling, Prism Stalker, Geode Golem, Resonator, the Crystal Colossus at 12,736 triangles with
+  seven clips, the door's clamp and the crystal seam, eight Crystal Hollows cave pieces; ids in
+  `exports/A10_ids.json`; sheets in the same folders and `previews/Caves`), and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
   seven new models in `ServerStorage.Assets.Cutscene`). Lobby place: A9's lobby half, 28 models
   (`ServerStorage.Assets.Lobby` and `.Town`).
   Class looks: all 19 (outfits on the resident rig in `generators/Residents/outfits.py`,
@@ -89,8 +115,8 @@ for Landon in the report.
    lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
    (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
    survivors, the raider camp, the checkpoint and the storms all hang off that map).
-2. **Prompts 24 and 25** (prep below) come first: Landon's instruction of Nov 11 was the recap
-   and handoff, then the next three prompts, and 23 is done.
+2. **Prompts 25 and 26** (prep below) come first: Landon's instruction of Nov 11 (16:02) was the
+   recap and handoff, then the next three prompts: 24 is done, 25 and 26 are left.
 3. **Digby the Gopher** (the mascot: the lobby's greeter and Prompt 31's tips) is still unmade.
 
 The bible was brought up to date on Nov 10 (it had been behind since Nov 9): the title, Landon's
@@ -110,39 +136,50 @@ Years Below — Game Bible v1.0".
   return I want you to create the recap and handoff and then begin on the next 3 prompts".
 * Nov 11, 10:56: the same instruction again as he left for afternoon classes. Read as: finish
   Prompt 22 with its recap and handoff, then Prompts 23, 24 and on, keeping this file current.
+* Nov 11, 16:02: "I have to go to my afternoon classes. IF you finish before I return I want you
+  to create the recap and handoff and then begin on the next 3 prompts". Read as: Prompt 23's
+  recap and handoff (done), then Prompts 24, 25 and 26, keeping this file current.
 * His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
   detailed, bosses scary; art made in Blender here and it has to actually look good.
 
-## Next: Prompts 24 and 25
+## Next: Prompts 25 and 26
 
 Standing rules (bible Section 24): one system per prompt, the bible wins, never invent gameplay
 (suggest it in the Design Notes), content is data, a real playtest for timing, permissions and
 saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
 
-### Prompt 24: Crystal Hollows monsters, radiation leaks, outbreaks, the Crystal Colossus (Run)
-
-* Bible: Section 10 (Radiation leak and Outbreak rows, the Colossus's row), Section 5 (Era III),
-  the Appendix's monsters.
-* Already in the code: `Config.Monsters` rows for Shardling (shatters into stinging shards), Prism
-  Stalker (invisible until lit by a flare or lamp), Geode Golem (very slow, huge health, shrugs off
-  small guns) and Resonator (hums to heal and speed up nearby monsters); `Config.Disasters`
-  RadiationLeak and Outbreak; `Config.Bosses.CrystalColossus` (Year 75: huge, slow, armoured;
-  flares show its weak points; its shards stun). The Crystal Hollows' cave pieces are A10 (not
-  made); the Deep builds caves from a band's pieces.
-* What Prompt 23 left ready to copy: a disaster with a fitting to fix (`DisasterService`'s flood
-  and gas, `Lib.Hazards`, `Kit_Hazards.py`), a hidden monster (`Hidden` attribute, the client's
-  fade in `ThreatController`), a damage filter by direction (`Rules.Threat.Shell`), a boss with
-  modes and its own frame step (`BossService`'s `tickDeluge` and `frameDeluge`, `LOOK`),
-  `_beast.web` and `B.run(pivot=...)`.
-* Art (A10): the four monsters, the Colossus, Crystal Hollows cave pieces.
-
 ### Prompt 25: The Source: chamber fight, final Surge, both victories, Endless (Run)
 
-* Bible: Section 5 (Winning: Century Victory, Deep Victory, Keep Going and Endless; Losing; Era
-  IV), Section 10 (the Source's row: several phases, tendrils in many rooms at once, then the
-  core, so the team splits up and regroups), Section 6 (floor 10 is the Source Chamber and is
-  never built on). Look for the payouts and the results screen's victory rows before starting.
-* Art (A10's last part): the Source and its chamber.
+* Bible: Section 5 (Winning: "Century Victory: beat the Source in the final Surge, which comes
+  once the year counter reaches 100 and the Source rises into the bunker; that Surge lasts until
+  the Source is beaten. The blast door opens on a clearing sky." "Deep Victory: dig to depth 10
+  and destroy the Source in its chamber, at any point in the run. The run ends at once with the
+  biggest payout." Keep Going and Endless: "no more era bosses or final Surge, and stronger Surges
+  past Year 100"), Section 10 (the Source's row: "Rises into the bunker, or is fought earlier in
+  its chamber at depth 10. Several phases: tendrils in many rooms at once, then the core, so the
+  team has to split up and regroup"), Section 6 (floor 10 is the Source Chamber: "a living cavern
+  around the Source", ore none, opening it needs a Push Deeper vote), Section 16 (Century Victory
+  +15 Glowshards, Deep Victory +30, 3 a band so 12 for reaching the chamber).
+* Already in the code: `RunDirector` ends a run in victory or defeat and knows Keep Going and
+  Endless (Prompt 3: "Year 100, Endless" were playtested with `boss.beat`), `ResultsService` pays
+  and shows the report (Prompt 15), `Config.Bosses.Source`, the cutscene's `Cutscene_SourceGlimpse`
+  (its eyes). Read `RunDirector`, `CycleClock` (the final Surge), `ObjectiveService`,
+  `ResultsService` and `BossService`'s header before starting.
+* What Prompt 24 left ready to copy: a boss that walks out of a wall (`EMERGE`), marked attacks
+  with a warning ring (`shardMark`), a hit modifier that depends on the fight's state (`Lit`),
+  minions from an attack with a cap, a stun (`StunnedUntil`), reveal lights.
+* Art (A10's last part): the Source (a boss up to 15,000 triangles: scary) and its chamber on
+  floor 10; tendrils that come up in rooms.
+
+### Prompt 26: Residents, phase 2: traits, gear, conditions, morale extremes (Run)
+
+* Bible: Section 11 (residents: traits, gear, conditions, morale). `Config.Traits`,
+  `Config.Conditions` and `Config.Gear` rows exist from Prompt 1 (each has a `Phase`).
+* Already in the code: `Sick` and `Irradiated` as fields on a resident with
+  `ResidentService:SetCondition` and `HasCondition`, their cost each cycle
+  (`Rules.Residents.ConditionHealth`) and the quarantine goal (Prompt 24); `Exhausted` (Prompt
+  10); the Residents screen's card shows conditions. Prompt 23's question 8 (the Hardy trait and
+  the gas-proof outfit against floods and gas) and Prompt 24's question 7 (quarantine) wait here.
 
 ## Waiting on Landon
 
@@ -161,6 +198,15 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   names (Prompt 21, question 11) and at the 15 new class looks
   (`previews/Residents/Class_Portraits.jpg`; questions 14 and 15).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
+* **Prompt 24**: his answers to its 13 Bible Questions (what lights show a Prism Stalker; which
+  guns are small; the Resonator's numbers; whether Surges may buy radiation leaks and outbreaks;
+  radiation from a Crystal Hollows hazard pocket; quarantine by button or by itself; whether a
+  patient must walk to the Medbay; the Colossus lighting its own cores; its stun and slam on a
+  solo player; where the caves' radiation is; the Crystal crew's floors and radio log; the
+  numbers), and his look at the A10 art (`previews/Game/P24_*.jpg`, `previews/Monsters/*.png`,
+  `previews/Bosses/Boss_CrystalColossus*.png`, `previews/Caves/Cave_Crystal_*.png`). Not tested
+  by me, his to try: two or more players, a phone, Flare Ping, Decon Field on a leak, a level 3
+  Triage Pulse, freeing the Crystal crew, a long Colossus fight.
 * **Prompt 23**: his answers to its 9 Bible Questions (what "air the room out" asks of players;
   water in bare tunnels; whether the Lurker holds players; Murklings only from water; whether The
   Deluge bursts pipes or leaves water, and whether that scales with the party; what it hunts; how
@@ -171,6 +217,16 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   Lurker's grab, gunfire on The Deluge under the floor, patching and sealing by hand.
 
 ## Testing tips
+
+* **Radiation, outbreaks and Era III.** `leak` (the door), `leak <room> [strength]` (a seam),
+  `leak.storm` (the Surge's roll now), `leak.seal`, `leak.clear`; `outbreak [residentId]`,
+  `outbreak.cure [id|all]`, `outbreak.deep <id> [force]`; `residents` says SICK and IRRADIATED;
+  `flare` (a flare at your feet); `boss.start CrystalColossus` (11 s of warning before
+  `boss.hurt` works), `boss.light [s]`, `boss.volley`. A real Colossus: `grid.dig` a shaft to
+  floor 7 first (its arena is the deepest tunnel), `year 74`, `clock.resume`, `clock.next` three
+  times to cycle 2, then twice more to the Surge. A Crystal cave: `grid.dig 3 0` to `7 0`,
+  `grid.dig 7 1`, `deep.cave 7 1`, `deep.tp 7 1 [piece]`. Monsters wreck the Reactor Core in under
+  a minute if left loose in a test bunker: `monsters.clear` before looking at anything else.
 
 * **The intro.** It plays at the start of every Run playtest (the `SkipIntro` attribute on
   `ServerScriptService.DevTools` skips the phase). Client commands
@@ -256,6 +312,11 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   `project_write` it with `local_path` (the tool only takes a file this session has read).
 
 ## Small bugs seen, for later prompts
+
+* The Command View's condition note (what to do about a fire, a leak) is set in very small type.
+* A crystal seam in a fully furnished room sits under the ceiling, across the pipe run.
+* Founders idle on floor 1 at the start, so a door leak that starts strong irradiates all six at
+  once (a real leak starts at 15 and they have about 10 seconds to leave).
 
 * After SEND, the Expeditions screen switches to ACTIVE even when the server refuses the trip
   (too far from a console): it shows NOBODY OUT beside the warning.

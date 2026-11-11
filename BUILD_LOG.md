@@ -50,7 +50,9 @@ Newest first. Every "verified" line says how it was checked.
 | A9 cutscene set: Mine Hill, the blast door, the blast, the ground cut open, the Source's glimpse | ✅ in Studio 2026-11-10 | 24 models set up in Run (17 of the lobby's and the town's, 7 new; size and pivot measured against their sidecars), assembled from `Config.CutscenePaths` and seen in the playtest; `previews/Cutscene/` |
 | Prompt 23: the Flooded Caverns: floods, gas leaks, hazard pockets, four monsters, The Deluge (Run) | ✅ done 2026-11-11 | Run playtests: water and gas measured on a player (13 health in 3 s, 6.0 a second), residents fleeing, Foam Burst, Decon Field, Sump Pumps, an Era II Surge with Murklings out of a flooded room, each monster's behaviour, The Deluge by its own Year 50 Surge to its death, real pistol shots at its crown (24) and neck (6); `game/reports/P23_FloodedCaverns.md` (9 Bible Questions) |
 | A8 Flooded Caverns monsters, The Deluge, the burst pipe and the vent | ✅ in Studio 2026-11-11 | 7 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips uploaded and in `Config.Animations` (The Deluge's and the Lurker's confirmed on the Animator in play); captures `previews/Game/P23_*.jpg` |
-| A3, A7, Digby, A10, A11 | not started | |
+| Prompt 24: the Crystal Hollows: radiation leaks, outbreaks, four monsters, the Crystal Colossus (Run) | ✅ done 2026-11-11 | Run playtests with real shots and E holds: a door leak measured on a player and sealed at its clamp, a Decon Room halving it, residents fleeing and Irradiated, an outbreak spreading, quarantined and cured, each monster's behaviour (2.4 against 34 a shot on the Golem), a Crystal Hollows cave and its radiation, the Colossus by its own Year 75 Surge to its death (6.8 unlit, 68 on a lit core, the stun, the stagger); `game/reports/P24_CrystalHollows.md` (13 Bible Questions) |
+| A10 Crystal Hollows monsters, the Colossus, the radiation fittings, the band's cave pieces | ✅ in Studio 2026-11-11 (the Source and its chamber are Prompt 25's) | 15 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips in `Config.Animations`, 18 of them read on the Animator in play; captures `previews/Game/P24_*.jpg` |
+| A3, A7, Digby, A11 | not started | |
 
 ## Ids
 
@@ -96,7 +98,58 @@ Newest first. Every "verified" line says how it was checked.
 | A8 clips | Murkling Idle 126727867019879, Walk 72461237019448, Attack 97490931375904; BloatToad Idle 104676773168415, Walk 86454017758567, Attack 125893017027333; Lurker Idle 137042514986992, Walk 81974677655333, Attack 87853039930001, Latched 119068396924711; TideCrab Idle 75129578118638, Walk 132566020387133, Attack 108800921269804; Deluge Idle 95692287945819, Swim 100572039117676, Attack 80936107848048, Roar 136648293887224, Stagger 115956492649708, Death 135611914410917 (`exports/A8_ids.json`) |
 | Prompt 23 fittings | Kit_BurstPipe 72928487965400, Kit_GasVent 119760463920682 |
 | Tooling (Prompt 23's setup batch) | ArtSetupBatch_P23 91427723929662 |
+| A10 monsters (Run) | Monster_Shardling 74669648887269, Monster_PrismStalker 130393825412411 (revision 2: blade tips the importer kept), Monster_GeodeGolem 105667984441424, Monster_Resonator 139798192367537, Boss_CrystalColossus 100985849078817 |
+| A10 clips | Shardling Idle 97873691999290, Walk 77941776120785, Attack 103513336103243; PrismStalker Idle 121017758616327, Walk 90504403398881, Attack 120335199648341; GeodeGolem Idle 121739575432742, Walk 78406809910812, Attack 106115790644696; Resonator Idle 84027818082893, Walk 70969580809227, Attack 110970025145339; CrystalColossus Idle 92071238039702, Walk 80414932215543, Attack 125667580394018, Volley 110812867505641, Roar 121631002445443, Stagger 103101122241503, Death 83559829469455 (`exports/A10_ids.json`) |
+| Prompt 24 fittings | Kit_DoorSeal 116537539059684, Kit_CrystalSeam 111950606351593 |
+| A10 cave pieces (Crystal Hollows) | Entry 95216540770603, Tunnel 83967828713485, Junction 140320557322624, Pocket 137720474401999, Chamber 136395288449065, Cavern 117892511992627, Drop 116981217365849, CrewPocket 91698303854579 |
+| Tooling (Prompt 24's setup batches) | ArtSetupBatch_P24 80245931735179 (revision 2), ArtSetupBatch_P24Caves 123342102974484 |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-11 (Chicago, evening): Prompt 24, the Crystal Hollows; the A10 art
+
+Game code build `p24-968bd49` (final for Prompt 24): code asset 95026446991297 revision 113,
+installed in Run and Lobby: StructureCheck 0 errors (Run 577 checks, Lobby 356), 131 data tests
+passed in each. Report: `game/reports/P24_CrystalHollows.md` (13 Bible Questions).
+
+| What | Ids | Status | Notes |
+|---|---|---|---|
+| Monster_Shardling | 74669648887269 | verified | 3,176 tris, 11 bones; Idle, Walk, Attack (Hit 0.2 s); socket Bite |
+| Monster_PrismStalker | 130393825412411 (rev 2) | verified | 3,104 tris, 15 bones; Glass plates (transparency 0.3) and six Neon `Glint*` parts that stay faintly seen while it hides; socket Slash |
+| Monster_GeodeGolem | 105667984441424 | verified | 3,860 tris, 9 bones; faceted rock; Attack Hit 0.6 s; socket Smash |
+| Monster_Resonator | 139798192367537 | verified | 3,030 tris; a bell on three legs with six tines; Attack is the hum; socket Hum (its Walk clip not seen playing) |
+| Boss_CrystalColossus | 100985849078817 | verified | 12,736 tris, 14 bones, 18.5 x 14.9 x 10.1 studs; CoreChest, CoreLeft, CoreRight and CoreBack are WeakPoint parts; socket Slam; seven clips, all read on the Animator in play |
+| Kit_DoorSeal, Kit_CrystalSeam | 116537539059684, 111950606351593 | verified | 1,612 and 1,124 tris; socket Leak |
+| Cave_Crystal_* (8) | see Ids | in_studio (Entry and Chamber verified) | 4,252 to 7,998 tris; a cave of six of them built and entered in play |
+
+**Verified in Studio (Run playtests)**: see the report's testing checklist.
+
+**Findings**
+1. **A dev command registered twice stops services, and the installer doesn't see it.** My first
+   build added `rad` to DisasterService; SurfaceService already had one. DevService refused the
+   second, SurfaceService's Init failed, and the six services after it never started. The Edit
+   install passed (StructureCheck doesn't run Init); only the playtest's console showed it.
+   `tools/game_sync.py build` now stops on a command name registered in two files. Always read
+   the console at the start of the first playtest of a build.
+2. **Studio's importer drops geometry with no area.** The Prism Stalker's blades ended in points
+   and its fin's two edges met at one: the imported parts were smaller than the sidecar and the
+   setup's size check refused them. `_beast.shard` ends in a small flat tip (`tip=0.12`), and a
+   `web`'s two polylines must end on different points.
+3. **Of two prompts on one key, Roblox shows the one nearer the middle of the screen**, not the
+   one nearer the character. The door's seal was at the door's middle with the lift's RIDE UP: it
+   could not be reached. Keep a new prompt at least a few studs across the screen from any other.
+4. **Furniture hides what is put on a back wall.** A fitting placed by a fixed offset ended up
+   behind a cabinet and then behind a stove. `DisasterService`'s `seamSpot` looks for wall with
+   nothing within 5 studs in front of it (the room model's parts, by their boxes).
+5. **The doorway's walking line was off its middle** (2 studs in front; the opening is 7 studs
+   clear). Roots 4 studs wide jammed on the jamb: the Geode Golem, and Prompt 23's Tide Crab,
+   which nobody had watched cross a doorway. It is 0.5 now (`Lib.PathGraph`).
+6. **`god` stops the stun too** (a shard stuns only if it does damage), and a tool call can take
+   longer than a 3-second effect: to check a short client effect, set a long one by hand and read
+   the client at once.
+7. **A real hold of E needs the full time plus the tool's slack.** A 4-second prompt held for 4.6
+   s by the keyboard tool didn't trigger once; 5.5 s did.
+8. The cloud workspace restarted in the middle of the session (the files and Blender were kept; a
+   background export would have been lost). Nothing was running then.
 
 ## 2026-11-11 (Chicago): Prompt 23, the Flooded Caverns; the A8 art
 

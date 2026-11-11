@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T23:31:16Z",
- "commit": "51700dbcbd716da24675a5a0ea8f6eca4a3f800e",
- "label": "p24-51700db",
+ "built": "2026-11-11T23:36:30Z",
+ "commit": "968bd49849ef7c6893b49f030e152519d2b7a47a",
+ "label": "p24-968bd49",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -1154,7 +1154,7 @@
    "ServerScriptService.Services.DisasterService": {
     "Class": "ModuleScript",
     "From": "game/places/Run/server/Services/DisasterService.luau",
-    "Hash": "eed2c7c4"
+    "Hash": "73317416"
    },
    "ServerScriptService.Services.DraftService": {
     "Class": "ModuleScript",
@@ -1324,7 +1324,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.DisasterController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/DisasterController.luau",
-    "Hash": "b79bb5b8"
+    "Hash": "8495589c"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.ExpeditionsController": {
     "Class": "ModuleScript",

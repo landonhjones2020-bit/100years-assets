@@ -43,7 +43,10 @@ plays over it (NPCAnimator), so the monster keeps its stance between attacks. A 
 attribute in play is its monster type (`Config.Monsters` key), so clips are keyed by that.
 A model's pivot is the bottom centre of its bounds; one with parts meant to stay under the floor
 (The Deluge's coil and tail) passes `pivot=(0, 0, 0)` to `B.run` (2026-11-11). `_beast.web` makes
-fins and frills between two polylines. A `transparency` part previews opaque.
+fins and frills between two polylines; `_beast.shard` and `cluster` make crystal, `Beast.neon` a
+glowing part on a bone. A `transparency` part previews opaque. Studio's importer drops geometry
+with no area: end a spike in a small flat tip (`shard(..., tip=0.12)`) and a `web`'s two polylines
+on different points, or the part comes in smaller than its sidecar and setup refuses it (2026-11-11).
 Never run two preview renders at once into the same `previews/<Category>` folder. Re-exporting a model that is already in `manifest.csv` resets
 its `status` to `exported`: put the real status back before committing.
 
@@ -148,9 +151,15 @@ Design Notes and Delivery Reports: `game/reports/`.
    and returns StructureCheck and the data tests. `ServerStorage.Tooling.CodeInstaller` is in
    both places; after changing `studio/CodeInstaller.lua`, reinstall it with the Luau from
    `python3 tools/game_sync.py tooling`.
-4. Playtest for real (`start_stop_play`, `get_console_output`). In a playtest:
+4. Playtest for real (`start_stop_play`, `get_console_output`). Read the console at the start of a
+   build's first playtest: a service whose Init fails takes the ones after it down, and the Edit
+   install's StructureCheck doesn't run Init (2026-11-11: a dev command registered twice; the
+   build now checks for that). In a playtest:
    `ServerScriptService.DevTools.Invoke:Invoke("<command>")` (Server datamodel) and
-   `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands.
+   `PlayerScripts.DevInvoke:Invoke("<command>")` (Client) run `/dev` commands. `god <s> <player>`
+   before spawning monsters by the player; it also stops effects that need damage (a stun). To
+   check a short client effect, set a long one by hand and read the client at once: a tool call
+   can take longer than 3 seconds. Hold a prompt's key a second and a half longer than it asks.
 5. Profiles in Studio use the `PlayerProfiles_Studio` DataStore; `/dev profile`, `profile.raw`,
    `profile.add`, `profile.receipt`, `profile.locktest` test them.
 6. Captures: `screen_capture` saves to `/tmp/claude-tool-results/<id>/...jpg`; copy the good ones
@@ -168,6 +177,11 @@ Design Notes and Delivery Reports: `game/reports/`.
    Blender sheets and play-mode captures. Roblox's purchase prompt is in CoreGui
    (`game.CoreGui.FoundationOverlay...Sheet.Content.Actions.1.BuyButton`, clickable by instance
    path; a Studio purchase is a test purchase).
+7. Things put in a room by code: of two prompts on one key Roblox shows the one nearer the middle
+   of the screen, so keep a new prompt well clear of any other (the Blast Door's middle has the
+   lift's); furniture stands against back walls, so look for clear wall (`DisasterService`'s
+   `seamSpot`) instead of a fixed offset. A cave piece changed: re-export, PATCH, then
+   `python3 tools/cave_config.py` (it writes `Config/CavePieces.luau`).
 
 ## 4e. The intro cutscene (Prompt 22)
 

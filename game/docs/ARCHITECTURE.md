@@ -428,6 +428,12 @@ levels, morale states, a room's crew, the Auto-Assign matching, one cycle of nee
   best stat) or Take off the job; the footer's Auto-Assign.
 * The Command View lists a room's workers and the idle residents best at its job (Assign, Take
   off the job, Auto-Assign), and its Morale overlay reads the workers' average morale.
+* Conditions (Prompt 24 has the first two; the rest are Prompt 26): `Sick` and `Irradiated` are
+  fields on the resident, set through `ResidentService:SetCondition(id, condition, on, why?)`
+  and read with `HasCondition`. Each costs `Config.Conditions`' `HealthPerCycle` after the meal
+  (`Rules.Residents.ConditionHealth`); a Sick worker's stat counts `OutputMultiplier`; a working
+  Decon Room clears Irradiated at the cycle; a Sick resident with no job quarantines in a
+  Quarters bed (`Rules.Residents.Quarantined`, ResidentBrain's `Quarantine:` goal).
 
 ## Combat (Run place)
 
@@ -549,6 +555,28 @@ groups bought from a budget (variety, group sizes), weighted breach picks and ta
 * The A8 monsters: `Monster_Murkling`, `Monster_BloatToad` (three see-through bladder lobes on
   their own bones: the swell is the lobes sliding apart), `Monster_Lurker` (a `Latched` clip too),
   `Monster_TideCrab`, each with Idle, Walk and Attack (Rig = the monster's type).
+* The Crystal Hollows' four (Prompt 24) are traits on `Config.Monsters` rows, as the others are:
+  * `Shatters` (Shardling): at its death `Rules.Threat.ShatterDamage` to every survivor within
+    `ShatterRadius` (the `Shattered` attribute is the client's burst);
+  * `Invisible` (Prism Stalker): hidden unless `Rules.Threat.StalkerSeen`: lit, or within
+    `StalkerRevealSeconds` of striking or being hit. **A light that shows it is any part tagged
+    `RevealLight` with a `Radius` attribute** (a flare: WeaponService; a cave lantern:
+    DeepService; a Flare Ping: ClassAbilities). `MonsterService:Lit(position)` is the same test
+    for anyone else (BossService uses it for the Colossus's cores). On the client its parts fade
+    to nothing except the ones named `Glint*`;
+  * `ShrugsSmallGuns` (Geode Golem): a hit modifier that knows the gun (`WeaponService` passes
+    the held item as a fifth argument): `Rules.Threat.SmallGunMultiplier` for items flagged
+    `Small` in `Config.Items` (`ShruggedAt` is the client's ricochet);
+  * `Heals` and `Hastes` (Resonator): it follows the nearest monster that isn't one, never
+    strikes, and every `AttackSeconds` its hum heals `Rules.Threat.HumHeal` and sets `HasteUntil`
+    on every monster within its `Range` (`HumAt`, `HummedAt` and `Hasted` are the client's).
+* The A10 monsters: `Monster_Shardling`, `Monster_PrismStalker` (Glass plates; Neon `Glint*`
+  parts), `Monster_GeodeGolem`, `Monster_Resonator` (its Attack clip is the hum), each with Idle,
+  Walk and Attack. `Boss_CrystalColossus`: four `Core*` parts with Role `WeakPoint`, socket
+  `Slam`, `HitTime` 1.0 and `VolleyTime` 0.9, seven clips (Rig `CrystalColossus`: Idle, Walk,
+  Attack, Volley, Roar, Stagger, Death), its pivot at the floor.
+* `Lib.PathGraph` walks a doorway 0.5 studs in front of its middle (the opening is 7 studs
+  clear), so a root up to 4 studs wide gets through (Prompt 24; it was 2).
 
 ## Disasters and repairs (Run place)
 
@@ -633,6 +661,30 @@ The numbers are `Config.Disasters` and `Tuning.Disasters` / `Tuning.Repairs` (pr
   surface per flooded cell, an underwater tint when the camera is in it; never Glass, which hides
   what is behind it), gas clouds and their light, the spray and the hiss at a fitting's
   `Socket_Spray` or `Socket_Leak`, the Wading movement reason and the gas tint.
+* Radiation leaks (Prompt 24; `Tuning.Disasters.Radiation`): a strength 0 to 100 on a set of
+  graph units (`Lib.Hazards.SetRadiation`): every open cell of the Blast Door's floor for a door
+  leak (id `R:Door`), one room for a seam (`R:<room>`). `clock.SurgeStarted` rolls
+  `Rules.Disasters.DoorLeakChance` from `FromEra`; a Crystal Hollows hazard pocket starts a
+  seam's. It fills `FillPerSecond` (times `DeconSlow` with a working Decon Room) until
+  `SealLeak` (the fitting's prompt, `SealSeconds`), a door upgrade or
+  `Config.Disasters.RadiationLeak.DurationSeconds`, then fades. Players in it carry
+  `InRadiation` (SurfaceService's radiation tick adds `Rules.Disasters.RadiationPlayerRate`);
+  residents leave at `ResidentFleeStrength`, lose health, and are Irradiated from `IrradiateAt`.
+  The fittings: `Kit_DoorSeal` on the door's jamb (`DOOR_SEAL_SIDE` studs from its middle, clear
+  of the lift's prompt) and `Kit_CrystalSeam` where `seamSpot` finds back wall with nothing in
+  front of it. `ClearRadiation` is Decon Field's.
+* Outbreaks (Prompt 24; `Tuning.Disasters.Outbreak`): one event (id `O:<n>`) while anyone is
+  Sick. `FromTheDeep(residentId, why)` rolls `CarriesSickness` for someone rescued in the Deep
+  (RescueService) or home from a Deep expedition (ExpeditionService). Every `SpreadSeconds` each
+  sick resident may infect one in their room (`OutbreakTargets`); a working Medbay cures one
+  patient per `CureSeconds` (`Cure`); curing the last ends it.
+* The published entries: `{ Kind = "Radiation", Floor, Room?, Door?, Units, Strength, Leaking,
+  EndsAt, Cause }` and `{ Kind = "Outbreak", Sick, Quarantined, Patient?, Cure, Treating, Cause }`.
+  The client draws motes, haze and a light per irradiated cell, a glow at the fitting's
+  `Socket_Leak`, a tint for whoever stands in it (`InRadiation`, or `CaveRadiation` in a Crystal
+  Hollows cave), a cough on the sick, and the Command View's RADIATION status and note.
+  Dev: `leak [room|door] [strength]`, `leak.storm`, `leak.seal`, `leak.clear`, `outbreak [id]`,
+  `outbreak.cure [id|all]`, `outbreak.deep <id> [force]`.
 * Art: `Tool_Extinguisher` and `Tool_Welder` in `ServerStorage.Assets.Weapons` (Grip and Muzzle
   sockets), `Kit_Rubble_Doorway` and `Kit_Rubble_Tunnel` in `ServerStorage.Assets.Kit`, their
   icons in the items atlas; `Kit_BurstPipe` and `Kit_GasVent` in `ServerStorage.Assets.Kit`
@@ -790,6 +842,17 @@ facts)` (lines, total and the new ledger, so a run that ends twice pays only wha
 * Art: `Boss_BroodMother` and `Boss_BroodMother_EggSac` in `ServerStorage.Assets.Bosses`. Boss
   body parts use the `queryhull` collision kind (Hull raycast shapes), so shots reach the weak
   point.
+* The Crystal Colossus (Prompt 24; `Tuning.CrystalColossus`, `BossService`'s `tickColossus` and
+  `frameColossus`): it strides out of the back of its arena (`EMERGE`), walks it and slams like
+  the Brood Mother, and every `VolleySeconds` throws shards (`ShardMark` parts in
+  `workspace.Monsters` with `Radius` and `LandsAt`: damage, `StunnedUntil` on players,
+  `SlowedUntil` on residents, a Shardling hatching from its second phase, never more than
+  `MaxShardlings`). Its hit modifier returns `ArmourMultiplier` unless the fight is `Lit` (a
+  reveal light near it, `boss.light`, or its own charge for `FlashSeconds` as it throws) and the
+  hit is on a core. The model's `Lit` attribute and the published `Lit` drive the cores' colour
+  and the bar's text. Dev: `boss.start CrystalColossus`, `boss.volley`, `boss.light [seconds]`.
+* A player's `StunnedUntil` (server time): the client stops their walking (`Movement.Set(
+  "Stunned", 0)`), and WeaponService refuses their hands.
 
 ## The surface (Run place)
 
@@ -895,6 +958,10 @@ the logs `Config.RadioLogs`.
 * API `Caves()`, `CaveAt(position)`, `Pods()`, `PlacePod(at, tag)`. Signals `CaveOpened`,
   `CrewHome`, `Thawed`, `ChestOpened`. Dev: `deep`, `deep.cave`, `deep.find`, `deep.tp`,
   `cryo.add`, `radiolog`, `crews`.
+* The Crystal Hollows (Prompt 24): eight pieces (`Cave_Crystal_*`, `Config.CavePieces`), its
+  crew on `Tuning.Deep.CrewFloors.CrystalHollows`, and radiation: a player in a cave of a band
+  with `Tuning.Deep.CaveRadiationPerSecond` carries `CaveRadiation` (a rate; SurfaceService's
+  radiation tick adds it). Cave lanterns are reveal lights.
 
 ## Expeditions and the radio (Run place)
 
@@ -1215,6 +1282,9 @@ ClassShop, Account, Lobby).
 * Residents (Run place): `residents`, `residents.auto`, `residents.add [count] [tier] [level]`,
   `resident.assign <id> <roomId|none>`, `resident.hurt <id> <amount>`, `resident.revive <id>`,
   `resident.set <id> <health|rest|morale|xp|stat> <value>`, `brains` (where each body is going).
+* A command's name must be its own across a place: DevService refuses a second registration and
+  that service's Init fails. `tools/game_sync.py build` checks before it builds.
+* `flare` (a flare at your feet, as the first player from Studio's server tools).
 * The economy and power (Run place): `production` (every room's rate and why idle rooms are
   idle), `staff <roomId|roomType> <statSum> [workers] [morale]` and `staff.clear` (Studio: pretend
   crews until residents arrive), `eaters <n>` (pretend eaters), `eat` (the start-of-cycle meal
@@ -1447,3 +1517,12 @@ ClassShop, Account, Lobby).
   Burst, Decon Field, Sump Pumps and Gas Filters wired; residents keep out of flooded and gassed
   rooms. Fixed: monsters never climbed the Shaft's stairs. The A8 art: four monsters, Boss_Deluge,
   Kit_BurstPipe, Kit_GasVent, 19 clips.
+* **Prompt 24 (2026-11-11)**: the Crystal Hollows (Run). Radiation leaks and outbreaks in
+  Rules.Disasters, Lib.Hazards and DisasterService; the Sick and Irradiated conditions in
+  Rules.Residents, ResidentService and ResidentBrain; the Shardling, Prism Stalker, Geode Golem
+  and Resonator's behaviours in MonsterService (reveal lights, `Rules.Threat`); the Crystal
+  Colossus in BossService (`Tuning.CrystalColossus`); the band's caves, crew, radio log and cave
+  radiation in the Deep; Decon Field, Triage Pulse and Flare Ping wired. Fixed: the doorway's
+  walking line (wide monsters jammed), and a build check for dev commands registered twice. The
+  A10 art: four monsters, Boss_CrystalColossus, Kit_DoorSeal, Kit_CrystalSeam, eight cave
+  pieces, 19 clips.

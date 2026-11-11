@@ -4,8 +4,8 @@ Era III now has its threats. A storm can leak radiation through the Blast Door, 
 come up from the Deep and spread between residents, the four Crystal Hollows monsters each do what
 the bible's one line says they do, the band's caves are built and glow hot, and Year 75's boss,
 the Crystal Colossus, tears out of the rock: armoured all over until a flare shows its cores.
-Built and tested on 2026-11-11. The final build is `p24-51700db` (code asset 95026446991297,
-revision 112), installed in Run and Lobby: StructureCheck 0 errors (Run 577 checks, Lobby 356),
+Built and tested on 2026-11-11. The final build is `p24-968bd49` (code asset 95026446991297,
+revision 113), installed in Run and Lobby: StructureCheck 0 errors (Run 577 checks, Lobby 356),
 131 data tests.
 
 What is in it:
@@ -53,8 +53,8 @@ What is in it:
 
 Captures from the playtests: `previews/Game/P24_*.jpg` (the Colossus through a doorway, lit by its
 own charge, and lit by a flare in its Year 75 Surge; the four monsters; the door's leak and its
-clamp; a crystal seam in the Medbay and in the Kitchen; a Crystal Hollows cave's mouth and
-chamber). Blender sheets: `previews/Monsters/`, `previews/Bosses/Boss_CrystalColossus*.png`,
+clamp; a crystal seam in the Medbay and in the Kitchen; the Command View in two leaks; a Crystal
+Hollows cave's mouth and chamber). Blender sheets: `previews/Monsters/`, `previews/Bosses/Boss_CrystalColossus*.png`,
 `previews/Kit/Kit_DoorSeal.png` and `Kit_CrystalSeam.png`, `previews/Caves/Cave_Crystal_*.png`.
 
 **Not in it: sound** (Prompt 32), **wanderers** as a source of outbreaks (Prompt 30), and the
@@ -201,7 +201,7 @@ hot cave through a player attribute (`CaveRadiation`), as DisasterService does w
   `RevealLight` and give it a `Radius`.
 * A cave piece: its generator, `SF_EXPORT=1`, PATCH the model, then `python3 tools/cave_config.py`.
 
-**Testing checklist** (Run playtests on 2026-11-11, builds p24-570f2eb to p24-51700db)
+**Testing checklist** (Run playtests on 2026-11-11, builds p24-570f2eb to p24-968bd49)
 * [x] Boots clean: 34 services, 23 controllers, 3 Lost Crews hidden (the Crystal crew behind
   7,-1), no script errors from the game's code.
 * [x] A Shardling's death set off its shards: a player 5.1 studs away went from 12 health to 6.
@@ -219,6 +219,8 @@ hot cave through a player attribute (`CaveRadiation`), as DisasterService does w
   after the next cycle with a Decon Room built.
 * [x] Seams placed in five rooms: each took a spot the search called clear; I looked at two (the
   Medbay's between the cabinet and the bed, the Kitchen's above the shelves; captures).
+* [x] The Command View: rooms in a leak say RADIATION and its strength under a red lamp, and the
+  Medbay's panel says what to do about its seam (capture).
 * [x] The storm at the door: Year 75's Surge rolled a leak ("a storm leaks 60% of the time in
   era 3").
 * [x] An outbreak: one sick resident; it spread to the other worker in the room at the second
