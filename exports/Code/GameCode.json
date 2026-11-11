@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T23:10:55Z",
- "commit": "f0af4c8ce19e0b773864945f82079da14747e640",
- "label": "p24-f0af4c8",
+ "built": "2026-11-11T23:11:51Z",
+ "commit": "9c75fef83a197e51383ed6ccff316f7b658a0746",
+ "label": "p24-9c75fef",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -157,7 +157,7 @@
    "ReplicatedStorage.Shared.Config.RadioLogs": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/RadioLogs.luau",
-    "Hash": "53a6aad1"
+    "Hash": "0f58646a"
    },
    "ReplicatedStorage.Shared.Config.Recipes": {
     "Class": "ModuleScript",
@@ -769,7 +769,7 @@
    "ReplicatedStorage.Shared.Config.RadioLogs": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/RadioLogs.luau",
-    "Hash": "53a6aad1"
+    "Hash": "0f58646a"
    },
    "ReplicatedStorage.Shared.Config.Recipes": {
     "Class": "ModuleScript",

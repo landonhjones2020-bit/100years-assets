@@ -545,6 +545,50 @@ local function fusePosition(): Vector3?
 	return Grid.CellPosition(reactor.Floor, reactor.Column) + Vector3.new(-12, 4, -6)
 end
 
+-- A crystal seam splits the back wall where nothing stands against it: the first clear stretch of
+-- a few, low ones first, then high above the furniture (Prompt 24's playtest: the first seam grew
+-- behind the Medbay's cabinet, where nobody could see it). Walls, floors and long runs of pipe are
+-- as wide as the cell and don't count.
+local SEAM_SIZE = Vector3.new(5.6, 5.2, 1.6)
+local function wallClear(model: Instance, centre: Vector3, size: Vector3, widest: number): boolean
+	local half = size / 2
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d.Transparency < 1 and math.max(d.Size.X, d.Size.Z) < widest then
+			local cf = d.CFrame
+			local s = d.Size / 2
+			local ex = math.abs(cf.RightVector.X) * s.X + math.abs(cf.UpVector.X) * s.Y + math.abs(cf.LookVector.X) * s.Z
+			local ey = math.abs(cf.RightVector.Y) * s.X + math.abs(cf.UpVector.Y) * s.Y + math.abs(cf.LookVector.Y) * s.Z
+			local ez = math.abs(cf.RightVector.Z) * s.X + math.abs(cf.UpVector.Z) * s.Y + math.abs(cf.LookVector.Z) * s.Z
+			local o = cf.Position - centre
+			if math.abs(o.X) < ex + half.X and math.abs(o.Y) < ey + half.Y and math.abs(o.Z) < ez + half.Z then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+local function seamSpot(room: any): CFrame
+	local g = Grid.Tuning()
+	local model = grid:RoomModel(room.Id)
+	local back = -(g.CellDepth / 2 - 0.8)
+	local first: CFrame? = nil
+	for _, height in { 3, g.CellHeight * 0.6 } do
+		for span = 0, (room.Span or 1) - 1 do
+			local cell = Grid.CellPosition(room.Floor, room.Column + span)
+			for _, x in { -0.25, 0.25, 0, -0.38, 0.38, -0.12, 0.12 } do
+				local at = cell + Vector3.new(g.CellWidth * x, height, back)
+				first = first or CFrame.new(at)
+				-- what stands in front of the wall there (the seam itself comes 1.5 studs out of it)
+				if not model or wallClear(model, at + Vector3.new(0, 0, 1.1), SEAM_SIZE, g.CellWidth * 0.8) then
+					return CFrame.new(at)
+				end
+			end
+		end
+	end
+	return first :: CFrame
+end
+
 -- The door's seal clamps the jamb, this far along the wall from the door's middle: the lift's own
 -- prompt (RIDE UP) is at the middle, and of two prompts on one key Roblox shows the one nearer the
 -- middle of the screen, so a seal there could not be reached (Prompt 24's playtest).
@@ -1633,7 +1677,7 @@ function DisasterService:StartRadiationLeak(cause: string, roomId: string?, stre
 	local g = Grid.Tuning()
 	local at: CFrame
 	if roomId then
-		at = CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(-g.CellWidth * 0.25, 3, -(g.CellDepth / 2 - 0.8)))
+		at = seamSpot(room)
 	else
 		local model = grid:RoomModel(room.Id)
 		local socket = if model then BunkerKit.Socket(model, "Door") else nil

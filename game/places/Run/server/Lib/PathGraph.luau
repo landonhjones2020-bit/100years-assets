@@ -7,7 +7,7 @@
 	down; dug cells count). Its waypoints:
 	* inside a room or dug cell, along the front aisle (AISLE studs in front of the cell's centre
 	  line, clear of the furniture against the back wall);
-	* through a doorway at its middle (DOOR studs in front of centre; doorways are 8 wide);
+	* through a doorway at its middle (DOOR studs in front of centre; the opening is 7 studs clear);
 	* up or down a Shaft by its stairs: the lower Shaft cell's Bottom and Top sockets (the stairs
 	  climb from its floor to the floor above);
 	* the target last (a work spot, a seat, a bed).
@@ -28,7 +28,10 @@ local Hazards = require(ServerScriptService.Lib.Hazards)
 local PathGraph = {}
 
 local AISLE = 8 -- studs in front of the cell's centre line
-local DOOR = 2 -- the doorway's walking line, in front of centre
+-- The doorway's walking line, in front of centre. The kit's opening is 7 studs clear (z -3.5 to
+-- 3.5): at 2 a root 4 studs wide (the Geode Golem, the Tide Crab) caught the jamb and never got
+-- through (Prompt 24's playtest); at 0.5 it clears both jambs by over a stud.
+local DOOR = 0.5
 local DOOR_REACH = 6 -- how far either side of a wall the doorway approach starts
 
 -- The shortest route from one graph node to another (both included), or nil. Rubble blocks
