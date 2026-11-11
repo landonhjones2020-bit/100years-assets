@@ -11,11 +11,12 @@
 	  the run; the others go back.
 	* Only cards the run can use come up: each of its modifiers has a home below (HANDLERS), a room
 	  card's room isn't unlocked yet, the Steel Blast Door only below the door's top level. Cards
-	  whose systems come with later prompts (Sump Pumps and Gas Filters: Prompt 23; Ammo Press and
-	  Black Market: Prompt 30) stay out until their handlers exist.
+	  whose systems come with later prompts (Ammo Press and Black Market: Prompt 30) stay out until
+	  their handlers exist.
 	* What each card does (Config.Modifiers names the system):
 	  * Room cards unlock their room (BuildService:Unlock).
-	  * Bunker perks: RoomHP (BunkerGrid), FireSpread and BlackoutDuration (DisasterService),
+	  * Bunker perks: RoomHP (BunkerGrid), FireSpread, BlackoutDuration, FloodDrainSpeed and
+	    GasStrength (DisasterService),
 	    DarkSpawnBonus (BreachService), BlastDoorLevel (the Blast Door goes up a level).
 	  * Resident boons: ResidentLevels and MoraleNow (ResidentService), RecruitsNow and
 	    RareRecruitNow (ExpeditionService:Recruit at the Blast Door).
@@ -138,6 +139,12 @@ local HANDLERS: { [string]: (number, { [string]: any }, string) -> () } = {
 	end,
 	BlackoutDuration = function(value, _m, card)
 		disasters:SetModifier(card, "BlackoutDuration", value)
+	end,
+	FloodDrainSpeed = function(value, _m, card) -- Prompt 23
+		disasters:SetModifier(card, "FloodDrainSpeed", value)
+	end,
+	GasStrength = function(value, _m, card)
+		disasters:SetModifier(card, "GasStrength", value)
 	end,
 	DarkSpawnBonus = function(value, _m, card)
 		breaches:SetModifier(card, "DarkSpawnBonus", value)

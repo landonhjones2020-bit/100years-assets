@@ -146,6 +146,18 @@ local Schemas: { [string]: Check.Checker } = {
 		}),
 		Meltdown = shape({ SoloPlayers = I, SoloValveSeconds = S, HeldGraceSeconds = S, StartsFire = Check.boolean() }),
 		ElectricalSurge = shape({ EraChance = list(Fr, 4), FireChance = Fr, BlackoutChance = Fr }),
+		Flood = shape({
+			StartLevel = N, RisePerSecond = N, OverflowStartLevel = N, OverflowPerSecond = N, DrainPerSecond = N,
+			SpreadMinLevel = N, WadeLevel = N, WadeSpeed = Fr, DeepSpeed = Fr,
+			PlayerDamagePerSecond = N, ResidentDamagePerSecond = N, ResidentFleeLevel = N,
+			PatchSeconds = S, BurstLevel = N, WaterHeight = Fr, MurklingLevel = N,
+		}),
+		Gas = shape({
+			StartStrength = N, FillPerSecond = N, ClearPerSecond = N,
+			PlayerDamagePerSecond = N, ResidentDamagePerSecond = N, ResidentFleeStrength = N,
+			SealSeconds = S,
+		}),
+		HazardPocket = shape({ GasChance = Fr, Damage = N }),
 	}),
 	Repairs = shape({ RepairedAt = Fr, WelderPerSecond = N, WelderReach = N, ResidentSmartsBase = N, ToolTickSeconds = S }),
 	MonsterAI = shape({
@@ -449,6 +461,38 @@ return {
 			-- Electrical surges (Section 10: random, more often in Era III; they cause fires and blackouts):
 			-- a day's chance by era; an unwelded one may end in a fire or a blackout of its floor.
 			ElectricalSurge = { EraChance = { 0.2, 0.25, 0.45, 0.35 }, FireChance = 0.3, BlackoutChance = 0.25 },
+			-- Floods (Prompt 23; Section 10: "Water rises in a room and pours down the Shaft"; "Patch the
+			-- burst pipe, then the room drains"). A flood's level runs 0 to 100. A burst pipe starts a
+			-- room at StartLevel and raises it RisePerSecond until it is patched (hold Interact
+			-- PatchSeconds at the pipe). Every Config.Disasters.Flood.SpreadSeconds, water at
+			-- SpreadMinLevel or higher pours into one more room: through a doorway on its floor, or down
+			-- the Shaft (never up). A room with no pipe of its own is fed by a higher neighbour and
+			-- rises OverflowPerSecond towards it; with nothing feeding it, it drains DrainPerSecond
+			-- (FloodDrainSpeed multiplies). Below WadeLevel water is ankle deep; from there people wade
+			-- (WadeSpeed, down to DeepSpeed at 100) and are hurt, more the deeper it is. Residents leave
+			-- a room at ResidentFleeLevel. A Bloat Toad's burst adds BurstLevel (no pipe: it drains).
+			-- WaterHeight: how much of a cell's height level 100 fills. Murklings pour out of water at
+			-- MurklingLevel or deeper.
+			Flood = {
+				StartLevel = 15, RisePerSecond = 2.5, OverflowStartLevel = 10, OverflowPerSecond = 1.5, DrainPerSecond = 4,
+				SpreadMinLevel = 50, WadeLevel = 25, WadeSpeed = 0.75, DeepSpeed = 0.45,
+				PlayerDamagePerSecond = 5, ResidentDamagePerSecond = 3, ResidentFleeLevel = 25,
+				PatchSeconds = 3, BurstLevel = 35, WaterHeight = 0.55, MurklingLevel = 30,
+			},
+			-- Gas leaks (Prompt 23; Section 10: "Poison gas fills a room, hurting everyone inside"; "Seal
+			-- the vent or air the room out"). Strength runs 0 to 100: it starts at StartStrength and
+			-- fills FillPerSecond while the vent leaks, for Config.Disasters.GasLeak.DurationSeconds
+			-- unless someone seals the vent first (hold Interact SealSeconds); after that the room airs
+			-- out, ClearPerSecond. Damage scales with strength and the bunker's GasStrength; players
+			-- with GasImmune (the Hazmat Tech) take none. Residents leave at ResidentFleeStrength.
+			Gas = {
+				StartStrength = 20, FillPerSecond = 5, ClearPerSecond = 12,
+				PlayerDamagePerSecond = 6, ResidentDamagePerSecond = 4, ResidentFleeStrength = 10,
+				SealSeconds = 3,
+			},
+			-- A hazard pocket found by digging (Section 7: "Gas or water bursts out"): gas in the Mines;
+			-- in the bands where both can come, gas GasChance of the time. The burst hurts the digger.
+			HazardPocket = { GasChance = 0.5, Damage = 10 },
 		},
 		Repairs = { -- Prompt 13 (Section 6: a wrecked room stops until repaired with the Welder; residents slowly
 			-- repair the room they work in; Section 11: Smarts is repair speed). prov.

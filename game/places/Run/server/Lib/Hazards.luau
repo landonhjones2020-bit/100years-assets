@@ -6,6 +6,8 @@
 	DisasterService (which itself needs the residents and the combatants).
 
 	* Fires: a room id -> the fire's strength (0 to 100).
+	* Floods: a room id -> the water's level (0 to 100); Gas: a room id -> its strength (Prompt 23).
+	  Refuge(unit) says whether people should keep out of a room for any of the three.
 	* Blocked passages: cave-in rubble between two graph units (a doorway, or every passage into
 	  a tunnel cell). Routes go around them; when there is no way round, residents are trapped.
 	* Version() grows with every change to the blocked passages, so walkers know to plan again.
@@ -14,6 +16,8 @@
 local Hazards = {}
 
 local fires: { [string]: number } = {}
+local floods: { [string]: number } = {}
+local gas: { [string]: number } = {}
 local blocked: { [string]: string } = {} -- "a|b" (sorted) -> the rubble's id
 local version = 0
 
@@ -35,6 +39,40 @@ end
 
 function Hazards.Fires(): { [string]: number }
 	return fires
+end
+
+-- Floods and gas (Prompt 23) -----------------------------------------------------------------------
+
+function Hazards.SetFlood(unit: string, level: number?)
+	floods[unit] = if level and level > 0 then level else nil
+end
+
+function Hazards.Flood(unit: string?): number?
+	return if unit then floods[unit] else nil
+end
+
+function Hazards.Floods(): { [string]: number }
+	return floods
+end
+
+function Hazards.SetGas(unit: string, strength: number?)
+	gas[unit] = if strength and strength > 0 then strength else nil
+end
+
+function Hazards.Gas(unit: string?): number?
+	return if unit then gas[unit] else nil
+end
+
+function Hazards.GasLeaks(): { [string]: number }
+	return gas
+end
+
+-- Is `unit` somewhere people should keep out of: burning, flooded to `floodAt` or gassed to `gasAt`?
+function Hazards.Unsafe(unit: string?, floodAt: number, gasAt: number): boolean
+	if not unit then
+		return false
+	end
+	return fires[unit] ~= nil or (floods[unit] or 0) >= floodAt or (gas[unit] or 0) >= gasAt
 end
 
 -- Blocked passages ---------------------------------------------------------------------------------
@@ -92,6 +130,8 @@ end
 -- Forgets everything (a new run in the same server; DevTools).
 function Hazards.Clear()
 	table.clear(fires)
+	table.clear(floods)
+	table.clear(gas)
 	if next(blocked) then
 		table.clear(blocked)
 		version += 1

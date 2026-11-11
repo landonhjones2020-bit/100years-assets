@@ -96,7 +96,10 @@ local DigService = {
 }
 
 -- Results whose systems exist; the rest count as Empty (hazard pockets: Prompt 23).
-local AVAILABLE: { [string]: boolean } = { Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true, CryoPod = true }
+local AVAILABLE: { [string]: boolean } = {
+	Empty = true, OrePocket = true, CaveOpening = true, Cache = true, Nest = true, CryoPod = true,
+	HazardPocket = true, -- Prompt 23: gas or water bursts out (DisasterService:HazardPocket)
+}
 -- Loot specials nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18). Radio logs
 -- go to InventoryService's handler (Prompt 17).
 local SKIP_SPECIALS: { [string]: boolean } = { Gear = true, Recruit = true, Glowshards = true } -- blueprints: Prompt 19 (DraftService)
@@ -709,6 +712,9 @@ local function applyRoll(result: string, floor: number, column: number, finisher
 	elseif result == "Cache" then
 		addFeature("Cache", floor, column)
 		return "A CACHE: OPEN IT FOR THE TEAM"
+	elseif result == "HazardPocket" then
+		local kind = disasters:HazardPocket(floor, column, finisher)
+		return if kind == "Flood" then "A HAZARD POCKET! WATER BURSTS OUT" elseif kind == "GasLeak" then "A HAZARD POCKET! GAS BURSTS OUT" else ""
 	elseif result == "Nest" then
 		local f = addFeature("Nest", floor, column)
 		local at = Grid.CellCFrame(f.Floor, f.Column) * CFrame.new(0, 0.5, 3) * CFrame.Angles(0, math.pi, 0)
@@ -749,7 +755,7 @@ local function open(floor: number, column: number, cause: string, finisher: Play
 	local result = Dig.Roll(seed, floor, column, eraNumber(), AVAILABLE, overrides)
 	local found = applyRoll(result, floor, column, finisher)
 	log:Info("dug %s (%s, %s): %s", key, cause, if finisher then finisher.Name else "-", result)
-	announce(if result == "Nest" then "Danger" else "Info",
+	announce(if result == "Nest" or result == "HazardPocket" then "Danger" else "Info",
 		`DUG THROUGH TO {where(floor, column)}{if found ~= "" then `: {found}` else ""}`)
 	for _, other in queue do
 		publishSite(other)

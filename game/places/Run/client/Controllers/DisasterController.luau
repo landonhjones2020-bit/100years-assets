@@ -39,6 +39,7 @@ local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Lib = script.Parent.Parent:WaitForChild("Lib")
 local KitRuntime = require(Lib:WaitForChild("KitRuntime"))
+local Movement = require(Lib:WaitForChild("Movement"))
 
 local log = Log.new("DisasterController")
 local player = Players.LocalPlayer
@@ -64,7 +65,7 @@ local miniMap: any = nil
 local commandView: any = nil
 local replica: any = nil
 
-type Effect = { Parts: { BasePart }, Emitters: { ParticleEmitter }, Lights: { PointLight }, Kind: string }
+type Effect = { Parts: { BasePart }, Emitters: { ParticleEmitter }, Lights: { PointLight }, Kind: string, Level: number?, Shown: number? }
 
 local effects: { [string]: Effect } = {} -- disaster id -> what is drawn for it
 local blinking: { [string]: boolean } = {} -- room ids blinking now
@@ -231,6 +232,161 @@ local function setFireStrength(effect: Effect, strength: number)
 	if effect.Parts[1] then
 		effect.Parts[1]:SetAttribute("Strength", strength)
 	end
+end
+
+-- Floods and gas (Prompt 23) ---------------------------------------------------------------------------
+
+local WATER = Color3.fromRGB(58, 118, 128)
+local WATER_TOP = Color3.fromRGB(150, 205, 205)
+local GAS = Color3.fromRGB(150, 172, 72)
+
+-- A room's water: a block of it in every cell, its top a paler skin. animate() raises and lowers it.
+local function makeFlood(id: string, roomId: string): Effect
+	local effect: Effect = { Parts = {}, Emitters = {}, Lights = {}, Kind = "Flood", Level = 0, Shown = 0 }
+	local g = Grid.Tuning()
+	for _, cell in cellsOf(roomId) do
+		local water = anchor(cell, "Water")
+		water.Material = Enum.Material.Glass
+		water.Color = WATER
+		water.Transparency = 0.45
+		water.Reflectance = 0.08
+		water.Size = Vector3.new(g.CellWidth - 0.4, 0.2, g.CellDepth - 0.4)
+		water:SetAttribute("Floor", cell.Y)
+		table.insert(effect.Parts, water)
+		local top = anchor(cell, "WaterTop")
+		top.Material = Enum.Material.SmoothPlastic
+		top.Color = WATER_TOP
+		top.Transparency = 0.55
+		top.Size = Vector3.new(g.CellWidth - 0.4, 0.12, g.CellDepth - 0.4)
+		top:SetAttribute("Floor", cell.Y)
+		table.insert(effect.Parts, top)
+		table.insert(effect.Emitters, emitter(top, {
+			Name = "Ripples", Texture = SMOKE_TEXTURE, LightEmission = 0.3, LightInfluence = 1,
+			Color = ColorSequence.new(Color3.fromRGB(215, 240, 238)),
+			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 3.2) }),
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 1) }),
+			Lifetime = NumberRange.new(0.9, 1.5), Speed = NumberRange.new(0.2, 0.6), SpreadAngle = Vector2.new(180, 180),
+			Orientation = Enum.ParticleOrientation.VelocityPerpendicular, EmissionDirection = Enum.NormalId.Top,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, Rate = 0,
+		}))
+	end
+	effects[id] = effect
+	return effect
+end
+
+local function setFloodLevel(effect: Effect, level: number, pipe: boolean)
+	effect.Level = level
+	for _, e in effect.Emitters do
+		e.Rate = if pipe then 14 else 5
+	end
+end
+
+-- A room's gas: a slow cloud filling every cell, and a sick light.
+local function makeGas(id: string, roomId: string): Effect
+	local effect: Effect = { Parts = {}, Emitters = {}, Lights = {}, Kind = "Gas" }
+	local g = Grid.Tuning()
+	for _, cell in cellsOf(roomId) do
+		local part = anchor(cell + Vector3.new(0, g.CellHeight * 0.4, 0), "Gas")
+		part.Size = Vector3.new(g.CellWidth - 4, g.CellHeight * 0.7, g.CellDepth - 6)
+		table.insert(effect.Parts, part)
+		table.insert(effect.Emitters, emitter(part, {
+			Name = "Cloud", Texture = SMOKE_TEXTURE, LightEmission = 0.25, LightInfluence = 0.6,
+			Color = ColorSequence.new(GAS, Color3.fromRGB(104, 128, 60)),
+			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 5), NumberSequenceKeypoint.new(1, 11) }),
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.25, 0.72), NumberSequenceKeypoint.new(0.8, 0.8), NumberSequenceKeypoint.new(1, 1) }),
+			Lifetime = NumberRange.new(4, 6), Speed = NumberRange.new(0.4, 1.2), SpreadAngle = Vector2.new(180, 180),
+			Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-12, 12),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, Rate = 0,
+		}))
+		local light = Instance.new("PointLight")
+		light.Color = GAS
+		light.Range = 22
+		light.Brightness = 0
+		light.Shadows = false
+		light.Parent = part
+		table.insert(effect.Lights, light)
+	end
+	effects[id] = effect
+	return effect
+end
+
+local function setGasStrength(effect: Effect, strength: number)
+	local k = math.clamp(strength / 100, 0, 1)
+	for _, e in effect.Emitters do
+		e.Rate = 2 + 12 * k
+	end
+	for _, light in effect.Lights do
+		light.Brightness = 0.9 * k
+	end
+end
+
+-- A burst pipe sprays and a leaking vent hisses (the server's fittings in workspace.Bunker.Disasters).
+local function watchFitting(item: Instance)
+	local isPipe = string.sub(item.Name, 1, 5) == "Pipe:"
+	local isVent = string.sub(item.Name, 1, 8) == "GasVent:"
+	if not (isPipe or isVent) or item:FindFirstChild("SprayFx", true) then
+		return
+	end
+	local base = if item:IsA("BasePart") then item elseif item:IsA("Model") then item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart", true) else nil
+	if not base then
+		return
+	end
+	local socket = item:FindFirstChild("Spray", true) or item:FindFirstChild("Leak", true)
+	local from = Instance.new("Attachment")
+	from.Name = "SprayFx"
+	from.CFrame = if socket and socket:IsA("Attachment") then socket.CFrame else CFrame.new(0, 0, base.Size.Z / 2)
+	from.Parent = base
+	if isPipe then
+		emitter(from, {
+			Name = "Water", Texture = SMOKE_TEXTURE, LightEmission = 0.2, LightInfluence = 1,
+			Color = ColorSequence.new(Color3.fromRGB(196, 232, 236), Color3.fromRGB(120, 180, 190)),
+			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 2.6) }),
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 1) }),
+			Lifetime = NumberRange.new(0.7, 1.1), Speed = NumberRange.new(14, 20), SpreadAngle = Vector2.new(14, 14),
+			Acceleration = Vector3.new(0, -34, 0), EmissionDirection = Enum.NormalId.Back, Rate = 70,
+		})
+	else
+		emitter(from, {
+			Name = "Gas", Texture = SMOKE_TEXTURE, LightEmission = 0.3, LightInfluence = 0.5,
+			Color = ColorSequence.new(GAS),
+			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 4.5) }),
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) }),
+			Lifetime = NumberRange.new(1.2, 1.8), Speed = NumberRange.new(6, 9), SpreadAngle = Vector2.new(18, 18),
+			Acceleration = Vector3.new(0, -2, 0), EmissionDirection = Enum.NormalId.Back, Rate = 26,
+		})
+	end
+	local sound = play(if isPipe then "WaterSpray" else "GasHiss", true)
+	if sound then
+		item.Destroying:Once(function()
+			sound:Destroy()
+		end)
+	end
+end
+
+-- What the local player stands in: wading slows, gas greens the picture (not for the gas-immune).
+local gasHaze: ColorCorrectionEffect? = nil
+local function updateStanding()
+	local wading = player:GetAttribute("Wading")
+	Movement.Set("Wading", if type(wading) == "number" and Disasters.WadeSpeed(wading) < 1 then Disasters.WadeSpeed(wading) else nil)
+	local inGas = player:GetAttribute("InGas")
+	local k = if type(inGas) == "number" then math.clamp(inGas / 100, 0, 1) else 0
+	if k <= 0 then
+		if gasHaze then
+			gasHaze:Destroy()
+			gasHaze = nil
+		end
+		return
+	end
+	local haze = gasHaze
+	if not haze then
+		haze = Instance.new("ColorCorrectionEffect")
+		haze.Name = "GasHaze"
+		haze.Parent = game:GetService("Lighting")
+		gasHaze = haze
+	end
+	haze.TintColor = Color3.new(1, 1, 1):Lerp(Color3.fromRGB(196, 222, 132), 0.75 * k)
+	haze.Saturation = -0.25 * k
+	haze.Contrast = -0.08 * k
 end
 
 local function steam(roomId: string)
@@ -652,6 +808,8 @@ local function blinkFor(entry: any): string?
 	end
 	if entry.Kind == "Fire" or entry.Kind == "Surge" or entry.Kind == "Meltdown" then
 		return entry.Room
+	elseif (entry.Kind == "Flood" and entry.Pipe) or (entry.Kind == "Gas" and entry.Leaking) then
+		return entry.Room -- a pipe to patch, a vent to seal
 	end
 	return nil
 end
@@ -674,6 +832,18 @@ local function sync()
 				play("FireBell")
 			end
 			setFireStrength(effect :: Effect, entry.Strength or 50)
+		elseif entry.Kind == "Flood" then
+			if not effect then
+				effect = makeFlood(id, entry.Room)
+				play("FloodAlarm")
+			end
+			setFloodLevel(effect :: Effect, entry.Level or 0, entry.Pipe == true)
+		elseif entry.Kind == "Gas" then
+			if not effect then
+				effect = makeGas(id, entry.Room)
+				play("GasAlarm")
+			end
+			setGasStrength(effect :: Effect, entry.Strength or 0)
 		elseif entry.Kind == "Surge" and not effect then
 			makeSurge(id, entry.Room)
 		elseif entry.Kind == "Meltdown" and not effect then
@@ -712,7 +882,27 @@ end
 local function animate()
 	local t = os.clock()
 	for _, effect in effects do
-		if effect.Kind == "Fire" then
+		if effect.Kind == "Flood" then
+			-- the water climbs and falls smoothly between the server's levels
+			local g = Grid.Tuning()
+			local want = (effect.Level or 0) / 100 * g.CellHeight * Disasters.Tuning().Flood.WaterHeight
+			local shown = effect.Shown or 0
+			shown += (want - shown) * 0.06
+			effect.Shown = shown
+			local swell = math.sin(t * 1.7) * 0.06
+			for _, part in effect.Parts do
+				local floor = part:GetAttribute("Floor")
+				if type(floor) == "number" then
+					local tall = math.max(shown + swell, 0.05)
+					if part.Name == "Water" then
+						part.Size = Vector3.new(part.Size.X, tall, part.Size.Z)
+						part.Position = Vector3.new(part.Position.X, floor + tall / 2, part.Position.Z)
+					else
+						part.Position = Vector3.new(part.Position.X, floor + tall + 0.02, part.Position.Z)
+					end
+				end
+			end
+		elseif effect.Kind == "Fire" then
 			for i, light in effect.Lights do
 				local strength = if effect.Parts[1] then effect.Parts[1]:GetAttribute("Strength") else nil
 				local k = if type(strength) == "number" then math.clamp(strength / 100, 0.2, 1) else 0.6
@@ -741,6 +931,20 @@ local function animate()
 end
 
 -- The Command View's statuses and notes ----------------------------------------------------------------
+
+local function fluidAt(roomId: string): (any, any)
+	local flood, gas = nil, nil
+	for _, entry in replica:All("Disasters") do
+		if type(entry) == "table" and entry.Room == roomId then
+			if entry.Kind == "Flood" then
+				flood = entry
+			elseif entry.Kind == "Gas" then
+				gas = entry
+			end
+		end
+	end
+	return flood, gas
+end
 
 local function disasterAt(roomId: string): (any, any, any)
 	local fire, surge, melt = nil, nil, nil
@@ -790,7 +994,14 @@ local function status(roomId: string, room: any): (string?, string?)
 		return "Lamp_Red", `ON FIRE {fire.Strength or 0}%`
 	elseif surge then
 		return "Lamp_Amber", "SURGE: WELD IT"
-	elseif room and room.Wrecked then
+	end
+	local flood, gas = fluidAt(roomId)
+	if gas then
+		return if gas.Leaking then "Lamp_Red" else "Lamp_Amber", if gas.Leaking then `GAS {gas.Strength or 0}%` else "AIRING OUT"
+	elseif flood then
+		return if flood.Pipe then "Lamp_Red" else "Lamp_Amber", if flood.Pipe then `FLOODING {flood.Level or 0}%` else `WATER {flood.Level or 0}%`
+	end
+	if room and room.Wrecked then
 		return "Lamp_Red", "WRECKED"
 	elseif blackoutHas(roomId) then
 		return "Lamp_Amber", "BLACKOUT"
@@ -815,6 +1026,17 @@ local function note(roomId: string): string?
 	end
 	if surge then
 		table.insert(lines, "Electrical surge: sparks wreck its machines. Weld it before it starts a fire or a blackout.")
+	end
+	local flood, gas = fluidAt(roomId)
+	if flood then
+		table.insert(lines, if flood.Pipe
+			then `Flooding ({flood.Level or 0}%): a pipe has burst. Patch it and the room drains; left alone the water pours on, and down the Shaft.`
+			else `Water ({flood.Level or 0}%): it drains once nothing pours in. Find the burst pipe it comes from.`)
+	end
+	if gas then
+		table.insert(lines, if gas.Leaking
+			then `Gas ({gas.Strength or 0}%): it hurts everyone in here. Seal the vent, or keep out until it airs out.`
+			else `Gas ({gas.Strength or 0}%): the leak has stopped and the room is airing out.`)
 	end
 	if blackoutHas(roomId) then
 		table.insert(lines, "Blackout: reset the fuse box in the Reactor Core.")
@@ -858,12 +1080,14 @@ function DisasterController:Start()
 		end
 		for _, item in folder:GetChildren() do
 			watchRubble(item)
+			watchFitting(item)
 		end
 		folder.DescendantAdded:Connect(function(item: Instance)
 			watchValve(item)
 			gate(item)
 			if item.Parent == folder then
 				watchRubble(item)
+				watchFitting(item)
 			end
 		end)
 	end
@@ -885,6 +1109,9 @@ function DisasterController:Start()
 	for _, name in { "Item1", "Item2", "Item3", "Item4", "Item5", "MeleeItem" } do
 		player:GetAttributeChangedSignal(name):Connect(regate)
 	end
+	player:GetAttributeChangedSignal("Wading"):Connect(updateStanding)
+	player:GetAttributeChangedSignal("InGas"):Connect(updateStanding)
+	updateStanding()
 
 	for _, who in Players:GetPlayers() do
 		watchToolUse(who)

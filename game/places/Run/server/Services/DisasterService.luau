@@ -33,6 +33,18 @@
 	  a blackout. A Surge can't end early while its disaster, a fire or a meltdown is on
 	  (HoldsSurge; Section 5).
 
+	* Flood (Prompt 23): water in a room with a level (0 to 100). A burst pipe raises it until
+	  someone patches the pipe (hold Interact); then it drains. Water high enough pours through a
+	  doorway or down the Shaft every SpreadSeconds (never up), and a room it has reached rises
+	  towards its source. It ruins the room, slows and hurts whoever is deep in it (the Firefighter
+	  a quarter). StartFlood(room, cause, level?, pipe?); a Bloat Toad's burst and The Deluge
+	  bring water without a pipe. Foam Burst drains a room at once (Drain).
+	* Gas leak (Prompt 23): gas in a room with a strength (0 to 100) that fills while its vent
+	  leaks, for DurationSeconds, unless someone seals the vent (hold Interact); then the room airs
+	  out. It hurts everyone in it (GasImmune players not at all; the bunker's GasStrength scales
+	  it). Decon Field clears a room at once (ClearGas).
+	* A hazard pocket found by digging bursts gas or water into the digger's room (HazardPocket).
+
 	Disasters run while the run is playing (like monsters and residents, they go on when DevTools
 	pause the cycle clock).
 
@@ -43,8 +55,12 @@
 	  { Kind = "Meltdown", Room, EndsAt, Valves, Solo, Cause }        id "M:<n>"; Valves: 0 open,
 	                                                                  -1 held, else turned until
 	  { Kind = "Surge", Room, EndsAt, Cause }                         id "S:<room>"
-	and RunState Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt, ValvesTurned.
-	workspace.Bunker.Disasters holds the fuse box and valve prompts and the rubble.
+	  { Kind = "Flood", Room, Level, Pipe, Cause }                    id "W:<room>"
+	  { Kind = "Gas", Room, Strength, Leaking, EndsAt, Cause }        id "G:<room>"
+	and RunState Fires, BlackoutRooms, Rubble, Floods, GasLeaks, Meltdown, MeltdownEndsAt, ValvesTurned.
+	workspace.Bunker.Disasters holds the fuse box and valve prompts, the rubble, burst pipes
+	("Pipe:<room>") and leaking vents ("GasVent:<room>"). Players in water or gas carry the Wading
+	and InGas attributes (the level or strength where they stand).
 
 	API:
 		DisasterService:StartFire(roomId, cause, strength?): string?
@@ -55,6 +71,15 @@
 		DisasterService:ClearRubble(id, how, player?)
 		DisasterService:StartMeltdown(cause): boolean
 		DisasterService:StartElectricalSurge(roomId, cause): string?
+		DisasterService:StartFlood(roomId, cause, level?, pipe?): string?  -- pipe false: no burst pipe
+		DisasterService:PatchPipe(roomId, how, player?): boolean
+		DisasterService:Drain(roomId, how, player?): boolean               -- at once (Foam Burst)
+		DisasterService:Flooded(roomId): number?
+		DisasterService:StartGasLeak(roomId, cause, strength?): string?
+		DisasterService:SealVent(roomId, how, player?): boolean
+		DisasterService:ClearGas(roomId, how, player?): boolean            -- at once (Decon Field)
+		DisasterService:Gassed(roomId): number?
+		DisasterService:HazardPocket(floor, column, player?): string?      -- "Flood", "GasLeak" or nil
 		DisasterService:SurgeDisaster(budget, rng): number   -- ThreatDirector: the ThreatCost spent
 		DisasterService:HoldsSurge(): boolean                -- ThreatDirector: don't end the Surge yet
 		DisasterService:SetModifier(source, key, value?)     -- FireSpread, BlackoutDuration
@@ -62,7 +87,8 @@
 		DisasterService.Started: Signal<string, string>      -- id, kind
 		DisasterService.Ended: Signal<string, string, string> -- id, kind, how
 	Dev: disasters, fire, fire.out, blackout, blackout.end, cavein, rubble.clear, meltdown,
-	meltdown.stop, valve, esurge, disaster.surge.
+	meltdown.stop, valve, esurge, disaster.surge, flood, flood.patch, flood.drain, gas, gas.seal,
+	gas.clear, pocket.
 ]]
 
 local CollectionService = game:GetService("CollectionService")
@@ -121,6 +147,14 @@ type Rubble = {
 }
 type Meltdown = { Id: string, Room: string, EndsAt: number, Valves: { number }, Cause: string, Sent: string }
 type Surge = { Id: string, Room: string, EndsAt: number, Carry: number, Cause: string }
+type Flood = {
+	Id: string, Room: string, Level: number, Pipe: boolean, NextSpread: number, Carry: number, Cause: string,
+	Sent: number, SentPipe: boolean, Prop: Instance?,
+}
+type Gas = {
+	Id: string, Room: string, Strength: number, Leaking: boolean, EndsAt: number, Cause: string,
+	Sent: number, SentLeaking: boolean, Prop: Instance?,
+}
 
 local grid: any = nil
 local power: any = nil
@@ -140,6 +174,8 @@ local blackout: Blackout? = nil
 local rubble: { [string]: Rubble } = {}
 local meltdown: Meltdown? = nil
 local surges: { [string]: Surge } = {} -- by room id
+local floods: { [string]: Flood } = {} -- by room id (Prompt 23)
+local gases: { [string]: Gas } = {} -- by room id (Prompt 23)
 local surgeDisaster: { Kind: string, Id: string?, Cycle: number }? = nil
 local modifiers: { [string]: { [string]: number } } = {} -- key -> source -> value
 local counter = 0
@@ -226,9 +262,15 @@ end
 -- Replication -----------------------------------------------------------------------------------------
 
 local function publishCounts()
-	local fireCount, rubbleCount = 0, 0
+	local fireCount, rubbleCount, floodCount, gasCount = 0, 0, 0, 0
 	for _ in fires do
 		fireCount += 1
+	end
+	for _ in floods do
+		floodCount += 1
+	end
+	for _ in gases do
+		gasCount += 1
 	end
 	for _ in rubble do
 		rubbleCount += 1
@@ -243,6 +285,8 @@ local function publishCounts()
 	end
 	set("Fires", fireCount)
 	set("Rubble", rubbleCount)
+	set("Floods", floodCount)
+	set("GasLeaks", gasCount)
 	set("BlackoutRooms", dark)
 	set("Meltdown", if meltdown then true else nil)
 	set("MeltdownEndsAt", if meltdown then meltdown.EndsAt else nil)
@@ -1017,9 +1061,455 @@ end
 
 -- The Surge's disaster (Section 5) ------------------------------------------------------------------------
 
--- The Surge disasters this service can start (Landon, Prompt 13: cave-ins too; floods and gas
--- leaks join with Prompt 23).
-local SURGE_STARTS: { [string]: boolean } = { Fire = true, Blackout = true, CaveIn = true }
+-- Floods (Prompt 23) -------------------------------------------------------------------------------------
+
+local function publishFlood(flood: Flood)
+	flood.Sent = math.ceil(flood.Level)
+	flood.SentPipe = flood.Pipe
+	collection:Set(flood.Id, { Kind = "Flood", Room = flood.Room, Level = flood.Sent, Pipe = flood.Pipe, Cause = flood.Cause })
+end
+
+-- Where a room's burst pipe is: on the back wall of one of its cells, under the ceiling.
+local function pipePosition(room: any): Vector3
+	local g = Grid.Tuning()
+	local n = (tonumber(string.match(room.Id, "%d+")) or 0) + counter
+	local cell = Grid.CellPosition(room.Floor, room.Column + n % room.Span)
+	return cell + Vector3.new(if n % 2 == 0 then -7 else 7, g.CellHeight * 0.62, -(g.CellDepth / 2 - 1.2))
+end
+
+-- A fitting on a wall with its prompt: the art's model if it is there (ServerStorage.Assets.Kit),
+-- else a plain block.
+local function fitting(name: string, asset: string, at: CFrame, size: Vector3, colour: Color3): Instance?
+	local parent = holder()
+	if not parent then
+		return nil
+	end
+	local source = art(asset)
+	local item: Instance
+	if source then
+		local model = source:Clone()
+		CollectionService:RemoveTag(model, "Asset")
+		model:PivotTo(at)
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") then
+				part.Anchored = true
+				part.CanCollide = false
+				part.CanQuery = false
+				CollectionService:AddTag(part, CAMERA_IGNORE_TAG)
+			end
+		end
+		item = model
+	else
+		local part = Instance.new("Part")
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.Material = Enum.Material.Metal
+		part.Color = colour
+		part.Size = size
+		part.CFrame = at
+		CollectionService:AddTag(part, CAMERA_IGNORE_TAG)
+		item = part
+	end
+	item.Name = name
+	item.Parent = parent
+	return item
+end
+
+local function endFlood(flood: Flood, how: string, player: Player?)
+	if floods[flood.Room] ~= flood then
+		return
+	end
+	floods[flood.Room] = nil
+	Hazards.SetFlood(flood.Room, nil)
+	if flood.Prop then
+		flood.Prop:Destroy()
+	end
+	collection:Remove(flood.Id)
+	publishCounts()
+	log:Info("flood in %s over (%s%s)", flood.Room, how, if player then `, {player.Name}` else "")
+	if how ~= "Gone" then
+		announce("Info", `{nameOf(flood.Room)} IS DRY{if player then ` · {string.upper(player.DisplayName)}` else ""}`)
+	end
+	DisasterService.Ended:Fire(flood.Id, "Flood", how)
+end
+
+-- The burst pipe is patched: the water stops rising and the room drains.
+function DisasterService:PatchPipe(roomId: string, how: string, player: Player?): boolean
+	local flood = floods[roomId]
+	if not flood or not flood.Pipe then
+		return false
+	end
+	flood.Pipe = false
+	if flood.Prop then
+		flood.Prop:Destroy()
+		flood.Prop = nil
+	end
+	publishFlood(flood)
+	log:Info("pipe patched in %s (%s%s) at level %.0f", roomId, how, if player then `, {player.Name}` else "", flood.Level)
+	announce("Info", `PIPE PATCHED IN {nameOf(roomId)}{if player then ` · {string.upper(player.DisplayName)}` else ""}: IT IS DRAINING`)
+	return true
+end
+
+-- Ends a room's flood at once (the Firefighter's Foam Burst: "Ends a room's fire or flood at once").
+function DisasterService:Drain(roomId: string, how: string, player: Player?): boolean
+	local flood = floods[roomId]
+	if not flood then
+		return false
+	end
+	endFlood(flood, how, player)
+	return true
+end
+
+-- Water in a room. `pipe` (default true): a burst pipe feeds it until someone patches it; false:
+-- so much water and no more (a Bloat Toad's burst, water pouring in from next door). Into a room
+-- that is already flooded it adds `level` and, if asked, bursts a pipe there too.
+function DisasterService:StartFlood(roomId: string, cause: string, level: number?, pipe: boolean?): string?
+	local room = grid:Room(roomId)
+	if not room then
+		return nil
+	end
+	local f = Disasters.Tuning().Flood
+	local burst = pipe ~= false
+	local flood = floods[roomId]
+	if flood then
+		flood.Level = math.clamp(flood.Level + (level or 0), 0, 100)
+		if not burst or flood.Pipe then
+			Hazards.SetFlood(roomId, flood.Level)
+			publishFlood(flood)
+			return flood.Id
+		end
+	else
+		flood = {
+			Id = `W:{roomId}`, Room = roomId, Level = math.clamp(level or f.StartLevel, 1, 100), Pipe = false,
+			NextSpread = now() + Disasters.FloodSpreadSeconds(), Carry = 0, Cause = cause, Sent = -1, SentPipe = false,
+		}
+		floods[roomId] = flood
+	end
+	if burst then
+		flood.Pipe = true
+		local at = pipePosition(room)
+		local prop = fitting(`Pipe:{roomId}`, "Kit_BurstPipe", CFrame.new(at), Vector3.new(5, 1.4, 1.4), Color3.fromRGB(141, 150, 157))
+		flood.Prop = prop
+		local base = if prop and prop:IsA("Model") then prop.PrimaryPart or prop:FindFirstChildWhichIsA("BasePart", true) else prop
+		if prop and base and base:IsA("BasePart") then
+			prop:SetAttribute("Room", roomId)
+			local p = prompt(base, "PatchPipe", "Patch the pipe", "Burst pipe", f.PatchSeconds, 14)
+			p.Triggered:Connect(function(player: Player)
+				DisasterService:PatchPipe(roomId, "Patched", player)
+			end)
+		end
+	end
+	Hazards.SetFlood(roomId, flood.Level)
+	publishFlood(flood)
+	publishCounts()
+	log:Info("flood in %s (%s): %s, level %.0f%s", roomId, room.Type, cause, flood.Level, if flood.Pipe then ", a burst pipe" else "")
+	if cause ~= "Spread" then
+		announce("Danger", if flood.Pipe then `A PIPE HAS BURST IN {nameOf(roomId)}: PATCH IT` else `{nameOf(roomId)} IS FLOODING`)
+	elseif room.Type == "Shaft" then
+		announce("Danger", `WATER IS POURING DOWN THE SHAFT TO FLOOR {room.Floor}`)
+	else
+		announce("Danger", `THE WATER REACHES {nameOf(roomId)}`)
+	end
+	DisasterService.Started:Fire(flood.Id, "Flood")
+	return flood.Id
+end
+
+-- The water's level in a room (nil: dry).
+function DisasterService:Flooded(roomId: string): number?
+	local flood = floods[roomId]
+	return if flood then flood.Level else nil
+end
+
+local function tickFloods(dt: number, t: number, inside: { [string]: { any } })
+	if next(floods) == nil then
+		return
+	end
+	local bunker = grid:Bunker()
+	local levels: { [string]: number } = {}
+	for roomId, flood in floods do
+		levels[roomId] = flood.Level
+	end
+	local drain = modifierValue("FloodDrainSpeed")
+	for roomId, flood in table.clone(floods) do
+		local room = grid:Room(roomId)
+		if not room then
+			endFlood(flood, "Gone")
+			continue
+		end
+		local fed = if flood.Pipe then nil else Disasters.FloodFed(bunker, roomId, levels)
+		flood.Level = Disasters.FloodStep(flood.Level, dt, flood.Pipe, fed, drain)
+		if flood.Level <= 0 then
+			endFlood(flood, "Drained")
+			continue
+		end
+		-- the water ruins the room (Section 6: "fires and floods hurt rooms")
+		flood.Carry += Disasters.FloodRoomDamage(flood.Level, dt)
+		if flood.Carry >= 1 and room.HP > 0 then
+			local whole = math.floor(flood.Carry)
+			flood.Carry -= whole
+			grid:SetHP(roomId, room.HP - whole)
+		end
+		-- and anyone deep in it
+		if Disasters.FloodDepth(flood.Level) > 0 then
+			for _, c in inside[roomId] or {} do
+				if c.Kind == "Resident" then
+					combat:Damage(c.Id, Disasters.FloodResidentDamage(flood.Level, dt), nil, "flood")
+				elseif c.Kind == "Player" and c.Player then
+					local taken = Modifiers.PlayerValue(c.Player, "FireFloodDamageTaken") or 1
+					combat:Damage(c.Id, Disasters.FloodPlayerDamage(flood.Level, dt, taken), nil, "flood")
+				end
+			end
+		end
+		-- it pours on (Section 10: "pours down the Shaft")
+		if t >= flood.NextSpread then
+			flood.NextSpread = t + Disasters.FloodSpreadSeconds()
+			if Disasters.FloodCanSpread(flood.Level) then
+				local targets = Disasters.FloodSpreadTargets(bunker, roomId, floods)
+				if #targets > 0 then
+					DisasterService:StartFlood(targets[rng:NextInteger(1, #targets)], "Spread", Disasters.Tuning().Flood.OverflowStartLevel, false)
+				end
+			end
+		end
+		Hazards.SetFlood(roomId, flood.Level)
+		if math.ceil(flood.Level) ~= flood.Sent or flood.Pipe ~= flood.SentPipe then
+			publishFlood(flood)
+		end
+	end
+end
+
+-- Gas leaks (Prompt 23) --------------------------------------------------------------------------------
+
+local function publishGas(gas: Gas)
+	gas.Sent = math.ceil(gas.Strength)
+	gas.SentLeaking = gas.Leaking
+	collection:Set(gas.Id, { Kind = "Gas", Room = gas.Room, Strength = gas.Sent, Leaking = gas.Leaking, EndsAt = gas.EndsAt, Cause = gas.Cause })
+end
+
+-- A room's vent (the kit's Vent socket or part), else a spot high on its back wall.
+local function ventPosition(room: any): Vector3
+	local model = grid:RoomModel(room.Id)
+	if model then
+		local socket = BunkerKit.Socket(model, "Vent")
+		if socket then
+			return socket.Position
+		end
+		local vent = model:FindFirstChild("Vent", true)
+		if vent and vent:IsA("BasePart") then
+			return vent.Position
+		elseif vent and vent:IsA("Model") then
+			return (vent:GetBoundingBox()).Position
+		end
+	end
+	local g = Grid.Tuning()
+	return Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, g.CellHeight * 0.7, -(g.CellDepth / 2 - 1.2))
+end
+
+local function endGas(gas: Gas, how: string, player: Player?)
+	if gases[gas.Room] ~= gas then
+		return
+	end
+	gases[gas.Room] = nil
+	Hazards.SetGas(gas.Room, nil)
+	if gas.Prop then
+		gas.Prop:Destroy()
+	end
+	collection:Remove(gas.Id)
+	publishCounts()
+	log:Info("gas in %s gone (%s%s)", gas.Room, how, if player then `, {player.Name}` else "")
+	if how ~= "Gone" then
+		announce("Info", `THE AIR IS CLEAR IN {nameOf(gas.Room)}{if player then ` · {string.upper(player.DisplayName)}` else ""}`)
+	end
+	DisasterService.Ended:Fire(gas.Id, "Gas", how)
+end
+
+-- The vent is sealed (or the leak has run its time): no more gas comes in and the room airs out.
+function DisasterService:SealVent(roomId: string, how: string, player: Player?): boolean
+	local gas = gases[roomId]
+	if not gas or not gas.Leaking then
+		return false
+	end
+	gas.Leaking = false
+	if gas.Prop then
+		gas.Prop:Destroy()
+		gas.Prop = nil
+	end
+	publishGas(gas)
+	log:Info("gas vent in %s shut (%s%s) at strength %.0f", roomId, how, if player then `, {player.Name}` else "", gas.Strength)
+	if how ~= "Expired" then
+		announce("Info", `VENT SEALED IN {nameOf(roomId)}{if player then ` · {string.upper(player.DisplayName)}` else ""}: THE GAS IS THINNING`)
+	end
+	return true
+end
+
+-- Clears a room's gas at once (the Hazmat Tech's Decon Field: "Clears radiation and gas from a room").
+function DisasterService:ClearGas(roomId: string, how: string, player: Player?): boolean
+	local gas = gases[roomId]
+	if not gas then
+		return false
+	end
+	endGas(gas, how, player)
+	return true
+end
+
+function DisasterService:StartGasLeak(roomId: string, cause: string, strength: number?): string?
+	local room = grid:Room(roomId)
+	if not room or gases[roomId] then
+		return nil
+	end
+	local g = Disasters.Tuning().Gas
+	local gas: Gas = {
+		Id = `G:{roomId}`, Room = roomId, Strength = math.clamp(strength or g.StartStrength, 1, 100), Leaking = true,
+		EndsAt = now() + Disasters.GasSeconds(), Cause = cause, Sent = -1, SentLeaking = true,
+	}
+	gases[roomId] = gas
+	local prop = fitting(`GasVent:{roomId}`, "Kit_GasVent", CFrame.new(ventPosition(room) + Vector3.new(0, 0, 0.6)), Vector3.new(3, 3, 0.6),
+		Color3.fromRGB(94, 106, 68))
+	gas.Prop = prop
+	local base = if prop and prop:IsA("Model") then prop.PrimaryPart or prop:FindFirstChildWhichIsA("BasePart", true) else prop
+	if prop and base and base:IsA("BasePart") then
+		prop:SetAttribute("Room", roomId)
+		local p = prompt(base, "SealVent", "Seal the vent", "Gas leak", g.SealSeconds, 14)
+		p.Triggered:Connect(function(player: Player)
+			DisasterService:SealVent(roomId, "Sealed", player)
+		end)
+	end
+	Hazards.SetGas(roomId, gas.Strength)
+	publishGas(gas)
+	publishCounts()
+	log:Info("gas leak in %s (%s): %s", roomId, room.Type, cause)
+	announce("Danger", `GAS IN {nameOf(roomId)}: SEAL THE VENT OR GET OUT`)
+	DisasterService.Started:Fire(gas.Id, "Gas")
+	return gas.Id
+end
+
+-- A room's gas strength (nil: clear air).
+function DisasterService:Gassed(roomId: string): number?
+	local gas = gases[roomId]
+	return if gas then gas.Strength else nil
+end
+
+local function flagOn(value: any): boolean
+	return value == true or (type(value) == "number" and value > 0)
+end
+
+local function tickGas(dt: number, t: number, inside: { [string]: { any } })
+	if next(gases) == nil then
+		return
+	end
+	local strength = modifierValue("GasStrength")
+	for roomId, gas in table.clone(gases) do
+		if not grid:Room(roomId) then
+			endGas(gas, "Gone")
+			continue
+		end
+		if gas.Leaking and t >= gas.EndsAt then
+			DisasterService:SealVent(roomId, "Expired") -- Section 10: "or air the room out"
+		end
+		gas.Strength = Disasters.GasStep(gas.Strength, dt, gas.Leaking)
+		if gas.Strength <= 0 then
+			endGas(gas, "Aired")
+			continue
+		end
+		for _, c in inside[roomId] or {} do
+			if c.Kind == "Resident" then
+				combat:Damage(c.Id, Disasters.GasResidentDamage(gas.Strength, dt, strength), nil, "gas")
+			elseif c.Kind == "Player" and c.Player then
+				local immune = flagOn(Modifiers.PlayerValue(c.Player, "GasImmune"))
+				local taken = Modifiers.PlayerValue(c.Player, "GasDamageTaken")
+				local damage = Disasters.GasPlayerDamage(gas.Strength, dt, strength, immune, if type(taken) == "number" then taken else 1)
+				if damage > 0 then
+					combat:Damage(c.Id, damage, nil, "gas")
+				end
+			end
+		end
+		Hazards.SetGas(roomId, gas.Strength)
+		if math.ceil(gas.Strength) ~= gas.Sent or gas.Leaking ~= gas.SentLeaking then
+			publishGas(gas)
+		end
+	end
+end
+
+-- What players stand in, for their own screen and legs: the Wading and InGas attributes.
+local function markPlayers(inside: { [string]: { any } })
+	local wading: { [Player]: number } = {}
+	local breathing: { [Player]: number } = {}
+	for roomId, flood in floods do
+		for _, c in inside[roomId] or {} do
+			if c.Kind == "Player" and c.Player then
+				wading[c.Player] = math.ceil(flood.Level)
+			end
+		end
+	end
+	for roomId, gas in gases do
+		for _, c in inside[roomId] or {} do
+			if c.Kind == "Player" and c.Player then
+				breathing[c.Player] = math.ceil(gas.Strength)
+			end
+		end
+	end
+	for _, player in session:ReadyPlayers() do
+		if player:GetAttribute("Wading") ~= wading[player] then
+			player:SetAttribute("Wading", wading[player])
+		end
+		if player:GetAttribute("InGas") ~= breathing[player] then
+			player:SetAttribute("InGas", breathing[player])
+		end
+	end
+end
+
+-- A hazard pocket found by digging (Section 7: "Gas or water bursts out"; DigService): into the
+-- room the digger stands in, else the nearest room on that floor. Returns what burst out.
+function DisasterService:HazardPocket(floor: number, column: number, player: Player?): string?
+	local band = nil
+	for _, id in Config.Ids("DepthBands") do
+		local b = Config.Get("DepthBands", id)
+		if floor >= b.Floors.From and floor <= b.Floors.To then
+			band = b
+		end
+	end
+	local kind = if band then Disasters.HazardKind(band.Hazards, rng) else nil
+	if not kind then
+		return nil
+	end
+	local target: string? = nil
+	local root = if player and player.Character then player.Character:FindFirstChild("HumanoidRootPart") else nil
+	local standing = if root and root:IsA("BasePart") then unitAt(root.Position) else nil
+	if standing and grid:Room(standing) then
+		target = standing
+	else
+		local best = math.huge
+		for _, room in grid:Rooms() do
+			if room.Floor == floor then
+				local d = math.min(math.abs(room.Column - column), math.abs(room.Column + room.Span - 1 - column))
+				if d < best then
+					best, target = d, room.Id
+				end
+			end
+		end
+	end
+	if player then
+		local c = combat:PlayerCombatant(player)
+		if c then
+			combat:Damage(c.Id, Disasters.Tuning().HazardPocket.Damage, nil, if kind == "Flood" then "flood" else "gas")
+		end
+	end
+	if not target then
+		log:Info("a hazard pocket at %d,%d burst into bare rock: no room on that floor", floor, column)
+		return kind
+	end
+	if kind == "Flood" then
+		DisasterService:StartFlood(target, "HazardPocket")
+	else
+		DisasterService:StartGasLeak(target, "HazardPocket")
+	end
+	return kind
+end
+
+-- The Surge disasters this service can start (Landon, Prompt 13: cave-ins too, and floods and gas
+-- leaks from Era II, built with Prompt 23).
+local SURGE_STARTS: { [string]: boolean } = { Fire = true, Blackout = true, CaveIn = true, Flood = true, GasLeak = true }
 
 local function startKind(kind: string, cause: string): string?
 	if kind == "Fire" then
@@ -1042,6 +1532,19 @@ local function startKind(kind: string, cause: string): string?
 		local pick = doorways[rng:NextInteger(1, #doorways)]
 		local id = DisasterService:CaveIn(pick.Floor, pick.Column, pick.Side, cause)
 		return id
+	elseif kind == "Flood" or kind == "GasLeak" then
+		local options = {}
+		for _, room in grid:Rooms() do
+			-- a pipe bursts or a vent leaks in a room people use (the Shaft only carries water down)
+			if room.Type ~= "Shaft" and not floods[room.Id] and not gases[room.Id] then
+				table.insert(options, room.Id)
+			end
+		end
+		if #options == 0 then
+			return nil
+		end
+		local roomId = options[rng:NextInteger(1, #options)]
+		return if kind == "Flood" then DisasterService:StartFlood(roomId, cause) else DisasterService:StartGasLeak(roomId, cause)
 	elseif kind == "Blackout" then
 		local floors: { number } = {}
 		for _, room in grid:Rooms() do
@@ -1089,6 +1592,11 @@ function DisasterService:HoldsSurge(): boolean
 	if meltdown or next(fires) then
 		return true
 	end
+	for _, flood in floods do
+		if flood.Pipe then
+			return true -- a burst pipe nobody has patched
+		end
+	end
 	local entry = surgeDisaster
 	if entry then
 		return entry.Id == nil or isActive(entry.Id)
@@ -1099,7 +1607,8 @@ end
 -- Modifiers and queries --------------------------------------------------------------------------------
 
 function DisasterService:SetModifier(source: string, key: string, value: number?)
-	assert(key == "FireSpread" or key == "BlackoutDuration", `DisasterService:SetModifier: {key} isn't a disaster modifier`)
+	assert(key == "FireSpread" or key == "BlackoutDuration" or key == "FloodDrainSpeed" or key == "GasStrength",
+		`DisasterService:SetModifier: {key} isn't a disaster modifier`)
 	modifiers[key] = modifiers[key] or {}
 	modifiers[key][source] = value
 end
@@ -1117,6 +1626,9 @@ local function tick(dt: number)
 	local t = now()
 	local inside = occupants()
 	tickFires(dt, t, inside)
+	tickFloods(dt, t, inside)
+	tickGas(dt, t, inside)
+	markPlayers(inside)
 	if blackout and t >= blackout.EndsAt then
 		DisasterService:EndBlackout("Expired")
 	end
@@ -1181,6 +1693,16 @@ local function describe(): string
 	for roomId, s in surges do
 		table.insert(lines, string.format("electrical surge %s: %.0f s left (%s)", roomId, s.EndsAt - t, s.Cause))
 	end
+	for roomId, flood in floods do
+		local room = grid:Room(roomId)
+		table.insert(lines, string.format("flood %s %s: level %.1f, %s, pours on in %.0f s (%s)", roomId, if room then room.Type else "?",
+			flood.Level, if flood.Pipe then "the pipe is running" else "no pipe", math.max(flood.NextSpread - t, 0), flood.Cause))
+	end
+	for roomId, gas in gases do
+		local room = grid:Room(roomId)
+		table.insert(lines, string.format("gas %s %s: strength %.1f, %s (%s)", roomId, if room then room.Type else "?", gas.Strength,
+			if gas.Leaking then string.format("leaking for %.0f s more", gas.EndsAt - t) else "airing out", gas.Cause))
+	end
 	if surgeDisaster then
 		table.insert(lines, `this Surge's disaster: {surgeDisaster.Kind} {surgeDisaster.Id or "(starting)"}`)
 	end
@@ -1198,6 +1720,94 @@ local function roomArg(arg: any): string?
 end
 
 local function registerCommands(dev: any)
+	dev:Register("flood", {
+		Description = "Burst a pipe in a room (by id or type), or just pour water in (nopipe).",
+		Usage = "flood <roomId|RoomType> [level] [nopipe]",
+		Run = function(_player, args): string?
+			local roomId = roomArg(args[1])
+			if not roomId then
+				return "usage: flood <roomId|RoomType> [level] [nopipe]"
+			end
+			local id = DisasterService:StartFlood(roomId, "DevTools", tonumber(args[2]), args[3] ~= "nopipe" and args[2] ~= "nopipe")
+			return if id then describe() else "no such room"
+		end,
+	})
+	dev:Register("flood.patch", {
+		Description = "Patch a room's burst pipe, or every pipe.",
+		Usage = "flood.patch [roomId|RoomType]",
+		Run = function(player, args): string?
+			local only = if args[1] then roomArg(args[1]) else nil
+			for roomId in table.clone(floods) do
+				if only == nil or roomId == only then
+					DisasterService:PatchPipe(roomId, "DevTools", player)
+				end
+			end
+			return describe()
+		end,
+	})
+	dev:Register("flood.drain", {
+		Description = "Dry a room at once, or every room.",
+		Usage = "flood.drain [roomId|RoomType]",
+		Run = function(_player, args): string?
+			local only = if args[1] then roomArg(args[1]) else nil
+			for roomId in table.clone(floods) do
+				if only == nil or roomId == only then
+					DisasterService:Drain(roomId, "DevTools")
+				end
+			end
+			return describe()
+		end,
+	})
+	dev:Register("gas", {
+		Description = "A gas leak in a room (by id or type).",
+		Usage = "gas <roomId|RoomType> [strength]",
+		Run = function(_player, args): string?
+			local roomId = roomArg(args[1])
+			if not roomId then
+				return "usage: gas <roomId|RoomType> [strength]"
+			end
+			local id = DisasterService:StartGasLeak(roomId, "DevTools", tonumber(args[2]))
+			return if id then describe() else "no such room, or it is already leaking there"
+		end,
+	})
+	dev:Register("gas.seal", {
+		Description = "Seal a room's leaking vent, or every one.",
+		Usage = "gas.seal [roomId|RoomType]",
+		Run = function(player, args): string?
+			local only = if args[1] then roomArg(args[1]) else nil
+			for roomId in table.clone(gases) do
+				if only == nil or roomId == only then
+					DisasterService:SealVent(roomId, "DevTools", player)
+				end
+			end
+			return describe()
+		end,
+	})
+	dev:Register("gas.clear", {
+		Description = "Clear a room's gas at once, or every room's.",
+		Usage = "gas.clear [roomId|RoomType]",
+		Run = function(_player, args): string?
+			local only = if args[1] then roomArg(args[1]) else nil
+			for roomId in table.clone(gases) do
+				if only == nil or roomId == only then
+					DisasterService:ClearGas(roomId, "DevTools")
+				end
+			end
+			return describe()
+		end,
+	})
+	dev:Register("pocket", {
+		Description = "A hazard pocket bursts at a cell (gas or water by its depth band), as if the invoking player dug it.",
+		Usage = "pocket <floor> <column>",
+		Run = function(player, args): string?
+			local floor, column = tonumber(args[1]), tonumber(args[2])
+			if not floor or not column then
+				return "usage: pocket <floor> <column>"
+			end
+			local kind = DisasterService:HazardPocket(floor, column, player)
+			return `a hazard pocket at {floor},{column}: {kind or "nothing (no gas or water in that band)"}\n{describe()}`
+		end,
+	})
 	dev:Register("disasters", {
 		Description = "Every disaster now: fires, the blackout, rubble, the meltdown, electrical surges.",
 		Run = function(): string?
@@ -1362,6 +1972,14 @@ function DisasterService:Start()
 			local s = surges[roomId]
 			if s then
 				endSurge(s, "Gone")
+			end
+			local flood = floods[roomId]
+			if flood then
+				endFlood(flood, "Gone")
+			end
+			local gas = gases[roomId]
+			if gas then
+				endGas(gas, "Gone")
 			end
 		end
 	end)

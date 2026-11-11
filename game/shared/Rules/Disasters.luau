@@ -95,6 +95,131 @@ function Disasters.SpreadTargets(bunker: any, roomId: string, burning: { [string
 	return list
 end
 
+-- Floods (Prompt 23) --------------------------------------------------------------------------
+
+-- A flood's level after dt seconds. `pipe`: its burst pipe still runs. `fed`: the level of the
+-- highest water that pours into it (nil: none). `drain`: the bunker's FloodDrainSpeed.
+function Disasters.FloodStep(level: number, dt: number, pipe: boolean, fed: number?, drain: number?): number
+	local f = Disasters.Tuning().Flood
+	if pipe then
+		return math.clamp(level + f.RisePerSecond * dt, 0, 100)
+	elseif fed and fed > level then
+		return math.min(level + f.OverflowPerSecond * dt, fed)
+	end
+	return math.max(level - f.DrainPerSecond * math.max(drain or 1, 0.05) * dt, 0)
+end
+
+-- How deep in it people are: 0 up to WadeLevel (ankle deep), rising to 1 at level 100.
+function Disasters.FloodDepth(level: number): number
+	local wade = Disasters.Tuning().Flood.WadeLevel
+	return math.clamp((level - wade) / (100 - wade), 0, 1)
+end
+
+-- What wading does to walking speed (1: nothing).
+function Disasters.WadeSpeed(level: number?): number
+	local f = Disasters.Tuning().Flood
+	if not level or level < f.WadeLevel then
+		return 1
+	end
+	return f.WadeSpeed + (f.DeepSpeed - f.WadeSpeed) * Disasters.FloodDepth(level)
+end
+
+function Disasters.FloodRoomDamage(level: number, dt: number): number
+	return (Config.Get("Disasters", "Flood").RoomDamagePerSecond or 0) * level / 100 * dt
+end
+
+-- `taken` is the player's FireFloodDamageTaken (the Firefighter's 0.25).
+function Disasters.FloodPlayerDamage(level: number, dt: number, taken: number?): number
+	return Disasters.Tuning().Flood.PlayerDamagePerSecond * Disasters.FloodDepth(level) * dt * (taken or 1)
+end
+
+function Disasters.FloodResidentDamage(level: number, dt: number): number
+	return Disasters.Tuning().Flood.ResidentDamagePerSecond * Disasters.FloodDepth(level) * dt
+end
+
+function Disasters.FloodSpreadSeconds(): number
+	return Config.Get("Disasters", "Flood").SpreadSeconds or 20
+end
+
+function Disasters.FloodCanSpread(level: number): boolean
+	return level >= Disasters.Tuning().Flood.SpreadMinLevel
+end
+
+-- Where the water in `unit` pours next: rooms beside it on its floor and the Shaft below it
+-- (Section 10: "pours down the Shaft"; never up, never into bare tunnels), not yet flooded.
+-- The way down comes first: water falls before it spreads.
+function Disasters.FloodSpreadTargets(bunker: any, unit: string, flooded: { [string]: any }): { string }
+	local from = bunker:Room(unit)
+	local down, level = {}, {}
+	if not from then
+		return down
+	end
+	for _, other in bunker:Neighbors(unit) do
+		local room = bunker:Room(other)
+		if room and flooded[other] == nil and room.Floor >= from.Floor then
+			table.insert(if room.Floor > from.Floor then down else level, other)
+		end
+	end
+	table.sort(down)
+	table.sort(level)
+	return if #down > 0 then down else level
+end
+
+-- The highest water that pours into `unit`: a neighbour on its floor or above it whose level can
+-- spread and is higher than its own. nil: nothing feeds it.
+function Disasters.FloodFed(bunker: any, unit: string, levels: { [string]: number }): number?
+	local room = bunker:Room(unit)
+	if not room then
+		return nil
+	end
+	local own = levels[unit] or 0
+	local best: number? = nil
+	for _, other in bunker:Neighbors(unit) do
+		local from = bunker:Room(other)
+		local level = levels[other]
+		if from and level and from.Floor <= room.Floor and level > own and Disasters.FloodCanSpread(level) then
+			best = math.max(best or 0, level)
+		end
+	end
+	return best
+end
+
+-- Gas leaks (Prompt 23) -----------------------------------------------------------------------
+
+-- A leak's strength after dt seconds: it fills while the vent leaks, then the room airs out.
+function Disasters.GasStep(strength: number, dt: number, leaking: boolean): number
+	local g = Disasters.Tuning().Gas
+	return math.clamp(strength + (if leaking then g.FillPerSecond else -g.ClearPerSecond) * dt, 0, 100)
+end
+
+function Disasters.GasSeconds(): number
+	return Config.Get("Disasters", "GasLeak").DurationSeconds or 90
+end
+
+-- `bunker` is the GasStrength modifier (Gas Filters: 0.5); `immune` the player's GasImmune;
+-- `taken` their GasDamageTaken.
+function Disasters.GasPlayerDamage(strength: number, dt: number, bunker: number?, immune: boolean?, taken: number?): number
+	if immune then
+		return 0
+	end
+	return Disasters.Tuning().Gas.PlayerDamagePerSecond * strength / 100 * dt * (bunker or 1) * (taken or 1)
+end
+
+function Disasters.GasResidentDamage(strength: number, dt: number, bunker: number?, taken: number?): number
+	return Disasters.Tuning().Gas.ResidentDamagePerSecond * strength / 100 * dt * (bunker or 1) * (taken or 1)
+end
+
+-- What bursts out of a hazard pocket (Section 7: "Gas or water bursts out"), from the band's
+-- Hazards: "GasLeak", "Flood", or nil when the band has neither.
+function Disasters.HazardKind(hazards: { string }, rng: Random): string?
+	local gas = table.find(hazards, "GasLeak") ~= nil
+	local water = table.find(hazards, "Flood") ~= nil
+	if gas and water then
+		return if rng:NextNumber() < Disasters.Tuning().HazardPocket.GasChance then "GasLeak" else "Flood"
+	end
+	return if gas then "GasLeak" elseif water then "Flood" else nil
+end
+
 -- The Surge's disaster -------------------------------------------------------------------------
 
 -- Section 5: every Surge brings one disaster. A weighted pick among the disasters with a

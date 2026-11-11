@@ -22,7 +22,7 @@
 	  TriageRadius; level 3 also clears radiation and goo slow (resident conditions are Prompt 26).
 	  Touch heal (the passive): residents within TouchHealRange of a Medic heal TouchHealPerSecond.
 	* Firefighter, Foam Burst: the fire in the room you stand in (else the nearest burning room within
-	  FoamRange) goes out at once. Floods are Prompt 23.
+	  FoamRange) goes out at once, and so does a flood (DisasterService:Drain; Prompt 23).
 	* Cook, Hearty Meal: the team's max health and stamina x its modifiers for one cycle, residents
 	  +MoraleNow; level 2 heals everyone (MealHealFraction). The Cook's Kitchen bonus (Presence) follows
 	  them into any Kitchen.
@@ -35,7 +35,7 @@
 	* Radio Operator, Supply Call: a crate lands in front of you (Prop_SupplyCrate); opened, CrateLoot
 	  goes into the stockpile in the bunker, or the opener's pack elsewhere.
 	* Hazmat Tech, Decon Field: radiation off everyone in your room (within DeconRadius away from
-	  rooms). Gas is Prompt 23.
+	  rooms), and the gas out of your room (DisasterService:ClearGas; Prompt 23).
 	* Exterminator, Napalm Line: a burning strip (Napalm Length by Width) ahead of you for its
 	  duration: monsters in it burn. Burning (flame guns and napalm) hurts Burn.DamagePerSecond for
 	  Burn.Seconds; the Exterminator's burning spreads between monsters within Burn.SpreadRadius
@@ -725,12 +725,13 @@ local function foamBurst(state: State): (boolean, string?, string?, number?)
 	if not root then
 		return false, "YOU NEED TO BE STANDING"
 	end
+	-- "Ends a room's fire or flood at once": the room you stand in, else the nearest within FoamRange
 	local room = roomAt(root.Position)
-	local target = if room and Hazards.Fire(room.Id) then room else nil
+	local target = if room and (Hazards.Fire(room.Id) or Hazards.Flood(room.Id)) then room else nil
 	if not target then
 		local best = t().FoamRange
 		for _, entry in ctx.Disasters:Active() do
-			if entry.Kind == "Fire" and entry.Room then
+			if (entry.Kind == "Fire" or entry.Kind == "Flood") and entry.Room then
 				local r = ctx.Grid:Room(entry.Room)
 				local d = if r then (roomCentre(r) - root.Position).Magnitude else math.huge
 				if r and d <= best then
@@ -740,11 +741,14 @@ local function foamBurst(state: State): (boolean, string?, string?, number?)
 		end
 	end
 	if not target then
-		return false, "NO FIRE NEARBY"
+		return false, "NO FIRE OR FLOOD NEARBY"
 	end
-	ctx.Disasters:Extinguish(target.Id, 1e6, "Foam Burst", player)
+	local fire = ctx.Disasters:Extinguish(target.Id, 1e6, "Foam Burst", player)
+	local flood = ctx.Disasters:Drain(target.Id, "Foam Burst", player)
 	fx(player, "Foam", roomCentre(target), { Radius = 14 })
-	return true, `FOAM BURST: THE {string.upper(Config.Get("Rooms", target.Type).Name)} FIRE IS OUT`
+	local name = string.upper(Config.Get("Rooms", target.Type).Name)
+	return true, if fire and flood then `FOAM BURST: THE {name} IS OUT AND DRY`
+		elseif flood then `FOAM BURST: THE {name} IS DRY` else `FOAM BURST: THE {name} FIRE IS OUT`
 end
 
 -- Cook ----------------------------------------------------------------------------------------------------
@@ -1083,11 +1087,16 @@ local function deconField(state: State): (boolean, string?, string?, number?)
 			end
 		end
 	end
-	if cleared == 0 then
-		return false, "NOBODY HERE NEEDS DECONTAMINATING"
+	-- "Clears radiation and gas from a room and everyone in it"
+	local gas = unit ~= nil and ctx.Disasters:ClearGas(unit, "Decon Field", player)
+	if cleared == 0 and not gas then
+		return false, "NOTHING HERE NEEDS DECONTAMINATING"
 	end
 	fx(player, "Decon", root.Position, { Radius = if unit then 14 else radius })
-	return true, `DECON FIELD: RADIATION CLEARED FROM {cleared} PLAYER{if cleared == 1 then "" else "S"}`
+	if gas and cleared == 0 then
+		return true, "DECON FIELD: THE GAS IS GONE"
+	end
+	return true, `DECON FIELD: RADIATION CLEARED FROM {cleared} PLAYER{if cleared == 1 then "" else "S"}{if gas then ", THE GAS IS GONE" else ""}`
 end
 
 -- Exterminator ---------------------------------------------------------------------------------------------

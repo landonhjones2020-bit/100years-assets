@@ -19,7 +19,7 @@
 	Water, Scrap, Iron, Copper, Crystal, Medkits, Ammo), plus Research.
 	Power (PowerService): PowerMade, PowerUsed, PowerNeeded and DarkRooms.
 	Threat (ThreatDirector): Threat and Monsters.
-	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Meltdown, MeltdownEndsAt
+	Disasters (DisasterService, Prompt 13): Fires, BlackoutRooms, Rubble, Floods, GasLeaks, Meltdown, MeltdownEndsAt
 	and ValvesTurned.
 	Digging (DigService, Prompt 14): Disturbance, DigLimit, DigSeed, DigOverrides, TremorAt and Nests.
 	The surface (SurfaceService, Prompt 16): Storm and StormAt. Players also carry Zone (Surface,
@@ -98,6 +98,8 @@ local FIELDS: { [string]: Field } = {
 	Fires = { Type = "number", By = "DisasterService", Doc = "rooms on fire" },
 	BlackoutRooms = { Type = "number", By = "DisasterService", Doc = "rooms and tunnels dark in a blackout (0: none)" },
 	Rubble = { Type = "number", By = "DisasterService", Doc = "piles of rubble blocking the way" },
+	Floods = { Type = "number", By = "DisasterService", Doc = "rooms with water in them (Prompt 23)" },
+	GasLeaks = { Type = "number", By = "DisasterService", Doc = "rooms with gas in them (Prompt 23)" },
 	Meltdown = { Type = "boolean", By = "DisasterService", Doc = "the Reactor Core is melting down (Section 10)" },
 	MeltdownEndsAt = { Type = "number", By = "DisasterService", Doc = "server time the meltdown loses the run (Meltdown only)" },
 	ValvesTurned = { Type = "number", By = "DisasterService", Doc = "the meltdown valves turned now, 0 to 3 (Meltdown only)" },

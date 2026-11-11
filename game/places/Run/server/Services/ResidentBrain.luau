@@ -60,6 +60,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
+local Disasters = require(Shared.Rules.Disasters)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Remotes = require(Shared.Remotes)
@@ -162,7 +163,9 @@ local function speedFor(id: string): number
 end
 
 local function slowedSpeed(body: any): number
-	local base = speedFor(body.Id)
+	local floor, column = Grid.CellAt(body.Root.Position)
+	local unit = if floor and column and grid then grid:Bunker():UnitAt(floor, column) else nil
+	local base = speedFor(body.Id) * Disasters.WadeSpeed(Hazards.Flood(unit)) -- wading (Prompt 23)
 	local slowed = body.Model:GetAttribute("SlowedUntil")
 	if type(slowed) == "number" and slowed > workspace:GetServerTimeNow() then
 		return base * Config.Get("Tuning", "MonsterAI").GooSlowMultiplier
@@ -310,6 +313,17 @@ local function safeRoom(fromUnit: string?): string?
 	for unit in Hazards.Fires() do
 		danger[unit] = true -- a burning room is no refuge (Prompt 13)
 	end
+	local d = Config.Get("Tuning", "Disasters")
+	for unit, level in Hazards.Floods() do
+		if level >= d.Flood.ResidentFleeLevel then
+			danger[unit] = true -- nor one deep in water, or full of gas (Prompt 23)
+		end
+	end
+	for unit, strength in Hazards.GasLeaks() do
+		if strength >= d.Gas.ResidentFleeStrength then
+			danger[unit] = true
+		end
+	end
 	local bunker = grid:Bunker()
 	local seen: { [string]: boolean } = { [fromUnit] = true }
 	local queue = { fromUnit }
@@ -380,6 +394,18 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 		if not flee or not flee.Room or Hazards.Fire(flee.Room) then
 			flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = safeRoom(here) }
 			fleeing[id] = flee
+		end
+	end
+	-- water rising or gas where they stand (Prompt 23): residents can't fix either, they get out
+	if #near == 0 and here and not Hazards.Fire(here) then
+		local d = Config.Get("Tuning", "Disasters")
+		if Hazards.Unsafe(here, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
+			if not flee or not flee.Room or Hazards.Unsafe(flee.Room, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
+				flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = safeRoom(here) }
+				fleeing[id] = flee
+			else
+				flee.Until = math.max(flee.Until, os.clock() + 2)
+			end
 		end
 	end
 	if flee and os.clock() < flee.Until and flee.Room and grid:Room(flee.Room) then
@@ -458,6 +484,17 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 		return threatGoal, threatRoom, threatSpot, threatActivity :: string
 	end
 	local goal, roomId, spot, activity = routine(id, order, resident)
+	-- a room deep in water or full of gas (Prompt 23): they wait outside until it is safe
+	if roomId and not Hazards.Fire(roomId) then
+		local d = Config.Get("Tuning", "Disasters")
+		if Hazards.Unsafe(roomId, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
+			local body = bodies[id]
+			local here = if body then unitAt(body.Root.Position) else nil
+			if here ~= roomId then
+				return "Wait:hazard", nil, nil, "Idle"
+			end
+		end
+	end
 	-- too hurt to fight a fire (Prompt 13): they keep out of burning rooms and wait where they are
 	if roomId and Hazards.Fire(roomId) then
 		local f = Config.Get("Tuning", "Disasters").Fire
