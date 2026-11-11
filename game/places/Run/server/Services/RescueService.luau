@@ -46,7 +46,7 @@ local log = Log.new("RescueService")
 
 local RescueService = {
 	Name = "RescueService",
-	Dependencies = { "SessionService", "CombatService", "ResidentService", "ResidentBrain", "RunDirector", "DevService" },
+	Dependencies = { "SessionService", "CombatService", "ResidentService", "ResidentBrain", "RunDirector", "DisasterService", "DevService" },
 	Freed = Signal.new() :: Signal.Signal<string, Player>,
 	Joined = Signal.new() :: Signal.Signal<string, Player?, string, string>, -- resident id, leader, kind, where
 	Lost = Signal.new() :: Signal.Signal<string, string>, -- rescue id, kind
@@ -75,6 +75,7 @@ type Rescue = {
 	Tier: string,
 	Level: number,
 	Where: string,
+	Deep: boolean, -- freed in the Deep (Prompt 24: someone from the Deep may carry an outbreak's sickness)
 	Tag: string?,
 	Model: Model,
 	Humanoid: Humanoid,
@@ -99,6 +100,7 @@ type Rescue = {
 local combat: any = nil
 local residents: any = nil
 local brain: any = nil
+local disasters: any = nil
 local director: any = nil
 
 local rescues: { [string]: Rescue } = {}
@@ -275,6 +277,7 @@ function RescueService:Trap(at: CFrame, options: Options?): string?
 		Tier = tier,
 		Level = level,
 		Where = o.Where or "the ruins",
+		Deep = Surface.Zone(root.Position) == "Deep",
 		Tag = o.Tag,
 		Model = model,
 		Humanoid = humanoid,
@@ -415,6 +418,9 @@ local function arrive(r: Rescue)
 	alertAll("Info", `{string.upper(name)}{if r.Tier ~= "Common" then ` ({string.upper(r.Tier)})` else ""} JOINS THE BUNKER`
 		.. (if leader then `: RESCUED BY {string.upper(leader.DisplayName)}` else ""))
 	RescueService.Joined:Fire(residentId, leader, r.Kind, r.Where)
+	if r.Deep then
+		disasters:FromTheDeep(residentId, r.Kind) -- Section 10: outbreaks come from the Deep (Prompt 24)
+	end
 	log:Info("%s joined as %s (%s, %s)", r.Id, residentId, r.Tier, r.Where)
 	local after = arrivals[r.Kind]
 	if after then
@@ -576,6 +582,7 @@ function RescueService:Init(registry)
 	combat = registry.CombatService
 	residents = registry.ResidentService
 	brain = registry.ResidentBrain
+	disasters = registry.DisasterService
 	director = registry.RunDirector
 	registry.DevService:Register("rescues", {
 		Description = "Trapped and rescued people (Prompt 16).",

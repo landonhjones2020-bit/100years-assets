@@ -1753,7 +1753,71 @@ test("Disasters: gas fills while the vent leaks, clears once sealed; hazard pock
 	end
 	expect((seen.GasLeak or 0) > 50 and (seen.Flood or 0) > 50, "the Flooded Caverns: gas or water (Section 7)")
 	expectEqual(Disasters.HazardKind(Config.Get("DepthBands", "Mines").Hazards, rng), "GasLeak", "the Mines: gas")
-	expectEqual(Disasters.HazardKind({ "RadiationLeak", "CaveIn" }, rng), nil, "a band with neither: nothing bursts out")
+	expectEqual(Disasters.HazardKind(Config.Get("DepthBands", "CrystalHollows").Hazards, rng), "RadiationLeak",
+		"the Crystal Hollows: radiation (Section 12, Prompt 24)")
+	expectEqual(Disasters.HazardKind({ "CaveIn" }, rng), nil, "a band with none of them: nothing bursts out")
+end)
+
+test("Disasters: a radiation leak fills while the door leaks and fades once sealed (Section 10, Prompt 24)", function()
+	local r = Config.Get("Tuning", "Disasters").Radiation
+	expectEqual(Disasters.RadiationStep(20, 2, true), 20 + 2 * r.FillPerSecond, "it fills while it leaks")
+	expectEqual(Disasters.RadiationStep(20, 2, true, r.DeconSlow), 20 + 2 * r.FillPerSecond * r.DeconSlow, "a Decon Room slows the leak (Section 6)")
+	expectEqual(Disasters.RadiationStep(20, 2, false), 20 - 2 * r.FadePerSecond, "sealed, it fades")
+	expectEqual(Disasters.RadiationStep(99, 60, true), 100, "never past 100")
+	expectEqual(Disasters.RadiationStep(3, 60, false), 0, "never under 0")
+	expectEqual(Disasters.RadiationSeconds(), Config.Get("Disasters", "RadiationLeak").DurationSeconds, "left alone it leaks for its DurationSeconds")
+	expectEqual(Disasters.RadiationPlayerRate(100, 1), r.PlayerPerSecond, "a player at full strength")
+	expectEqual(Disasters.RadiationPlayerRate(50, 0.3), r.PlayerPerSecond * 0.5 * 0.3, "the Hazmat Tech takes 30% (Section 14)")
+	expectEqual(Disasters.RadiationPlayerRate(0, 1), 0, "none outside a leak")
+	expectEqual(Disasters.RadiationResidentDamage(100, 2), 2 * r.ResidentDamagePerSecond, "what residents lose")
+	-- "Surface storms against a weak Blast Door"
+	expectEqual(Disasters.DoorLeakChance(1, 1, 1, false), 0, "no leaks before Era III (Section 5)")
+	expectEqual(Disasters.DoorLeakChance(2, 1, 0.1, true), 0, "not even through a wrecked door in Era II")
+	expectEqual(Disasters.DoorLeakChance(3, 1, 1, false), r.DoorLeakChance[1], "a level 1 door in Era III")
+	expect(Disasters.DoorLeakChance(3, 2, 1, false) < Disasters.DoorLeakChance(3, 1, 1, false), "an upgraded door leaks less")
+	expectEqual(Disasters.DoorLeakChance(3, 3, 1, false), 0, "a sound level 3 door never leaks: upgrading is a fix")
+	expect(Disasters.DoorLeakChance(3, 3, 0.5, false) > 0, "a damaged one can")
+	expect(Disasters.DoorLeakChance(3, 2, 0.5, false) > Disasters.DoorLeakChance(3, 2, 1, false), "damage makes a door weaker")
+	expectEqual(Disasters.DoorLeakChance(4, 3, 1, true), 1, "a wrecked door always leaks")
+	expect(r.IrradiateAt > r.ResidentFleeStrength, "residents have time to leave before they are Irradiated")
+	expect(Config.Get("Disasters", "RadiationLeak").SurgeWeight == nil, "storms cause it, not the Surge's own pick (Section 10)")
+end)
+
+test("Disasters: an outbreak spreads within a room, not from quarantine; the Medbay cures (Section 10, Prompt 24)", function()
+	local o = Config.Get("Tuning", "Disasters").Outbreak
+	expect(not Disasters.CarriesSickness(2, 0), "nobody carries it before Era III (Section 5)")
+	expect(Disasters.CarriesSickness(3, o.CarrierChance - 0.01), "someone from the Deep carries it CarrierChance of the time")
+	expect(not Disasters.CarriesSickness(3, o.CarrierChance + 0.01), "the rest are well")
+	expectEqual(o.CarrierChance, Config.Get("WandererOutcomes", "Carrier").Chance, "the same odds as a wanderer who is a carrier (Section 10)")
+	local people = {
+		{ Id = "R1", Room = "A", Sick = true },
+		{ Id = "R2", Room = "A", Sick = false },
+		{ Id = "R3", Room = "A", Sick = false, Immune = true },
+		{ Id = "R4", Room = "B", Sick = false },
+		{ Id = "R5", Room = "A", Sick = true },
+		{ Id = "R6", Room = "Q", Sick = true, Quarantined = true },
+		{ Id = "R7", Room = "Q", Sick = false },
+	}
+	expectEqual(Disasters.OutbreakTargets(people, people[1]), { "R2" }, "the well in their room who haven't had it")
+	expectEqual(Disasters.OutbreakTargets(people, people[6]), {}, "the quarantined pass nothing on")
+	expectEqual(Disasters.OutbreakTargets(people, people[2]), {}, "the well pass nothing on")
+	expectEqual(Disasters.OutbreakTargets(people, { Id = "R9", Sick = true }), {}, "nor someone who is nowhere")
+	expectEqual(Disasters.CureSeconds(1), o.CureSeconds, "one patient every CureSeconds")
+	expectEqual(Disasters.CureSeconds(2), o.CureSeconds / 2, "a level 3 Hazmat Tech: twice as fast (Section 14)")
+	-- the conditions themselves (Section 11)
+	local resident: any = { Id = "R1", State = "Alive", Stats = { Smarts = 8 }, Morale = 60, Rest = 100, Job = "M1" }
+	expectEqual(Residents.ConditionHealth(resident), 0, "the well lose nothing")
+	resident.Sick = true
+	expectEqual(Residents.ConditionHealth(resident), Config.Get("Conditions", "Sick").HealthPerCycle, "the sick lose health each cycle")
+	expect(not Residents.Quarantined(resident), "sick at work: not quarantined")
+	local crew = Residents.Crew({ resident }, "Medbay") :: Residents.Crew
+	expectEqual(crew.StatSum, 8 * Config.Get("Conditions", "Sick").OutputMultiplier, "the sick work slowly")
+	resident.Job = nil
+	expect(Residents.Quarantined(resident), "sick and off work: quarantined")
+	resident.Irradiated = true
+	expectEqual(Residents.ConditionHealth(resident),
+		Config.Get("Conditions", "Sick").HealthPerCycle + Config.Get("Conditions", "Irradiated").HealthPerCycle, "sick and irradiated: both")
+	expect(Config.Get("Conditions", "Sick").Contagious == true, "the sickness is contagious (Section 11)")
 end)
 
 test("Disasters: a Surge's disaster is one Surges cause, of its era, within its budget (Section 5)", function()
@@ -2156,6 +2220,76 @@ test("Monsters: the Flooded Caverns' four (Section 10, Prompt 23)", function()
 	local flood = Config.Get("Tuning", "Disasters").Flood
 	expect(flood.BurstLevel >= flood.WadeLevel, "a Bloat Toad's burst leaves water to wade in")
 	expect(flood.MurklingLevel > flood.StartLevel, "a room must fill before Murklings come out of it")
+end)
+
+test("Monsters: the Crystal Hollows' four (Section 10, Prompt 24)", function()
+	local function traits(id: string): { string }
+		return Config.Get("Monsters", id).Traits or {}
+	end
+	local t = Config.Get("Tuning", "MonsterAI")
+	expect(table.find(traits("Shardling"), "Shatters"), "the Shardling shatters")
+	expect(table.find(traits("PrismStalker"), "Invisible"), "the Prism Stalker is invisible")
+	expect(table.find(traits("GeodeGolem"), "ShrugsSmallGuns"), "the Geode Golem shrugs off small guns")
+	expect(table.find(traits("Resonator"), "Heals") and table.find(traits("Resonator"), "Hastes"), "the Resonator heals and hastes")
+	-- shards
+	expectEqual(Threat.ShatterDamage(t.ShatterRadius - 0.1), t.ShatterDamage, "inside the shards' reach")
+	expectEqual(Threat.ShatterDamage(t.ShatterRadius + 0.1), 0, "outside it")
+	-- lights ("Invisible until lit by a flare or lamp")
+	local flare = { { Position = Vector3.new(0, 0, 0), Radius = 40 } }
+	expect(Threat.Lit(Vector3.new(30, 2, 0), flare), "inside a flare's light")
+	expect(not Threat.Lit(Vector3.new(41, 0, 0), flare), "past its radius")
+	expect(not Threat.Lit(Vector3.new(5, t.LightHeight + 1, 0), flare), "a floor away: not lit")
+	expect(not Threat.Lit(Vector3.new(0, 0, 0), {}), "no light, not lit")
+	expectEqual(Config.Get("Items", "Flare").Throwable.RevealsHidden, true, "the Flare reveals (the Appendix)")
+	expect(Threat.StalkerSeen(true, 10, nil), "lit: seen")
+	expect(not Threat.StalkerSeen(false, 10, nil), "unlit: unseen")
+	expect(Threat.StalkerSeen(false, 10, 11), "seen for a moment after it strikes or is hit")
+	expect(not Threat.StalkerSeen(false, 10, 9), "then gone again")
+	-- small guns
+	expectEqual(Threat.SmallGunMultiplier("PocketPistol"), t.SmallGunMultiplier, "the Pocket Pistol is a small gun")
+	expectEqual(Threat.SmallGunMultiplier("RivetSMG"), t.SmallGunMultiplier, "so is the Rivet SMG (the Appendix: light ammo)")
+	for _, id in { "ServiceRevolver", "PumpShotgun", "LeverRifle", "GrenadeLauncher", "ArcRifle", "Flamethrower" } do
+		expectEqual(Threat.SmallGunMultiplier(id), 1, `{id} isn't`)
+	end
+	expectEqual(Threat.SmallGunMultiplier("Sledgehammer"), 1, "nor is a hammer")
+	expectEqual(Threat.SmallGunMultiplier(nil), 1, "nor a blast")
+	expect(t.SmallGunMultiplier < 0.5, "shrugged off, not merely dulled")
+	-- the hum
+	expectEqual(Threat.HumHeal(50, 100), 100 * t.HumHealFraction, "a share of its health")
+	expectEqual(Threat.HumHeal(99, 100), 1, "never past full")
+	expectEqual(Threat.HumHeal(100, 100), 0, "the unhurt aren't healed")
+	expectEqual(Threat.HumHeal(0, 100), 0, "nor the dead")
+	expectEqual(Config.Get("Monsters", "Resonator").Damage, 0, "the Resonator doesn't strike")
+	expect(t.HasteMultiplier > 1 and t.HasteSeconds >= Config.Get("Monsters", "Resonator").AttackSeconds,
+		"its haste lasts until the next hum")
+	-- Era III brings them
+	local roster = Threat.Roster(3)
+	for _, id in { "Shardling", "PrismStalker", "GeodeGolem", "Resonator" } do
+		expect(table.find(roster, id), `{id} comes through breaches from Era III`)
+		expect(not table.find(Threat.Roster(2), id), `{id} doesn't come in Era II`)
+	end
+end)
+
+test("Boss: the Crystal Colossus's fight (Section 10, Prompt 24)", function()
+	local entry = Config.Get("Bosses", "CrystalColossus")
+	local t = Boss.Fight("CrystalColossus") :: { [string]: any }
+	expect(t ~= nil, "its fight has numbers")
+	expectEqual(entry.Year, 75, "Year 75 (Section 5)")
+	expectEqual(#t.MoveSpeed, entry.Phases, "a speed for each phase")
+	expectEqual(#t.Shards, entry.Phases, "shards for each phase")
+	expectEqual(#t.Shardlings, entry.Phases, "Shardlings for each phase")
+	expectEqual(t.Shardlings[1], 0, "none in its first phase")
+	expectEqual((entry.Minions or {})[1], "Shardling", "its shards hatch Shardlings")
+	local brood = Boss.Fight("BroodMother") :: { [string]: any }
+	expect(t.MoveSpeed[entry.Phases] < brood.MoveSpeed[1], "slow: slower at its fastest than the Brood Mother at her slowest")
+	expect(t.TurnDegreesPerSecond < brood.TurnDegreesPerSecond, "and slower to turn")
+	expect(t.ArmourMultiplier < Boss.Tuning().ArmourMultiplier, "armoured: more than any boss's hide")
+	expect(t.StunSeconds > 0 and t.ShardWarnSeconds >= 1, "its shards stun, and can be seen coming")
+	expect(t.FlashSeconds > 0 and t.FlashSeconds < t.VolleySeconds[entry.Phases],
+		"its own charge shows its cores for a moment, never all the time")
+	expect(Config.Get("Items", "Flare").Throwable.LightSeconds > t.FlashSeconds, "a flare shows them far longer")
+	expect(entry.Health > Config.Get("Bosses", "Deluge").Health, "the Era III boss has more health than Era II's")
+	expectEqual(Boss.Phase("CrystalColossus", 0.5), 2, "its second phase from two thirds of its health")
 end)
 
 test("Boss: the arena is the deepest tunnel, else a room, else a cell (Section 10)", function()

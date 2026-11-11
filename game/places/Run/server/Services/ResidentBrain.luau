@@ -16,6 +16,7 @@
 	* the Surge: their bed in the Quarters (Bed1, 2... by arrival; no bed: standing in the Quarters).
 	* idle during the day: a seat in the Lounge when there is one (Section 11: socialise in the
 	  Lounge; Landon, Nov 8, 2026), or by their bed.
+	* sick with no job (Prompt 24): in their Quarters bed all day, which is quarantine;
 	* Down: lying where they fell with a Revive prompt (a Medkit from the stockpile); dead: gone.
 	* Away (Prompt 18; Section 12: expeditions leave the map): they walk to the Blast Door and are
 	  gone (after Tuning.Expeditions.LeaveSeconds at the latest); no body while they are away.
@@ -399,8 +400,8 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 	-- water rising or gas where they stand (Prompt 23): residents can't fix either, they get out
 	if #near == 0 and here and not Hazards.Fire(here) then
 		local d = Config.Get("Tuning", "Disasters")
-		if Hazards.Unsafe(here, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
-			if not flee or not flee.Room or Hazards.Unsafe(flee.Room, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
+		if Hazards.Unsafe(here, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength, d.Radiation.ResidentFleeStrength) then
+			if not flee or not flee.Room or Hazards.Unsafe(flee.Room, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength, d.Radiation.ResidentFleeStrength) then
 				flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = safeRoom(here) }
 				fleeing[id] = flee
 			else
@@ -492,7 +493,7 @@ local function plan(id: string, order: number): (string, string?, CFrame?, strin
 	-- a room deep in water or full of gas (Prompt 23): they wait outside until it is safe
 	if roomId and not Hazards.Fire(roomId) then
 		local d = Config.Get("Tuning", "Disasters")
-		if Hazards.Unsafe(roomId, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength) then
+		if Hazards.Unsafe(roomId, d.Flood.ResidentFleeLevel, d.Gas.ResidentFleeStrength, d.Radiation.ResidentFleeStrength) then
 			local body = bodies[id]
 			local here = if body then unitAt(body.Root.Position) else nil
 			if here ~= roomId then
@@ -520,6 +521,12 @@ routine = function(id: string, order: number, resident: any): (string, string?, 
 	if phase == "Surge" or not clock:IsRunning() and phase == nil then
 		local roomId, spot = spotAcross("Quarters", "^Bed%d+$", order)
 		return `Sleep:{roomId}:{order}`, roomId, spot, "Sleep"
+	end
+	-- Quarantine (Prompt 24; Section 10: "quarantine in Quarters"): a sick resident with no job
+	-- keeps to their bed, away from the Kitchen and the Lounge
+	if resident.Sick and not resident.Job and #grid:RoomsOfType("Quarters") > 0 then
+		local roomId, spot = spotAcross("Quarters", "^Bed%d+$", order)
+		return `Quarantine:{roomId}:{order}`, roomId, spot, "Sleep"
 	end
 	if phase == "Day" and os.clock() - dayStartedAt < mealSeconds and #grid:RoomsOfType("Kitchen") > 0 then
 		local roomId, spot = spotAcross("Kitchen", "^Seat%d+$", order)

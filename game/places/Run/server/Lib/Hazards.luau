@@ -18,6 +18,7 @@ local Hazards = {}
 local fires: { [string]: number } = {}
 local floods: { [string]: number } = {}
 local gas: { [string]: number } = {}
+local radiation: { [string]: number } = {} -- Prompt 24
 local blocked: { [string]: string } = {} -- "a|b" (sorted) -> the rubble's id
 local version = 0
 
@@ -67,12 +68,27 @@ function Hazards.GasLeaks(): { [string]: number }
 	return gas
 end
 
--- Is `unit` somewhere people should keep out of: burning, flooded to `floodAt` or gassed to `gasAt`?
-function Hazards.Unsafe(unit: string?, floodAt: number, gasAt: number): boolean
+-- Radiation (Prompt 24): a leak's strength in each unit it fills.
+function Hazards.SetRadiation(unit: string, strength: number?)
+	radiation[unit] = if strength and strength > 0 then strength else nil
+end
+
+function Hazards.Radiation(unit: string?): number?
+	return if unit then radiation[unit] else nil
+end
+
+function Hazards.RadiationLeaks(): { [string]: number }
+	return radiation
+end
+
+-- Is `unit` somewhere people should keep out of: burning, flooded to `floodAt`, gassed to `gasAt`
+-- or irradiated to `radiationAt`?
+function Hazards.Unsafe(unit: string?, floodAt: number, gasAt: number, radiationAt: number?): boolean
 	if not unit then
 		return false
 	end
 	return fires[unit] ~= nil or (floods[unit] or 0) >= floodAt or (gas[unit] or 0) >= gasAt
+		or (radiationAt ~= nil and (radiation[unit] or 0) >= radiationAt)
 end
 
 -- Blocked passages ---------------------------------------------------------------------------------
@@ -132,6 +148,7 @@ function Hazards.Clear()
 	table.clear(fires)
 	table.clear(floods)
 	table.clear(gas)
+	table.clear(radiation)
 	if next(blocked) then
 		table.clear(blocked)
 		version += 1

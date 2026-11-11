@@ -11,6 +11,11 @@
 	  in it reads "3 MONSTERS" in red; a breach on its way "BREACH 7 S" in red; a dark room's vent
 	  (twice as likely, Section 6) "LIKELY" in amber; any other vent "VENT" in green.
 	* Spitter goo's slow on the local player (the SlowedUntil attribute) through Lib.Movement.
+	* The Crystal Hollows (Prompt 24): a dead Shardling's burst of shards (Shattered), a Prism
+	  Stalker all but unseen while Hidden (only its Glint parts catch the light), a small gun's
+	  shot glancing off a Geode Golem (ShruggedAt), a Resonator's hum ring (HumAt) and its light on
+	  the monsters it reached (HummedAt), and the Crystal Colossus's stun on the local player
+	  (StunnedUntil: no walking).
 	* The Flooded Caverns' monsters (Prompt 23), from attributes MonsterService sets on their models:
 	  - Hidden (a Lurker lying in wait): it fades to almost nothing and casts no shadow; its lure
 	    stays faintly lit (the one thing a careful player can spot), and it isn't counted in the
@@ -88,6 +93,8 @@ end
 
 local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
 local HIDDEN_BODY, HIDDEN_GLOW, HIDDEN_LURE = 0.95, 0.93, 0.35 -- how far each kind of part fades
+local HIDDEN_UNSEEN, HIDDEN_GLINT = 0.985, 0.8 -- a Prism Stalker's body and its glints (Prompt 24)
+local CRYSTAL = Color3.fromRGB(176, 238, 234)
 local FADE_PER_SECOND = 2.5
 
 type Watched = {
@@ -95,6 +102,7 @@ type Watched = {
 	Fade: number, -- 0 seen, 1 hidden
 	Target: number,
 	Shadows: { BasePart }, -- parts whose shadow is off while it hides
+	Unseen: boolean?, -- a Prism Stalker: nearly nothing shows
 }
 local watched: { [Model]: Watched } = {}
 
@@ -106,7 +114,10 @@ end
 local function applyFade(model: Model, w: Watched)
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
+			-- a Prism Stalker (Prompt 24) is all but unseen: only its Glint parts catch the light
 			local most = if string.find(part.Name, "Lure") then HIDDEN_LURE
+				elseif string.find(part.Name, "Glint") then HIDDEN_GLINT
+				elseif w.Unseen then HIDDEN_UNSEEN
 				elseif part.Material == Enum.Material.Neon then HIDDEN_GLOW
 				else HIDDEN_BODY
 			part.LocalTransparencyModifier = most * w.Fade
@@ -207,12 +218,144 @@ local function waterBurst(model: Model)
 	end
 end
 
+-- The Crystal Hollows' monsters (Prompt 24) --------------------------------------------------------------
+
+-- A dead Shardling shatters: a ring of flying shards and a flash where it stood.
+local function shatterBurst(model: Model)
+	local at = model:GetPivot().Position + Vector3.new(0, 1, 0)
+	puff(at, 1.6, function(part: Part)
+		local shards = Instance.new("ParticleEmitter")
+		shards.Color = ColorSequence.new(CRYSTAL)
+		shards.LightEmission = 0.8
+		shards.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.45), NumberSequenceKeypoint.new(1, 0.1) })
+		shards.Lifetime = NumberRange.new(0.35, 0.7)
+		shards.Speed = NumberRange.new(22, 38)
+		shards.SpreadAngle = Vector2.new(180, 30)
+		shards.Rotation = NumberRange.new(0, 360)
+		shards.RotSpeed = NumberRange.new(-400, 400)
+		shards.Acceleration = Vector3.new(0, -40, 0)
+		shards.Drag = 1.5
+		shards.Rate = 0
+		shards.Parent = part
+		local flash = Instance.new("PointLight")
+		flash.Color = CRYSTAL
+		flash.Range = 14
+		flash.Brightness = 4
+		flash.Parent = part
+		shards:Emit(34)
+		task.delay(0.15, function()
+			flash.Enabled = false
+		end)
+	end)
+end
+
+-- A small gun's shot glancing off a Geode Golem.
+local function ricochet(model: Model)
+	local root = rootOf(model)
+	if not root then
+		return
+	end
+	local cameraNow = workspace.CurrentCamera
+	local towards = if cameraNow then (cameraNow.CFrame.Position - root.Position) else Vector3.new(0, 0, 1)
+	local flat = Vector3.new(towards.X, 0, towards.Z)
+	local at = root.Position + (if flat.Magnitude > 0.1 then flat.Unit * 3 else Vector3.zero) + Vector3.new(0, 1.5, 0)
+	puff(at, 1, function(part: Part)
+		local e = Instance.new("ParticleEmitter")
+		e.Color = ColorSequence.new(Color3.fromRGB(255, 236, 190))
+		e.LightEmission = 1
+		e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
+		e.Lifetime = NumberRange.new(0.15, 0.4)
+		e.Speed = NumberRange.new(18, 34)
+		e.SpreadAngle = Vector2.new(80, 80)
+		e.Acceleration = Vector3.new(0, -60, 0)
+		e.Rate = 0
+		e.Parent = part
+		e:Emit(8)
+	end)
+end
+
+-- A Resonator's hum: a ring running out along the floor to its Range.
+local function humRing(model: Model)
+	local root = rootOf(model)
+	local entry = Config.Find("Monsters", tostring(model:GetAttribute("MonsterType")))
+	if not root or not entry then
+		return
+	end
+	local ring = Instance.new("Part")
+	ring.Name = "HumRing"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Anchored = true
+	ring.CanCollide = false
+	ring.CanQuery = false
+	ring.CanTouch = false
+	ring.CastShadow = false
+	ring.Material = Enum.Material.Neon
+	ring.Color = CRYSTAL
+	ring.Transparency = 0.55
+	local floorY = model:GetPivot().Position.Y + 0.25
+	local centre = Vector3.new(root.Position.X, floorY, root.Position.Z)
+	ring.Parent = workspace.CurrentCamera or workspace
+	local started = os.clock()
+	local seconds = 0.9
+	local connection: RBXScriptConnection? = nil
+	connection = RunService.RenderStepped:Connect(function()
+		local k = math.clamp((os.clock() - started) / seconds, 0, 1)
+		local radius = 2 + (entry.Range - 2) * (1 - (1 - k) * (1 - k))
+		ring.Size = Vector3.new(0.12, radius * 2, radius * 2)
+		ring.CFrame = CFrame.new(centre) * CFrame.Angles(0, 0, math.rad(90))
+		ring.Transparency = 0.55 + 0.45 * k
+		if k >= 1 then
+			if connection then
+				connection:Disconnect()
+			end
+			ring:Destroy()
+		end
+	end)
+end
+
+-- A monster the hum reached: a breath of crystal light on it.
+local function hummed(model: Model)
+	local root = rootOf(model)
+	if not root then
+		return
+	end
+	puff(root.Position, 1.2, function(part: Part)
+		local e = Instance.new("ParticleEmitter")
+		e.Color = ColorSequence.new(CRYSTAL)
+		e.LightEmission = 1
+		e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) })
+		e.Lifetime = NumberRange.new(0.5, 0.9)
+		e.Speed = NumberRange.new(2, 6)
+		e.SpreadAngle = Vector2.new(180, 180)
+		e.Acceleration = Vector3.new(0, 10, 0)
+		e.Rate = 0
+		e.Parent = part
+		e:Emit(10)
+	end)
+end
+
 local function watchMonster(model: Instance)
 	if not model:IsA("Model") or watched[model] or model:GetAttribute("MonsterType") == nil then
 		return
 	end
 	local w: Watched = { Connections = {}, Fade = 0, Target = 0, Shadows = {} }
+	local entry = Config.Find("Monsters", tostring(model:GetAttribute("MonsterType")))
+	w.Unseen = entry ~= nil and entry.Traits ~= nil and table.find(entry.Traits, "Invisible") ~= nil
 	watched[model] = w
+	table.insert(w.Connections, model:GetAttributeChangedSignal("Shattered"):Connect(function()
+		if model:GetAttribute("Shattered") then
+			shatterBurst(model)
+		end
+	end))
+	table.insert(w.Connections, model:GetAttributeChangedSignal("ShruggedAt"):Connect(function()
+		ricochet(model)
+	end))
+	table.insert(w.Connections, model:GetAttributeChangedSignal("HumAt"):Connect(function()
+		humRing(model)
+	end))
+	table.insert(w.Connections, model:GetAttributeChangedSignal("HummedAt"):Connect(function()
+		hummed(model)
+	end))
 	table.insert(w.Connections, model:GetAttributeChangedSignal("Hidden"):Connect(function()
 		setHidden(model, w, model:GetAttribute("Hidden") == true)
 	end))
@@ -301,6 +444,26 @@ function ThreatController:Start()
 			Movement.Set("Slowed", if on then Config.Get("Tuning", "MonsterAI").GooSlowMultiplier else nil)
 		end
 	end)
+	-- the Crystal Colossus's shards stun the local player (BossService sets StunnedUntil; Prompt 24):
+	-- no walking until it passes (the server refuses their shots and swings meanwhile)
+	local stunned = false
+	local function readStun()
+		local untilAt = player:GetAttribute("StunnedUntil")
+		local left = if type(untilAt) == "number" then untilAt - workspace:GetServerTimeNow() else 0
+		local on = left > 0
+		if on ~= stunned then
+			stunned = on
+			Movement.Set("Stunned", if on then 0 else nil)
+			if on then
+				hud:Alert("Danger", "STUNNED", math.min(left, 3))
+				camera:Shake(0.8, 0.5)
+			end
+		end
+		if on then
+			task.delay(left + 0.05, readStun)
+		end
+	end
+	player:GetAttributeChangedSignal("StunnedUntil"):Connect(readStun)
 	-- the Flooded Caverns' monsters: hiding, shell hits, bursts
 	task.spawn(function()
 		local folder = workspace:WaitForChild("Monsters", 300)

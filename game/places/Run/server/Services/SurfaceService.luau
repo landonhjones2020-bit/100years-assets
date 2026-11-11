@@ -68,6 +68,7 @@ local Remotes = require(Shared.Remotes)
 local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
 local Surface = require(Shared.Rules.Surface)
+local Disasters = require(Shared.Rules.Disasters)
 local BunkerKit = require(ServerScriptService.Lib.BunkerKit)
 
 local log = Log.new("SurfaceService")
@@ -257,6 +258,11 @@ local function radiationTick(player: Player, root: BasePart, dt: number)
 	if alive(player) then
 		local zone = SurfaceService:Zone(player)
 		value += Surface.RadiationRate(zone, storm, classValue(player, "RadiationGain")) * dt
+		-- Prompt 24: a radiation leak in the bunker (DisasterService marks who stands in one)
+		local leak = player:GetAttribute("InRadiation")
+		if type(leak) == "number" and leak > 0 then
+			value += Disasters.RadiationPlayerRate(leak, classValue(player, "RadiationGain")) * dt
+		end
 		if zone == "Bunker" and value > 0 and inDecon(root.Position) then
 			value -= tuning.DeconPerSecond * dt
 		end
@@ -271,7 +277,8 @@ local function radiationTick(player: Player, root: BasePart, dt: number)
 	local level = if value >= p.RadiationMax then 2 elseif value >= p.RadiationMax * tuning.RadiationWarnAt then 1 else 0
 	if level > (warned[player] or 0) then
 		if level == 1 then
-			alert(player, "Warning", "RADIATION HIGH: HEAD BACK TO THE ELEVATOR")
+			alert(player, "Warning", if player:GetAttribute("InRadiation") then "RADIATION HIGH: GET OUT OF THE LEAK"
+				else "RADIATION HIGH: HEAD BACK TO THE ELEVATOR")
 		else
 			alert(player, "Danger", "RADIATION SICKNESS: YOU'RE LOSING HEALTH · CLEAR-RAD PILLS OR A DECON ROOM CLEAR IT")
 		end

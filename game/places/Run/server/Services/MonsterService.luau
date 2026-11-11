@@ -54,6 +54,15 @@
 	  hunts like the rest. ArmoredFront and WeakPointBack (Tide Crab): a damage filter, by where the
 	  blow comes from (the ShellHitAt and WeakHitAt attributes tell clients which it was).
 	  Murklings need nothing here: ThreatDirector sends them out of flooded rooms.
+	* The Crystal Hollows (Prompt 24). Shatters (Shardling): killed, its shards sting everyone
+	  within ShatterRadius (the Shattered attribute: the client's burst). Invisible (Prism Stalker):
+	  Hidden unless a flare or a lamp lights it (parts tagged RevealLight with a Radius; Rules.Threat
+	  .Lit) and for StalkerRevealSeconds after it strikes or is hit. ShrugsSmallGuns (Geode Golem):
+	  a WeaponService hit modifier, SmallGunMultiplier of a small gun's shot (ShruggedAt: the
+	  client's ricochet). Heals and Hastes (Resonator): it follows the pack, never strikes, and
+	  every AttackSeconds its hum (HumAt) heals the monsters within its Range and quickens them for
+	  HasteSeconds (their HummedAt and Hasted attributes). Bosses are not monsters here: no hum
+	  reaches them.
 
 	API:
 		MonsterService.Spawned: Signal<string, string, string?> -- id, type, tag
@@ -71,6 +80,7 @@
 	Dev: monster, monster.hit, monsters, monsters.clear.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local PathfindingService = game:GetService("PathfindingService")
 local Players = game:GetService("Players")
 local PhysicsService = game:GetService("PhysicsService")
@@ -93,7 +103,7 @@ local log = Log.new("MonsterService")
 
 local MonsterService = {
 	Name = "MonsterService",
-	Dependencies = { "CombatService", "BunkerGrid", "ResidentService", "RunDirector", "PowerService", "DevService" },
+	Dependencies = { "CombatService", "BunkerGrid", "ResidentService", "RunDirector", "PowerService", "WeaponService", "DevService" },
 	Spawned = Signal.new() :: Signal.Signal<string, string, string?>,
 	Burst = Signal.new() :: Signal.Signal<string, string, Vector3, string?>, -- id, type, where, its room or cell (Prompt 23)
 	Died = Signal.new() :: Signal.Signal<string, string, string?>,
@@ -147,6 +157,9 @@ type Monster = {
 	Hidden: boolean?,
 	Grabbing: string?, -- the resident (a combatant id) a Lurker holds
 	GrabDamage: number, -- what it has been hit for since it grabbed
+	-- Prompt 24: the Crystal Hollows' monsters
+	ShownUntil: number?, -- a Prism Stalker that struck or was hit is seen until then (os.clock)
+	HasteUntil: number, -- a Resonator's hum quickens it until then (os.clock)
 }
 
 local combat: any = nil
@@ -154,6 +167,7 @@ local grid: any = nil
 local residents: any = nil
 local director: any = nil
 local power: any = nil
+local weapons: any = nil
 local dev: any = nil
 
 export type Options = { Guard: number? }
@@ -354,6 +368,7 @@ local function spawnNow(monsterType: string, at: CFrame, tag: string?, options: 
 		CircleAngle = rng:NextNumber() * math.pi * 2,
 		HideUntil = 0,
 		GrabDamage = 0,
+		HasteUntil = 0,
 	}
 	MonsterService.Spawned:Fire(id, monsterType, tag)
 	return id
@@ -1046,6 +1061,10 @@ local function attack(m: Monster, target: Target)
 	local windup = if type(hitTime) == "number" then hitTime else spec.AttackSeconds * ai().WindupFraction
 	m.Model:SetAttribute("AttackAt", os.clock()) -- NPCAnimator replays the attack clip
 	setActivity(m, "Attack")
+	if has(m, "Invisible") then
+		m.ShownUntil = os.clock() + windup + ai().StalkerRevealSeconds -- it shows itself as it strikes
+		setHidden(m, false)
+	end
 	task.delay(windup, function()
 		if not monsters[m.Id] then
 			return
@@ -1252,11 +1271,138 @@ local function shell(target: any, amount: number, source: any?, _how: string?): 
 	return amount * multiplier
 end
 
+-- The Crystal Hollows' monsters (Prompt 24) -------------------------------------------------------------
+
+-- What flares and lamps light now (parts tagged RevealLight with a Radius: WeaponService's flares,
+-- DeepService's lanterns), gathered once a tick.
+local lightsAt = -1
+local lightList: { { Position: Vector3, Radius: number } } = {}
+local function lights(): { { Position: Vector3, Radius: number } }
+	if lightsAt == os.clock() then
+		return lightList
+	end
+	lightsAt = os.clock()
+	lightList = {}
+	for _, instance in CollectionService:GetTagged("RevealLight") do
+		local radius = instance:GetAttribute("Radius")
+		if instance:IsA("BasePart") and instance:IsDescendantOf(workspace) and type(radius) == "number" then
+			table.insert(lightList, { Position = instance.Position, Radius = radius })
+		end
+	end
+	return lightList
+end
+
+function MonsterService:Lit(position: Vector3): boolean
+	return Threat.Lit(position, lights())
+end
+
+-- A dead Shardling shatters ("Crystal bugs that shatter into stinging shards"): its shards sting
+-- everyone near.
+local function shatter(m: Monster)
+	local at = m.Root.Position
+	m.Model:SetAttribute("Shattered", true) -- the client's burst of shards
+	local stung = 0
+	for _, c in combat:All("Survivors") do
+		if c.State == "Alive" and c.Root.Parent then
+			local damage = Threat.ShatterDamage((c.Root.Position - at).Magnitude - c.Reach)
+			if damage > 0 and combat:Damage(c.Id, damage, nil, "shards") > 0 then
+				stung += 1
+			end
+		end
+	end
+	if stung > 0 then
+		log:Debug("%s shattered: its shards stung %d", m.Id, stung)
+	end
+end
+
+-- A Geode Golem "shrugs off small guns" (WeaponService's hit modifier knows the gun).
+local function smallGuns(target: any, _point: Vector3?, _how: string, _player: Player, item: string?): number
+	local m = monsters[target.Id]
+	if not m or not has(m, "ShrugsSmallGuns") then
+		return 1
+	end
+	local multiplier = Threat.SmallGunMultiplier(item)
+	if multiplier < 1 then
+		m.Model:SetAttribute("ShruggedAt", now()) -- the client's ricochet
+	end
+	return multiplier
+end
+
+-- A Resonator ("Hums to heal and speed up nearby monsters; kill it first"). It follows the pack
+-- and never strikes: every AttackSeconds its hum heals and quickens the monsters within its Range.
+local function resonate(m: Monster)
+	local t = ai()
+	local here = m.Root.Position
+	local ally: Monster? = nil
+	local nearest = math.huge
+	local inRange: { Monster } = {}
+	for _, other in monsters do
+		if other ~= m and other.Model.Parent and other.Zone == m.Zone then
+			local d = (other.Root.Position - here).Magnitude
+			if d <= m.Spec.Range and math.abs(other.Root.Position.Y - here.Y) < 9 then
+				table.insert(inRange, other)
+			end
+			if not has(other, "Heals") then
+				local s = score(here, other.Root.Position)
+				if s < nearest then
+					nearest, ally = s, other
+				end
+			end
+		end
+	end
+	if os.clock() >= m.AttackReadyAt and #inRange > 0 then
+		m.AttackReadyAt = os.clock() + m.Spec.AttackSeconds
+		m.Model:SetAttribute("AttackAt", os.clock())
+		m.Model:SetAttribute("HumAt", now()) -- the client's ring
+		setActivity(m, "Attack")
+		local healed = 0
+		for _, other in inRange do
+			local health, max = combat:HealthOf(other.Id)
+			local amount = Threat.HumHeal(health, max)
+			if amount > 0 and combat:Heal(other.Id, amount) > 0 then
+				healed += 1
+			end
+			other.HasteUntil = os.clock() + t.HasteSeconds
+			other.Model:SetAttribute("HummedAt", now())
+		end
+		log:Debug("%s hummed: %d near, %d healed", m.Id, #inRange, healed)
+		halt(m)
+		return
+	end
+	if ally then
+		local flat = Vector3.new(ally.Root.Position.X - here.X, 0, ally.Root.Position.Z - here.Z).Magnitude
+		if flat > t.HumFollow or math.abs(ally.Root.Position.Y - here.Y) > 6 then
+			walk(m, ally.Root.Position)
+			return
+		end
+		halt(m)
+		setActivity(m, "Idle")
+		return
+	end
+	-- alone: it trails whoever its kind would hunt, at arm's length
+	if not m.Target or os.clock() - m.TargetAt > 1 then
+		chooseTarget(m)
+	end
+	local target = m.Target
+	local at = if target then targetPosition(target) else nil
+	if target and at and Vector3.new(at.X - here.X, 0, at.Z - here.Z).Magnitude > m.Spec.Range * t.KeepDistanceFraction then
+		walk(m, at)
+		return
+	end
+	halt(m)
+	setActivity(m, "Idle")
+end
 
 -- The tick -----------------------------------------------------------------------------------------
 
 local function step(m: Monster)
 	m.Zone = Surface.Zone(m.Root.Position)
+	-- a Resonator's hum quickens it (Prompt 24)
+	local speed = m.Spec.MoveSpeed * (if os.clock() < m.HasteUntil then ai().HasteMultiplier else 1)
+	if math.abs(m.Humanoid.WalkSpeed - speed) > 0.01 then
+		m.Humanoid.WalkSpeed = speed
+		m.Model:SetAttribute("Hasted", if speed > m.Spec.MoveSpeed then true else nil)
+	end
 	local stunned = m.Model:GetAttribute("StunnedUntil")
 	if type(stunned) == "number" and stunned > now() then
 		unlatch(m)
@@ -1304,6 +1450,14 @@ local function step(m: Monster)
 		return -- a Bloat Toad swelling
 	end
 	if has(m, "Hides") and ambush(m) then
+		return
+	end
+	if has(m, "Invisible") then
+		-- a Prism Stalker: "Invisible until lit by a flare or lamp"
+		setHidden(m, not Threat.StalkerSeen(Threat.Lit(m.Root.Position, lights()), os.clock(), m.ShownUntil))
+	end
+	if has(m, "Heals") then
+		resonate(m)
 		return
 	end
 	local post = m.Post
@@ -1422,6 +1576,7 @@ function MonsterService:Init(registry)
 	residents = registry.ResidentService
 	director = registry.RunDirector
 	power = registry.PowerService
+	weapons = registry.WeaponService
 	dev = registry.DevService
 
 	pcall(function()
@@ -1516,6 +1671,7 @@ end
 function MonsterService:Start()
 	holder()
 	combat:AddDamageFilter("Shell", shell)
+	weapons:AddHitModifier("SmallGuns", smallGuns)
 	combat.Died:Connect(function(id: string)
 		local m = monsters[id]
 		if not m then
@@ -1526,6 +1682,9 @@ function MonsterService:Start()
 		if has(m, "Explodes") and not m.Model:GetAttribute("Burst") and m.Root.Parent then
 			burst(m) -- "Bursts on death or contact" (Prompt 23)
 		end
+		if has(m, "Shatters") and m.Root.Parent then
+			shatter(m) -- Prompt 24
+		end
 		MonsterService.Died:Fire(id, m.Type, m.Tag)
 		task.defer(drainQueue)
 	end)
@@ -1534,7 +1693,10 @@ function MonsterService:Start()
 		if m and m.Grabbing then
 			m.GrabDamage += _amount -- hit it hard enough and it lets go
 		end
-		if m and m.Hidden then
+		if m and has(m, "Invisible") then
+			m.ShownUntil = os.clock() + ai().StalkerRevealSeconds -- a hit shows it for a moment (Prompt 24)
+			setHidden(m, false)
+		elseif m and m.Hidden then
 			setHidden(m, false) -- a hit shows where it lies
 			m.AttackReadyAt = math.max(m.AttackReadyAt, os.clock() + ai().RevealSeconds)
 		end

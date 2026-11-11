@@ -46,6 +46,8 @@ export type Resident = {
 	Hungry: boolean, -- missed the last meal
 	Trapped: boolean?, -- cave-in rubble cuts them off from where they need to be (Prompt 13)
 	Weapon: string?, -- the weapon they carry (Section 11's gear, Prompt 26): armed residents answer rally calls
+	Sick: boolean?, -- an Outbreak's sickness (Prompt 24; Config.Conditions.Sick: contagious until treated)
+	Irradiated: boolean?, -- caught in a radiation leak (Prompt 24; Config.Conditions.Irradiated: loses health until cleared)
 	Log: { string }, -- the run log (Section 11)
 }
 export type Crew = { Workers: number, StatSum: number, Morale: number, Multiplier: number? }
@@ -200,7 +202,25 @@ function Residents.IsExhausted(resident: Resident): boolean
 	return resident.Rest <= 0
 end
 
--- A room's crew: who works there, alive, with their job stat (Exhausted counts half).
+-- The health a resident's conditions cost them each cycle (Prompt 24: Sick and Irradiated;
+-- Config.Conditions' HealthPerCycle). Zero or less.
+function Residents.ConditionHealth(resident: Resident): number
+	local sum = 0
+	if resident.Sick then
+		sum += Config.Get("Conditions", "Sick").HealthPerCycle or 0
+	end
+	if resident.Irradiated then
+		sum += Config.Get("Conditions", "Irradiated").HealthPerCycle or 0
+	end
+	return sum
+end
+
+-- Quarantine (Section 10: "quarantine in Quarters"): a sick resident with no job keeps to a bed.
+function Residents.Quarantined(resident: Resident): boolean
+	return resident.Sick == true and resident.Job == nil and resident.State == "Alive"
+end
+
+-- A room's crew: who works there, alive, with their job stat (Exhausted counts half, the Sick less).
 function Residents.Crew(workers: { Resident }, roomType: string): Crew?
 	local stat = Residents.JobStat(roomType)
 	if not stat then
@@ -211,7 +231,9 @@ function Residents.Crew(workers: { Resident }, roomType: string): Crew?
 		if resident.State == "Alive" then
 			count += 1
 			local exhausted = Config.Get("Conditions", "Exhausted").OutputMultiplier
+			local sick = Config.Get("Conditions", "Sick").OutputMultiplier or 1
 			sum += (resident.Stats[stat] or 0) * (if Residents.IsExhausted(resident) then exhausted else 1)
+				* (if resident.Sick then sick else 1) -- Prompt 24: the sick work slowly
 			local _, effect = Residents.MoraleState(resident.Morale)
 			morale += effect
 		end

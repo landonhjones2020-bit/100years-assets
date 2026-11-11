@@ -217,7 +217,76 @@ function Disasters.HazardKind(hazards: { string }, rng: Random): string?
 	if gas and water then
 		return if rng:NextNumber() < Disasters.Tuning().HazardPocket.GasChance then "GasLeak" else "Flood"
 	end
-	return if gas then "GasLeak" elseif water then "Flood" else nil
+	if gas or water then
+		return if gas then "GasLeak" else "Flood"
+	end
+	-- the Crystal Hollows (Prompt 24; Section 12: "radiation in the Crystal Hollows")
+	return if table.find(hazards, "RadiationLeak") ~= nil then "RadiationLeak" else nil
+end
+
+-- Radiation leaks (Prompt 24) --------------------------------------------------------------------
+
+-- A leak's strength after dt: filling while it leaks (`slow` is DeconSlow while a Decon Room
+-- works), fading once it is sealed.
+function Disasters.RadiationStep(strength: number, dt: number, leaking: boolean, slow: number?): number
+	local r = Disasters.Tuning().Radiation
+	return math.clamp(strength + (if leaking then r.FillPerSecond * (slow or 1) else -r.FadePerSecond) * dt, 0, 100)
+end
+
+function Disasters.RadiationSeconds(): number
+	return Config.Get("Disasters", "RadiationLeak").DurationSeconds or 120
+end
+
+-- Radiation a player standing in it takes per second (`gain` is their RadiationGain).
+function Disasters.RadiationPlayerRate(strength: number, gain: number?): number
+	return Disasters.Tuning().Radiation.PlayerPerSecond * math.clamp(strength, 0, 100) / 100 * math.max(gain or 1, 0)
+end
+
+function Disasters.RadiationResidentDamage(strength: number, dt: number, taken: number?): number
+	return Disasters.Tuning().Radiation.ResidentDamagePerSecond * math.clamp(strength, 0, 100) / 100 * dt * (taken or 1)
+end
+
+-- The odds that a Surge's storm gets through the Blast Door (Section 10: "a weak Blast Door"):
+-- by its level, more the more HP it has lost; a wrecked door always leaks; never before FromEra.
+function Disasters.DoorLeakChance(era: number, level: number, hpFraction: number, wrecked: boolean): number
+	local r = Disasters.Tuning().Radiation
+	if era < r.FromEra then
+		return 0
+	end
+	if wrecked then
+		return 1
+	end
+	local base = r.DoorLeakChance[math.clamp(math.floor(level), 1, #r.DoorLeakChance)]
+	return math.clamp(base + r.DoorDamagedChance * (1 - math.clamp(hpFraction, 0, 1)), 0, 1)
+end
+
+-- Outbreaks (Prompt 24) --------------------------------------------------------------------------
+
+-- Does someone coming in from the Deep carry the sickness? (`roll` is 0 to 1.)
+function Disasters.CarriesSickness(era: number, roll: number): boolean
+	local o = Disasters.Tuning().Outbreak
+	return era >= o.FromEra and roll < o.CarrierChance
+end
+
+-- Who a sick resident can pass it to: the others in their room who are well and haven't had it.
+-- `people` is { { Id, Room, Sick, Immune, Quarantined } }; the quarantined pass nothing on.
+function Disasters.OutbreakTargets(people: { { [string]: any } }, carrier: { [string]: any }): { string }
+	local out = {}
+	if carrier.Quarantined or not carrier.Sick or not carrier.Room then
+		return out
+	end
+	for _, other in people do
+		if other.Id ~= carrier.Id and other.Room == carrier.Room and not other.Sick and not other.Immune then
+			table.insert(out, other.Id)
+		end
+	end
+	table.sort(out)
+	return out
+end
+
+-- Seconds a working Medbay takes over one patient (`speed` is the team's best OutbreakCureSpeed).
+function Disasters.CureSeconds(speed: number?): number
+	return Disasters.Tuning().Outbreak.CureSeconds / math.max(speed or 1, 0.1)
 end
 
 -- The Surge's disaster -------------------------------------------------------------------------

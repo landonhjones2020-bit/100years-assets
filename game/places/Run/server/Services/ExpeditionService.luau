@@ -82,7 +82,7 @@ local ExpeditionService = {
 	Name = "ExpeditionService",
 	Dependencies = {
 		"BunkerGrid", "CycleClock", "RunDirector", "SessionService", "EconomyService", "ResidentService",
-		"ResidentBrain", "RescueService", "SurfaceService", "DeepService", "ReplicationService", "DevService",
+		"ResidentBrain", "RescueService", "SurfaceService", "DeepService", "DisasterService", "ReplicationService", "DevService",
 	},
 	Sent = Signal.new() :: Signal.Signal<string, string, string>,
 	Returned = Signal.new() :: Signal.Signal<string, string, string, string>,
@@ -145,6 +145,7 @@ local brain: any = nil
 local rescue: any = nil
 local surface: any = nil
 local deep: any = nil
+local disasters: any = nil
 local collection: any = nil
 
 local expeditions: { [string]: Expedition } = {}
@@ -612,6 +613,9 @@ local function comeHome(e: Expedition)
 	end
 	local home = Expeditions.Names(namesOf(e, { Home = true }))
 	note(e, line(e, "Home", { names = home }), back)
+	if e.Destination == "Deep" and back[1] then
+		disasters:FromTheDeep(back[1].Id, "expedition") -- one roll a trip (Section 10; Prompt 24)
+	end
 	local finds = deliver(e)
 	alertAll("Info", `THE {string.upper(e.Destination)} EXPEDITION IS HOME: {string.upper(home)} · {finds}`)
 	if #idle > 0 then
@@ -1088,6 +1092,7 @@ function ExpeditionService:Init(registry)
 	rescue = registry.RescueService
 	surface = registry.SurfaceService
 	deep = registry.DeepService
+	disasters = registry.DisasterService
 	collection = registry.ReplicationService:Collection("Expeditions")
 	Remotes.OnServer("SendExpedition", function(player: Player, destination: string, members: { string }, cycles: number, medkits: number)
 		local id, why = ExpeditionService:Send(destination, members, cycles, medkits, player)

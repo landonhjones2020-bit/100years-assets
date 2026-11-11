@@ -433,6 +433,11 @@ end
 -- Both hands on a big find (Prompt 16, Section 12): no firing, swinging, throwing, tools, rolls or
 -- Medkits until it is put down.
 local function handsFree(player: Player): boolean
+	-- Prompt 24: stunned (the Crystal Colossus's shards), a player can't act either
+	local stunned = player:GetAttribute("StunnedUntil")
+	if type(stunned) == "number" and stunned > workspace:GetServerTimeNow() then
+		return false
+	end
 	return alive(player) and player:GetAttribute("Carrying") == nil
 end
 
@@ -493,11 +498,12 @@ local hitModifier: ((target: any, point: Vector3?, how: string, player: Player) 
 local shotHook: ((Player, string) -> any)? = nil
 
 -- Class damage (Prompt 20): fn(target, point, how, player) -> multiplier, by name.
-local hitModifiers: { { Name: string, Fn: (any, Vector3?, string, Player) -> number } } = {}
+local hitModifiers: { { Name: string, Fn: (any, Vector3?, string, Player, string?) -> number } } = {}
 
-local function modified(target: any, amount: number, point: Vector3?, how: string, player: Player): (number, string)
+-- `item` is what the hit came from (a gun's shot; Prompt 24: a Geode Golem shrugs off small guns).
+local function modified(target: any, amount: number, point: Vector3?, how: string, player: Player, item: string?): (number, string)
 	for _, entry in hitModifiers do
-		local ok, multiplier = pcall(entry.Fn, target, point, how, player)
+		local ok, multiplier = pcall(entry.Fn, target, point, how, player, item)
 		if ok and type(multiplier) == "number" and multiplier == multiplier then
 			amount *= multiplier
 		elseif not ok then
@@ -690,6 +696,11 @@ local function landed(player: Player, itemId: string, throwable: { [string]: any
 		flare.Position = at + Vector3.new(0, flare.Size.Y / 2, 0)
 		flare:SetAttribute("Radius", throwable.Radius)
 		flare:SetAttribute("RevealsHidden", throwable.RevealsHidden == true)
+		if throwable.RevealsHidden then
+			-- Prompt 24: what a flare lights, MonsterService shows (Prism Stalkers) and BossService
+			-- (the Crystal Colossus's cores)
+			game:GetService("CollectionService"):AddTag(flare, "RevealLight")
+		end
 		local light = Instance.new("PointLight")
 		light.Range = math.min(throwable.Radius, 60)
 		light.Brightness = 4
@@ -848,7 +859,7 @@ local function onFire(player: Player, slot: number, shot: number, origin: Vector
 	local hitOnce: { [string]: boolean } = {}
 	local function land(target: any, point: Vector3, scale: number)
 		local kind = if crit then "crit" else "shot"
-		local amount, how = modified(target, damage * scale * (crit or 1), point, kind, player)
+		local amount, how = modified(target, damage * scale * (crit or 1), point, kind, player, held.Item)
 		local done = combat:Damage(target.Id, amount, shooter.Id, how)
 		if done > 0 then
 			confirm(player, target.Id, done, point, how, kind)
@@ -1464,7 +1475,7 @@ function WeaponService:SetClass(player: Player, classId: string, level: number?)
 	refreshHeld(player, state)
 end
 
-function WeaponService:AddHitModifier(name: string, fn: (any, Vector3?, string, Player) -> number)
+function WeaponService:AddHitModifier(name: string, fn: (any, Vector3?, string, Player, string?) -> number)
 	for i, entry in hitModifiers do
 		if entry.Name == name then
 			table.remove(hitModifiers, i)
@@ -1512,6 +1523,20 @@ function WeaponService:Init(registry)
 		Usage = "loadout",
 		Run = function(player): string?
 			return if player then describe(player) else "players only"
+		end,
+	})
+	dev:Register("flare", {
+		Description = "Light a flare at your feet (Prompt 24: it shows Prism Stalkers and the Colossus's cores).",
+		Run = function(player): string?
+			local character = player and player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local throwable = Config.Get("Items", "Flare").Throwable
+			if not player or not root or not root:IsA("BasePart") or not throwable then
+				return "no character"
+			end
+			local floorY = root.Position.Y - 3
+			landed(player, "Flare", throwable, Vector3.new(root.Position.X, floorY, root.Position.Z))
+			return `a flare burns for {throwable.LightSeconds} s, lighting {throwable.Radius} studs`
 		end,
 	})
 	dev:Register("give", {

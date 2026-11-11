@@ -184,4 +184,49 @@ function Threat.Shell(dot: number, armoredFront: boolean, weakBack: boolean): (n
 	return 1, nil
 end
 
+-- The Crystal Hollows' monsters (Prompt 24) ---------------------------------------------------------
+
+-- Is `position` lit by a flare or a lamp? `lights` are { Position, Radius }; a light reaches its
+-- Radius along the floor and LightHeight up and down (so one a floor away shows nothing).
+function Threat.Lit(position: Vector3, lights: { { Position: Vector3, Radius: number } }): boolean
+	local height = Config.Get("Tuning", "MonsterAI").LightHeight
+	for _, light in lights do
+		local offset = position - light.Position
+		if math.abs(offset.Y) <= height and Vector3.new(offset.X, 0, offset.Z).Magnitude <= light.Radius then
+			return true
+		end
+	end
+	return false
+end
+
+-- A Prism Stalker is seen while a light is on it and for StalkerRevealSeconds after it strikes or
+-- is hit (`shownUntil`).
+function Threat.StalkerSeen(lit: boolean, now: number, shownUntil: number?): boolean
+	return lit or (shownUntil ~= nil and now < shownUntil)
+end
+
+-- What a Geode Golem takes of a shot from `itemId` ("shrugs off small guns"): SmallGunMultiplier
+-- from a small gun (Config.Items: Gun.Small), all of it from anything else.
+function Threat.SmallGunMultiplier(itemId: string?): number
+	local item = if itemId then Config.Find("Items", itemId) else nil
+	if item and item.Gun and item.Gun.Small then
+		return Config.Get("Tuning", "MonsterAI").SmallGunMultiplier
+	end
+	return 1
+end
+
+-- A Resonator's hum on a monster with `health` of `max`: what it heals.
+function Threat.HumHeal(health: number, max: number): number
+	if health <= 0 or health >= max then
+		return 0
+	end
+	return math.min(max - health, max * Config.Get("Tuning", "MonsterAI").HumHealFraction)
+end
+
+-- A dead Shardling's shards: what they do to someone `distance` studs away.
+function Threat.ShatterDamage(distance: number): number
+	local t = Config.Get("Tuning", "MonsterAI")
+	return if distance <= t.ShatterRadius then t.ShatterDamage else 0
+end
+
 return Threat

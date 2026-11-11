@@ -65,7 +65,10 @@ local miniMap: any = nil
 local commandView: any = nil
 local replica: any = nil
 
-type Effect = { Parts: { BasePart }, Emitters: { ParticleEmitter }, Lights: { PointLight }, Kind: string, Level: number?, Shown: number? }
+type Effect = {
+	Parts: { BasePart }, Emitters: { ParticleEmitter }, Lights: { PointLight }, Kind: string, Level: number?, Shown: number?,
+	Units: string?, -- a radiation leak's units, joined (Prompt 24)
+}
 
 local effects: { [string]: Effect } = {} -- disaster id -> what is drawn for it
 local blinking: { [string]: boolean } = {} -- room ids blinking now
@@ -320,10 +323,140 @@ local function setGasStrength(effect: Effect, strength: number)
 	end
 end
 
--- A burst pipe sprays and a leaking vent hisses (the server's fittings in workspace.Bunker.Disasters).
+-- Radiation (Prompt 24): motes of crystal light rising through every cell the leak fills, and a
+-- sick glow. `units` are room ids and dug cells ("D:<floor>,<column>").
+local RADIATION = Color3.fromRGB(150, 255, 170)
+local function unitCells(unit: string): { Vector3 }
+	local floor, column = string.match(unit, "^D:(%-?%d+),(%-?%d+)$")
+	if floor and column then
+		return { Grid.CellPosition(tonumber(floor) :: number, tonumber(column) :: number) }
+	end
+	return cellsOf(unit)
+end
+
+local function makeRadiation(id: string, units: { string }): Effect
+	local effect: Effect = { Parts = {}, Emitters = {}, Lights = {}, Kind = "Radiation" }
+	local g = Grid.Tuning()
+	for _, unit in units do
+		for _, cell in unitCells(unit) do
+			local part = anchor(cell + Vector3.new(0, g.CellHeight * 0.4, 0), "Radiation")
+			part.Size = Vector3.new(g.CellWidth - 4, g.CellHeight * 0.75, g.CellDepth - 6)
+			table.insert(effect.Parts, part)
+			table.insert(effect.Emitters, emitter(part, {
+				Name = "Motes", LightEmission = 1, LightInfluence = 0,
+				Color = ColorSequence.new(RADIATION),
+				Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.2, 0.22), NumberSequenceKeypoint.new(1, 0) }),
+				Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 0.6) }),
+				Lifetime = NumberRange.new(2.5, 4.5), Speed = NumberRange.new(0.6, 1.8), SpreadAngle = Vector2.new(25, 25),
+				Acceleration = Vector3.new(0, 0.6, 0), EmissionDirection = Enum.NormalId.Top,
+				Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, Rate = 0,
+			}))
+			table.insert(effect.Emitters, emitter(part, {
+				Name = "Haze", Texture = SMOKE_TEXTURE, LightEmission = 0.5, LightInfluence = 0.3,
+				Color = ColorSequence.new(RADIATION, Color3.fromRGB(90, 190, 130)),
+				Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 6), NumberSequenceKeypoint.new(1, 12) }),
+				Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.3, 0.9), NumberSequenceKeypoint.new(0.8, 0.93), NumberSequenceKeypoint.new(1, 1) }),
+				Lifetime = NumberRange.new(4, 6), Speed = NumberRange.new(0.3, 0.9), SpreadAngle = Vector2.new(180, 180),
+				Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-8, 8),
+				Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, Rate = 0,
+			}))
+			local light = Instance.new("PointLight")
+			light.Color = RADIATION
+			light.Range = 24
+			light.Brightness = 0
+			light.Shadows = false
+			light.Parent = part
+			table.insert(effect.Lights, light)
+		end
+	end
+	effect.Units = table.concat(units, "|")
+	effects[id] = effect
+	return effect
+end
+
+local function setRadiationStrength(effect: Effect, strength: number)
+	local k = math.clamp(strength / 100, 0, 1)
+	for _, e in effect.Emitters do
+		e.Rate = if e.Name == "Motes" then 6 + 30 * k else 1 + 5 * k
+	end
+	for _, light in effect.Lights do
+		light.Brightness = 0.25 + 0.9 * k
+	end
+end
+
+-- The sick cough (Prompt 24: an Outbreak): a small sour puff at the head of every Sick resident.
+local coughs: { [string]: Instance } = {}
+local function syncCoughs()
+	local bunker = workspace:FindFirstChild("Bunker")
+	local folder = bunker and bunker:FindFirstChild("Residents")
+	local want: { [string]: boolean } = {}
+	for id, resident in replica:All("Residents") do
+		if type(resident) == "table" and resident.Sick and resident.State == "Alive" then
+			want[id] = true
+			local model = folder and folder:FindFirstChild(id)
+			local head = model and (model:FindFirstChild("Head", true) or (model :: any).PrimaryPart)
+			local existing = coughs[id]
+			if head and head:IsA("BasePart") and (not existing or existing.Parent ~= head) then
+				if existing then
+					existing:Destroy()
+				end
+				local at = Instance.new("Attachment")
+				at.Name = "SickFx"
+				at.Parent = head
+				emitter(at, {
+					Name = "Cough", Texture = SMOKE_TEXTURE, LightEmission = 0.2, LightInfluence = 0.8,
+					Color = ColorSequence.new(Color3.fromRGB(170, 196, 96)),
+					Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 1.3) }),
+					Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1) }),
+					Lifetime = NumberRange.new(0.8, 1.4), Speed = NumberRange.new(1.5, 3), SpreadAngle = Vector2.new(30, 30),
+					EmissionDirection = Enum.NormalId.Front, Rate = 2.5,
+				})
+				coughs[id] = at
+			end
+		end
+	end
+	for id, at in table.clone(coughs) do
+		if not want[id] or not at.Parent then
+			at:Destroy()
+			coughs[id] = nil
+		end
+	end
+end
+
+-- A burst pipe sprays, a leaking vent hisses, a failed door seal and a crystal seam glow and
+-- leak (the server's fittings in workspace.Bunker.Disasters).
 local function watchFitting(item: Instance)
 	local isPipe = string.sub(item.Name, 1, 5) == "Pipe:"
 	local isVent = string.sub(item.Name, 1, 8) == "GasVent:"
+	local isLeak = item.Name == "DoorSeal" or string.sub(item.Name, 1, 8) == "RadSeam:"
+	if isLeak and not item:FindFirstChild("SprayFx", true) then
+		local leakBase = if item:IsA("BasePart") then item elseif item:IsA("Model") then item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart", true) else nil
+		if leakBase then
+			local leakSocket = item:GetAttribute("Socket_Leak")
+			local at = Instance.new("Attachment")
+			at.Name = "SprayFx"
+			at.Parent = leakBase
+			if typeof(leakSocket) == "CFrame" and item:IsA("Model") then
+				at.WorldCFrame = item:GetPivot() * leakSocket
+			else
+				at.CFrame = CFrame.new(0, 0, leakBase.Size.Z / 2)
+			end
+			emitter(at, {
+				Name = "Leak", LightEmission = 1, LightInfluence = 0,
+				Color = ColorSequence.new(RADIATION),
+				Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) }),
+				Lifetime = NumberRange.new(0.6, 1.2), Speed = NumberRange.new(5, 11), SpreadAngle = Vector2.new(35, 35),
+				Acceleration = Vector3.new(0, 3, 0), EmissionDirection = Enum.NormalId.Back, Rate = 45,
+			})
+			local glow = Instance.new("PointLight")
+			glow.Color = RADIATION
+			glow.Range = 16
+			glow.Brightness = 2.2
+			glow.Shadows = false
+			glow.Parent = at
+		end
+		return
+	end
 	if not (isPipe or isVent) or item:FindFirstChild("SprayFx", true) then
 		return
 	end
@@ -368,9 +501,35 @@ local function watchFitting(item: Instance)
 	end
 end
 
--- What the local player stands in: wading slows, gas greens the picture (not for the gas-immune).
+-- What the local player stands in: wading slows, gas greens the picture (not for the gas-immune),
+-- radiation bleaches it (Prompt 24).
 local gasHaze: ColorCorrectionEffect? = nil
+local radHaze: ColorCorrectionEffect? = nil
+local function updateRadiationHaze()
+	local inRadiation = player:GetAttribute("InRadiation")
+	local k = if type(inRadiation) == "number" then math.clamp(inRadiation / 100, 0, 1) else 0
+	if k <= 0 then
+		if radHaze then
+			radHaze:Destroy()
+			radHaze = nil
+		end
+		return
+	end
+	local haze = radHaze
+	if not haze then
+		haze = Instance.new("ColorCorrectionEffect")
+		haze.Name = "RadiationHaze"
+		haze.Parent = game:GetService("Lighting")
+		radHaze = haze
+	end
+	haze.TintColor = Color3.new(1, 1, 1):Lerp(Color3.fromRGB(206, 255, 214), 0.6 * k)
+	haze.Brightness = 0.06 * k
+	haze.Contrast = 0.1 * k
+	haze.Saturation = -0.15 * k
+end
+
 local function updateStanding()
+	updateRadiationHaze()
 	local wading = player:GetAttribute("Wading")
 	Movement.Set("Wading", if type(wading) == "number" and Disasters.WadeSpeed(wading) < 1 then Disasters.WadeSpeed(wading) else nil)
 	local inGas = player:GetAttribute("InGas")
@@ -815,6 +974,8 @@ local function blinkFor(entry: any): string?
 		return entry.Room
 	elseif (entry.Kind == "Flood" and entry.Pipe) or (entry.Kind == "Gas" and entry.Leaking) then
 		return entry.Room -- a pipe to patch, a vent to seal
+	elseif entry.Kind == "Radiation" and entry.Leaking and entry.Room then
+		return entry.Room -- a seam to seal
 	end
 	return nil
 end
@@ -849,6 +1010,17 @@ local function sync()
 				play("GasAlarm")
 			end
 			setGasStrength(effect :: Effect, entry.Strength or 0)
+		elseif entry.Kind == "Radiation" then
+			local units = if type(entry.Units) == "table" then entry.Units else {}
+			if effect and effect.Units ~= table.concat(units, "|") then
+				clearEffect(id) -- the floor it fills changed (a room built or dug)
+				effect = nil
+			end
+			if not effect then
+				effect = makeRadiation(id, units)
+				play("GasAlarm")
+			end
+			setRadiationStrength(effect :: Effect, entry.Strength or 0)
 		elseif entry.Kind == "Surge" and not effect then
 			makeSurge(id, entry.Room)
 		elseif entry.Kind == "Meltdown" and not effect then
@@ -1141,6 +1313,11 @@ function DisasterController:Start()
 	end
 	player:GetAttributeChangedSignal("Wading"):Connect(updateStanding)
 	player:GetAttributeChangedSignal("InGas"):Connect(updateStanding)
+	player:GetAttributeChangedSignal("InRadiation"):Connect(updateStanding)
+	-- Prompt 24: the sick cough
+	replica:Changed("Residents"):Connect(function()
+		task.defer(syncCoughs)
+	end)
 	updateStanding()
 
 	for _, who in Players:GetPlayers() do

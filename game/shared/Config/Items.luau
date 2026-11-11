@@ -33,6 +33,7 @@ local Gun = Check.shape({
 	BlastRadius = Check.optional(F.NonNegative),
 	ChainTargets = Check.optional(F.Count),
 	Automatic = F.Flag,
+	Small = F.Flag, -- a small gun (the Appendix's light-ammo guns): a Geode Golem shrugs it off (Prompt 24)
 })
 
 local Throwable = Check.shape({
@@ -166,7 +167,7 @@ return {
 			Name = "Pocket Pistol",
 			Kind = "Gun",
 			Text = "Light ammo, quick.",
-			Gun = { Damage = 12, FireRate = 4, Range = 120, Magazine = 10, ReloadSeconds = 1.2, AmmoPerShot = 1, SpreadDegrees = 1.5 },
+			Gun = { Damage = 12, FireRate = 4, Range = 120, Magazine = 10, ReloadSeconds = 1.2, AmmoPerShot = 1, SpreadDegrees = 1.5, Small = true },
 			UsesResource = "Ammo",
 			HasRarity = true,
 			Asset = "Weapon_PocketPistol",
@@ -204,7 +205,7 @@ return {
 			Name = "Rivet SMG",
 			Kind = "Gun",
 			Text = "Fast fire, light ammo.",
-			Gun = { Damage = 9, FireRate = 10, Range = 90, Magazine = 30, ReloadSeconds = 1.8, AmmoPerShot = 1, SpreadDegrees = 3, Automatic = true },
+			Gun = { Damage = 9, FireRate = 10, Range = 90, Magazine = 30, ReloadSeconds = 1.8, AmmoPerShot = 1, SpreadDegrees = 3, Automatic = true, Small = true },
 			UsesResource = "Ammo",
 			HasRarity = true,
 			Hold = "TwoHanded",

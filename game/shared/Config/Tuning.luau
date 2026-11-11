@@ -120,6 +120,13 @@ local Schemas: { [string]: Check.Checker } = {
 		BurnMultiplier = N, StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S,
 		ArenaMargin = N, TurnDegreesPerSecond = N,
 	}),
+	CrystalColossus = shape({
+		MoveSpeed = list(N, 3), AttackSeconds = list(S, 3), SlamDamage = N, SlamRadius = N, SlamReach = N,
+		VolleySeconds = list(S, 3), Shards = list(I, 3), ShardWarnSeconds = S, ShardDamage = N, ShardRadius = N,
+		StunSeconds = S, VolleyRange = N, Shardlings = list(I, 3), ArmourMultiplier = Fr, LitSeconds = S, FlashSeconds = S,
+		StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S, ArenaMargin = N,
+		TurnDegreesPerSecond = N, EmergeSeconds = S,
+	}),
 	Deluge = shape({
 		SwimSpeed = list(N, 4), SwimSeconds = list(S, 4), SurfaceSeconds = list(S, 4), SurfaceRiseSeconds = S, DiveSeconds = S,
 		AttackSeconds = list(S, 4), BiteDamage = N, BiteRadius = N, BiteReach = N, Murklings = list(I, 4),
@@ -164,6 +171,15 @@ local Schemas: { [string]: Check.Checker } = {
 			SealSeconds = S,
 		}),
 		HazardPocket = shape({ GasChance = Fr, Damage = N }),
+		-- Prompt 24
+		Radiation = shape({
+			StartStrength = N, FillPerSecond = N, FadePerSecond = N, PlayerPerSecond = N, ResidentDamagePerSecond = N,
+			ResidentFleeStrength = N, IrradiateAt = N, SealSeconds = S, DeconSlow = Fr, DoorLeakChance = list(Fr, 3),
+			DoorDamagedChance = Fr, PocketStrength = N, FromEra = I,
+		}),
+		Outbreak = shape({
+			SpreadSeconds = S, SpreadChance = Fr, CureSeconds = S, CarrierChance = Fr, FromEra = I, MoraleNow = F.Number,
+		}),
 	}),
 	Repairs = shape({ RepairedAt = Fr, WelderPerSecond = N, WelderReach = N, ResidentSmartsBase = N, ToolTickSeconds = S }),
 	MonsterAI = shape({
@@ -178,6 +194,9 @@ local Schemas: { [string]: Check.Checker } = {
 		GrabBreakDamage = N, GrabBreakStun = S, GrabDamageMultiplier = N,
 		ArmorFront = Fr, ArmorArcDegrees = N, WeakBack = N, WeakArcDegrees = N,
 		ShellTurnDegreesPerSecond = N, ShellFaceDegrees = N,
+		-- Prompt 24: the Crystal Hollows' monsters
+		ShatterRadius = N, ShatterDamage = N, StalkerRevealSeconds = S, LightHeight = N, SmallGunMultiplier = Fr,
+		HumHealFraction = Fr, HasteMultiplier = N, HasteSeconds = S, HumFollow = N,
 	}),
 	Residents = shape({
 		StatMin = I, StatMax = I, StatCap = I, LevelMax = I, MoraleStart = N, FoodPerCycle = N, WaterPerCycle = N,
@@ -422,6 +441,25 @@ return {
 			BurnMultiplier = 2, StaggerFraction = 0.05, StaggerWindowSeconds = 3, StaggerSeconds = 2.5, RoarSeconds = 2.5,
 			ArenaMargin = 10, TurnDegreesPerSecond = 60,
 		},
+		CrystalColossus = { -- Section 10: "Tears out of the crystal rock. Huge, slow and armored; flares
+			-- show its weak points; its shards stun." Prompt 24, prov. Lists are by phase (Config.Bosses'
+			-- Phases: 3). It strides out of the rock at the back of its arena over EmergeSeconds and walks
+			-- its arena at MoveSpeed, turning TurnDegreesPerSecond. Every hit does ArmourMultiplier
+			-- unless its cores are lit: by a flare or a lamp (for as long as the light lasts), by the
+			-- Scout's Flare Ping (LitSeconds), or by its own charge (FlashSeconds as it throws its
+			-- shards, so a team with no flare still has an opening). Lit, a hit on a core does the
+			-- weak point's multiplier. It slams whoever is within SlamReach of its front every
+			-- AttackSeconds (SlamDamage within SlamRadius). Every VolleySeconds it throws Shards crystal
+			-- shards at survivors within VolleyRange: each lands ShardWarnSeconds after its mark shows,
+			-- for ShardDamage and a stun of StunSeconds within ShardRadius, and from its second phase
+			-- Shardlings crawl out of the broken shards. StaggerFraction of its health dealt to lit
+			-- cores within StaggerWindowSeconds drops it for StaggerSeconds.
+			MoveSpeed = { 3, 3.5, 4.5 }, AttackSeconds = { 4.5, 4, 3.2 }, SlamDamage = 45, SlamRadius = 10, SlamReach = 16,
+			VolleySeconds = { 11, 9, 7 }, Shards = { 2, 3, 4 }, ShardWarnSeconds = 1.2, ShardDamage = 15, ShardRadius = 6,
+			StunSeconds = 1.5, VolleyRange = 70, Shardlings = { 0, 2, 4 }, ArmourMultiplier = 0.2, LitSeconds = 10, FlashSeconds = 2.5,
+			StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.5, RoarSeconds = 2.6, ArenaMargin = 9,
+			TurnDegreesPerSecond = 35, EmergeSeconds = 3,
+		},
 		Deluge = { -- Section 10: "A giant eel surging up the flooded tunnels. Floods every room it passes;
 			-- strike its head when it surfaces and drain the rooms behind it." Prompt 23, prov. Lists are
 			-- by phase (Config.Bosses' Phases: 3, a new one at each third of its health). It swims under
@@ -523,6 +561,31 @@ return {
 			-- A hazard pocket found by digging (Section 7: "Gas or water bursts out"): gas in the Mines;
 			-- in the bands where both can come, gas GasChance of the time. The burst hurts the digger.
 			HazardPocket = { GasChance = 0.5, Damage = 10 },
+			-- Radiation leaks (Prompt 24; Section 10: "Surface storms against a weak Blast Door. Floor 1
+			-- fills with radiation. Seal or upgrade the door; Decon Room."), prov. From era FromEra, the
+			-- storm of each Surge may get through the Blast Door: DoorLeakChance by the door's level,
+			-- plus DoorDamagedChance times the share of its HP it has lost (a wrecked door always leaks).
+			-- Strength runs 0 to 100 on every open cell of the floor: it starts at StartStrength and
+			-- fills FillPerSecond (times DeconSlow while a Decon Room works: "slows leaks") until someone
+			-- seals the door (hold Interact SealSeconds), the door goes up a level, or
+			-- Config.Disasters.RadiationLeak.DurationSeconds pass; then it fades, FadePerSecond. Players
+			-- in it take PlayerPerSecond radiation at strength 100 (times their RadiationGain); residents
+			-- lose ResidentDamagePerSecond, leave at ResidentFleeStrength and are Irradiated from
+			-- IrradiateAt. A hazard pocket in the Crystal Hollows leaks into one room, from PocketStrength.
+			Radiation = {
+				StartStrength = 15, FillPerSecond = 2.5, FadePerSecond = 6, PlayerPerSecond = 3, ResidentDamagePerSecond = 2,
+				ResidentFleeStrength = 10, IrradiateAt = 40, SealSeconds = 4, DeconSlow = 0.5, DoorLeakChance = { 0.6, 0.3, 0 },
+				DoorDamagedChance = 0.4, PocketStrength = 40, FromEra = 3,
+			},
+			-- Outbreaks (Prompt 24; Section 10: "A sickness spreads between residents. Medbay treatment
+			-- and quarantine in Quarters."), prov. From era FromEra, someone who comes in from the Deep
+			-- (a rescue, a Lost Crew, a deep expedition home) carries it CarrierChance of the time (the
+			-- wanderers' carrier odds, Section 10). Every SpreadSeconds each sick resident who isn't
+			-- quarantined passes it to one other in their room, SpreadChance of the time. A sick
+			-- resident with no job keeps to a Quarters bed: that is quarantine. A working Medbay cures
+			-- one patient every CureSeconds (divided by the team's best OutbreakCureSpeed). Falling sick
+			-- costs MoraleNow.
+			Outbreak = { SpreadSeconds = 20, SpreadChance = 0.25, CureSeconds = 45, CarrierChance = 0.1, FromEra = 3, MoraleNow = -5 },
 		},
 		Repairs = { -- Prompt 13 (Section 6: a wrecked room stops until repaired with the Welder; residents slowly
 			-- repair the room they work in; Section 11: Smarts is repair speed). prov.
@@ -558,6 +621,15 @@ return {
 			GrabBreakDamage = 45, GrabBreakStun = 1.5, GrabDamageMultiplier = 0.6,
 			ArmorFront = 0.25, ArmorArcDegrees = 130, WeakBack = 2, WeakArcDegrees = 110,
 			ShellTurnDegreesPerSecond = 80, ShellFaceDegrees = 40,
+			-- Prompt 24 (the Appendix's Crystal Hollows rows); prov. A dead Shardling's shards sting
+			-- everyone within ShatterRadius for ShatterDamage. A Prism Stalker is unseen unless a flare
+			-- or a lamp lights it (within the light's Radius and LightHeight of its floor) and for
+			-- StalkerRevealSeconds after it strikes or is hit. A Geode Golem takes SmallGunMultiplier
+			-- of a small gun's shot (Config.Items: Gun.Small). A Resonator hums every AttackSeconds:
+			-- monsters within its Range heal HumHealFraction of their health and move HasteMultiplier
+			-- as fast for HasteSeconds; it keeps HumFollow studs from the monster it follows.
+			ShatterRadius = 7, ShatterDamage = 6, StalkerRevealSeconds = 1.5, LightHeight = 10, SmallGunMultiplier = 0.2,
+			HumHealFraction = 0.08, HasteMultiplier = 1.35, HasteSeconds = 5, HumFollow = 12,
 		},
 		Residents = { -- Section 11; needs and experience prov.
 			StatMin = 1, StatMax = 10, StatCap = 15, LevelMax = 20, MoraleStart = 60, FoodPerCycle = 1, WaterPerCycle = 1,

@@ -692,11 +692,20 @@ local function triagePulse(state: State): (boolean, string?, string?, number?)
 				if ctx.Residents:Heal(c.ResidentId, tt.TriageHeal) > 0 then
 					healed += 1
 				end
+				-- "Pulse also clears conditions" (Prompt 24: the sick and the irradiated)
+				if clears then
+					if ctx.Disasters:Cure(c.ResidentId, "Triage Pulse", player) then
+						cleared += 1
+					end
+					if ctx.Residents:SetCondition(c.ResidentId, "Irradiated", false, "Triage Pulse") then
+						cleared += 1
+					end
+				end
 			end
 		end
 	end
 	if healed == 0 and cleared == 0 then
-		return false, "NOBODY NEARBY NEEDS HEALING"
+		return false, "NOBODY NEARBY NEEDS HEALING""
 	end
 	fx(player, "Pulse", root.Position, { Radius = tt.TriageRadius })
 	return true, `TRIAGE PULSE: {healed} HEALED{if cleared > 0 then ` · {cleared} CLEARED` else ""}`
@@ -913,6 +922,22 @@ local function flarePing(state: State): (boolean, string?, string?, number?)
 	local radius = t().FlareRadius
 	local seconds = Classes.Duration(state.Class, state.Level)
 	local enemies, loot, survivors = 0, 0, 0
+	-- Prompt 24: the ping lights what a flare lights (Prism Stalkers, the Crystal Colossus's cores)
+	do
+		local light = Instance.new("Part")
+		light.Name = "FlarePing"
+		light.Anchored = true
+		light.CanCollide = false
+		light.CanQuery = false
+		light.CanTouch = false
+		light.Transparency = 1
+		light.Size = Vector3.new(0.2, 0.2, 0.2)
+		light.Position = root.Position
+		light:SetAttribute("Radius", radius)
+		game:GetService("CollectionService"):AddTag(light, "RevealLight")
+		light.Parent = workspace
+		game:GetService("Debris"):AddItem(light, seconds)
+	end
 	for _, c in ctx.Combat:All("Monsters") do
 		if c.State == "Alive" and (c.Root.Position - root.Position).Magnitude <= radius then
 			outline(c.Model, Color3.fromRGB(232, 70, 50), seconds)
@@ -1089,14 +1114,16 @@ local function deconField(state: State): (boolean, string?, string?, number?)
 	end
 	-- "Clears radiation and gas from a room and everyone in it"
 	local gas = unit ~= nil and ctx.Disasters:ClearGas(unit, "Decon Field", player)
-	if cleared == 0 and not gas then
+	-- a radiation leak's radiation and the room's irradiated residents (Prompt 24)
+	local leak = unit ~= nil and ctx.Disasters:ClearRadiation(unit, "Decon Field", player)
+	if cleared == 0 and not gas and not leak then
 		return false, "NOTHING HERE NEEDS DECONTAMINATING"
 	end
 	fx(player, "Decon", root.Position, { Radius = if unit then 14 else radius })
-	if gas and cleared == 0 then
-		return true, "DECON FIELD: THE GAS IS GONE"
+	if cleared == 0 then
+		return true, `DECON FIELD: {if gas and leak then "THE GAS AND THE RADIATION ARE" elseif gas then "THE GAS IS" else "THE RADIATION IS"} GONE`
 	end
-	return true, `DECON FIELD: RADIATION CLEARED FROM {cleared} PLAYER{if cleared == 1 then "" else "S"}{if gas then ", THE GAS IS GONE" else ""}`
+	return true, `DECON FIELD: RADIATION CLEARED FROM {cleared} PLAYER{if cleared == 1 then "" else "S"}{if gas then ", THE GAS IS GONE" else ""}{if leak then ", THE ROOM IS CLEAN" else ""}`
 end
 
 -- Exterminator ---------------------------------------------------------------------------------------------

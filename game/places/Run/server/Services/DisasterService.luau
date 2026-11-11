@@ -43,7 +43,21 @@
 	  leaks, for DurationSeconds, unless someone seals the vent (hold Interact); then the room airs
 	  out. It hurts everyone in it (GasImmune players not at all; the bunker's GasStrength scales
 	  it). Decon Field clears a room at once (ClearGas).
-	* A hazard pocket found by digging bursts gas or water into the digger's room (HazardPocket).
+	* A hazard pocket found by digging bursts gas or water into the digger's room (HazardPocket); in
+	  the Crystal Hollows it opens a crystal seam that leaks radiation into it (Prompt 24).
+	* Radiation leak (Prompt 24; Section 10: "Surface storms against a weak Blast Door. Floor 1 fills
+	  with radiation. Seal or upgrade the door; Decon Room."). As each Surge's storm hits, from Era
+	  III, it may get through the Blast Door (Rules.Disasters.DoorLeakChance: its level, its lost
+	  HP). The leak has a strength (0 to 100) on every open cell of the door's floor: it fills until
+	  someone seals the door (hold Interact), the door goes up a level, or DurationSeconds pass;
+	  then it fades. A working Decon Room slows the fill. Players in it gain radiation (their
+	  InRadiation attribute; SurfaceService keeps the meter); residents lose health, leave, and
+	  from IrradiateAt are Irradiated until a Decon Room clears them (ResidentService).
+	* Outbreak (Prompt 24; Section 10: "A sickness spreads between residents. Medbay treatment and
+	  quarantine in Quarters."). From Era III someone who comes in from the Deep may carry it
+	  (FromTheDeep: RescueService, ExpeditionService). The Sick pass it on to others in their room
+	  every SpreadSeconds; a sick resident with no job keeps to a Quarters bed and passes nothing on
+	  (quarantine); a working Medbay cures one patient every CureSeconds. It ends when nobody is sick.
 
 	Disasters run while the run is playing (like monsters and residents, they go on when DevTools
 	pause the cycle clock).
@@ -57,6 +71,8 @@
 	  { Kind = "Surge", Room, EndsAt, Cause }                         id "S:<room>"
 	  { Kind = "Flood", Room, Level, Pipe, Cause }                    id "W:<room>"
 	  { Kind = "Gas", Room, Strength, Leaking, EndsAt, Cause }        id "G:<room>"
+	  { Kind = "Radiation", Floor, Room?, Units, Strength, Leaking, EndsAt, Cause }  id "R:Door" or "R:<room>"
+	  { Kind = "Outbreak", Sick, Quarantined, Patient?, Cure, Treating, Cause }      id "O:<n>"
 	and RunState Fires, BlackoutRooms, Rubble, Floods, GasLeaks, Meltdown, MeltdownEndsAt, ValvesTurned.
 	workspace.Bunker.Disasters holds the fuse box and valve prompts, the rubble, burst pipes
 	("Pipe:<room>") and leaking vents ("GasVent:<room>"). Players in water or gas carry the Wading
@@ -79,7 +95,14 @@
 		DisasterService:SealVent(roomId, how, player?): boolean
 		DisasterService:ClearGas(roomId, how, player?): boolean            -- at once (Decon Field)
 		DisasterService:Gassed(roomId): number?
-		DisasterService:HazardPocket(floor, column, player?): string?      -- "Flood", "GasLeak" or nil
+		DisasterService:HazardPocket(floor, column, player?): string?      -- "Flood", "GasLeak", "RadiationLeak" or nil
+		DisasterService:StartRadiationLeak(cause, roomId?, strength?): string? -- roomId nil: the Blast Door's, its whole floor
+		DisasterService:SealLeak(id, how, player?): boolean
+		DisasterService:ClearRadiation(roomId, how, player?): boolean       -- at once (Decon Field)
+		DisasterService:Irradiated(unit): number?
+		DisasterService:StartOutbreak(cause, residentId?): string?
+		DisasterService:FromTheDeep(residentId, why): boolean               -- rolls for a carrier
+		DisasterService:Cure(residentId, how, player?): boolean
 		DisasterService:SurgeDisaster(budget, rng): number   -- ThreatDirector: the ThreatCost spent
 		DisasterService:HoldsSurge(): boolean                -- ThreatDirector: don't end the Surge yet
 		DisasterService:SetModifier(source, key, value?)     -- FireSpread, BlackoutDuration
@@ -155,6 +178,14 @@ type Gas = {
 	Id: string, Room: string, Strength: number, Leaking: boolean, EndsAt: number, Cause: string,
 	Sent: number, SentLeaking: boolean, Prop: Instance?,
 }
+-- A radiation leak (Prompt 24): the Blast Door's fills its floor (Room nil), a hazard pocket's one room.
+type Leak = {
+	Id: string, Floor: number, Room: string?, Strength: number, Leaking: boolean, EndsAt: number, Cause: string,
+	Sent: number, SentLeaking: boolean, Prop: Instance?, Units: { [string]: boolean }, DoorLevel: number?,
+}
+type Outbreak = {
+	Id: string, Cause: string, NextSpread: number, Cure: number, Patient: string?, Immune: { [string]: boolean }, Sent: string,
+}
 
 local grid: any = nil
 local power: any = nil
@@ -176,6 +207,8 @@ local meltdown: Meltdown? = nil
 local surges: { [string]: Surge } = {} -- by room id
 local floods: { [string]: Flood } = {} -- by room id (Prompt 23)
 local gases: { [string]: Gas } = {} -- by room id (Prompt 23)
+local leaks: { [string]: Leak } = {} -- radiation, by id: "R:Door" or "R:<room>" (Prompt 24)
+local outbreak: Outbreak? = nil -- Prompt 24
 local surgeDisaster: { Kind: string, Id: string?, Cycle: number }? = nil
 local modifiers: { [string]: { [string]: number } } = {} -- key -> source -> value
 local counter = 0
@@ -287,6 +320,19 @@ local function publishCounts()
 	set("Rubble", rubbleCount)
 	set("Floods", floodCount)
 	set("GasLeaks", gasCount)
+	local leakCount, sick = 0, 0
+	for _ in leaks do
+		leakCount += 1
+	end
+	if outbreak then
+		for _, resident in residents:All() do
+			if resident.Sick and resident.State ~= "Dead" then
+				sick += 1
+			end
+		end
+	end
+	set("RadiationLeaks", leakCount)
+	set("Sick", sick)
 	set("BlackoutRooms", dark)
 	set("Meltdown", if meltdown then true else nil)
 	set("MeltdownEndsAt", if meltdown then meltdown.EndsAt else nil)
@@ -1433,10 +1479,500 @@ local function tickGas(dt: number, t: number, inside: { [string]: { any } })
 	end
 end
 
--- What players stand in, for their own screen and legs: the Wading and InGas attributes.
+-- Radiation leaks (Prompt 24) ------------------------------------------------------------------------
+
+local function leakUnits(leak: Leak): { [string]: boolean }
+	local units: { [string]: boolean } = {}
+	if leak.Room then
+		if grid:Room(leak.Room) then
+			units[leak.Room] = true
+		end
+		return units
+	end
+	local g = Grid.Tuning()
+	local bunker = grid:Bunker()
+	for column = g.ColumnMin, g.ColumnMax do
+		local unit = bunker:UnitAt(leak.Floor, column)
+		if unit then
+			units[unit] = true
+		end
+	end
+	return units
+end
+
+local function publishLeak(leak: Leak)
+	leak.Sent = math.ceil(leak.Strength)
+	leak.SentLeaking = leak.Leaking
+	local list = {}
+	for unit in leak.Units do
+		table.insert(list, unit)
+	end
+	table.sort(list)
+	collection:Set(leak.Id, {
+		Kind = "Radiation", Floor = leak.Floor, Room = leak.Room, Units = list, Strength = leak.Sent, Leaking = leak.Leaking,
+		EndsAt = leak.EndsAt, Cause = leak.Cause,
+	})
+end
+
+local function leakWhere(leak: Leak): string
+	return if leak.Room then nameOf(leak.Room) else `FLOOR {leak.Floor}`
+end
+
+-- A working Decon Room "slows leaks" (Section 6).
+local function workingDecon(): boolean
+	for _, room in grid:RoomsOfType("DeconRoom") do
+		if not room.Wrecked and not power:IsDark(room.Id) then
+			return true
+		end
+	end
+	return false
+end
+
+local function endLeak(leak: Leak, how: string, player: Player?)
+	if leaks[leak.Id] ~= leak then
+		return
+	end
+	leaks[leak.Id] = nil
+	for unit in leak.Units do
+		Hazards.SetRadiation(unit, nil)
+	end
+	-- another leak may still fill some of those
+	for _, other in leaks do
+		for unit in other.Units do
+			Hazards.SetRadiation(unit, other.Strength)
+		end
+	end
+	if leak.Prop then
+		leak.Prop:Destroy()
+	end
+	collection:Remove(leak.Id)
+	publishCounts()
+	log:Info("radiation on %s gone (%s%s)", leakWhere(leak), how, if player then `, {player.Name}` else "")
+	if how ~= "Gone" then
+		announce("Info", `THE RADIATION IS GONE FROM {leakWhere(leak)}{if player then ` · {string.upper(player.DisplayName)}` else ""}`)
+	end
+	DisasterService.Ended:Fire(leak.Id, "Radiation", how)
+end
+
+-- The door is sealed, or went up a level, or the storm has passed: nothing more comes in and
+-- the radiation fades.
+function DisasterService:SealLeak(id: string, how: string, player: Player?): boolean
+	local leak = leaks[id]
+	if not leak or not leak.Leaking then
+		return false
+	end
+	leak.Leaking = false
+	if leak.Prop then
+		leak.Prop:Destroy()
+		leak.Prop = nil
+	end
+	publishLeak(leak)
+	log:Info("radiation leak %s shut (%s%s) at strength %.0f", id, how, if player then `, {player.Name}` else "", leak.Strength)
+	if how == "Upgraded" then
+		announce("Info", "THE NEW BLAST DOOR HOLDS: THE RADIATION IS FADING")
+	elseif how ~= "Expired" then
+		announce("Info", `{if leak.Room then "SEAM" else "BLAST DOOR"} SEALED{if player then ` · {string.upper(player.DisplayName)}` else ""}: THE RADIATION IS FADING`)
+	end
+	return true
+end
+
+-- Clears a room's radiation at once (the Hazmat Tech's Decon Field): a leak that is shut is gone;
+-- one still leaking starts to fill again. The irradiated residents in the room are cleared too.
+function DisasterService:ClearRadiation(roomId: string, how: string, player: Player?): boolean
+	local any = false
+	for _, leak in table.clone(leaks) do
+		if leak.Units[roomId] then
+			any = true
+			if leak.Leaking then
+				leak.Strength = 1
+				publishLeak(leak)
+			else
+				endLeak(leak, how, player)
+			end
+		end
+	end
+	for _, c in (occupants())[roomId] or {} do
+		if c.Kind == "Resident" and c.ResidentId and residents:SetCondition(c.ResidentId, "Irradiated", false, how) then
+			any = true
+		end
+	end
+	return any
+end
+
+-- The radiation in a unit (nil: none).
+function DisasterService:Irradiated(unit: string): number?
+	return Hazards.Radiation(unit)
+end
+
+-- A radiation leak: the Blast Door's (roomId nil: "Floor 1 fills with radiation"), or one room's
+-- (a hazard pocket in the Crystal Hollows).
+function DisasterService:StartRadiationLeak(cause: string, roomId: string?, strength: number?): string?
+	local r = Disasters.Tuning().Radiation
+	local door = grid:RoomsOfType("BlastDoor")[1]
+	local room = if roomId then grid:Room(roomId) else door
+	if not room then
+		return nil
+	end
+	local id = if roomId then `R:{roomId}` else "R:Door"
+	if leaks[id] then
+		return nil
+	end
+	local leak: Leak = {
+		Id = id, Floor = room.Floor, Room = roomId, Strength = math.clamp(strength or (if roomId then r.PocketStrength else r.StartStrength), 1, 100),
+		Leaking = true, EndsAt = now() + Disasters.RadiationSeconds(), Cause = cause, Sent = -1, SentLeaking = true,
+		Units = {}, DoorLevel = if roomId then nil else room.Level,
+	}
+	leak.Units = leakUnits(leak)
+	leaks[id] = leak
+	-- what a player seals: the Blast Door's seal, or the crystal seam in the room's back wall
+	local g = Grid.Tuning()
+	local at: CFrame
+	if roomId then
+		at = CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(-g.CellWidth * 0.25, 3, -(g.CellDepth / 2 - 0.8)))
+	else
+		local model = grid:RoomModel(room.Id)
+		local socket = if model then BunkerKit.Socket(model, "Door") else nil
+		at = if socket then CFrame.new(socket.Position + Vector3.new(0, 3, 1.2))
+			else CFrame.new(Grid.CellPosition(room.Floor, room.Column) + Vector3.new(0, 4, -(g.CellDepth / 2 - 1.5)))
+	end
+	local prop = fitting(if roomId then `RadSeam:{roomId}` else "DoorSeal", if roomId then "Kit_CrystalSeam" else "Kit_DoorSeal", at,
+		Vector3.new(4, 4, 0.8), Color3.fromRGB(124, 255, 155))
+	leak.Prop = prop
+	local base = if prop and prop:IsA("Model") then prop.PrimaryPart or prop:FindFirstChildWhichIsA("BasePart", true) else prop
+	if prop and base and base:IsA("BasePart") then
+		prop:SetAttribute("Leak", id)
+		local p = prompt(base, "SealLeak", if roomId then "Seal the seam" else "Seal the door", "Radiation leak", r.SealSeconds, 14)
+		p.Triggered:Connect(function(player: Player)
+			DisasterService:SealLeak(id, "Sealed", player)
+		end)
+	end
+	for unit in leak.Units do
+		Hazards.SetRadiation(unit, leak.Strength)
+	end
+	publishLeak(leak)
+	publishCounts()
+	log:Info("radiation leak %s (%s)", id, cause)
+	if roomId then
+		announce("Danger", `RADIATION IN {nameOf(roomId)}: SEAL THE CRYSTAL SEAM OR GET OUT`)
+	else
+		announce("Danger", `THE STORM IS THROUGH THE BLAST DOOR: RADIATION ON FLOOR {room.Floor} · SEAL THE DOOR`)
+	end
+	DisasterService.Started:Fire(id, "Radiation")
+	return id
+end
+
+-- Section 10: "Surface storms against a weak Blast Door". Rolled as each Surge's storm hits.
+local function stormAtTheDoor()
+	local door = grid:RoomsOfType("BlastDoor")[1]
+	if not door or leaks["R:Door"] then
+		return
+	end
+	local era = table.find(Config.Ids("Eras"), clock:Era()) or 1
+	local chance = Disasters.DoorLeakChance(era, door.Level, if door.MaxHP > 0 then door.HP / door.MaxHP else 0, door.Wrecked == true)
+	local roll = rng:NextNumber()
+	log:Info("the storm at the Blast Door (level %d, %d/%d HP): leak chance %.2f, rolled %.2f", door.Level, door.HP, door.MaxHP, chance, roll)
+	if roll < chance then
+		DisasterService:StartRadiationLeak("Storm")
+	end
+end
+
+local function tickRadiation(dt: number, t: number, inside: { [string]: { any } })
+	if next(leaks) == nil then
+		return
+	end
+	local r = Disasters.Tuning().Radiation
+	local slow = if workingDecon() then r.DeconSlow else 1
+	for id, leak in table.clone(leaks) do
+		local units = leakUnits(leak)
+		if next(units) == nil then
+			endLeak(leak, "Gone")
+			continue
+		end
+		for unit in leak.Units do
+			if not units[unit] then
+				Hazards.SetRadiation(unit, nil)
+			end
+		end
+		leak.Units = units
+		if leak.Leaking then
+			local door = if leak.DoorLevel then grid:RoomsOfType("BlastDoor")[1] else nil
+			if door and leak.DoorLevel and door.Level > leak.DoorLevel then
+				DisasterService:SealLeak(id, "Upgraded") -- Section 10: "Seal or upgrade the door"
+			elseif t >= leak.EndsAt then
+				DisasterService:SealLeak(id, "Expired")
+			end
+		end
+		leak.Strength = Disasters.RadiationStep(leak.Strength, dt, leak.Leaking, slow)
+		if leak.Strength <= 0 then
+			endLeak(leak, "Faded")
+			continue
+		end
+		for unit in units do
+			Hazards.SetRadiation(unit, leak.Strength)
+			for _, c in inside[unit] or {} do
+				if c.Kind == "Resident" then
+					combat:Damage(c.Id, Disasters.RadiationResidentDamage(leak.Strength, dt), nil, "radiation")
+					if leak.Strength >= r.IrradiateAt and c.ResidentId then
+						residents:SetCondition(c.ResidentId, "Irradiated", true, "the leak")
+					end
+				end
+			end
+		end
+		if math.ceil(leak.Strength) ~= leak.Sent or leak.Leaking ~= leak.SentLeaking then
+			publishLeak(leak)
+		end
+	end
+end
+
+-- Outbreaks (Prompt 24) ------------------------------------------------------------------------------
+
+local function sickResidents(): { any }
+	local list = {}
+	for _, resident in residents:All() do
+		if resident.Sick and (resident.State == "Alive" or resident.State == "Down") then
+			table.insert(list, resident)
+		end
+	end
+	table.sort(list, function(a, b)
+		return (tonumber(string.match(a.Id, "%d+")) or 0) < (tonumber(string.match(b.Id, "%d+")) or 0)
+	end)
+	return list
+end
+
+local function residentName(resident: any): string
+	return string.upper(`{resident.First} {resident.Last}`)
+end
+
+-- Medbays that can treat: standing, lit and staffed.
+local function workingMedbays(): number
+	local n = 0
+	for _, room in grid:RoomsOfType("Medbay") do
+		if not room.Wrecked and not power:IsDark(room.Id) and #residents:Workers(room.Id) > 0 then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- The team's best OutbreakCureSpeed (the Hazmat Tech's level 3: "Outbreaks cured twice as fast").
+local function cureSpeed(): number
+	local best = 1
+	for _, player in session:ReadyPlayers() do
+		local value = Modifiers.PlayerValue(player, "OutbreakCureSpeed")
+		if type(value) == "number" and value > best then
+			best = value
+		end
+	end
+	return best
+end
+
+local function publishOutbreak(o: Outbreak, sick: { any }, treating: boolean)
+	local quarantined = 0
+	for _, resident in sick do
+		if resident.Job == nil then
+			quarantined += 1
+		end
+	end
+	local patient = if o.Patient then residents:Get(o.Patient) else nil
+	local fraction = math.clamp(o.Cure / Disasters.CureSeconds(cureSpeed()), 0, 1)
+	local sent = `{#sick}|{quarantined}|{o.Patient or ""}|{math.floor(fraction * 20)}|{treating}`
+	if sent == o.Sent then
+		return
+	end
+	o.Sent = sent
+	collection:Set(o.Id, {
+		Kind = "Outbreak", Sick = #sick, Quarantined = quarantined, Patient = if patient then `{patient.First} {patient.Last}` else nil,
+		Cure = fraction, Treating = treating, Cause = o.Cause,
+	})
+end
+
+local function endOutbreak(how: string)
+	local o = outbreak
+	if not o then
+		return
+	end
+	outbreak = nil
+	collection:Remove(o.Id)
+	publishCounts()
+	log:Info("the outbreak is over (%s)", how)
+	if how ~= "Gone" then
+		announce("Info", "THE OUTBREAK IS OVER: NOBODY IS SICK")
+	end
+	DisasterService.Ended:Fire(o.Id, "Outbreak", how)
+end
+
+-- A resident is cured (the Medbay, a level 3 Medic's Triage Pulse; DevTools). They can't catch
+-- this outbreak again.
+function DisasterService:Cure(residentId: string, how: string, player: Player?): boolean
+	if not residents:SetCondition(residentId, "Sick", false, how) then
+		return false
+	end
+	local o = outbreak
+	if o then
+		o.Immune[residentId] = true
+		if o.Patient == residentId then
+			o.Patient, o.Cure = nil, 0
+		end
+	end
+	local resident = residents:Get(residentId)
+	local left = #sickResidents()
+	if resident and left > 0 then
+		announce("Info", `{residentName(resident)} IS CURED{if player then ` · {string.upper(player.DisplayName)}` else ""} ({left} STILL SICK)`)
+	end
+	return true
+end
+
+-- An outbreak begins with one carrier (given, or picked from the residents who are well).
+function DisasterService:StartOutbreak(cause: string, residentId: string?): string?
+	local carrier = if residentId then residents:Get(residentId) else nil
+	if not carrier then
+		local well = {}
+		for _, resident in residents:All() do
+			if resident.State == "Alive" and not resident.Sick then
+				table.insert(well, resident)
+			end
+		end
+		if #well == 0 then
+			return nil
+		end
+		table.sort(well, function(a, b)
+			return a.Id < b.Id
+		end)
+		carrier = well[rng:NextInteger(1, #well)]
+	end
+	if carrier.State ~= "Alive" or carrier.Sick then
+		return nil
+	end
+	local o = outbreak
+	if not o then
+		counter += 1
+		o = { Id = `O:{counter}`, Cause = cause, NextSpread = now() + Disasters.Tuning().Outbreak.SpreadSeconds, Cure = 0, Patient = nil, Immune = {}, Sent = "" }
+		outbreak = o
+		log:Info("an outbreak (%s): %s is sick", cause, carrier.Id)
+		announce("Danger", `OUTBREAK: {residentName(carrier)} IS SICK · TAKE THE SICK OFF WORK TO QUARANTINE THEM`)
+		DisasterService.Started:Fire(o.Id, "Outbreak")
+	end
+	residents:SetCondition(carrier.Id, "Sick", true, if cause == "TheDeep" then "brought up from the Deep" else nil)
+	publishCounts()
+	return o.Id
+end
+
+-- Someone has come in from the Deep (a rescue, a Lost Crew, an expedition home; Section 10: the
+-- Deep causes outbreaks): CarrierChance of the time, from era FromEra, they carry the sickness.
+function DisasterService:FromTheDeep(residentId: string, why: string): boolean
+	local era = table.find(Config.Ids("Eras"), clock:Era()) or 1
+	local resident = residents:Get(residentId)
+	if not resident or resident.State ~= "Alive" or resident.Sick then
+		return false
+	end
+	local roll = rng:NextNumber()
+	local carries = Disasters.CarriesSickness(era, roll)
+	log:Info("%s came in from the Deep (%s): rolled %.2f, %s", residentId, why, roll, if carries then "a carrier" else "well")
+	if not carries then
+		return false
+	end
+	return DisasterService:StartOutbreak("TheDeep", residentId) ~= nil
+end
+
+local function tickOutbreak(dt: number, t: number, inside: { [string]: { any } })
+	local sick = sickResidents()
+	local o = outbreak
+	if not o then
+		if #sick > 0 then
+			-- someone is sick with no outbreak on record (a dev command): give them one
+			counter += 1
+			o = { Id = `O:{counter}`, Cause = "Unknown", NextSpread = t + Disasters.Tuning().Outbreak.SpreadSeconds, Cure = 0, Patient = nil, Immune = {}, Sent = "" }
+			outbreak = o
+		else
+			return
+		end
+	end
+	if #sick == 0 then
+		endOutbreak("Cured")
+		return
+	end
+	local tuning = Disasters.Tuning().Outbreak
+	-- where everyone is
+	local where: { [string]: string } = {}
+	for unit, list in inside do
+		for _, c in list do
+			if c.Kind == "Resident" and c.ResidentId then
+				where[c.ResidentId] = unit
+			end
+		end
+	end
+	if t >= o.NextSpread then
+		o.NextSpread = t + tuning.SpreadSeconds
+		local people = {}
+		for _, resident in residents:All() do
+			if resident.State == "Alive" then
+				local unit = where[resident.Id]
+				local room = if unit then grid:Room(unit) else nil
+				table.insert(people, {
+					Id = resident.Id, Room = unit, Sick = resident.Sick == true, Immune = o.Immune[resident.Id] == true,
+					-- quarantine: off work and in Quarters
+					Quarantined = resident.Sick == true and resident.Job == nil and room ~= nil and room.Type == "Quarters",
+				})
+			end
+		end
+		local caught: { [string]: boolean } = {}
+		for _, person in people do
+			if person.Sick and not caught[person.Id] then
+				local targets = Disasters.OutbreakTargets(people, person)
+				local open = {}
+				for _, id in targets do
+					if not caught[id] then
+						table.insert(open, id)
+					end
+				end
+				if #open > 0 and rng:NextNumber() < tuning.SpreadChance then
+					local id = open[rng:NextInteger(1, #open)]
+					caught[id] = true
+					if residents:SetCondition(id, "Sick", true, "caught it at work") then
+						local resident = residents:Get(id)
+						if resident then
+							announce("Warning", `{residentName(resident)} CAUGHT THE SICKNESS ({#sick + 1} SICK)`)
+						end
+						table.insert(sick, resident)
+					end
+				end
+			end
+		end
+	end
+	-- Medbay treatment: one patient at a time for each working Medbay's share
+	local medbays = workingMedbays()
+	if medbays > 0 then
+		if not o.Patient or not residents:HasCondition(o.Patient, "Sick") then
+			o.Patient, o.Cure = sick[1].Id, 0
+		end
+		o.Cure += dt * medbays
+		if o.Cure >= Disasters.CureSeconds(cureSpeed()) then
+			DisasterService:Cure(o.Patient :: string, "the Medbay")
+			sick = sickResidents()
+			if #sick == 0 then
+				endOutbreak("Cured")
+				return
+			end
+		end
+	end
+	publishOutbreak(o, sick, medbays > 0)
+end
+
+-- What players stand in, for their own screen and legs: the Wading, InGas and InRadiation
+-- attributes (SurfaceService adds a leak's radiation to the player's own from InRadiation).
 local function markPlayers(inside: { [string]: { any } })
 	local wading: { [Player]: number } = {}
 	local breathing: { [Player]: number } = {}
+	local glowing: { [Player]: number } = {}
+	for _, leak in leaks do
+		for unit in leak.Units do
+			for _, c in inside[unit] or {} do
+				if c.Kind == "Player" and c.Player then
+					glowing[c.Player] = math.max(glowing[c.Player] or 0, math.ceil(leak.Strength))
+				end
+			end
+		end
+	end
 	for roomId, flood in floods do
 		for _, c in inside[roomId] or {} do
 			if c.Kind == "Player" and c.Player then
@@ -1457,6 +1993,9 @@ local function markPlayers(inside: { [string]: { any } })
 		end
 		if player:GetAttribute("InGas") ~= breathing[player] then
 			player:SetAttribute("InGas", breathing[player])
+		end
+		if player:GetAttribute("InRadiation") ~= glowing[player] then
+			player:SetAttribute("InRadiation", glowing[player])
 		end
 	end
 end
@@ -1494,7 +2033,8 @@ function DisasterService:HazardPocket(floor: number, column: number, player: Pla
 	if player then
 		local c = combat:PlayerCombatant(player)
 		if c then
-			combat:Damage(c.Id, Disasters.Tuning().HazardPocket.Damage, nil, if kind == "Flood" then "flood" else "gas")
+			combat:Damage(c.Id, Disasters.Tuning().HazardPocket.Damage, nil,
+				if kind == "Flood" then "flood" elseif kind == "RadiationLeak" then "radiation" else "gas")
 		end
 	end
 	if not target then
@@ -1503,6 +2043,8 @@ function DisasterService:HazardPocket(floor: number, column: number, player: Pla
 	end
 	if kind == "Flood" then
 		DisasterService:StartFlood(target, "HazardPocket")
+	elseif kind == "RadiationLeak" then
+		DisasterService:StartRadiationLeak("HazardPocket", target) -- the Crystal Hollows (Prompt 24)
 	else
 		DisasterService:StartGasLeak(target, "HazardPocket")
 	end
@@ -1630,6 +2172,8 @@ local function tick(dt: number)
 	tickFires(dt, t, inside)
 	tickFloods(dt, t, inside)
 	tickGas(dt, t, inside)
+	tickRadiation(dt, t, inside)
+	tickOutbreak(dt, t, inside)
 	markPlayers(inside)
 	if blackout and t >= blackout.EndsAt then
 		DisasterService:EndBlackout("Expired")
@@ -1704,6 +2248,32 @@ local function describe(): string
 		local room = grid:Room(roomId)
 		table.insert(lines, string.format("gas %s %s: strength %.1f, %s (%s)", roomId, if room then room.Type else "?", gas.Strength,
 			if gas.Leaking then string.format("leaking for %.0f s more", gas.EndsAt - t) else "airing out", gas.Cause))
+	end
+	for id, leak in leaks do
+		local count = 0
+		for _ in leak.Units do
+			count += 1
+		end
+		table.insert(lines, string.format("radiation %s: %s, strength %.1f over %d units, %s%s (%s)", id, leakWhere(leak), leak.Strength, count,
+			if leak.Leaking then string.format("leaking for %.0f s more", leak.EndsAt - t) else "fading",
+			if workingDecon() then ", a Decon Room slows it" else "", leak.Cause))
+	end
+	if outbreak then
+		local names = {}
+		for _, resident in sickResidents() do
+			table.insert(names, `{resident.Id} {resident.First}{if resident.Job == nil then " (off work)" else ""}`)
+		end
+		table.insert(lines, string.format("outbreak %s (%s): %d sick: %s; patient %s, cure %.0f of %.0f s, %d working Medbays, spreads in %.0f s",
+			outbreak.Id, outbreak.Cause, #names, table.concat(names, ", "), tostring(outbreak.Patient), outbreak.Cure,
+			Disasters.CureSeconds(cureSpeed()), workingMedbays(), math.max(outbreak.NextSpread - t, 0)))
+	end
+	do
+		local door = grid:RoomsOfType("BlastDoor")[1]
+		local era = table.find(Config.Ids("Eras"), clock:Era()) or 1
+		if door then
+			table.insert(lines, string.format("the Blast Door: level %d, %d/%d HP: a storm leaks %.0f%% of the time in era %d", door.Level, door.HP,
+				door.MaxHP, Disasters.DoorLeakChance(era, door.Level, if door.MaxHP > 0 then door.HP / door.MaxHP else 0, door.Wrecked == true) * 100, era))
+		end
 	end
 	if surgeDisaster then
 		table.insert(lines, `this Surge's disaster: {surgeDisaster.Kind} {surgeDisaster.Id or "(starting)"}`)
@@ -1808,6 +2378,82 @@ local function registerCommands(dev: any)
 			end
 			local kind = DisasterService:HazardPocket(floor, column, player)
 			return `a hazard pocket at {floor},{column}: {kind or "nothing (no gas or water in that band)"}\n{describe()}`
+		end,
+	})
+	dev:Register("rad", {
+		Description = "A radiation leak: with no room, the storm through the Blast Door (its whole floor); with a room, a crystal seam there.",
+		Usage = "rad [roomId|RoomType] [strength]",
+		Run = function(_player, args): string?
+			local roomId = if args[1] and args[1] ~= "door" then roomArg(args[1]) else nil
+			if args[1] and args[1] ~= "door" and not roomId then
+				return `no room {args[1]}`
+			end
+			local id = DisasterService:StartRadiationLeak("Dev", roomId, tonumber(args[2]))
+			return `{id or "no leak (one is on there already, or no Blast Door)"}\n{describe()}`
+		end,
+	})
+	dev:Register("rad.storm", {
+		Description = "Roll the storm against the Blast Door now, as each Surge does.",
+		Run = function(): string?
+			stormAtTheDoor()
+			return describe()
+		end,
+	})
+	dev:Register("rad.seal", {
+		Description = "Seal every radiation leak (as a player at the door or the seam).",
+		Run = function(player): string?
+			local n = 0
+			for id in table.clone(leaks) do
+				if DisasterService:SealLeak(id, "Sealed", player) then
+					n += 1
+				end
+			end
+			return `{n} sealed\n{describe()}`
+		end,
+	})
+	dev:Register("rad.clear", {
+		Description = "End every radiation leak at once.",
+		Run = function(): string?
+			local n = 0
+			for _, leak in table.clone(leaks) do
+				endLeak(leak, "Dev")
+				n += 1
+			end
+			return `{n} cleared`
+		end,
+	})
+	dev:Register("outbreak", {
+		Description = "Start an outbreak (or add a carrier): a resident id, or one picked for you.",
+		Usage = "outbreak [residentId]",
+		Run = function(_player, args): string?
+			local id = DisasterService:StartOutbreak("Dev", if args[1] then tostring(args[1]) else nil)
+			return `{id or "no outbreak (nobody well to carry it)"}\n{describe()}`
+		end,
+	})
+	dev:Register("outbreak.cure", {
+		Description = "Cure a sick resident, or all of them.",
+		Usage = "outbreak.cure [residentId|all]",
+		Run = function(player, args): string?
+			local n = 0
+			for _, resident in sickResidents() do
+				if args[1] == nil or args[1] == "all" or args[1] == resident.Id then
+					if DisasterService:Cure(resident.Id, "Dev", player) then
+						n += 1
+					end
+				end
+			end
+			return `{n} cured\n{describe()}`
+		end,
+	})
+	dev:Register("outbreak.deep", {
+		Description = "A resident comes in from the Deep: roll for the sickness (force: a carrier for sure).",
+		Usage = "outbreak.deep <residentId> [force]",
+		Run = function(_player, args): string?
+			local id = tostring(args[1] or "")
+			if args[2] == "force" then
+				return `{DisasterService:StartOutbreak("TheDeep", id) or "no"}\n{describe()}`
+			end
+			return `carrier: {DisasterService:FromTheDeep(id, "Dev")}\n{describe()}`
 		end,
 	})
 	dev:Register("disasters", {
@@ -1986,6 +2632,13 @@ function DisasterService:Start()
 		end
 	end)
 	grid.Changed:Connect(onGridChanged)
+	-- Prompt 24: the storm that comes with every Surge may get through a weak Blast Door
+	clock.SurgeStarted:Connect(function()
+		local ok, err = pcall(stormAtTheDoor)
+		if not ok then
+			log:Warn("storm at the door: %s", tostring(err))
+		end
+	end)
 	weapons.ToolTick:Connect(onToolTick)
 	weapons.Foamed:Connect(onFoamed)
 	weapons.Swung:Connect(onSwung)

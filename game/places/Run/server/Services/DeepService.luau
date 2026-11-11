@@ -284,6 +284,9 @@ local function lightAt(parent: Instance, at: CFrame, color: Color3, range: numbe
 	light.Brightness = brightness
 	light.Shadows = false -- many lanterns: shadows only from players' own lights (phones, Section 26)
 	light.Parent = part
+	-- Prompt 24: a lamp shows a Prism Stalker ("Invisible until lit by a flare or lamp")
+	part:SetAttribute("Radius", range)
+	CollectionService:AddTag(part, "RevealLight")
 end
 
 local function bandName(band: string): string

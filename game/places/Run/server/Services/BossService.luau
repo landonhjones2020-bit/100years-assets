@@ -1,7 +1,8 @@
 --!strict
 --[[
 	BossService: boss fights (bible Sections 5, 10 and 22). Run place only; Prompt 15 brings the
-	Era I boss, the Brood Mother, Prompt 23 the Era II boss, The Deluge. The arithmetic is
+	Era I boss, the Brood Mother, Prompt 23 the Era II boss, The Deluge, Prompt 24 the Era III
+	boss, the Crystal Colossus. The arithmetic is
 	Shared.Rules.Boss; the numbers are Config.Bosses, Tuning.Bosses and Tuning.<BossId> (provisional).
 
 	* A boss Surge (CycleClock.SurgeStarted with kind Boss) starts its boss's fight. Section 5: the
@@ -43,10 +44,23 @@
 	    pour out with it (Config.Bosses' Minions).
 	  It moves every frame (an anchored model isn't smoothed between server ticks); it decides every
 	  TickSeconds like the Brood Mother.
+	* The Crystal Colossus (Prompt 24; Section 10: "Tears out of the crystal rock. Huge, slow and
+	  armored; flares show its weak points; its shards stun."; Tuning.CrystalColossus). It strides
+	  out of the rock behind its arena's back wall and walks its arena like the Brood Mother, slower.
+	  Every hit does its ArmourMultiplier until its cores are Lit: a flare, a lamp or the Scout's
+	  Flare Ping within reach (parts tagged RevealLight; MonsterService:Lit), or its own charge for
+	  FlashSeconds as it throws its shards. Lit, its cores (the model's WeakPoint parts) glow and a
+	  hit on one is a weak-point hit. It slams like the Brood Mother (its Slam socket). Every
+	  VolleySeconds it throws Shards crystal shards: each has a mark on the floor (a ShardMark part
+	  in workspace.Monsters with Radius and LandsAt, which clients draw) and lands ShardWarnSeconds
+	  later for ShardDamage and a stun (players: the StunnedUntil attribute, which stops their
+	  movement and their hands; residents are slowed); from its second phase Shardlings crawl out
+	  of the first Shardlings of them.
 
 	Replication: the Boss collection, "Fight" -> { Id, Name, Health, Max, Phase, Phases, State,
 	At = { X, Y, Z } (where it breaks in; The Deluge: where it is), ArriveAt (server time), Sacs,
-	Mode (The Deluge: Up, Diving, Swim, Surfacing) } while a fight is on.
+	Mode (The Deluge: Up, Diving, Swim, Surfacing), Lit (the Crystal Colossus: its cores show) }
+	while a fight is on.
 	The model is in workspace.Monsters with Rig, Activity and AttackAt attributes. Unlike other
 	monsters (Section 23: clips play on clients), her clips play here on the server and replicate
 	(ServerAnimated, which NPCAnimator skips): one model, and the server must see her belly where
@@ -60,7 +74,8 @@
 		BossService:IsEggSac(combatId): boolean         -- one of its egg sacs (a broken sac isn't a kill)
 		BossService.Started: Signal<string>             -- bossId
 		BossService.Defeated: Signal<string, Player?>   -- bossId, who struck the last blow
-	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end, boss.dive, boss.surface.
+	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end, boss.dive, boss.surface,
+	boss.volley, boss.light.
 ]]
 
 local Players = game:GetService("Players")
@@ -113,6 +128,21 @@ local LOOK: { [string]: {
 		Up = "SURFACES! STRIKE ITS HEAD WHEN IT IS UP, PATCH THE PIPES IT BURSTS",
 		Phase = "ROARS: IT SWIMS FASTER AND BRINGS MORE WITH IT",
 	},
+	CrystalColossus = {
+		Glow = Color3.fromRGB(143, 227, 224), GlowAt = Vector3.new(0, 8, -6), GlowRange = 34, GlowBrightness = 1.8,
+		Dust = Color3.fromRGB(150, 132, 160), Chips = Color3.fromRGB(176, 238, 234), Water = false,
+		Clips = { "Idle", "Walk", "Attack", "Volley", "Stagger", "Death" },
+		Up = "TEARS OUT OF THE ROCK! LIGHT IT WITH A FLARE, THEN HIT ITS GLOWING CORES",
+		Phase = "CRACKS: MORE SHARDS, AND SHARDLINGS CRAWL OUT OF THEM",
+	},
+}
+
+-- Where a boss starts from as it arrives, from where it will stand: under the floor, or (the
+-- Crystal Colossus: "Tears out of the crystal rock") inside the rock behind its cell's back wall.
+local EMERGE: { [string]: Vector3 } = {
+	BroodMother = Vector3.new(0, -RISE_DEPTH, 0),
+	Deluge = Vector3.new(0, -DELUGE_RISE_DEPTH, 0),
+	CrystalColossus = Vector3.new(0, 0, -22),
 }
 
 type Sac = { CombatId: string, Model: Model, HatchAt: number }
@@ -159,6 +189,12 @@ type Fight = {
 	AloneSince: number?,
 	Roar: boolean, -- a phase began under water: it roars as it comes up
 	Wake: Part?,
+	-- The Crystal Colossus
+	Lit: boolean, -- its cores show (a flare, a lamp, its own charge)
+	LitUntil: number, -- shown until then whatever the light (os.clock)
+	NextVolley: number,
+	WantX: number,
+	Moving: boolean,
 }
 
 local clock: any = nil
@@ -290,7 +326,7 @@ local function publish(force: boolean?)
 	for _ in f.Sacs do
 		count += 1
 	end
-	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}|{f.Mode}|{f.Floor}|{f.Column}`
+	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}|{f.Mode}|{f.Floor}|{f.Column}|{f.Lit}`
 	if not force and (sent == f.Sent or os.clock() - f.PublishedAt < Boss.Tuning().PublishSeconds) then
 		return
 	end
@@ -309,6 +345,7 @@ local function publish(force: boolean?)
 		ArriveAt = f.ArriveAt,
 		Sacs = count,
 		Mode = if f.Mode ~= "" then f.Mode else nil,
+		Lit = if f.BossId == "CrystalColossus" then f.Lit else nil,
 	})
 end
 
@@ -657,6 +694,9 @@ end
 
 local function slamPoint(f: Fight): Vector3
 	local model = f.Model
+	if model and model:GetAttribute("Socket_Slam") == nil then
+		return (pivot(f) * CFrame.new(0, 0, -f.T.SlamReach * 0.55)).Position -- no socket: in front of it
+	end
 	return if model then socket(model, "Slam").Position else Vector3.new(f.X, f.Y, f.Z)
 end
 
@@ -1136,6 +1176,213 @@ local function frameDeluge(f: Fight, dt: number)
 	end
 end
 
+-- The Crystal Colossus (Prompt 24) ----------------------------------------------------------------------------
+
+local CORE_DARK = Color3.fromRGB(46, 40, 52)
+local CORE_LIT = Color3.fromRGB(232, 116, 59) -- Signal Orange: shoot here
+
+-- Its cores (the model's WeakPoint parts): dark stone until a light shows them, then they glow.
+local function setLit(f: Fight, lit: boolean)
+	if f.Lit == lit then
+		return
+	end
+	f.Lit = lit
+	local model = f.Model
+	if not model then
+		return
+	end
+	for _, part in weakParts(model) do
+		part.Material = if lit then Enum.Material.Neon else Enum.Material.Slate
+		part.Color = if lit then CORE_LIT else CORE_DARK
+	end
+	model:SetAttribute("Lit", if lit then true else nil)
+	publish(true)
+	log:Debug("%s cores %s", f.Name, if lit then "lit" else "dark")
+end
+
+-- A flare or a lamp on it (Section 10: "flares show its weak points"), or its own charge.
+local function colossusLit(f: Fight): boolean
+	if os.clock() < f.LitUntil then
+		return true
+	end
+	return monsters:Lit(Vector3.new(f.X, f.Y + 6, f.Z))
+end
+
+-- A shard's mark on the floor: it lands ShardWarnSeconds later (the client draws the ring and the
+-- falling shard from the mark's attributes), hurting and stunning whoever is still inside.
+local function shardMark(f: Fight, at: Vector3, hatch: boolean)
+	local t = f.T
+	local mark = effectPart(Vector3.new(at.X, f.Y + 0.15, at.Z), "ShardMark")
+	mark.Size = Vector3.new(t.ShardRadius * 2, 0.3, t.ShardRadius * 2)
+	mark:SetAttribute("Radius", t.ShardRadius)
+	mark:SetAttribute("LandsAt", now() + t.ShardWarnSeconds)
+	table.insert(f.Effects, mark)
+	task.delay(t.ShardWarnSeconds, function()
+		if fight ~= f or not mark.Parent then
+			mark:Destroy()
+			return
+		end
+		local centre = mark.Position
+		local hit = 0
+		for _, c in combat:All("Survivors") do
+			local offset = c.Root.Position - centre
+			if c.State == "Alive" and Vector3.new(offset.X, 0, offset.Z).Magnitude <= t.ShardRadius + c.Reach and math.abs(offset.Y) < 9 then
+				if f.CombatId and combat:Damage(c.Id, t.ShardDamage, f.CombatId, "shard") > 0 then
+					hit += 1
+					-- "its shards stun"
+					if c.Kind == "Player" and c.Player then
+						c.Player:SetAttribute("StunnedUntil", now() + t.StunSeconds)
+					elseif c.Model then
+						c.Model:SetAttribute("SlowedUntil", now() + t.StunSeconds)
+					end
+				end
+			end
+		end
+		rockBurst(centre, 16, f)
+		mark:SetAttribute("Landed", true)
+		task.delay(0.6, function()
+			mark:Destroy()
+		end)
+		if hatch and f.State == "Fighting" then
+			local entry = Config.Get("Bosses", f.BossId)
+			local kind = if entry.Minions then entry.Minions[1] else nil
+			if kind then
+				monsters:Spawn(kind, CFrame.new(centre + Vector3.new(0, 0.5, 0)), HATCH_TAG_PREFIX .. f.BossId)
+			end
+		end
+		if hit > 0 then
+			log:Debug("a shard hit %d", hit)
+		end
+	end)
+end
+
+-- It plants itself and throws its shards at whoever it can see on its floor: players first.
+local function volley(f: Fight)
+	local model = f.Model :: Model
+	local t = f.T
+	local throwTime = (model:GetAttribute("VolleyTime") :: number?) or 0.9
+	setActivity("Volley", true)
+	model:SetAttribute("VolleyAt", now())
+	f.Moving = false
+	f.Busy = os.clock() + throwTime + 1
+	f.NextVolley = os.clock() + Boss.ByPhase(t.VolleySeconds, f.Phase)
+	f.NextAttack = math.max(f.NextAttack, f.Busy + 0.5)
+	f.LitUntil = math.max(f.LitUntil, os.clock() + throwTime + t.FlashSeconds) -- its charge shows its cores
+	task.delay(throwTime, function()
+		if fight ~= f or f.State ~= "Fighting" then
+			return
+		end
+		local here = Vector3.new(f.X, f.Y, f.Z)
+		local players, others = {}, {}
+		for _, c in combat:All("Survivors") do
+			local offset = c.Root.Position - here
+			if c.State == "Alive" and math.abs(offset.Y) < 9 and Vector3.new(offset.X, 0, offset.Z).Magnitude <= t.VolleyRange then
+				table.insert(if c.Kind == "Player" then players else others, c)
+			end
+		end
+		local targets = {}
+		for _, list in { players, others } do
+			while #list > 0 do
+				table.insert(targets, table.remove(list, rng:NextInteger(1, #list)))
+			end
+		end
+		local count = Boss.ByPhase(t.Shards, f.Phase)
+		local hatches = Boss.ByPhase(t.Shardlings, f.Phase)
+		for i = 1, count do
+			local c = targets[(i - 1) % math.max(#targets, 1) + 1]
+			local at: Vector3
+			if c then
+				-- the first shard at each target lands on them; the rest fall around them
+				local spread = if i <= #targets then 0 else t.ShardRadius * 1.4
+				local angle = rng:NextNumber() * math.pi * 2
+				at = c.Root.Position + Vector3.new(math.cos(angle) * spread, 0, math.sin(angle) * spread)
+			else
+				at = here + Vector3.new(rng:NextNumber(-14, 14), 0, rng:NextNumber(2, 12))
+			end
+			-- shards land inside its arena's floor
+			at = Vector3.new(math.clamp(at.X, f.Left - t.ArenaMargin + 2, f.Right + t.ArenaMargin - 2), f.Y,
+				math.clamp(at.Z, f.Z - 12, f.Z + 15))
+			shardMark(f, at, i <= hatches)
+		end
+		log:Info("%s threw %d shards (%d will hatch)", f.Name, count, math.min(hatches, count))
+	end)
+end
+
+-- Its decisions, every TickSeconds.
+local function tickColossus(f: Fight, _dt: number)
+	if not f.Model or not f.CombatId then
+		return
+	end
+	local at0 = os.clock()
+	local health, max = combat:HealthOf(f.CombatId)
+	local phase = Boss.Phase(f.BossId, if max > 0 then health / max else 0)
+	if phase > f.Phase then
+		f.Phase = phase
+		f.Moving = false
+		setActivity("Roar", true)
+		f.Busy = at0 + f.T.RoarSeconds
+		f.NextVolley = math.min(f.NextVolley, f.Busy + 1)
+		announce("Danger", `{Boss.Title(f.Name)} {look(f).Phase}`)
+		log:Info("%s phase %d", f.Name, phase)
+	end
+	setLit(f, colossusLit(f))
+	publish()
+	if at0 < f.Busy then
+		f.Moving = false
+		return
+	end
+	local target, position = nearestPlayer(f)
+	if not target or not position then
+		f.Moving = false
+		f.Face = nil
+		setActivity("Idle")
+		return
+	end
+	f.Face = position
+	if at0 >= f.NextVolley then
+		volley(f)
+		return
+	end
+	local flat = Vector3.new(position.X - f.X, 0, position.Z - f.Z)
+	if flat.Magnitude <= f.T.SlamReach and at0 >= f.NextAttack then
+		local facing = pivot(f).LookVector
+		if flat.Magnitude < 1 or flat.Unit:Dot(Vector3.new(facing.X, 0, facing.Z).Unit) > 0.7 then
+			f.Moving = false
+			attack(f)
+			return
+		end
+	end
+	f.WantX = math.clamp(position.X, f.Left, f.Right)
+	f.Moving = math.abs(f.WantX - f.X) > 1 and flat.Magnitude > f.T.SlamReach * 0.6
+	setActivity(if f.Moving then "Walk" else "Idle")
+end
+
+-- Its stride and its turn, every frame.
+local function frameColossus(f: Fight, dt: number)
+	local model = f.Model
+	if not model or f.State ~= "Fighting" or os.clock() < f.Busy then
+		return
+	end
+	local moved = false
+	if f.Face then
+		local before = f.Yaw
+		turnTowards(f, f.Face, dt)
+		moved = f.Yaw ~= before
+	end
+	if f.Moving then
+		local gap = f.WantX - f.X
+		local speed = Boss.ByPhase(f.T.MoveSpeed, f.Phase)
+		local step = math.clamp(gap, -speed * dt, speed * dt)
+		if math.abs(step) > 1e-4 then
+			f.X += step
+			moved = true
+		end
+	end
+	if moved then
+		model:PivotTo(pivot(f))
+	end
+end
+
 local function tick(dt: number)
 	local f = fight
 	if not f or f.State ~= "Fighting" then
@@ -1143,6 +1390,8 @@ local function tick(dt: number)
 	end
 	if f.BossId == "Deluge" then
 		tickDeluge(f, dt)
+	elseif f.BossId == "CrystalColossus" then
+		tickColossus(f, dt)
 	else
 		tickBroodMother(f, dt)
 	end
@@ -1176,8 +1425,8 @@ local function rise(f: Fight)
 	f.Root = root
 	f.State = "Rising"
 	local finalPivot = pivot(f)
-	local riseDepth = if f.BossId == "Deluge" then DELUGE_RISE_DEPTH else RISE_DEPTH
-	model:PivotTo(finalPivot - Vector3.new(0, riseDepth, 0))
+	local from = EMERGE[f.BossId] or EMERGE.BroodMother
+	model:PivotTo(finalPivot + from)
 	model.Parent = holder()
 	local id = combat:Register(model, {
 		Kind = "Monster", Team = "Monsters", Health = f.Max, MonsterType = f.BossId, Root = root, KeepModel = true,
@@ -1191,25 +1440,39 @@ local function rise(f: Fight)
 	end
 	f.CombatId = id
 	model.Name = `{f.BossId}_{id}`
-	play(f, "Roar", true)
+	local colossus = f.BossId == "CrystalColossus"
+	play(f, if colossus then "Walk" else "Roar", true)
 	for _, activity in look(f).Clips do
 		track(f, activity) -- loaded now, so each is ready (and its length known) when she needs it
 	end
-	rockBurst(Vector3.new(f.X, f.Y, f.Z), 40, f)
+	local wall = Vector3.new(f.X, f.Y + 6, f.Z - 13)
+	rockBurst(if colossus then wall else Vector3.new(f.X, f.Y, f.Z), 40, f)
+	if colossus then
+		setLit(f, false) -- its cores are dark until a light finds them
+	end
 	publish(true)
 	announce("Danger", `{Boss.Title(f.Name)} {look(f).Up}`)
-	local seconds = Boss.Tuning().RiseSeconds
+	local seconds = if colossus then f.T.EmergeSeconds else Boss.Tuning().RiseSeconds
 	local started = os.clock()
+	local bursts = 1
 	while fight == f and os.clock() - started < seconds do
 		local k = math.clamp((os.clock() - started) / seconds, 0, 1)
-		local eased = 1 - (1 - k) * (1 - k)
-		model:PivotTo(finalPivot - Vector3.new(0, riseDepth * (1 - eased), 0))
+		-- she bursts up and slows; the Colossus strides out at its own pace
+		local eased = if colossus then k else 1 - (1 - k) * (1 - k)
+		model:PivotTo(finalPivot + from * (1 - eased))
+		if colossus and k * 3 >= bursts then
+			bursts += 1
+			rockBurst(wall + Vector3.new(rng:NextNumber(-5, 5), rng:NextNumber(-4, 3), 0), 24, f) -- the wall coming apart
+		end
 		task.wait()
 	end
 	if fight ~= f then
 		return
 	end
 	model:PivotTo(finalPivot)
+	if colossus then
+		play(f, "Roar", true)
+	end
 	f.State = "Fighting"
 	f.Busy = os.clock() + f.T.RoarSeconds
 	f.NextAttack = f.Busy + 1
@@ -1218,6 +1481,8 @@ local function rise(f: Fight)
 		f.ModeUntil = f.Busy + Boss.ByPhase(f.T.SurfaceSeconds, 1)
 		makeWake(f)
 		floodPassed(f)
+	elseif colossus then
+		f.NextVolley = f.Busy + Boss.ByPhase(f.T.VolleySeconds, 1) * 0.5
 	else
 		f.NextLay = os.clock() + Boss.ByPhase(f.T.LaySeconds, 1) * 0.5
 	end
@@ -1284,6 +1549,11 @@ function BossService:BeginFight(bossId: string): (boolean, string?)
 		AloneSince = nil,
 		Roar = false,
 		Wake = nil,
+		Lit = true, -- as the art has them; rise() darkens them
+		LitUntil = 0,
+		NextVolley = 0,
+		WantX = cell.X,
+		Moving = false,
 	}
 	if bossId == "Deluge" then
 		f.X, f.Z = cell.X, cell.Z -- it comes up in the middle of its cell
@@ -1426,6 +1696,9 @@ local function hitModifier(target: any, point: Vector3?, how: string, player: Pl
 		if f.Mode == "Swim" or f.Mode == "Diving" then
 			return f.T.SubmergedMultiplier, nil -- only its back fin shows
 		end
+		if f.BossId == "CrystalColossus" and not f.Lit then
+			return f.T.ArmourMultiplier, nil -- all armour until a light shows its cores
+		end
 		local weak = false
 		if point then
 			local tolerance = Boss.Tuning().WeakPointTolerance + (if how == "struck" or how == "smashed" then 2 else 0)
@@ -1438,6 +1711,9 @@ local function hitModifier(target: any, point: Vector3?, how: string, player: Pl
 			end
 		end
 		local classValue = Modifiers.PlayerValue(player, "WeakPointMultiplier")
+		if f.BossId == "CrystalColossus" and not weak then
+			return f.T.ArmourMultiplier, nil -- "Huge, slow and armored"
+		end
 		return Boss.HitMultiplier(weak, classValue), if weak then "weakpoint" else nil
 	end
 	if f.Sacs[target.Id] and how == "burned" then
@@ -1466,9 +1742,13 @@ local function describe(): string
 			f.Name, f.State, f.Mode, math.max(f.ModeUntil - os.clock(), 0), math.ceil(health), max, f.Phase, f.Floor, f.Column,
 			f.X, f.Y, f.Z, f.Sink, f.PathIndex, #f.Path, tostring(f.Model and f.Model:GetAttribute("Activity")))
 	end
-	return string.format("%s: %s, %d/%d health, phase %d, arena floor %d columns %d to %d (x %.0f to %.0f), at x %.1f, %d egg sacs, %s",
+	local line = string.format("%s: %s, %d/%d health, phase %d, arena floor %d columns %d to %d (x %.0f to %.0f), at x %.1f, %d egg sacs, %s",
 		f.Name, f.State, math.ceil(health), max, f.Phase, f.Arena.Floor, f.Arena.From, f.Arena.To, f.Left, f.Right, f.X, count,
 		tostring(f.Model and f.Model:GetAttribute("Activity")))
+	if f.BossId == "CrystalColossus" then
+		line ..= string.format(", cores %s, next volley in %.0f s", if f.Lit then "LIT" else "dark", math.max(f.NextVolley - os.clock(), 0))
+	end
+	return line
 end
 
 local function registerCommands(dev: any)
@@ -1480,7 +1760,7 @@ local function registerCommands(dev: any)
 	})
 	dev:Register("boss.start", {
 		Description = "Start a boss's fight now, outside its Surge (Studio testing).",
-		Usage = "boss.start [BroodMother|Deluge]",
+		Usage = "boss.start [BroodMother|Deluge|CrystalColossus]",
 		Run = function(_player, args): string?
 			local ok, why = BossService:BeginFight(tostring(args[1] or "BroodMother"))
 			return if ok then describe() else `can't: {why}`
@@ -1527,6 +1807,30 @@ local function registerCommands(dev: any)
 			end
 			setActivity("Idle")
 			return `frozen for {seconds} s\n{describe()}`
+		end,
+	})
+	dev:Register("boss.volley", {
+		Description = "The Crystal Colossus throws its shards now (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or f.State ~= "Fighting" or f.BossId ~= "CrystalColossus" then
+				return "the Crystal Colossus isn't fighting"
+			end
+			f.Busy = 0
+			f.NextVolley = 0
+			return describe()
+		end,
+	})
+	dev:Register("boss.light", {
+		Description = "Show the Crystal Colossus's cores for a while, as a flare would (Studio testing).",
+		Usage = "boss.light [seconds]",
+		Run = function(_player, args): string?
+			local f = fight
+			if not f or f.BossId ~= "CrystalColossus" then
+				return "no Crystal Colossus"
+			end
+			f.LitUntil = os.clock() + (tonumber(args[1]) or f.T.LitSeconds)
+			return describe()
 		end,
 	})
 	dev:Register("boss.dive", {
@@ -1609,6 +1913,11 @@ function BossService:Start()
 		local f = fight
 		if f and f.Mode ~= "" then
 			local ok, err = pcall(frameDeluge, f, math.min(dt, 0.1))
+			if not ok then
+				log:Warn("frame: %s", tostring(err))
+			end
+		elseif f and f.BossId == "CrystalColossus" then
+			local ok, err = pcall(frameColossus, f, math.min(dt, 0.1))
 			if not ok then
 				log:Warn("frame: %s", tostring(err))
 			end

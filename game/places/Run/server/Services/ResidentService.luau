@@ -29,7 +29,11 @@
 	  them (Lose: gone at once, no revive). Home again (SetAway off) they are Alive with no job.
 	* Replication: the Residents collection, id -> { Name, First, Last, Age, Tier, Level, XP,
 	  XPNext, Stats, Job, Health, MaxHealth, Rest, Morale, Mood, State, Hungry, Trapped, DownUntil,
-	  Weapon }.
+	  Weapon, Sick, Irradiated, Quarantined }.
+	* Conditions (Prompt 24): Sick (an Outbreak: contagious, works slowly, loses health each cycle
+	  until the Medbay cures them; with no job they keep to a Quarters bed, which is quarantine) and
+	  Irradiated (a radiation leak: loses health each cycle until a working Decon Room clears
+	  them). DisasterService sets them (SetCondition); Section 11's other conditions are Prompt 26.
 	* Classes (Prompt 20): experience is times the bunker's ResidentXP (the Warden); a level goes
 	  into the stat a level 2 Warden picked (SetLevelStat), else their job's. Armed residents (a
 	  Weapon; gear and how they get one are Prompt 26) answer the Warden's Rally Call.
@@ -50,6 +54,8 @@
 		ResidentService:SetModifier(source, "ResidentXP", value?) -- Prompt 20: the Warden's +20% experience
 		ResidentService:SetLevelStat(stat?)            -- Prompt 20: a level 2 Warden picks the stat levels raise
 		ResidentService:Arm(id, itemId?)               -- the weapon a resident carries (gear is Prompt 26; DevTools)
+		ResidentService:SetCondition(id, "Sick" | "Irradiated", on, why?): boolean -- Prompt 24 (DisasterService)
+		ResidentService:HasCondition(id, condition): boolean
 		ResidentService.Changed: Signal<string>         -- a resident's data changed
 		ResidentService.Assigned: Signal<string, string?> -- resident, room (first-run objective 1)
 		ResidentService.Died: Signal<string, string>    -- resident, how
@@ -142,6 +148,9 @@ local function publish(resident: Resident)
 		Trapped = resident.Trapped == true,
 		DownUntil = downUntil[resident.Id],
 		Weapon = resident.Weapon,
+		Sick = resident.Sick == true or nil,
+		Irradiated = resident.Irradiated == true or nil,
+		Quarantined = Residents.Quarantined(resident) or nil,
 		Log = table.clone(resident.Log),
 	})
 	ResidentService.Changed:Fire(resident.Id)
@@ -184,6 +193,40 @@ function ResidentService:Heal(id: string, amount: number): number
 	resident.Health = math.min(resident.MaxHealth, resident.Health + amount)
 	publish(resident)
 	return resident.Health - before
+end
+
+-- Conditions (Prompt 24: Sick from an Outbreak, Irradiated from a radiation leak; the rest of
+-- Section 11's conditions are Prompt 26). Returns true when it changed.
+local CONDITIONS: { [string]: boolean } = { Sick = true, Irradiated = true }
+function ResidentService:SetCondition(id: string, condition: string, on: boolean, why: string?): boolean
+	local resident = residents[id]
+	if not resident or not CONDITIONS[condition] or resident.State == "Dead" then
+		return false
+	end
+	local record = resident :: any
+	if (record[condition] == true) == on then
+		return false
+	end
+	record[condition] = if on then true else nil
+	if condition == "Sick" then
+		if on then
+			resident.Morale = math.clamp(resident.Morale + Config.Get("Tuning", "Disasters").Outbreak.MoraleNow, 0, 100)
+			logLine(resident, `fell sick{if why then ` ({why})` else ""}`)
+		else
+			logLine(resident, `got over the sickness{if why then ` ({why})` else ""}`)
+		end
+		economy:RefreshCrew() -- the sick work slowly
+	elseif on then
+		logLine(resident, `was caught in the radiation{if why then ` ({why})` else ""}`)
+	end
+	publish(resident)
+	log:Info("%s %s %s (%s)", Residents.Name(resident), if on then "is" else "is no longer", condition, why or "-")
+	return true
+end
+
+function ResidentService:HasCondition(id: string, condition: string): boolean
+	local resident = residents[id]
+	return resident ~= nil and (resident :: any)[condition] == true
 end
 
 -- The weapon a resident carries (nil: none). Gear and how residents get it are Prompt 26; until
@@ -624,6 +667,13 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 	end
 	local bedsLeft = beds()
 	local heals = medbayHeals()
+	local decon = false
+	for _, room in grid:RoomsOfType("DeconRoom") do
+		if not room.Wrecked and not power:IsDark(room.Id) then
+			decon = true
+		end
+	end
+	local conditionDown: string? = nil
 	for _, resident in alive do
 		local room = if resident.Job then grid:Room(resident.Job) else nil
 		local jobStat = if room then Residents.JobStat(room.Type) else nil
@@ -646,8 +696,21 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 		if heals and resident.Health > 0 and resident.Health < resident.MaxHealth then
 			resident.Health = math.min(resident.MaxHealth, resident.Health + t.MedbayHealPerCycle)
 		end
+		-- Prompt 24: a working Decon Room clears the irradiated (Section 6: "Clears radiation from
+		-- players and residents"); the sick and the irradiated lose health until they are treated
+		if resident.Irradiated and decon then
+			resident.Irradiated = nil
+			logLine(resident, "was cleared of radiation in the Decon Room")
+		end
+		local cost = Residents.ConditionHealth(resident)
+		if cost < 0 and resident.Health > 0 then
+			resident.Health = math.max(0, resident.Health + cost)
+			conditionDown = if resident.Health <= 0 then (if resident.Sick then "sickness" else "radiation") else nil
+		else
+			conditionDown = nil
+		end
 		if resident.Health <= 0 then
-			goDown(resident, if hungry[resident.Id] then "hunger" else "weakness")
+			goDown(resident, conditionDown or (if hungry[resident.Id] then "hunger" else "weakness"))
 		else
 			publish(resident)
 		end

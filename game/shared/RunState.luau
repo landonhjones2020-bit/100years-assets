@@ -100,6 +100,8 @@ local FIELDS: { [string]: Field } = {
 	Rubble = { Type = "number", By = "DisasterService", Doc = "piles of rubble blocking the way" },
 	Floods = { Type = "number", By = "DisasterService", Doc = "rooms with water in them (Prompt 23)" },
 	GasLeaks = { Type = "number", By = "DisasterService", Doc = "rooms with gas in them (Prompt 23)" },
+	RadiationLeaks = { Type = "number", By = "DisasterService", Doc = "radiation leaks on (Prompt 24)" },
+	Sick = { Type = "number", By = "DisasterService", Doc = "residents sick in an outbreak (Prompt 24)" },
 	Meltdown = { Type = "boolean", By = "DisasterService", Doc = "the Reactor Core is melting down (Section 10)" },
 	MeltdownEndsAt = { Type = "number", By = "DisasterService", Doc = "server time the meltdown loses the run (Meltdown only)" },
 	ValvesTurned = { Type = "number", By = "DisasterService", Doc = "the meltdown valves turned now, 0 to 3 (Meltdown only)" },

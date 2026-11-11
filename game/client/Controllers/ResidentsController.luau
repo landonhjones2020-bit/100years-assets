@@ -133,7 +133,10 @@ local function showResident(id: string)
 	end
 	section(body, 2, "Stats", table.concat(stats, "  ·  "))
 	section(body, 3, "Needs", `Health {resident.Health} of {resident.MaxHealth}  ·  Rest {resident.Rest}  ·  Morale {resident.Morale} ({resident.Mood})`
-		.. (if resident.Hungry then "  ·  Hungry" else ""))
+		.. (if resident.Hungry then "  ·  Hungry" else "")
+		-- Prompt 24: an Outbreak's sickness and a leak's radiation
+		.. (if resident.Sick then (if resident.Quarantined then "  ·  Sick, in quarantine" else "  ·  SICK: take them off work to quarantine them") else "")
+		.. (if resident.Irradiated then "  ·  Irradiated: a Decon Room clears it" else ""))
 	section(body, 4, "Experience", `{resident.XP} of {resident.XPNext} to level {resident.Level + 1}`)
 	local history = resident.Log or {}
 	local lines = {}
