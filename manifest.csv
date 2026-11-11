@@ -255,37 +255,37 @@ Deluge_Stagger,Animations/Deluge,clip,,,,,,uploaded,115956492649708,A8 clip; Con
 Deluge_Death,Animations/Deluge,clip,,,,,,uploaded,135611914410917,A8 clip; Config.Animations DelugeDeath
 Kit_BurstPipe,Kit,model,A8,6.042x2.934x1.922,1800,1732,brass;copper;cream;gunmetal;rubber;rust;signal;steel,in_studio,72928487965400,Prompt 23: the burst water main DisasterService hangs on a flooding room's back wall; socket Spray. Set up in the Run place 2026-11-11
 Kit_GasVent,Kit,model,A8,3.882x4.863x1.672,1100,1040,avocado;basalt;gunmetal;hazard;navy;rubber;rust;steel,in_studio,119760463920682,Prompt 23: the blown vent of a gas leak; socket Leak. Set up in the Run place 2026-11-11
-Monster_Shardling,Monsters,model,A10,2.862x2.186x3.844,3300,3176,basalt;cream;crystal;glow;plum;stone,exported,,
-Shardling_Idle,Animations/Shardling,clip,,,,,,exported,,
-Shardling_Walk,Animations/Shardling,clip,,,,,,exported,,
-Shardling_Attack,Animations/Shardling,clip,,,,,,exported,,
-Boss_CrystalColossus,Bosses,model,A10,18.539x14.936x10.083,15000,12736,basalt;crystal;glow;plum;rubber;signal;stone,exported,,
-CrystalColossus_Idle,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Walk,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Attack,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Volley,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Roar,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Stagger,Animations/CrystalColossus,clip,,,,,,exported,,
-CrystalColossus_Death,Animations/CrystalColossus,clip,,,,,,exported,,
-Monster_PrismStalker,Monsters,model,A10,3.238x4.753x9.135,3400,3104,basalt;cream;crystal;rubber,exported,,
-PrismStalker_Idle,Animations/PrismStalker,clip,,,,,,exported,,
-PrismStalker_Walk,Animations/PrismStalker,clip,,,,,,exported,,
-PrismStalker_Attack,Animations/PrismStalker,clip,,,,,,exported,,
-Monster_GeodeGolem,Monsters,model,A10,10.713x9.581x5.975,4000,3860,basalt;crystal;glow;plum;rubber;stone,exported,,
-GeodeGolem_Idle,Animations/GeodeGolem,clip,,,,,,exported,,
-GeodeGolem_Walk,Animations/GeodeGolem,clip,,,,,,exported,,
-GeodeGolem_Attack,Animations/GeodeGolem,clip,,,,,,exported,,
-Monster_Resonator,Monsters,model,A10,4.549x8.57x4.003,3400,3030,basalt;crystal;glow;plum;rubber;stone,exported,,
-Resonator_Idle,Animations/Resonator,clip,,,,,,exported,,
-Resonator_Walk,Animations/Resonator,clip,,,,,,exported,,
-Resonator_Attack,Animations/Resonator,clip,,,,,,exported,,
-Kit_DoorSeal,Kit,model,A10,2.9x5x1.7,1700,1612,avocado;chrome;glow;gunmetal;hazard;navy;rubber;signal;steel,exported,,
-Kit_CrystalSeam,Kit,model,A10,5.294x5.185x1.657,1500,1124,basalt;chrome;cream;crystal;glow;plum;rubber;teal,exported,,
-Cave_Crystal_Entry,Caves,model,A6,36.013x20.228x36.438,8000,4252,ash;basalt;brass;crystal;gunmetal;hazard;plum;rubber,exported,,
-Cave_Crystal_Tunnel,Caves,model,A6,27.079x20.168x45.331,8000,4294,ash;basalt;brass;crystal;glow;gunmetal;plum,exported,,
-Cave_Crystal_Pocket,Caves,model,A6,34.888x20.058x35.362,8000,5186,ash;basalt;brass;crystal;glow;gunmetal;plum,exported,,
-Cave_Crystal_Chamber,Caves,model,A6,54.785x29.038x54.315,8000,5614,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,exported,,
-Cave_Crystal_Drop,Caves,model,A6,27.073x28.462x45.454,8000,5986,ash;basalt;brass;crystal;gunmetal;plum,exported,,
-Cave_Crystal_Junction,Caves,model,A6,64.895x21.117x39.043,8000,6958,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,exported,,
-Cave_Crystal_Cavern,Caves,model,A6,71.414x34.741x67.331,8000,7998,ash;basalt;brass;crystal;glow;gunmetal;plum,exported,,
-Cave_Crystal_CrewPocket,Caves,model,A6,42.146x22.764x44.106,8000,7848,ash;basalt;brass;cream;crystal;gunmetal;hazard;pine;plum;rubber;teal;walnut,exported,,
+Monster_Shardling,Monsters,model,A10,2.862x2.186x3.844,3300,3176,basalt;cream;crystal;glow;plum;stone,verified,74669648887269,"A10 (Prompt 24): ServerStorage.Assets.Monsters (Run); size and pivot measured in Studio; Prompt 24 playtest: swarmed, shattered for 6 at its death, Idle, Walk and Attack played"
+Shardling_Idle,Animations/Shardling,clip,A10,,,,,verified,97873691999290,played on its rig in the Prompt 24 playtest (track length read in play)
+Shardling_Walk,Animations/Shardling,clip,A10,,,,,verified,77941776120785,played on its rig in the Prompt 24 playtest (track length read in play)
+Shardling_Attack,Animations/Shardling,clip,A10,,,,,verified,103513336103243,played on its rig in the Prompt 24 playtest (track length read in play)
+Boss_CrystalColossus,Bosses,model,A10,18.539x14.936x10.083,15000,12736,basalt;crystal;glow;plum;rubber;signal;stone,verified,100985849078817,"A10 (Prompt 24): ServerStorage.Assets.Bosses (Run); size and pivot measured in Studio; Prompt 24 playtest: the Year 75 Surge, all seven clips played"
+CrystalColossus_Idle,Animations/CrystalColossus,clip,A10,,,,,verified,92071238039702,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Walk,Animations/CrystalColossus,clip,A10,,,,,verified,80414932215543,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Attack,Animations/CrystalColossus,clip,A10,,,,,verified,125667580394018,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Volley,Animations/CrystalColossus,clip,A10,,,,,verified,110812867505641,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Roar,Animations/CrystalColossus,clip,A10,,,,,verified,121631002445443,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Stagger,Animations/CrystalColossus,clip,A10,,,,,verified,103101122241503,played on its rig in the Prompt 24 playtest (track length read in play)
+CrystalColossus_Death,Animations/CrystalColossus,clip,A10,,,,,verified,83559829469455,played on its rig in the Prompt 24 playtest (track length read in play)
+Monster_PrismStalker,Monsters,model,A10,3.238x4.753x9.135,3400,3104,basalt;cream;crystal;rubber,verified,130393825412411,"A10 (Prompt 24): ServerStorage.Assets.Monsters (Run); revision 2 (blade tips the importer trimmed); size and pivot measured in Studio; Prompt 24 playtest: hidden, shown by a flare, Idle, Walk and Attack played"
+PrismStalker_Idle,Animations/PrismStalker,clip,A10,,,,,verified,121017758616327,played on its rig in the Prompt 24 playtest (track length read in play)
+PrismStalker_Walk,Animations/PrismStalker,clip,A10,,,,,verified,90504403398881,played on its rig in the Prompt 24 playtest (track length read in play)
+PrismStalker_Attack,Animations/PrismStalker,clip,A10,,,,,verified,120335199648341,played on its rig in the Prompt 24 playtest (track length read in play)
+Monster_GeodeGolem,Monsters,model,A10,10.713x9.581x5.975,4000,3860,basalt;crystal;glow;plum;rubber;stone,verified,105667984441424,"A10 (Prompt 24): ServerStorage.Assets.Monsters (Run); size and pivot measured in Studio; Prompt 24 playtest: shrugged off the Pocket Pistol (2.4 a shot, 34 from the revolver), got through a doorway, Idle, Walk and Attack played"
+GeodeGolem_Idle,Animations/GeodeGolem,clip,A10,,,,,verified,121739575432742,played on its rig in the Prompt 24 playtest (track length read in play)
+GeodeGolem_Walk,Animations/GeodeGolem,clip,A10,,,,,verified,78406809910812,played on its rig in the Prompt 24 playtest (track length read in play)
+GeodeGolem_Attack,Animations/GeodeGolem,clip,A10,,,,,verified,106115790644696,played on its rig in the Prompt 24 playtest (track length read in play)
+Monster_Resonator,Monsters,model,A10,4.549x8.57x4.003,3400,3030,basalt;crystal;glow;plum;rubber;stone,verified,139798192367537,"A10 (Prompt 24): ServerStorage.Assets.Monsters (Run); size and pivot measured in Studio; Prompt 24 playtest: hummed every 4 s (heal and haste), Idle and Attack played (Walk not seen: it stood by its pack)"
+Resonator_Idle,Animations/Resonator,clip,A10,,,,,verified,84027818082893,played on its rig in the Prompt 24 playtest (track length read in play)
+Resonator_Walk,Animations/Resonator,clip,A10,,,,,in_studio,70969580809227,on the rig in Run (Anim_Walk); not seen playing
+Resonator_Attack,Animations/Resonator,clip,A10,,,,,verified,110970025145339,played on its rig in the Prompt 24 playtest (track length read in play)
+Kit_DoorSeal,Kit,model,A10,2.9x5x1.7,1700,1612,avocado;chrome;glow;gunmetal;hazard;navy;rubber;signal;steel,verified,116537539059684,"A10 (Prompt 24): ServerStorage.Assets.Kit (Run); size and pivot measured in Studio; Prompt 24 playtest: on the Blast Door's jamb, sealed by its prompt"
+Kit_CrystalSeam,Kit,model,A10,5.294x5.185x1.657,1500,1124,basalt;chrome;cream;crystal;glow;plum;rubber;teal,verified,111950606351593,"A10 (Prompt 24): ServerStorage.Assets.Kit (Run); size and pivot measured in Studio; Prompt 24 playtest: on five rooms' walls, its prompt shown"
+Cave_Crystal_Entry,Caves,model,A10,36.013x20.228x36.438,8000,4252,ash;basalt;brass;crystal;gunmetal;hazard;plum;rubber,verified,95216540770603,"A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio; Prompt 24 playtest: walked in the cave at 7,1"
+Cave_Crystal_Tunnel,Caves,model,A10,27.079x20.168x45.331,8000,4294,ash;basalt;brass;crystal;glow;gunmetal;plum,in_studio,83967828713485,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Cave_Crystal_Pocket,Caves,model,A10,34.888x20.058x35.362,8000,5186,ash;basalt;brass;crystal;glow;gunmetal;plum,in_studio,137720474401999,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Cave_Crystal_Chamber,Caves,model,A10,54.785x29.038x54.315,8000,5614,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,verified,136395288449065,"A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio; Prompt 24 playtest: walked in the cave at 7,1"
+Cave_Crystal_Drop,Caves,model,A10,27.073x28.462x45.454,8000,5986,ash;basalt;brass;crystal;gunmetal;plum,in_studio,116981217365849,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Cave_Crystal_Junction,Caves,model,A10,64.895x21.117x39.043,8000,6958,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,in_studio,140320557322624,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Cave_Crystal_Cavern,Caves,model,A10,71.414x34.741x67.331,8000,7998,ash;basalt;brass;crystal;glow;gunmetal;plum,in_studio,117892511992627,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Cave_Crystal_CrewPocket,Caves,model,A10,42.146x22.764x44.106,8000,7848,ash;basalt;brass;cream;crystal;gunmetal;hazard;pine;plum;rubber;teal;walnut,in_studio,91698303854579,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio

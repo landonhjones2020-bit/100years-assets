@@ -977,8 +977,8 @@ local function blinkFor(entry: any): string?
 		return entry.Room
 	elseif (entry.Kind == "Flood" and entry.Pipe) or (entry.Kind == "Gas" and entry.Leaking) then
 		return entry.Room -- a pipe to patch, a vent to seal
-	elseif entry.Kind == "Radiation" and entry.Leaking and entry.Room then
-		return entry.Room -- a seam to seal
+	elseif entry.Kind == "Radiation" and entry.Leaking then
+		return entry.Room or entry.Door -- a seam to seal, or the door's clamp
 	end
 	return nil
 end
@@ -1167,6 +1167,17 @@ local function disasterAt(roomId: string): (any, any, any)
 	return fire, surge, melt
 end
 
+-- The radiation leak that fills a room (Prompt 24): a door leak fills its whole floor.
+local function radiationAt(roomId: string): any
+	for _, entry in replica:All("Disasters") do
+		if type(entry) == "table" and entry.Kind == "Radiation"
+			and (entry.Room == roomId or (type(entry.Units) == "table" and table.find(entry.Units, roomId) ~= nil)) then
+			return entry
+		end
+	end
+	return nil
+end
+
 local function blackoutHas(roomId: string): boolean
 	for _, entry in replica:All("Disasters") do
 		if type(entry) == "table" and entry.Kind == "Blackout" and table.find(entry.Rooms or {}, roomId) then
@@ -1206,6 +1217,11 @@ local function status(roomId: string, room: any): (string?, string?)
 	elseif flood then
 		return if flood.Pipe then "Lamp_Red" else "Lamp_Amber", if flood.Pipe then `FLOODING {flood.Level or 0}%` else `WATER {flood.Level or 0}%`
 	end
+	local radiation = radiationAt(roomId)
+	if radiation then
+		return if radiation.Leaking then "Lamp_Red" else "Lamp_Amber",
+			if radiation.Leaking then `RADIATION {math.floor(radiation.Strength or 0)}%` else "RADIATION FADING"
+	end
 	if room and room.Wrecked then
 		return "Lamp_Red", "WRECKED"
 	elseif blackoutHas(roomId) then
@@ -1242,6 +1258,14 @@ local function note(roomId: string): string?
 		table.insert(lines, if gas.Leaking
 			then `Gas ({gas.Strength or 0}%): it hurts everyone in here. Seal the vent, or keep out until it airs out.`
 			else `Gas ({gas.Strength or 0}%): the leak has stopped and the room is airing out.`)
+	end
+	local radiation = radiationAt(roomId)
+	if radiation then
+		local strength = math.floor(radiation.Strength or 0)
+		table.insert(lines, if not radiation.Leaking
+			then `Radiation ({strength}%): the leak is sealed and it is fading.`
+			elseif radiation.Room then `Radiation ({strength}%): a crystal seam has split the wall. Seal the seam; a Decon Room slows it. Residents leave, and the ones caught in it are Irradiated.`
+			else `Radiation ({strength}%): the storm is leaking through the Blast Door and filling this floor. Seal the door at its jamb, or upgrade it; a Decon Room slows it.`)
 	end
 	if blackoutHas(roomId) then
 		table.insert(lines, "Blackout: reset the fuse box in the Reactor Core.")

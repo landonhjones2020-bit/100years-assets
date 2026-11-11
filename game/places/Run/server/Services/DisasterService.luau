@@ -71,7 +71,7 @@
 	  { Kind = "Surge", Room, EndsAt, Cause }                         id "S:<room>"
 	  { Kind = "Flood", Room, Level, Pipe, Cause }                    id "W:<room>"
 	  { Kind = "Gas", Room, Strength, Leaking, EndsAt, Cause }        id "G:<room>"
-	  { Kind = "Radiation", Floor, Room?, Units, Strength, Leaking, EndsAt, Cause }  id "R:Door" or "R:<room>"
+	  { Kind = "Radiation", Floor, Room?, Door?, Units, Strength, Leaking, EndsAt, Cause }  id "R:Door" or "R:<room>"
 	  { Kind = "Outbreak", Sick, Quarantined, Patient?, Cure, Treating, Cause }      id "O:<n>"
 	and RunState Fires, BlackoutRooms, Rubble, Floods, GasLeaks, Meltdown, MeltdownEndsAt, ValvesTurned.
 	workspace.Bunker.Disasters holds the fuse box and valve prompts, the rubble, burst pipes
@@ -182,6 +182,7 @@ type Gas = {
 type Leak = {
 	Id: string, Floor: number, Room: string?, Strength: number, Leaking: boolean, EndsAt: number, Cause: string,
 	Sent: number, SentLeaking: boolean, Prop: Instance?, Units: { [string]: boolean }, DoorLevel: number?,
+	Door: string?, -- the Blast Door's room, for a door leak (the Command View blinks it)
 }
 type Outbreak = {
 	Id: string, Cause: string, NextSpread: number, Cure: number, Patient: string?, Immune: { [string]: boolean }, Sent: string,
@@ -1563,8 +1564,8 @@ local function publishLeak(leak: Leak)
 	end
 	table.sort(list)
 	collection:Set(leak.Id, {
-		Kind = "Radiation", Floor = leak.Floor, Room = leak.Room, Units = list, Strength = leak.Sent, Leaking = leak.Leaking,
-		EndsAt = leak.EndsAt, Cause = leak.Cause,
+		Kind = "Radiation", Floor = leak.Floor, Room = leak.Room, Door = leak.Door, Units = list, Strength = leak.Sent,
+		Leaking = leak.Leaking, EndsAt = leak.EndsAt, Cause = leak.Cause,
 	})
 end
 
@@ -1674,7 +1675,7 @@ function DisasterService:StartRadiationLeak(cause: string, roomId: string?, stre
 	local leak: Leak = {
 		Id = id, Floor = room.Floor, Room = roomId, Strength = math.clamp(strength or (if roomId then r.PocketStrength else r.StartStrength), 1, 100),
 		Leaking = true, EndsAt = now() + Disasters.RadiationSeconds(), Cause = cause, Sent = -1, SentLeaking = true,
-		Units = {}, DoorLevel = if roomId then nil else room.Level,
+		Units = {}, DoorLevel = if roomId then nil else room.Level, Door = if roomId then nil else room.Id,
 	}
 	leak.Units = leakUnits(leak)
 	leaks[id] = leak
