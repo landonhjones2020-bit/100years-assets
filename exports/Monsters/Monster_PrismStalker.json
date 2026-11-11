@@ -1,0 +1,1062 @@
+{
+ "asset": "Monster_PrismStalker",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  3.238,
+  4.753,
+  9.135
+ ],
+ "tris": 3104,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.004,
+    2.731,
+    -0.775
+   ],
+   "size": [
+    0.999,
+    1.125,
+    2.861
+   ],
+   "tris": 162
+  },
+  {
+   "name": "Chest",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.004,
+    2.713,
+    -1.392
+   ],
+   "size": [
+    1.144,
+    1.423,
+    1.556
+   ],
+   "tris": 504
+  },
+  {
+   "name": "GlintHeart",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.004,
+    2.555,
+    -1.406
+   ],
+   "size": [
+    0.312,
+    0.32,
+    0.64
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Chest_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.008,
+    3.097,
+    -1.11
+   ],
+   "size": [
+    2.806,
+    2.049,
+    2.776
+   ],
+   "tris": 380
+  },
+  {
+   "name": "Body_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.007,
+    2.942,
+    0.389
+   ],
+   "size": [
+    2.548,
+    1.749,
+    1.658
+   ],
+   "tris": 200
+  },
+  {
+   "name": "GlintSpine",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.019,
+    3.913,
+    -0.271
+   ],
+   "size": [
+    0.09,
+    0.225,
+    0.252
+   ],
+   "tris": 20
+  },
+  {
+   "name": "Neck",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Neck",
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.004,
+    3.536,
+    -2.505
+   ],
+   "size": [
+    0.34,
+    0.939,
+    0.934
+   ],
+   "tris": 56
+  },
+  {
+   "name": "Neck_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Neck",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.054,
+    3.742,
+    -2.307
+   ],
+   "size": [
+    0.3,
+    0.827,
+    0.781
+   ],
+   "tris": 40
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream",
+    "rubber"
+   ],
+   "offset": [
+    0.004,
+    3.898,
+    -3.412
+   ],
+   "size": [
+    0.898,
+    0.745,
+    1.77
+   ],
+   "tris": 92
+  },
+  {
+   "name": "Head_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.015,
+    4.12,
+    -2.73
+   ],
+   "size": [
+    1.033,
+    1.016,
+    1.767
+   ],
+   "tris": 100
+  },
+  {
+   "name": "GlintEye",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.004,
+    4.005,
+    -3.476
+   ],
+   "size": [
+    0.66,
+    0.09,
+    0.09
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Jaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Jaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "cream"
+   ],
+   "offset": [
+    0.004,
+    3.707,
+    -3.545
+   ],
+   "size": [
+    0.258,
+    0.345,
+    0.929
+   ],
+   "tris": 52
+  },
+  {
+   "name": "LeftArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    -0.881,
+    3.714,
+    -2.039
+   ],
+   "size": [
+    0.989,
+    1.582,
+    0.635
+   ],
+   "tris": 56
+  },
+  {
+   "name": "LeftArm_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.763,
+    3.527,
+    -1.602
+   ],
+   "size": [
+    0.491,
+    0.672,
+    0.49
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftBlade",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftBlade",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    -1.283,
+    2.972,
+    -3.363
+   ],
+   "size": [
+    0.297,
+    2.942,
+    2.409
+   ],
+   "tris": 60
+  },
+  {
+   "name": "LeftBlade_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftBlade",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -1.251,
+    3.039,
+    -3.183
+   ],
+   "size": [
+    0.255,
+    3.234,
+    2.749
+   ],
+   "tris": 156
+  },
+  {
+   "name": "GlintBlade",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftBlade",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -1.247,
+    2.624,
+    -3.268
+   ],
+   "size": [
+    0.218,
+    2.45,
+    2.389
+   ],
+   "tris": 52
+  },
+  {
+   "name": "RightArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.889,
+    3.714,
+    -2.039
+   ],
+   "size": [
+    0.989,
+    1.582,
+    0.635
+   ],
+   "tris": 56
+  },
+  {
+   "name": "RightArm_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.758,
+    3.527,
+    -1.59
+   ],
+   "size": [
+    0.49,
+    0.672,
+    0.491
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightBlade",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightBlade",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    1.29,
+    2.972,
+    -3.363
+   ],
+   "size": [
+    0.297,
+    2.942,
+    2.409
+   ],
+   "tris": 60
+  },
+  {
+   "name": "RightBlade_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightBlade",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    1.259,
+    3.039,
+    -3.183
+   ],
+   "size": [
+    0.255,
+    3.234,
+    2.749
+   ],
+   "tris": 156
+  },
+  {
+   "name": "GlintBlade_",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightBlade",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    1.255,
+    2.624,
+    -3.268
+   ],
+   "size": [
+    0.218,
+    2.45,
+    2.389
+   ],
+   "tris": 52
+  },
+  {
+   "name": "LeftLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    -0.717,
+    1.907,
+    0.422
+   ],
+   "size": [
+    0.684,
+    1.364,
+    1.204
+   ],
+   "tris": 68
+  },
+  {
+   "name": "LeftLeg_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.878,
+    2.222,
+    0.421
+   ],
+   "size": [
+    0.636,
+    0.891,
+    1.071
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftShin",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftShin",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    -1.009,
+    0.701,
+    0.286
+   ],
+   "size": [
+    0.682,
+    1.375,
+    1.403
+   ],
+   "tris": 100
+  },
+  {
+   "name": "LeftShin_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftShin",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.981,
+    1.022,
+    0.891
+   ],
+   "size": [
+    0.21,
+    1.102,
+    0.792
+   ],
+   "tris": 26
+  },
+  {
+   "name": "RightLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.724,
+    1.907,
+    0.422
+   ],
+   "size": [
+    0.684,
+    1.364,
+    1.204
+   ],
+   "tris": 68
+  },
+  {
+   "name": "RightLeg_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.927,
+    2.222,
+    0.443
+   ],
+   "size": [
+    0.642,
+    0.891,
+    1.036
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightShin",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightShin",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.991,
+    0.701,
+    0.286
+   ],
+   "size": [
+    0.682,
+    1.375,
+    1.403
+   ],
+   "tris": 100
+  },
+  {
+   "name": "RightShin_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightShin",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.919,
+    1.022,
+    0.891
+   ],
+   "size": [
+    0.21,
+    1.102,
+    0.792
+   ],
+   "tris": 26
+  },
+  {
+   "name": "Tail",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.004,
+    2.565,
+    1.396
+   ],
+   "size": [
+    0.32,
+    0.577,
+    1.526
+   ],
+   "tris": 60
+  },
+  {
+   "name": "Tail_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tail",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.044,
+    2.715,
+    1.514
+   ],
+   "size": [
+    0.24,
+    0.491,
+    1.427
+   ],
+   "tris": 60
+  },
+  {
+   "name": "TailTip",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "TailTip",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "rubber"
+   ],
+   "offset": [
+    0.004,
+    2.383,
+    2.795
+   ],
+   "size": [
+    0.16,
+    0.269,
+    1.314
+   ],
+   "tris": 54
+  },
+  {
+   "name": "TailTip_",
+   "material": "Glass",
+   "transparency": 0.3,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "TailTip",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.005,
+    2.529,
+    3.384
+   ],
+   "size": [
+    0.574,
+    0.499,
+    2.156
+   ],
+   "tris": 140
+  },
+  {
+   "name": "GlintTail",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "TailTip",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.016,
+    2.679,
+    4.448
+   ],
+   "size": [
+    0.075,
+    0.1,
+    0.221
+   ],
+   "tris": 20
+  }
+ ],
+ "meta": {
+  "role": "Ambusher",
+  "band": "CrystalHollows",
+  "hitTime": 0.3
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Slash": {
+   "p": [
+    0.004,
+    1.605,
+    -4.456
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.004,
+     2.555,
+     -0.156
+    ]
+   },
+   {
+    "name": "Chest",
+    "parent": "Body",
+    "jointName": "ChestJoint",
+    "joint": [
+     0.004,
+     2.805,
+     -1.306
+    ]
+   },
+   {
+    "name": "Neck",
+    "parent": "Chest",
+    "jointName": "NeckJoint",
+    "joint": [
+     0.004,
+     3.155,
+     -2.156
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Neck",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.004,
+     3.955,
+     -2.906
+    ]
+   },
+   {
+    "name": "Jaw",
+    "parent": "Head",
+    "jointName": "JawJoint",
+    "joint": [
+     0.004,
+     3.725,
+     -3.156
+    ]
+   },
+   {
+    "name": "LeftArm",
+    "parent": "Chest",
+    "jointName": "LeftArmJoint",
+    "joint": [
+     -0.496,
+     3.005,
+     -1.856
+    ]
+   },
+   {
+    "name": "LeftBlade",
+    "parent": "LeftArm",
+    "jointName": "LeftBladeJoint",
+    "joint": [
+     -1.246,
+     4.355,
+     -2.206
+    ]
+   },
+   {
+    "name": "RightArm",
+    "parent": "Chest",
+    "jointName": "RightArmJoint",
+    "joint": [
+     0.504,
+     3.005,
+     -1.856
+    ]
+   },
+   {
+    "name": "RightBlade",
+    "parent": "RightArm",
+    "jointName": "RightBladeJoint",
+    "joint": [
+     1.254,
+     4.355,
+     -2.206
+    ]
+   },
+   {
+    "name": "LeftLeg",
+    "parent": "Body",
+    "jointName": "LeftLegJoint",
+    "joint": [
+     -0.546,
+     2.455,
+     -0.006
+    ]
+   },
+   {
+    "name": "LeftShin",
+    "parent": "LeftLeg",
+    "jointName": "LeftShinJoint",
+    "joint": [
+     -0.946,
+     1.355,
+     0.894
+    ]
+   },
+   {
+    "name": "RightLeg",
+    "parent": "Body",
+    "jointName": "RightLegJoint",
+    "joint": [
+     0.554,
+     2.455,
+     -0.006
+    ]
+   },
+   {
+    "name": "RightShin",
+    "parent": "RightLeg",
+    "jointName": "RightShinJoint",
+    "joint": [
+     0.954,
+     1.355,
+     0.894
+    ]
+   },
+   {
+    "name": "Tail",
+    "parent": "Body",
+    "jointName": "TailJoint",
+    "joint": [
+     0.004,
+     2.555,
+     0.644
+    ]
+   },
+   {
+    "name": "TailTip",
+    "parent": "Tail",
+    "jointName": "TailTipJoint",
+    "joint": [
+     0.004,
+     2.355,
+     2.144
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   2.0,
+   2.0,
+   3.6
+  ],
+  "hrpCenter": [
+   0.004,
+   2.555,
+   -0.156
+  ],
+  "hipHeight": 1.55
+ },
+ "fbx_sha1": "74472e45352b91e0"
+}

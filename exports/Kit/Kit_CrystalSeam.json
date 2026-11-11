@@ -1,0 +1,93 @@
+{
+ "asset": "Kit_CrystalSeam",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  5.294,
+  5.185,
+  1.657
+ ],
+ "tris": 1124,
+ "pivot": [
+  0.428,
+  2.851,
+  0.091
+ ],
+ "parts": [
+  {
+   "name": "Rock",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "chrome",
+    "cream",
+    "crystal",
+    "plum",
+    "rubber",
+    "teal"
+   ],
+   "offset": [
+    -0.424,
+    -0.254,
+    -0.306
+   ],
+   "size": [
+    5.285,
+    5.176,
+    1.227
+   ],
+   "tris": 908
+  },
+  {
+   "name": "SeamGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.027,
+    -0.099,
+    0.073
+   ],
+   "size": [
+    1.226,
+    3.595,
+    1.224
+   ],
+   "tris": 216
+  }
+ ],
+ "meta": {
+  "kit": "hazard",
+  "disaster": "RadiationLeak"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Leak": {
+   "p": [
+    0.0,
+    0.0,
+    0.5
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "bd46c02c61578b9b"
+}

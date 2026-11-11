@@ -1,0 +1,805 @@
+{
+ "asset": "Monster_Resonator",
+ "category": "Monsters",
+ "format": 1,
+ "size": [
+  4.549,
+  8.57,
+  4.003
+ ],
+ "tris": 3030,
+ "pivot": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    0.065,
+    3.467,
+    -0.515
+   ],
+   "size": [
+    2.164,
+    1.047,
+    2.298
+   ],
+   "tris": 516
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.006,
+    3.541,
+    -1.222
+   ],
+   "size": [
+    0.773,
+    0.2,
+    0.12
+   ],
+   "tris": 72
+  },
+  {
+   "name": "Bell",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Bell",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "plum",
+    "stone"
+   ],
+   "offset": [
+    0.111,
+    4.694,
+    -0.562
+   ],
+   "size": [
+    2.62,
+    1.605,
+    2.76
+   ],
+   "tris": 672
+  },
+  {
+   "name": "BellGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Bell",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.006,
+    4.873,
+    -0.811
+   ],
+   "size": [
+    1.96,
+    1.336,
+    1.742
+   ],
+   "tris": 164
+  },
+  {
+   "name": "Tine1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    -0.606,
+    6.631,
+    -0.235
+   ],
+   "size": [
+    0.56,
+    3.297,
+    0.47
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine1",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.818,
+    8.392,
+    -0.09
+   ],
+   "size": [
+    0.132,
+    0.343,
+    0.13
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tine2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.006,
+    6.332,
+    0.127
+   ],
+   "size": [
+    0.47,
+    2.701,
+    0.537
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow_",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine2",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.012,
+    7.795,
+    0.332
+   ],
+   "size": [
+    0.127,
+    0.343,
+    0.132
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tine3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.611,
+    6.631,
+    -0.233
+   ],
+   "size": [
+    0.545,
+    3.298,
+    0.474
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow__",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine3",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.834,
+    8.392,
+    -0.081
+   ],
+   "size": [
+    0.132,
+    0.343,
+    0.13
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tine4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine4",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.594,
+    6.332,
+    -0.89
+   ],
+   "size": [
+    0.512,
+    2.7,
+    0.47
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow___",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine4",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.778,
+    7.795,
+    -1.005
+   ],
+   "size": [
+    0.132,
+    0.343,
+    0.13
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tine5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine5",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.006,
+    6.631,
+    -1.271
+   ],
+   "size": [
+    0.47,
+    3.297,
+    0.578
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow____",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine5",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.001,
+    8.392,
+    -1.516
+   ],
+   "size": [
+    0.127,
+    0.343,
+    0.132
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Tine6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Tine6",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    -0.584,
+    6.332,
+    -0.89
+   ],
+   "size": [
+    0.515,
+    2.701,
+    0.47
+   ],
+   "tris": 92
+  },
+  {
+   "name": "TineGlow_____",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Tine6",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -0.771,
+    7.795,
+    -1.014
+   ],
+   "size": [
+    0.132,
+    0.343,
+    0.13
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Clapper",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Clapper",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.006,
+    2.016,
+    -0.562
+   ],
+   "size": [
+    0.6,
+    2.25,
+    0.52
+   ],
+   "tris": 64
+  },
+  {
+   "name": "ClapperGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Clapper",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.006,
+    0.871,
+    -0.562
+   ],
+   "size": [
+    0.173,
+    0.2,
+    0.2
+   ],
+   "tris": 36
+  },
+  {
+   "name": "Leg1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Leg1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.006,
+    4.052,
+    0.675
+   ],
+   "size": [
+    0.4,
+    1.361,
+    1.625
+   ],
+   "tris": 84
+  },
+  {
+   "name": "Shin1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Shin1",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    0.006,
+    2.64,
+    1.587
+   ],
+   "size": [
+    0.346,
+    5.259,
+    0.699
+   ],
+   "tris": 162
+  },
+  {
+   "name": "Leg2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Leg2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    1.067,
+    4.052,
+    -1.165
+   ],
+   "size": [
+    1.487,
+    1.361,
+    1.002
+   ],
+   "tris": 84
+  },
+  {
+   "name": "Shin2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Shin2",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    1.871,
+    2.64,
+    -1.615
+   ],
+   "size": [
+    0.613,
+    5.259,
+    0.505
+   ],
+   "tris": 162
+  },
+  {
+   "name": "Leg3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Leg3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    -1.056,
+    4.052,
+    -1.165
+   ],
+   "size": [
+    1.487,
+    1.361,
+    1.002
+   ],
+   "tris": 84
+  },
+  {
+   "name": "Shin3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "query",
+   "castShadow": true,
+   "role": null,
+   "bone": "Shin3",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    -1.863,
+    2.64,
+    -1.615
+   ],
+   "size": [
+    0.619,
+    5.259,
+    0.505
+   ],
+   "tris": 162
+  }
+ ],
+ "meta": {
+  "role": "Support",
+  "band": "CrystalHollows",
+  "hitTime": 0.2
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Hum": {
+   "p": [
+    0.006,
+    5.041,
+    -0.562
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.006,
+     3.491,
+     -0.562
+    ]
+   },
+   {
+    "name": "Bell",
+    "parent": "Body",
+    "jointName": "BellJoint",
+    "joint": [
+     0.006,
+     3.941,
+     -0.562
+    ]
+   },
+   {
+    "name": "Tine1",
+    "parent": "Bell",
+    "jointName": "Tine1Joint",
+    "joint": [
+     -0.531,
+     5.241,
+     -0.252
+    ]
+   },
+   {
+    "name": "Tine2",
+    "parent": "Bell",
+    "jointName": "Tine2Joint",
+    "joint": [
+     0.006,
+     5.241,
+     0.058
+    ]
+   },
+   {
+    "name": "Tine3",
+    "parent": "Bell",
+    "jointName": "Tine3Joint",
+    "joint": [
+     0.543,
+     5.241,
+     -0.252
+    ]
+   },
+   {
+    "name": "Tine4",
+    "parent": "Bell",
+    "jointName": "Tine4Joint",
+    "joint": [
+     0.543,
+     5.241,
+     -0.872
+    ]
+   },
+   {
+    "name": "Tine5",
+    "parent": "Bell",
+    "jointName": "Tine5Joint",
+    "joint": [
+     0.006,
+     5.241,
+     -1.182
+    ]
+   },
+   {
+    "name": "Tine6",
+    "parent": "Bell",
+    "jointName": "Tine6Joint",
+    "joint": [
+     -0.531,
+     5.241,
+     -0.872
+    ]
+   },
+   {
+    "name": "Clapper",
+    "parent": "Body",
+    "jointName": "ClapperJoint",
+    "joint": [
+     0.006,
+     3.091,
+     -0.562
+    ]
+   },
+   {
+    "name": "Leg1",
+    "parent": "Body",
+    "jointName": "Leg1Joint",
+    "joint": [
+     0.006,
+     3.491,
+     -0.012
+    ]
+   },
+   {
+    "name": "Shin1",
+    "parent": "Leg1",
+    "jointName": "Shin1Joint",
+    "joint": [
+     0.006,
+     4.641,
+     1.438
+    ]
+   },
+   {
+    "name": "Leg2",
+    "parent": "Body",
+    "jointName": "Leg2Joint",
+    "joint": [
+     0.482,
+     3.491,
+     -0.837
+    ]
+   },
+   {
+    "name": "Shin2",
+    "parent": "Leg2",
+    "jointName": "Shin2Joint",
+    "joint": [
+     1.738,
+     4.641,
+     -1.562
+    ]
+   },
+   {
+    "name": "Leg3",
+    "parent": "Body",
+    "jointName": "Leg3Joint",
+    "joint": [
+     -0.471,
+     3.491,
+     -0.837
+    ]
+   },
+   {
+    "name": "Shin3",
+    "parent": "Leg3",
+    "jointName": "Shin3Joint",
+    "joint": [
+     -1.726,
+     4.641,
+     -1.562
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   2.0,
+   2.0,
+   2.0
+  ],
+  "hrpCenter": [
+   0.006,
+   3.491,
+   -0.562
+  ],
+  "hipHeight": 2.5
+ },
+ "fbx_sha1": "57da0eac98abd32b"
+}

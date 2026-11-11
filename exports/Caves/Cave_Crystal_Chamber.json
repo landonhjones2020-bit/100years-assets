@@ -1,0 +1,468 @@
+{
+ "asset": "Cave_Crystal_Chamber",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  54.785,
+  29.038,
+  54.315
+ ],
+ "tris": 7176,
+ "pivot": [
+  0.314,
+  3.151,
+  17.551
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -18.0
+   ],
+   "size": [
+    36.0,
+    1.0,
+    36.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    16.5,
+    -18.0
+   ],
+   "size": [
+    36.0,
+    1.0,
+    36.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    12.5,
+    8.0,
+    0.5
+   ],
+   "size": [
+    11.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -12.5,
+    8.0,
+    0.5
+   ],
+   "size": [
+    11.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    12.5,
+    8.0,
+    -36.5
+   ],
+   "size": [
+    11.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -12.5,
+    8.0,
+    -36.5
+   ],
+   "size": [
+    11.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -18.5,
+    8.0,
+    -18.0
+   ],
+   "size": [
+    1.0,
+    16.0,
+    36.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    18.5,
+    8.0,
+    -33.5
+   ],
+   "size": [
+    1.0,
+    16.0,
+    5.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    18.5,
+    8.0,
+    -8.5
+   ],
+   "size": [
+    1.0,
+    16.0,
+    17.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    14.0,
+    0.5
+   ],
+   "size": [
+    14.0,
+    4.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall9",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    14.0,
+    -36.5
+   ],
+   "size": [
+    14.0,
+    4.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall10",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    18.5,
+    14.0,
+    -24.0
+   ],
+   "size": [
+    1.0,
+    4.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "crystal",
+    "gunmetal",
+    "hazard",
+    "plum",
+    "rubber"
+   ],
+   "offset": [
+    -0.292,
+    11.391,
+    -17.899
+   ],
+   "size": [
+    50.73,
+    25.751,
+    50.804
+   ],
+   "tris": 6320
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "glow"
+   ],
+   "offset": [
+    0.994,
+    7.607,
+    -19.282
+   ],
+   "size": [
+    33.653,
+    14.335,
+    30.629
+   ],
+   "tris": 712
+  }
+ ],
+ "meta": {
+  "band": "CrystalHollows",
+  "kind": "Chamber",
+  "weight": 3,
+  "box": {
+   "min": [
+    -22.0,
+    -1.5,
+    -40.0
+   ],
+   "max": [
+    22.0,
+    20.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Exit1": {
+   "p": [
+    0.0,
+    0.0,
+    -36.0
+   ],
+   "yaw": 0.0
+  },
+  "Exit2": {
+   "p": [
+    18.0,
+    0.0,
+    -24.0
+   ],
+   "yaw": -90.0
+  },
+  "Find1": {
+   "p": [
+    -12.0,
+    0.0,
+    -9.0
+   ],
+   "yaw": 180.0
+  },
+  "Find2": {
+   "p": [
+    -13.0,
+    0.0,
+    -30.0
+   ],
+   "yaw": 180.0
+  },
+  "Find3": {
+   "p": [
+    12.0,
+    0.0,
+    -8.0
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    14.4,
+    -10.0
+   ],
+   "yaw": 0.0
+  },
+  "Light2": {
+   "p": [
+    0.0,
+    14.4,
+    -27.0
+   ],
+   "yaw": 0.0
+  },
+  "Spawn1": {
+   "p": [
+    0.0,
+    0.0,
+    -18.0
+   ],
+   "yaw": 0.0
+  },
+  "Spawn2": {
+   "p": [
+    -6.0,
+    0.0,
+    -24.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "e80fae807d175372"
+}

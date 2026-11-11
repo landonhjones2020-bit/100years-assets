@@ -1,0 +1,321 @@
+{
+ "asset": "Cave_Crystal_Drop",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  27.073,
+  28.462,
+  45.454
+ ],
+ "tris": 6668,
+ "pivot": [
+  0.047,
+  10.37,
+  17.007
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -5.0,
+    -4.0
+   ],
+   "size": [
+    14.0,
+    10.0,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Floor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -9.5,
+    -21.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    26.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Slope",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -4.85,
+    -17.0
+   ],
+   "size": [
+    14.0,
+    9.716,
+    18.358
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -17.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    1.5,
+    -17.0
+   ],
+   "size": [
+    1.0,
+    21.0,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    1.5,
+    -17.0
+   ],
+   "size": [
+    1.0,
+    21.0,
+    34.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -4.5,
+    0.5
+   ],
+   "size": [
+    14.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    7.5,
+    -34.5
+   ],
+   "size": [
+    14.0,
+    9.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "crystal",
+    "gunmetal",
+    "plum"
+   ],
+   "offset": [
+    0.023,
+    3.611,
+    -17.175
+   ],
+   "size": [
+    24.337,
+    26.494,
+    43.373
+   ],
+   "tris": 6328
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.784,
+    1.677,
+    -18.017
+   ],
+   "size": [
+    12.273,
+    15.474,
+    26.325
+   ],
+   "tris": 244
+  }
+ ],
+ "meta": {
+  "band": "CrystalHollows",
+  "kind": "Drop",
+  "weight": 2,
+  "box": {
+   "min": [
+    -11.0,
+    -10.5,
+    -38.0
+   ],
+   "max": [
+    11.0,
+    16.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Exit1": {
+   "p": [
+    0.0,
+    -9.0,
+    -34.0
+   ],
+   "yaw": 0.0
+  },
+  "Find1": {
+   "p": [
+    -4.0,
+    -9.0,
+    -30.5
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    8.0,
+    -17.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "ebf5370454795f6e"
+}

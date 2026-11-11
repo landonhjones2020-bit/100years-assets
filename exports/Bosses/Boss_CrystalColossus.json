@@ -1,0 +1,922 @@
+{
+ "asset": "Boss_CrystalColossus",
+ "category": "Bosses",
+ "format": 1,
+ "size": [
+  18.539,
+  14.936,
+  10.083
+ ],
+ "tris": 12736,
+ "pivot": [
+  -0.012,
+  0.248,
+  0.079
+ ],
+ "parts": [
+  {
+   "name": "Body",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    0.005,
+    4.246,
+    0.565
+   ],
+   "size": [
+    5.56,
+    3.653,
+    5.524
+   ],
+   "tris": 422
+  },
+  {
+   "name": "SeamGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Body",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.002,
+    5.003,
+    -1.843
+   ],
+   "size": [
+    3.817,
+    0.475,
+    0.354
+   ],
+   "tris": 28
+  },
+  {
+   "name": "LeftLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    -2.671,
+    3.391,
+    -0.142
+   ],
+   "size": [
+    3.087,
+    2.902,
+    3.369
+   ],
+   "tris": 202
+  },
+  {
+   "name": "SeamGlow_",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftLeg",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -2.449,
+    3.603,
+    -1.598
+   ],
+   "size": [
+    1.736,
+    1.253,
+    0.422
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftShin",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftShin",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    -2.86,
+    1.819,
+    -0.731
+   ],
+   "size": [
+    3.244,
+    3.729,
+    5.626
+   ],
+   "tris": 574
+  },
+  {
+   "name": "RightLeg",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightLeg",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    2.655,
+    3.407,
+    -0.199
+   ],
+   "size": [
+    3.106,
+    2.874,
+    3.429
+   ],
+   "tris": 202
+  },
+  {
+   "name": "SeamGlow__",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightLeg",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    2.449,
+    3.603,
+    -1.598
+   ],
+   "size": [
+    1.736,
+    1.253,
+    0.422
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightShin",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightShin",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    2.847,
+    1.787,
+    -0.731
+   ],
+   "size": [
+    3.273,
+    3.793,
+    5.626
+   ],
+   "tris": 574
+  },
+  {
+   "name": "Chest",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "plum",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    0.012,
+    9.174,
+    0.45
+   ],
+   "size": [
+    13.348,
+    8.67,
+    8.261
+   ],
+   "tris": 5294
+  },
+  {
+   "name": "SeamGlow___",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.0,
+    8.099,
+    -0.692
+   ],
+   "size": [
+    9.636,
+    4.441,
+    4.652
+   ],
+   "tris": 136
+  },
+  {
+   "name": "CoreChest",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": false,
+   "role": "WeakPoint",
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    7.934,
+    -3.031
+   ],
+   "size": [
+    1.909,
+    1.86,
+    1.964
+   ],
+   "tris": 80
+  },
+  {
+   "name": "CoreLeft",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": false,
+   "role": "WeakPoint",
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    -3.707,
+    11.246,
+    -2.15
+   ],
+   "size": [
+    1.222,
+    1.267,
+    1.284
+   ],
+   "tris": 80
+  },
+  {
+   "name": "CoreRight",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": false,
+   "role": "WeakPoint",
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    3.693,
+    11.246,
+    -2.15
+   ],
+   "size": [
+    1.222,
+    1.267,
+    1.284
+   ],
+   "tris": 80
+  },
+  {
+   "name": "CoreBack",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": false,
+   "role": "WeakPoint",
+   "bone": "Chest",
+   "tint": null,
+   "swatches": [
+    "signal"
+   ],
+   "offset": [
+    0.0,
+    8.63,
+    3.967
+   ],
+   "size": [
+    1.708,
+    1.664,
+    1.757
+   ],
+   "tris": 80
+  },
+  {
+   "name": "Spines",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "Spines",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal"
+   ],
+   "offset": [
+    0.113,
+    12.172,
+    2.76
+   ],
+   "size": [
+    8.44,
+    4.743,
+    3.533
+   ],
+   "tris": 764
+  },
+  {
+   "name": "SpineGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Spines",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.046,
+    14.091,
+    3.274
+   ],
+   "size": [
+    1.998,
+    1.135,
+    0.709
+   ],
+   "tris": 108
+  },
+  {
+   "name": "Head",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "rubber",
+    "stone"
+   ],
+   "offset": [
+    -0.003,
+    11.211,
+    -2.393
+   ],
+   "size": [
+    4.83,
+    4.102,
+    3.455
+   ],
+   "tris": 650
+  },
+  {
+   "name": "HeadGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "Head",
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "glow"
+   ],
+   "offset": [
+    0.0,
+    10.149,
+    -3.127
+   ],
+   "size": [
+    1.997,
+    1.622,
+    1.881
+   ],
+   "tris": 344
+  },
+  {
+   "name": "Jaw",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "Jaw",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    0.012,
+    9.409,
+    -3.055
+   ],
+   "size": [
+    3.827,
+    1.903,
+    2.486
+   ],
+   "tris": 388
+  },
+  {
+   "name": "LeftArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    -5.397,
+    8.347,
+    -0.679
+   ],
+   "size": [
+    3.486,
+    4.235,
+    3.477
+   ],
+   "tris": 202
+  },
+  {
+   "name": "SeamGlow____",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftArm",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -5.25,
+    8.407,
+    -2.067
+   ],
+   "size": [
+    1.364,
+    2.436,
+    0.401
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftForearm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftForearm",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    -6.563,
+    5.028,
+    -0.663
+   ],
+   "size": [
+    4.729,
+    4.592,
+    5.269
+   ],
+   "tris": 678
+  },
+  {
+   "name": "SeamGlow_____",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftForearm",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -5.898,
+    5.053,
+    -2.739
+   ],
+   "size": [
+    1.463,
+    2.338,
+    0.357
+   ],
+   "tris": 20
+  },
+  {
+   "name": "LeftHand",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "LeftHand",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    -6.765,
+    1.927,
+    -2.302
+   ],
+   "size": [
+    4.382,
+    3.459,
+    4.12
+   ],
+   "tris": 402
+  },
+  {
+   "name": "HandGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "LeftHand",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    -6.3,
+    2.75,
+    -2.75
+   ],
+   "size": [
+    0.45,
+    0.52,
+    0.52
+   ],
+   "tris": 36
+  },
+  {
+   "name": "RightArm",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "stone"
+   ],
+   "offset": [
+    5.4,
+    8.279,
+    -0.709
+   ],
+   "size": [
+    3.537,
+    4.175,
+    3.475
+   ],
+   "tris": 202
+  },
+  {
+   "name": "SeamGlow______",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightArm",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    5.25,
+    8.407,
+    -2.067
+   ],
+   "size": [
+    1.364,
+    2.436,
+    0.401
+   ],
+   "tris": 20
+  },
+  {
+   "name": "RightClub",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "queryhull",
+   "castShadow": true,
+   "role": null,
+   "bone": "RightClub",
+   "tint": null,
+   "swatches": [
+    "basalt",
+    "crystal",
+    "stone"
+   ],
+   "offset": [
+    6.184,
+    3.866,
+    -1.209
+   ],
+   "size": [
+    5.343,
+    7.488,
+    6.62
+   ],
+   "tris": 1034
+  },
+  {
+   "name": "ClubGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": "RightClub",
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    6.79,
+    3.088,
+    -2.814
+   ],
+   "size": [
+    1.007,
+    6.276,
+    2.328
+   ],
+   "tris": 76
+  }
+ ],
+ "meta": {
+  "role": "Boss",
+  "band": "CrystalHollows",
+  "era": 3,
+  "hitTime": 1.0,
+  "volleyTime": 0.9
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Slam": {
+   "p": [
+    1.5,
+    0.3,
+    -9.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "rig": {
+  "bones": [
+   {
+    "name": "Body",
+    "parent": null,
+    "jointName": "BodyJoint",
+    "joint": [
+     0.0,
+     4.6,
+     0.3
+    ]
+   },
+   {
+    "name": "Chest",
+    "parent": "Body",
+    "jointName": "ChestJoint",
+    "joint": [
+     0.0,
+     5.6,
+     0.2
+    ]
+   },
+   {
+    "name": "Spines",
+    "parent": "Chest",
+    "jointName": "SpinesJoint",
+    "joint": [
+     0.0,
+     10.0,
+     1.7
+    ]
+   },
+   {
+    "name": "Head",
+    "parent": "Chest",
+    "jointName": "HeadJoint",
+    "joint": [
+     0.0,
+     10.0,
+     -1.9
+    ]
+   },
+   {
+    "name": "Jaw",
+    "parent": "Head",
+    "jointName": "JawJoint",
+    "joint": [
+     0.0,
+     9.75,
+     -2.7
+    ]
+   },
+   {
+    "name": "LeftArm",
+    "parent": "Chest",
+    "jointName": "LeftArmJoint",
+    "joint": [
+     -4.6,
+     10.0,
+     -0.3
+    ]
+   },
+   {
+    "name": "LeftForearm",
+    "parent": "LeftArm",
+    "jointName": "LeftForearmJoint",
+    "joint": [
+     -6.0,
+     6.6,
+     -0.8
+    ]
+   },
+   {
+    "name": "LeftHand",
+    "parent": "LeftForearm",
+    "jointName": "LeftHandJoint",
+    "joint": [
+     -6.3,
+     3.3,
+     -1.5
+    ]
+   },
+   {
+    "name": "RightArm",
+    "parent": "Chest",
+    "jointName": "RightArmJoint",
+    "joint": [
+     4.6,
+     10.0,
+     -0.3
+    ]
+   },
+   {
+    "name": "RightClub",
+    "parent": "RightArm",
+    "jointName": "RightClubJoint",
+    "joint": [
+     6.0,
+     6.6,
+     -0.8
+    ]
+   },
+   {
+    "name": "LeftLeg",
+    "parent": "Body",
+    "jointName": "LeftLegJoint",
+    "joint": [
+     -2.3,
+     4.4,
+     0.3
+    ]
+   },
+   {
+    "name": "LeftShin",
+    "parent": "LeftLeg",
+    "jointName": "LeftShinJoint",
+    "joint": [
+     -2.6,
+     2.3,
+     -0.3
+    ]
+   },
+   {
+    "name": "RightLeg",
+    "parent": "Body",
+    "jointName": "RightLegJoint",
+    "joint": [
+     2.3,
+     4.4,
+     0.3
+    ]
+   },
+   {
+    "name": "RightShin",
+    "parent": "RightLeg",
+    "jointName": "RightShinJoint",
+    "joint": [
+     2.6,
+     2.3,
+     -0.3
+    ]
+   }
+  ],
+  "root": "HumanoidRootPart",
+  "rigType": "Custom",
+  "hrpSize": [
+   5.0,
+   4.0,
+   5.0
+  ],
+  "hrpCenter": [
+   0.0,
+   4.6,
+   0.3
+  ],
+  "hipHeight": 2.6
+ },
+ "fbx_sha1": "71c7dcd2f64034ff"
+}

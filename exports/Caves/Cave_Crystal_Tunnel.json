@@ -1,0 +1,226 @@
+{
+ "asset": "Cave_Crystal_Tunnel",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  27.079,
+  20.168,
+  45.331
+ ],
+ "tris": 5078,
+ "pivot": [
+  0.094,
+  1.73,
+  15.605
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -16.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    32.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -16.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    32.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    6.0,
+    -16.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    32.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    6.0,
+    -16.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    32.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "crystal",
+    "gunmetal",
+    "plum"
+   ],
+   "offset": [
+    -0.578,
+    7.953,
+    -15.718
+   ],
+   "size": [
+    24.896,
+    17.363,
+    41.848
+   ],
+   "tris": 4586
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal",
+    "glow"
+   ],
+   "offset": [
+    -0.03,
+    5.626,
+    -15.93
+   ],
+   "size": [
+    13.78,
+    10.298,
+    27.905
+   ],
+   "tris": 444
+  }
+ ],
+ "meta": {
+  "band": "CrystalHollows",
+  "kind": "Tunnel",
+  "weight": 4,
+  "box": {
+   "min": [
+    -11.0,
+    -1.5,
+    -36.0
+   ],
+   "max": [
+    11.0,
+    16.5,
+    0.0
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Exit1": {
+   "p": [
+    0.0,
+    0.0,
+    -32.0
+   ],
+   "yaw": 0.0
+  },
+  "Find1": {
+   "p": [
+    4.0,
+    0.0,
+    -16.0
+   ],
+   "yaw": 90.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    10.4,
+    -9.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "ae18e7d9937d9d22"
+}

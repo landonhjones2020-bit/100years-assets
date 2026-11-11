@@ -49,8 +49,10 @@ TW, TH = 14, 12        # every opening: 14 wide, 12 tall
 BANDS = {
     "Mines": {"rock": "sandstone", "dark": "stone", "floor": "stone", "wall": "basalt", "ceiling": "basalt"},
     "Flooded": {"rock": "stone", "dark": "murk", "floor": "basalt", "wall": "basalt", "ceiling": "basalt"},
+    # the Crystal Hollows (A10; bible Section 6: "Glowing crystal, radiation"): the bunker kit's plum and basalt
+    "Crystal": {"rock": "plum", "dark": "basalt", "floor": "basalt", "wall": "basalt", "ceiling": "basalt"},
 }
-BAND_ID = {"Mines": "Mines", "Flooded": "FloodedCaverns"}
+BAND_ID = {"Mines": "Mines", "Flooded": "FloodedCaverns", "Crystal": "CrystalHollows"}
 
 # The eight layouts: footprint rectangles (x0, x1, y0, y1) at floor z0, ceiling h, the openings
 # (side, centre along that side, the side's coordinate), sockets and the planner's weight.
@@ -265,7 +267,7 @@ class Shell:
 
 def lantern(x, y, z, band):
     """A hanging lamp at a Light socket: brass cage, a glowing glass (the PointLight is added in game)."""
-    glow = "hazard" if band == "Mines" else "crystal"
+    glow = "hazard" if band == "Mines" else "crystal"   # the Flooded Caverns and the Crystal Hollows: pale cyan
     bx("Decor", "brass", (0.7, 0.7, 0.15), (x, y, z + 0.55))
     cy("DecorNeon", glow, 0.28, 0.75, (x, y, z), mat="Neon", cast_shadow=False)
     for (dx, dy) in ((-0.3, -0.3), (0.3, -0.3), (-0.3, 0.3), (0.3, 0.3)):
@@ -348,6 +350,78 @@ def glow_caps(rnd, x, y, n=5):
         r = rnd.uniform(0.18, 0.32)
         sf.tag(sf.sphere(r, loc=(x + rnd.uniform(-1.2, 1.2), y + rnd.uniform(-1.2, 1.2), r * 0.4), scale=(1, 1, 0.5),
                          segs=6, rings=3), "DecorNeon", "glow", "Neon", cast_shadow=False)
+
+
+# The Crystal Hollows (A10) ----------------------------------------------------------------------------
+
+def crystal_at(base, direction, length, radius, part="Decor", swatch="crystal", sides=6, mat="SmoothPlastic", low=False, **kw):
+    """One crystal growing from `base` along `direction`. low: three rings instead of four (the
+    small ones round a stand: a cave piece has 8,000 triangles for everything)."""
+    if low:
+        import bmesh
+        from mathutils import Vector
+        d = Vector(direction).normalized()
+        bm = bmesh.new()
+        loops = []
+        for tt, r in ((0.0, 0.7), (0.5, 1.0), (1.0, 0.1)):
+            loops.append([bm.verts.new((math.cos(math.tau * i / sides) * radius * r, math.sin(math.tau * i / sides) * radius * r,
+                                        length * tt)) for i in range(sides)])
+        for a, c in zip(loops, loops[1:]):
+            for i in range(sides):
+                bm.faces.new((a[i], a[(i + 1) % sides], c[(i + 1) % sides], c[i]))
+        bm.faces.new(list(reversed(loops[0])))
+        bm.faces.new(loops[-1])
+        o = sf.from_bmesh(bm, "Crystal", Vector(base))
+        o.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
+    else:
+        from _beast import shard
+        o = shard(base, direction, length, radius, sides=sides)
+    return t(o, part, swatch, mat=mat, **kw)
+
+
+def crystal_cluster(rnd, x, y, z=0.0, n=6, size=3.0, up=(0, 0, 1), lit=True, detail=True):
+    """A stand of crystals: the tallest in the middle, the rest leaning out of it; a lit tip or two
+    so it reads in the dark (the lamps do the rest)."""
+    ux, uy, uz = up
+    crystal_at((x, y, z), up, size, size * 0.16, sides=6 if detail else 5, low=not detail)
+    for k in range(n - 1):
+        a = math.tau * k / max(n - 1, 1) + rnd.uniform(-0.3, 0.3)
+        lean = rnd.uniform(0.35, 0.75)
+        if abs(uz) > 0.5:
+            d = (ux + math.cos(a) * lean, uy + math.sin(a) * lean, uz)
+            at = (x + math.cos(a) * size * 0.14, y + math.sin(a) * size * 0.14, z)
+        else:
+            d = (ux + (0 if abs(ux) > 0.5 else math.cos(a) * lean), uy + (0 if abs(uy) > 0.5 else math.cos(a) * lean),
+                 uz + math.sin(a) * lean)
+            at = (x + (0 if abs(ux) > 0.5 else math.cos(a) * size * 0.14), y + (0 if abs(uy) > 0.5 else math.cos(a) * size * 0.14),
+                  z + math.sin(a) * size * 0.14)
+        ln = size * rnd.uniform(0.4, 0.78)
+        crystal_at(at, d, ln, ln * rnd.uniform(0.13, 0.18), sides=4, low=True)
+    if lit:
+        tip = (x + ux * size * 0.98, y + uy * size * 0.98, z + uz * size * 0.98)
+        crystal_at(tip, up, size * 0.12, size * 0.045, part="DecorNeon", sides=4, mat="Neon", low=True, cast_shadow=False)
+
+
+def crystal_seam(points, r=0.12):
+    """A crack in the rock with the crystal's light in it."""
+    t(sf.tube([tuple(p) for p in points], [r * 0.5] + [r] * (len(points) - 2) + [r * 0.5], sides=3, resolution=1),
+      "DecorNeon", "crystal", mat="Neon", cast_shadow=False)
+
+
+def rad_sign(x, y, rot=0.0):
+    """A Steadfast survey party's warning: a hazard-yellow plate on a leaning post (radiation here)."""
+    bx("Decor", "gunmetal", (0.22, 0.22, 4.2), (x, y, 2.1), rot=(4, -6, rot))
+    bx("Decor", "hazard", (2.0, 0.12, 1.6), (x, y - 0.14 * math.cos(math.radians(rot)), 3.6), rot=(4, -6, rot))
+    bx("Decor", "rubber", (1.2, 0.14, 0.9), (x, y - 0.2 * math.cos(math.radians(rot)), 3.62), rot=(4, -6, rot))
+
+
+def hot_rock(rnd, x, y, r=1.4):
+    """A lump of the rock that glows the Source's green: the Crystal Hollows' radiation, seen."""
+    t(sf.sphere(r, loc=(x, y, r * 0.35), scale=(1.0, 0.9, 0.55), segs=7, rings=4), "Decor", "basalt", smooth_angle=None)
+    for k in range(4):
+        a = math.tau * k / 4 + rnd.uniform(-0.4, 0.4)
+        crystal_at((x + math.cos(a) * r * 0.45, y + math.sin(a) * r * 0.4, r * 0.4), (math.cos(a) * 0.6, math.sin(a) * 0.6, 1.0),
+                   r * rnd.uniform(0.5, 0.9), r * 0.11, part="DecorNeon", swatch="glow", sides=4, mat="Neon", low=True, cast_shadow=False)
 
 
 def hard_hat(x, y, rot=0.0):

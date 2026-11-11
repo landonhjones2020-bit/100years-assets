@@ -26,7 +26,7 @@ TEXT = {
     "CrewPocket": "Where a Lost Crew is trapped, guarded.",
 }
 ORDER = ["Entry", "Tunnel", "Junction", "Pocket", "Chamber", "Cavern", "Drop", "CrewPocket"]
-BANDS = {"Mines": "Mines", "FloodedCaverns": "Flooded"}
+BANDS = {"Mines": "Mines", "FloodedCaverns": "Flooded", "CrystalHollows": "Crystal"}
 
 
 def num(v: float) -> str:

@@ -1,0 +1,291 @@
+{
+ "asset": "Cave_Crystal_Entry",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  36.013,
+  20.228,
+  36.438
+ ],
+ "tris": 4252,
+ "pivot": [
+  0.676,
+  2.0,
+  12.243
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -12.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    24.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -12.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    24.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -7.5,
+    6.0,
+    -12.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    24.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    7.5,
+    6.0,
+    -12.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    24.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "brass",
+    "crystal",
+    "gunmetal",
+    "hazard",
+    "plum",
+    "rubber"
+   ],
+   "offset": [
+    -0.521,
+    8.137,
+    -12.266
+   ],
+   "size": [
+    35.183,
+    17.468,
+    34.689
+   ],
+   "tris": 4004
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "crystal"
+   ],
+   "offset": [
+    0.583,
+    6.36,
+    -11.795
+   ],
+   "size": [
+    12.673,
+    8.83,
+    18.46
+   ],
+   "tris": 164
+  },
+  {
+   "name": "Plate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    12.0,
+    8.0,
+    0.75
+   ],
+   "size": [
+    10.0,
+    20.0,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Plate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    -12.0,
+    8.0,
+    0.75
+   ],
+   "size": [
+    10.0,
+    20.0,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Plate3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    15.0,
+    0.75
+   ],
+   "size": [
+    14.0,
+    6.0,
+    1.5
+   ],
+   "tris": 12
+  }
+ ],
+ "meta": {
+  "band": "CrystalHollows",
+  "kind": "Entry",
+  "weight": 0,
+  "box": {
+   "min": [
+    -11.0,
+    -1.5,
+    -28.0
+   ],
+   "max": [
+    11.0,
+    16.5,
+    1.5
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Exit1": {
+   "p": [
+    0.0,
+    0.0,
+    -24.0
+   ],
+   "yaw": 0.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    10.4,
+    -14.0
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "1c1ba4d2759fb6b7"
+}

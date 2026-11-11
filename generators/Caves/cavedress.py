@@ -171,7 +171,98 @@ def flooded(kind):
     return dress
 
 
-# The Lost Crew's camp (both bands) ------------------------------------------------------------------
+# The Crystal Hollows (A10) ----------------------------------------------------------------------------
+
+def crystal(kind):
+    """Glowing crystal and radiation (bible Section 6): stands of crystal against the walls and
+    hanging from the roof, seams of light in the rock, lumps that glow the Source's green, and a
+    Steadfast survey party's warning signs. The middle of every floor stays clear to walk and fight."""
+    def dress(shell, rnd):
+        lay = shell.layout
+        h = lay["h"]
+        lights(lay, "Crystal")
+        rect = lay["rects"][-1]
+
+        def roof(n, size=(2.0, 3.6)):
+            x0, x1, y0, y1 = rect
+            for k in range(n):
+                x, y = rnd.uniform(x0 + 2, x1 - 2), rnd.uniform(y0 + 2, y1 - 2)
+                C.crystal_cluster(rnd, x, y, h - 0.4, n=rnd.randint(3, 4), size=rnd.uniform(*size), up=(0, 0, -1), lit=k % 3 == 0,
+                                  detail=False)
+
+        if kind == "Entry":
+            plate(shell, "Crystal")
+            C.crystal_cluster(rnd, -5.4, -8, 0, n=6, size=4.2)
+            C.crystal_cluster(rnd, 5.6, -18, 0, n=5, size=3.4)
+            C.crystal_cluster(rnd, 6.6, -6, 5.0, n=4, size=2.6, up=(-1, 0, 0.3))
+            C.crystal_seam([(-6.8, -3, 2.0), (-6.7, -9, 4.5), (-6.8, -15, 3.2), (-6.7, -21, 6.0)])
+            C.rad_sign(4.6, -3.2, rot=12)
+            roof(4)
+        elif kind == "Tunnel":
+            C.crystal_cluster(rnd, -5.6, -7, 0, n=6, size=4.6)
+            C.crystal_cluster(rnd, 5.4, -15, 0, n=5, size=3.6)
+            C.crystal_cluster(rnd, -5.2, -26, 0, n=5, size=3.2)
+            C.crystal_cluster(rnd, 6.6, -24, 6.0, n=4, size=2.8, up=(-1, 0, 0.2))
+            C.crystal_seam([(6.8, -2, 3.0), (6.7, -8, 5.5), (6.8, -13, 2.6), (6.7, -19, 4.4)])
+            C.crystal_seam([(-6.8, -14, 6.5), (-6.7, -20, 8.0), (-6.8, -29, 5.2)])
+            C.hot_rock(rnd, 4.6, -29, 1.3)
+            roof(6)
+        elif kind == "Junction":
+            C.crystal_cluster(rnd, 0, -24.4, 0, n=8, size=5.4)
+            C.crystal_cluster(rnd, -12, -24.6, 0, n=5, size=3.4)
+            C.crystal_cluster(rnd, 13, -24.6, 0, n=5, size=3.8)
+            C.crystal_cluster(rnd, -6.4, -5, 0, n=4, size=3.0)
+            C.crystal_seam([(-20, -25.7, 2.5), (-12, -25.6, 6.0), (-4, -25.7, 3.4), (5, -25.6, 7.0), (16, -25.7, 4.0)])
+            C.hot_rock(rnd, 21, -14.5, 1.5)
+            C.rad_sign(5.0, -9.0, rot=-20)
+            roof(6)
+        elif kind == "Pocket":
+            C.crystal_cluster(rnd, 0, -20.4, 0, n=9, size=6.0)
+            C.crystal_cluster(rnd, -9.6, -12, 0, n=5, size=3.6)
+            C.crystal_cluster(rnd, 9.8, -8, 0, n=5, size=3.2)
+            C.crystal_seam([(-10.7, -4, 3.0), (-10.6, -10, 6.5), (-10.7, -17, 4.0)])
+            C.hot_rock(rnd, 8.6, -18.5, 1.6)
+            roof(6)
+        elif kind == "Chamber":
+            C.crystal_cluster(rnd, 15.6, -30, 0, n=9, size=6.4)
+            C.crystal_cluster(rnd, -15.8, -8, 0, n=6, size=4.2)
+            C.crystal_cluster(rnd, 15.4, -8, 0, n=5, size=3.6)
+            C.crystal_cluster(rnd, -4, -34.4, 0, n=6, size=4.6)
+            C.crystal_cluster(rnd, 17.2, -20, 7.0, n=5, size=3.4, up=(-1, 0, 0.25))
+            C.crystal_seam([(-17.7, -14, 2.5), (-17.6, -20, 7.0), (-17.7, -27, 4.0), (-17.6, -33, 8.0)])
+            C.hot_rock(rnd, -13.5, -31, 1.7)
+            C.hot_rock(rnd, 10.5, -12.5, 1.2)
+            C.rad_sign(-5.0, -4.2, rot=15)
+            roof(11)
+        elif kind == "Cavern":
+            # a great geode: tall stands round the walls, one giant in the far corner
+            C.crystal_cluster(rnd, -22, -47, 0, n=8, size=9.0)
+            C.crystal_cluster(rnd, 22.6, -44, 0, n=6, size=6.4)
+            C.crystal_cluster(rnd, -23.4, -22, 0, n=5, size=5.4)
+            C.crystal_cluster(rnd, 23.4, -20, 0, n=5, size=5.8)
+            C.crystal_cluster(rnd, 6, -52.2, 0, n=4, size=4.8)
+            C.crystal_cluster(rnd, 25.2, -32, 8.0, n=4, size=4.0, up=(-1, 0, 0.2))
+            C.crystal_seam([(-25.7, -10, 3.0), (-25.6, -18, 8.0), (-25.7, -30, 5.0), (-25.6, -42, 10.0)], r=0.16)
+            C.crystal_seam([(25.7, -12, 6.0), (25.6, -24, 3.0), (25.7, -38, 9.0), (25.6, -50, 4.5)], r=0.16)
+            C.hot_rock(rnd, 16, -50, 2.0)
+            shell.rubble(6, (-24, 24, -50, -6))
+            roof(5, size=(2.8, 5.0))
+        elif kind == "Drop":
+            C.crystal_cluster(rnd, -5.2, -5, 0, n=5, size=3.4)
+            C.crystal_cluster(rnd, 5.2, -31, -9.0, n=6, size=4.2)
+            C.crystal_cluster(rnd, 5.6, -17, -3.0, n=4, size=3.0, up=(-0.6, 0, 1))
+            C.crystal_seam([(-6.8, -8, 1.0), (-6.7, -15, -1.5), (-6.8, -22, -5.0), (-6.7, -30, -6.0)])
+            roof(5)
+        elif kind == "CrewPocket":
+            crew_camp(shell, rnd, "Crystal")
+            C.crystal_cluster(rnd, 12.6, -5, 0, n=5, size=4.4)
+            C.crystal_cluster(rnd, -13.2, -6, 0, n=4, size=3.6)
+            C.rad_sign(8.6, -13.5, rot=-25)
+            roof(4)
+    return dress
+
+
+# The Lost Crew's camp (every band) ------------------------------------------------------------------
 
 def crew_camp(shell, rnd, band):
     """Where a Steadfast work crew holed up after the cave-in: a teal tarp over the back, bedrolls,
@@ -198,5 +289,5 @@ def crew_camp(shell, rnd, band):
 
 
 def main(band, kind, seed=7):
-    dress = mines(kind) if band == "Mines" else flooded(kind)
-    C.run(band, kind, dress, seed=seed + (0 if band == "Mines" else 101) + sum(map(ord, kind)))
+    dress = {"Mines": mines, "Flooded": flooded, "Crystal": crystal}[band](kind)
+    C.run(band, kind, dress, seed=seed + {"Mines": 0, "Flooded": 101, "Crystal": 211}[band] + sum(map(ord, kind)))

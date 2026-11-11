@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T22:19:19Z",
- "commit": "7c36d6dddf047058000fcd4434cc232b3719344d",
- "label": "p23-7c36d6d",
+ "built": "2026-11-11T22:19:27Z",
+ "commit": "d480909441aee01b97fe6bdd9292f02804d2a5ec",
+ "label": "p24-d480909",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {

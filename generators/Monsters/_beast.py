@@ -41,6 +41,13 @@ class Beast:
         sf.bind(obj, self.arm, bone)
         return obj
 
+    def neon(self, obj, bone: str, name: str, swatch: str = "crystal"):
+        """A Neon piece in any swatch (the Crystal Hollows' crystal light; A10): its own MeshPart."""
+        sf.tag(obj, name, swatch, "Neon", collision="none", cast_shadow=False)
+        obj["sf_bone"] = bone
+        sf.bind(obj, self.arm, bone)
+        return obj
+
     def key(self, bone, frame, rot=(0, 0, 0), loc=None, ease="SINE"):
         sf.key(self.arm, bone, frame, rot=rot, loc=loc, ease=ease)
 
@@ -67,6 +74,49 @@ def crystal(base, direction, length, radius, name="Crystal"):
                bevel=0.0, name=name)
     o.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
     return o
+
+
+def shard(base, direction, length, radius, sides=6, tip=0.12, waist=0.3, twist=0.0, name="Shard"):
+    """A faceted crystal growing from base along direction (A10): a hexagonal column that swells
+    to its full radius `waist` of the way up, then narrows to a blunt tip (`tip` of the radius)."""
+    d = Vector(direction).normalized()
+    bm = bmesh.new()
+    rings = [(0.0, 0.62), (waist, 1.0), (0.82, 0.72), (1.0, tip)]
+    loops = []
+    for k, (t, r) in enumerate(rings):
+        loop = []
+        for i in range(sides):
+            a = math.tau * i / sides + twist * t
+            loop.append(bm.verts.new((math.cos(a) * radius * r, math.sin(a) * radius * r, length * t)))
+        loops.append(loop)
+    for a, c in zip(loops, loops[1:]):
+        for i in range(sides):
+            bm.faces.new((a[i], a[(i + 1) % sides], c[(i + 1) % sides], c[i]))
+    bm.faces.new(list(reversed(loops[0])))
+    bm.faces.new(loops[-1])
+    o = sf.from_bmesh(bm, name, Vector(base))
+    o.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
+    return o
+
+
+def cluster(base, direction, n, length, radius, spread=0.5, seed=1, sides=6):
+    """A clump of n shards fanning out around `direction` (the tallest in the middle)."""
+    rnd = random.Random(seed)
+    d = Vector(direction).normalized()
+    side = d.cross(Vector((0, 0, 1)))
+    if side.length < 0.1:
+        side = d.cross(Vector((1, 0, 0)))
+    side.normalize()
+    up = d.cross(side).normalized()
+    out = [shard(base, d, length, radius, sides=sides, twist=rnd.uniform(-0.6, 0.6))]
+    for i in range(n - 1):
+        a = math.tau * i / max(n - 1, 1) + rnd.uniform(-0.3, 0.3)
+        lean = (side * math.cos(a) + up * math.sin(a)) * spread * rnd.uniform(0.7, 1.2)
+        k = rnd.uniform(0.45, 0.8)
+        at = Vector(base) + (side * math.cos(a) + up * math.sin(a)) * radius * rnd.uniform(0.5, 0.9)
+        out.append(shard(at, d + lean, length * k, radius * rnd.uniform(0.5, 0.75), sides=sides,
+                         twist=rnd.uniform(-0.6, 0.6)))
+    return out
 
 
 # ---- detail helpers (2026-11-08: Landon asked for more detailed monsters and scary bosses) ----

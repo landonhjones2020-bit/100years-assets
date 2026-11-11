@@ -15,7 +15,8 @@ local F = require(script.Parent._Fields)
 return {
 	Schema = Check.shape({
 		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider", "AshRaiderMelee",
-			"Murkling", "BloatToad", "Lurker", "TideCrab", "Deluge" }), -- a model's Rig attribute
+			"Murkling", "BloatToad", "Lurker", "TideCrab", "Deluge",
+			"Shardling", "PrismStalker", "GeodeGolem", "Resonator", "CrystalColossus" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
@@ -24,6 +25,7 @@ return {
 			"Attack", "Run", "Stunned", "Latched", "Fight", "Flee", -- monsters and residents in danger (Prompt 12)
 			"Roar", "LayEggs", "Stagger", "Death", -- bosses (A4: the Brood Mother; played from Prompt 15)
 			"Swim", -- The Deluge under the floor (A8, Prompt 23)
+			"Volley", -- the Crystal Colossus throwing its shards (A10, Prompt 24)
 		}),
 		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
@@ -314,6 +316,46 @@ return {
 			Text = "Its head drops to the floor and lies there, 3 s (A8, Deluge_Stagger)" },
 		DelugeDeath = { Rig = "Deluge", Activity = "Death", AssetId = "rbxassetid://135611914410917", Looped = false,
 			Text = "A last scream, then all of it comes down (A8, Deluge_Death)" },
+		-- The Crystal Hollows' monsters (A10; Prompt 24; NPCAnimator plays these by Rig and Activity)
+		ShardlingIdle = { Rig = "Shardling", Activity = "Idle", AssetId = "rbxassetid://97873691999290", Looped = true,
+			Text = "The Shardling's plates breathe, its mandibles ticking (A10, Shardling_Idle)" },
+		ShardlingWalk = { Rig = "Shardling", Activity = "Walk", AssetId = "rbxassetid://77941776120785", Looped = true,
+			Text = "A six-legged tripod skitter (A10, Shardling_Walk)" },
+		ShardlingAttack = { Rig = "Shardling", Activity = "Attack", AssetId = "rbxassetid://103513336103243", Looped = false,
+			Text = "It rears and snaps its mandibles shut (A10, Shardling_Attack; Hit 0.2 s)" },
+		PrismStalkerIdle = { Rig = "PrismStalker", Activity = "Idle", AssetId = "rbxassetid://121017758616327", Looped = true,
+			Text = "The Prism Stalker sways, its scythes flexing (A10, PrismStalker_Idle)" },
+		PrismStalkerWalk = { Rig = "PrismStalker", Activity = "Walk", AssetId = "rbxassetid://90504403398881", Looped = true,
+			Text = "A low prowl, the tail whipping behind it (A10, PrismStalker_Walk)" },
+		PrismStalkerAttack = { Rig = "PrismStalker", Activity = "Attack", AssetId = "rbxassetid://120335199648341", Looped = false,
+			Text = "Both scythes whip down and across (A10, PrismStalker_Attack; Hit 0.3 s)" },
+		GeodeGolemIdle = { Rig = "GeodeGolem", Activity = "Idle", AssetId = "rbxassetid://121739575432742", Looped = true,
+			Text = "The Geode Golem's chest heaves, its fists settling (A10, GeodeGolem_Idle)" },
+		GeodeGolemWalk = { Rig = "GeodeGolem", Activity = "Walk", AssetId = "rbxassetid://78406809910812", Looped = true,
+			Text = "A lumbering sway from pillar to pillar (A10, GeodeGolem_Walk)" },
+		GeodeGolemAttack = { Rig = "GeodeGolem", Activity = "Attack", AssetId = "rbxassetid://106115790644696", Looped = false,
+			Text = "Both fists up and down together (A10, GeodeGolem_Attack; Hit 0.6 s)" },
+		ResonatorIdle = { Rig = "Resonator", Activity = "Idle", AssetId = "rbxassetid://84027818082893", Looped = true,
+			Text = "The Resonator bobs on its stilts, its tines breathing (A10, Resonator_Idle)" },
+		ResonatorWalk = { Rig = "Resonator", Activity = "Walk", AssetId = "rbxassetid://70969580809227", Looped = true,
+			Text = "A three-legged stalk, the bell swaying on top (A10, Resonator_Walk)" },
+		ResonatorAttack = { Rig = "Resonator", Activity = "Attack", AssetId = "rbxassetid://110970025145339", Looped = false,
+			Text = "The hum: its tines spread and shiver, the clapper swings (A10, Resonator_Attack; the hum at 0.2 s)" },
+		-- The Crystal Colossus (A10; Rig CrystalColossus; BossService plays these on the server: Prompt 24)
+		CrystalColossusIdle = { Rig = "CrystalColossus", Activity = "Idle", AssetId = "rbxassetid://92071238039702", Looped = true,
+			Text = "The Colossus heaves, its jaw drifting on the light inside it (A10, CrystalColossus_Idle)" },
+		CrystalColossusWalk = { Rig = "CrystalColossus", Activity = "Walk", AssetId = "rbxassetid://80414932215543", Looped = true,
+			Text = "A slow, swaying stride, the club dragging (A10, CrystalColossus_Walk)" },
+		CrystalColossusAttack = { Rig = "CrystalColossus", Activity = "Attack", AssetId = "rbxassetid://125667580394018", Looped = false,
+			Text = "It cocks the club beside its shoulder and brings it down in front (A10, CrystalColossus_Attack; Hit 1.0 s)" },
+		CrystalColossusVolley = { Rig = "CrystalColossus", Activity = "Volley", AssetId = "rbxassetid://110812867505641", Looped = false,
+			Text = "It braces, throws its chest open and its spires flare (A10, CrystalColossus_Volley; the shards leave at 0.9 s)" },
+		CrystalColossusRoar = { Rig = "CrystalColossus", Activity = "Roar", AssetId = "rbxassetid://121631002445443", Looped = false,
+			Text = "It drops its weight, rears, arms out and jaw wide, shaking (A10, CrystalColossus_Roar)" },
+		CrystalColossusStagger = { Rig = "CrystalColossus", Activity = "Stagger", AssetId = "rbxassetid://103101122241503", Looped = false,
+			Text = "Down on one knee on its club, head hanging, 3.5 s (A10, CrystalColossus_Stagger)" },
+		CrystalColossusDeath = { Rig = "CrystalColossus", Activity = "Death", AssetId = "rbxassetid://83559829469455", Looped = false,
+			Text = "Its knees give and it goes over forward onto its club (A10, CrystalColossus_Death)" },
 		-- The intro cutscene (Prompt 22): CutsceneController plays it on the party's avatars and the founders
 		IntroSprint = { Rig = "R15", Activity = "Run", AssetId = "rbxassetid://70631532326043", Looped = true,
 			Text = "A flat-out sprint, 0.4 s a stride, made for 27 studs a second (Prompt 22, R15_IntroSprint)" },

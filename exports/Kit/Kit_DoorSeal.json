@@ -1,0 +1,94 @@
+{
+ "asset": "Kit_DoorSeal",
+ "category": "Kit",
+ "format": 1,
+ "size": [
+  2.9,
+  5.0,
+  1.7
+ ],
+ "tris": 1612,
+ "pivot": [
+  0.0,
+  2.3,
+  -0.85
+ ],
+ "parts": [
+  {
+   "name": "Jamb",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "avocado",
+    "chrome",
+    "gunmetal",
+    "hazard",
+    "navy",
+    "rubber",
+    "signal",
+    "steel"
+   ],
+   "offset": [
+    0.0,
+    0.2,
+    0.85
+   ],
+   "size": [
+    2.9,
+    5.0,
+    1.7
+   ],
+   "tris": 1552
+  },
+  {
+   "name": "LeakGlow",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow"
+   ],
+   "offset": [
+    0.42,
+    -0.025,
+    0.426
+   ],
+   "size": [
+    0.115,
+    1.29,
+    0.11
+   ],
+   "tris": 60
+  }
+ ],
+ "meta": {
+  "kit": "hazard",
+  "disaster": "RadiationLeak"
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Leak": {
+   "p": [
+    0.35,
+    -0.2,
+    1.3
+   ],
+   "yaw": 0.0
+  }
+ },
+ "fbx_sha1": "4cfec86c9caf5778"
+}
