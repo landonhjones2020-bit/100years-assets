@@ -68,7 +68,7 @@
 		MonsterService:Despawn(id)                              -- fades one away (the surface's leftovers)
 		MonsterService:ZoneOf(id): string?
 		MonsterService:Taunt(sourceId, position, radius, seconds): number -- Hold the Line (Prompt 20)
-	Dev: monster, monsters, monsters.clear.
+	Dev: monster, monster.hit, monsters, monsters.clear.
 ]]
 
 local PathfindingService = game:GetService("PathfindingService")
@@ -1414,6 +1414,37 @@ function MonsterService:Init(registry)
 			return `{monsterType}: {table.concat(made, ", ")}`
 		end,
 	})
+	dev:Register("monster.hit", {
+		Description = "Hit the nearest monster of a type from in front of it, behind it or its side (a Tide Crab's shell and back).",
+		Usage = "monster.hit <Type> <amount> [front|back|side]",
+		Run = function(player, args): string?
+			local monsterType = tostring(args[1] or "")
+			local amount = tonumber(args[2]) or 100
+			local from = tostring(args[3] or "front")
+			player = player or Players:GetPlayers()[1]
+			local me = player and combat:PlayerCombatant(player)
+			local target: Monster? = nil
+			for _, m in monsters do
+				if m.Type == monsterType then
+					target = m
+					break
+				end
+			end
+			if not me or not target then
+				return `no {monsterType} to hit (or no player)`
+			end
+			local facing = target.Root.CFrame
+			local offset = if from == "back" then Vector3.new(0, 0, 9) elseif from == "side" then Vector3.new(9, 0, 0) else Vector3.new(0, 0, -9)
+			local character = player.Character
+			if character then
+				character:PivotTo(CFrame.new(facing:PointToWorldSpace(offset) + Vector3.new(0, 2, 0)))
+			end
+			task.wait(0.1) -- so the combatant's root is where the character now stands
+			local before = combat:HealthOf(target.Id)
+			local dealt = combat:Damage(target.Id, amount, me.Id, "dev")
+			return `{target.Id} {monsterType} hit for {amount} from its {from}: {dealt} dealt ({math.ceil(before)} -> {math.ceil((combat:HealthOf(target.Id)))} hp)`
+		end,
+	})
 	dev:Register("monsters", {
 		Description = "The monsters on the map, the queue and what each is after.",
 		Usage = "monsters",
@@ -1422,7 +1453,7 @@ function MonsterService:Init(registry)
 			for id, m in monsters do
 				local health = combat:HealthOf(id)
 				local target = if m.Target then `{m.Target.Kind} {m.Target.Id}` else "nothing"
-				table.insert(lines, `  {id} {m.Type} {math.ceil(health)}hp in {unitOf(m.Root.Position) or "?"}, after {target}, {m.Model:GetAttribute("Activity")}{if m.LatchedTo then ` (latched to {m.LatchedTo})` else ""}`)
+				table.insert(lines, `  {id} {m.Type} {math.ceil(health)}hp in {unitOf(m.Root.Position) or "?"}, after {target}, {m.Model:GetAttribute("Activity")}{if m.LatchedTo then ` (latched to {m.LatchedTo})` else ""}{if m.Hidden then " (hidden)" else ""}{if m.Grabbing then ` (holding {m.Grabbing})` else ""}{if m.HideRoom then ` (lair {m.HideRoom})` else ""}`)
 			end
 			return table.concat(lines, "\n")
 		end,

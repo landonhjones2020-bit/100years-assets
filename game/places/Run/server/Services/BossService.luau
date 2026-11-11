@@ -94,15 +94,21 @@ local DELUGE_RISE_DEPTH = 15 -- The Deluge stands 14.5 studs to the tips of its 
 local HATCH_TAG_PREFIX = "Boss:"
 
 -- How each boss's arrival and glow look, and the words for it. Water: its bursts are water, not rock.
-local LOOK: { [string]: { Glow: Color3, Dust: Color3, Chips: Color3, Water: boolean, Clips: { string }, Up: string, Phase: string } } = {
+local LOOK: { [string]: {
+	Glow: Color3, GlowAt: Vector3, GlowRange: number, GlowBrightness: number, -- its own light, about its pivot
+	Dust: Color3, Chips: Color3, Water: boolean, Clips: { string }, Up: string, Phase: string,
+} } = {
 	BroodMother = {
-		Glow = Color3.fromRGB(124, 255, 155), Dust = Color3.fromRGB(140, 128, 112), Chips = Color3.fromRGB(70, 64, 58), Water = false,
+		Glow = Color3.fromRGB(124, 255, 155), GlowAt = Vector3.new(0, 10, 2), GlowRange = 24, GlowBrightness = 1.2,
+		Dust = Color3.fromRGB(140, 128, 112), Chips = Color3.fromRGB(70, 64, 58), Water = false,
 		Clips = { "Idle", "Walk", "Attack", "LayEggs", "Stagger", "Death" },
 		Up = "BREAKS THROUGH! HIT HER GLOWING BELLY, BREAK HER EGG SACS",
 		Phase = "SHRIEKS: SHE LAYS FASTER AND HITS HARDER",
 	},
 	Deluge = {
-		Glow = Color3.fromRGB(88, 214, 232), Dust = Color3.fromRGB(150, 196, 204), Chips = Color3.fromRGB(196, 232, 238), Water = true,
+		-- in front of its face and low, so the players it looks down at see what is looking
+		Glow = Color3.fromRGB(150, 232, 226), GlowAt = Vector3.new(0, 7, -10), GlowRange = 40, GlowBrightness = 2.6,
+		Dust = Color3.fromRGB(150, 196, 204), Chips = Color3.fromRGB(196, 232, 238), Water = true,
 		Clips = { "Idle", "Swim", "Attack", "Stagger", "Death" },
 		Up = "SURFACES! STRIKE ITS HEAD WHEN IT IS UP, PATCH THE PIPES IT BURSTS",
 		Phase = "ROARS: IT SWIMS FASTER AND BRINGS MORE WITH IT",
@@ -496,12 +502,12 @@ local function makeModel(f: Fight): (Model, BasePart)
 	-- Her glow lights the tunnel around her, so her body reads in the dark (the art has no lights).
 	local glowAt = Instance.new("Attachment")
 	glowAt.Name = "BossGlow"
-	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * Vector3.new(0, 10, 2))
+	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * look(f).GlowAt)
 	glowAt.Parent = root
 	local glow = Instance.new("PointLight")
 	glow.Color = look(f).Glow
-	glow.Range = 24
-	glow.Brightness = 1.2
+	glow.Range = look(f).GlowRange
+	glow.Brightness = look(f).GlowBrightness
 	glow.Shadows = false
 	glow.Parent = glowAt
 	model:SetAttribute("Rig", f.BossId)
