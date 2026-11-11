@@ -1,7 +1,7 @@
 {
- "built": "2026-11-11T02:29:17Z",
- "commit": "5f5e08aa3b68f1fe22facb1d5812a01c9a162093",
- "label": "p22-5f5e08a",
+ "built": "2026-11-11T02:50:36Z",
+ "commit": "e863bffa8ee3085ec10174d69c22dac039c88789",
+ "label": "p22-e863bff",
  "places": {
   "Lobby": {
    "ReplicatedStorage.Shared.Config": {
@@ -42,7 +42,7 @@
    "ReplicatedStorage.Shared.Config.CutscenePaths": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/CutscenePaths.luau",
-    "Hash": "f49cd0aa"
+    "Hash": "e04cf25b"
    },
    "ReplicatedStorage.Shared.Config.Cutscenes": {
     "Class": "ModuleScript",
@@ -382,7 +382,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "0dd1fa57"
+    "Hash": "f81dec45"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -432,7 +432,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "f87c3203"
+    "Hash": "4f1cc04b"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -654,7 +654,7 @@
    "ReplicatedStorage.Shared.Config.CutscenePaths": {
     "Class": "ModuleScript",
     "From": "game/shared/Config/CutscenePaths.luau",
-    "Hash": "f49cd0aa"
+    "Hash": "e04cf25b"
    },
    "ReplicatedStorage.Shared.Config.Cutscenes": {
     "Class": "ModuleScript",
@@ -994,7 +994,7 @@
    "ReplicatedStorage.Shared.UIContract": {
     "Class": "ModuleScript",
     "From": "game/shared/UIContract.luau",
-    "Hash": "0dd1fa57"
+    "Hash": "f81dec45"
    },
    "ReplicatedStorage.Shared.Utilities.Check": {
     "Class": "ModuleScript",
@@ -1044,7 +1044,7 @@
    "ServerScriptService.DevTools.DataTests": {
     "Class": "ModuleScript",
     "From": "game/server/DevTools/DataTests.luau",
-    "Hash": "f87c3203"
+    "Hash": "4f1cc04b"
    },
    "ServerScriptService.DevTools.StructureCheck": {
     "Class": "ModuleScript",
@@ -1304,7 +1304,7 @@
    "StarterPlayer.StarterPlayerScripts.Controllers.CutsceneController": {
     "Class": "ModuleScript",
     "From": "game/places/Run/client/Controllers/CutsceneController.luau",
-    "Hash": "f318d5ed"
+    "Hash": "77c1a311"
    },
    "StarterPlayer.StarterPlayerScripts.Controllers.DeepController": {
     "Class": "ModuleScript",

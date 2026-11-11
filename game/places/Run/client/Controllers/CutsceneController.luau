@@ -89,7 +89,10 @@ type Piece = {
 	Model: Model, Kind: string, Rest: CFrame, Away: Vector3, Arrival: number, Height: number, Seed: number,
 	Hidden: { BasePart }?, Lamps: { Lamp }, Dark: boolean?,
 }
-type Runner = { Model: Model, Root: BasePart, Lift: number, Animator: Animator?, Track: AnimationTrack?, Tried: boolean, Running: boolean, Shown: boolean }
+type Runner = {
+	Model: Model, Root: BasePart, Lift: number, Animator: Animator?, Track: AnimationTrack?, Tried: boolean, Running: boolean, Shown: boolean,
+	Own: boolean, -- its clip is the art's sprint, made for the run's speed (false: Roblox's run, sped up, the body leant by hand)
+}
 type Door = { Model: Model, Travel: number, Right: Vector3, Parts: { [string]: BasePart }, Rest: { [string]: CFrame }, Sealed: boolean?, Lit: boolean? }
 type World = {
 	Set: Model,
@@ -474,7 +477,7 @@ local function readyRunner(model: Model): Runner?
 		animator = made_
 	end
 	model.Name = "Runner"
-	return { Model = model, Root = root, Lift = lift, Animator = animator, Track = nil, Tried = false, Running = false, Shown = false }
+	return { Model = model, Root = root, Lift = lift, Animator = animator, Track = nil, Tried = false, Running = false, Shown = false, Own = false }
 end
 
 -- The sprint, loaded the first time the runner stands in the world: a clip loaded on an Animator
@@ -491,6 +494,7 @@ local function sprintTrack(runner: Runner): AnimationTrack?
 	local clip = Config.Find("Animations", "IntroSprint")
 	local animation = Instance.new("Animation")
 	animation.AnimationId = if clip then clip.AssetId else DEFAULT_RUN
+	runner.Own = clip ~= nil
 	local ok, loaded = pcall(function()
 		return animator:LoadAnimation(animation)
 	end)
@@ -991,13 +995,14 @@ local function moveRunners(target: World, t: number)
 		local heading = origin:VectorToWorldSpace(if flat.Magnitude > 0.001 then flat.Unit else Vector3.xAxis)
 		local running = run > 0
 		local feet = origin * position
-		local lean = if running then math.rad(-10) - math.asin(math.clamp(direction.Y, -0.7, 0.7)) * 0.35 else 0
-		runner.Root.CFrame = CFrame.lookAt(feet + Vector3.yAxis * runner.Lift, feet + Vector3.yAxis * runner.Lift + heading) * CFrame.Angles(lean, 0, 0)
 		local track = sprintTrack(runner)
+		-- into the slope a little; Roblox's own run stands upright, so that one is leant by hand
+		local lean = if running then (if runner.Own then 0 else math.rad(-10)) - math.asin(math.clamp(direction.Y, -0.7, 0.7)) * 0.35 else 0
+		runner.Root.CFrame = CFrame.lookAt(feet + Vector3.yAxis * runner.Lift, feet + Vector3.yAxis * runner.Lift + heading) * CFrame.Angles(lean, 0, 0)
 		if track and running ~= runner.Running then
 			runner.Running = running
 			if running then
-				track:Play(0.1, 1, path.RunSpeed / 16)
+				track:Play(0.1, 1, if runner.Own then 1 else path.RunSpeed / 16)
 				track.TimePosition = (index * 0.137) % math.max(track.Length, 0.1)
 			else
 				track:Stop(0.1)

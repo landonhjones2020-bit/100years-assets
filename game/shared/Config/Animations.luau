@@ -272,5 +272,8 @@ return {
 			Text = "A two-handed sweep back from the left, a Heavy weapon's second hit (Prompt 20, R15_HeavySwing2)" },
 		PlayerThrow = { Rig = "R15", Activity = "Throw", AssetId = "rbxassetid://124031410096479", Looped = false,
 			Text = "An overhand throw, the release at 40% (Prompt 20, R15_Throw)" },
+		-- The intro cutscene (Prompt 22): CutsceneController plays it on the party's avatars and the founders
+		IntroSprint = { Rig = "R15", Activity = "Run", AssetId = "rbxassetid://70631532326043", Looped = true,
+			Text = "A flat-out sprint, 0.4 s a stride, made for 27 studs a second (Prompt 22, R15_IntroSprint)" },
 	},
 }
