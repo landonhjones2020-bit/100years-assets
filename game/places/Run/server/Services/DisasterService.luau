@@ -574,15 +574,15 @@ local function seamSpot(room: any): CFrame
 	local g = Grid.Tuning()
 	local model = grid:RoomModel(room.Id)
 	local back = -(g.CellDepth / 2 - 0.8)
-	local view = Vector3.new(SEAM_SIZE.X, SEAM_SIZE.Y, SEAM_VIEW)
+	-- from the wall's face (posters and vent grilles count: a seam through one is a muddle) out into the room
+	local view = Vector3.new(SEAM_SIZE.X, SEAM_SIZE.Y, SEAM_VIEW + 0.8)
 	local last: CFrame? = nil
 	for _, height in { 3, g.CellHeight * 0.6, g.CellHeight * 0.735 } do
 		for span = 0, (room.Span or 1) - 1 do
 			local cell = Grid.CellPosition(room.Floor, room.Column + span)
 			for _, x in { -0.25, 0.25, 0, -0.38, 0.38, -0.12, 0.12 } do
 				local at = cell + Vector3.new(g.CellWidth * x, height, back)
-				-- the seam itself comes 1.5 studs out of the wall; the box starts just in front of the wall's trim
-				if not model or wallClear(model, at + Vector3.new(0, 0, 0.3 + SEAM_VIEW / 2), view, g.CellWidth * 0.8) then
+				if not model or wallClear(model, at + Vector3.new(0, 0, (SEAM_VIEW - 0.8) / 2), view, g.CellWidth * 0.8) then
 					return CFrame.new(at)
 				end
 				if x == -0.25 and span == 0 then
