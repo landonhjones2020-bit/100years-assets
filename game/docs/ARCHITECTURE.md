@@ -853,6 +853,37 @@ facts)` (lines, total and the new ledger, so a run that ends twice pays only wha
   and the bar's text. Dev: `boss.start CrystalColossus`, `boss.volley`, `boss.light [seconds]`.
 * A player's `StunnedUntil` (server time): the client stops their walking (`Movement.Set(
   "Stunned", 0)`), and WeaponService refuses their hands.
+* The Source (Prompt 25; `Tuning.Source`, `Rules.Boss`'s `Source*` functions). BossService owns
+  the fight as it does every boss's (the model, its clips on the server, the Boss collection, the
+  hit modifier, its turning and slams: `tickSource`); `Lib.SourceFight` owns what is the Source's
+  own, through a `ctx` of BossService's services and helpers: the stages (`Tuning.Source.Stages`,
+  the fight's `Phase`), the tendrils (combatants with `MonsterType` SourceTendril and the
+  `Tendril` attribute, in rooms chosen by `Rules.Boss.SourceRooms`, animated by NPCAnimator;
+  each one that falls wounds the Source by `SourceWound`), the roots (`RootMark` parts in
+  `workspace.Monsters` with `Radius` and `LandsAt`) and the regrowth. Its eye is shut in a
+  Tendrils stage (`ClosedMultiplier` on every hit) and the weak point in a Core stage.
+  - In the bunker: `CycleClock.SurgeStarted("Final", "Source")` begins it like an era boss's.
+    Its death calls `ObjectiveService:BossBeaten`, which ends the final Surge: CycleClock fires
+    `CenturySurvived` and RunDirector wins the Century Victory.
+  - In its chamber: `DeepService` makes every floor 10 cell roll a cave opening until the Source
+    Chamber stands (`Cave_Source_Entry`, the band's one piece) and exposes it
+    (`DeepService:SourceChamber()`: the piece, its `Core` socket, its `Tendril` sockets). On
+    `CaveOpened` for the band, BossService puts the Source there asleep (`sleeper`: a model with
+    the `Asleep` attribute, registered with combat only to notice being hurt; no fight, so an
+    era boss can still come). `wake` turns the sleeper into the fight (`Chamber = true`) when a
+    player is within `WakeRange` or hurts it. Its death there calls `RunDirector:Win("Deep")`
+    first and `BossBeaten` after, so a kill during the final Surge is still the Deep Victory.
+  - Left asleep until the final Surge, the sleeper sinks out (`leaveChamber`) and the bunker
+    fight begins. A boss whose Surge starts while a fight is on is kept (`waiting`) and begins
+    when that fight is over.
+  - `CycleClock:SetEndless` closes an open-ended Surge (Keep Going after a Deep Victory won
+    during a boss's Surge or the final one).
+  - The client: `BossController` (the bar's words from the published `Stage` and `Tendrils`, the
+    mini-map's blink from `Rooms`, a Highlight on each tendril, the root marks) and
+    `VictoryController` (each victory's moment on `StarterGui.Victory`; ResultsController waits
+    `Tuning.Results.VictoryDelaySeconds` for it).
+  Dev: `boss.start Source`, `boss.wake`, `boss.tendrils`, `boss.cut`, `boss.roots`,
+  `boss.regrow`; client `victory.play [century|deep]`.
 
 ## The surface (Run place)
 
@@ -1332,7 +1363,8 @@ ClassShop, Account, Lobby).
 | Run | DisasterService | service | BunkerGrid, PowerService, CycleClock, RunDirector, CombatService, WeaponService, ResidentService, BuildService, SessionService, ReplicationService, DevService | fires, blackouts, cave-ins and rubble, the Reactor meltdown, electrical surges, the Surge's disaster, the Disasters collection |
 | Run | ThreatDirector | service | CycleClock, RunDirector, BunkerGrid, SessionService, ProfileService, BreachService, MonsterService, DisasterService, DevService | the threat level, Surge waves and their disaster, the trickle, daily electrical surges, ending a cleared Surge, bursts, Disturbance's extra breach and Tremor, RunState Threat and Monsters |
 | Run | DigService | service | BunkerGrid, CycleClock, RunDirector, SessionService, ReplicationService, EconomyService, WeaponService, CombatService, VoteService, BuildService, BreachService, ThreatDirector, DisasterService, InventoryService, DevService | digging, the dig prompts, the roll and what dug cells hold (ore, caves, caches, nests; cells with a fixed roll), Push Deeper, the Drill Bay's queue, Disturbance, the Digs collection |
-| Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, DisasterService, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection |
+| Run | BossService | service | CycleClock, RunDirector, BunkerGrid, SessionService, CombatService, MonsterService, WeaponService, ObjectiveService, ThreatDirector, DisasterService, DeepService, ReplicationService, DevService | boss fights: the arena, arrival, the boss model and its clips (on the server), slams, egg sacs, weak points, staggers, phases, death, the Boss collection; the Source asleep in its chamber, its wake, the Deep Victory |
+| Run | SourceFight | lib | (BossService's ctx) | the Source's stages, its tendrils in rooms, its roots, the regrowth |
 | Run | ResultsService | service | RunDirector, CycleClock, SessionService, ProfileService, CombatService, MonsterService, ResidentService, BuildService, DigService, DisasterService, ObjectiveService, BossService, BunkerGrid, VoteService, InventoryService, RescueService, DeepService, ExpeditionService, DraftService, ReplicationService, DevService | the run's stats and story, payouts, account experience and profile stats, the MVP, the Results collection, Play Again, Keep Going, Return to Lobby |
 | Run | InventoryService | service | SessionService, BunkerGrid, EconomyService, CombatService, WeaponService, MonsterService, RunDirector, DevService | backpacks, unloading, big finds and carrying, dropped bags, Clear-Rad pills, monster drops |
 | Run | RescueService | service | SessionService, CombatService, ResidentService, ResidentBrain, RunDirector, DevService | trapped people: freeing, the escort, joining the bunker |
@@ -1359,8 +1391,9 @@ ClassShop, Account, Lobby).
 | Run | ThreatController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController, CameraController | breach alerts, the Threat overlay, the Slowed movement reason, the Flooded Caverns monsters' effects (hiding, shell hits, bursts) |
 | Run | DisasterController | controller | HUDController, MiniMapController, CommandViewController, ReplicaController | disasters' world effects, the tools' effects, the Welder's HP bar, the Meltdown telegram and valve plates, dig prompt gating, statuses in the Command View and mini-map |
 | Run | DigController | controller | ReplicaController, CommandViewController, CameraController | dig prompt gating, dig dust, the Tremor's shake, the Command View's dig notes and queue options |
-| Run | BossController | controller | ReplicaController, HUDController, CameraController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
+| Run | BossController | controller | ReplicaController, HUDController, CameraController, MiniMapController | the HUD's boss bar, the camera shakes of a boss's rise and slam |
 | Run | ResultsController | controller | UIController, ReplicaController | the Run Report (results screen) and its buttons |
+| Run | VictoryController | controller | HUDController, CameraController, ReplicaController, DevController | a victory's moment before the report: the Blast Door opening (Century), the Source dying in its chamber (Deep) |
 | Run | SurfaceController | controller | HUDController, CameraController | the surface's and the Deep's light and weather, the elevator fade, the radiation gauge and backpack chip, prompt gating, carry speed, the Scout's outline |
 | Run | DeepController | controller | HUDController | the radio log sheet, the Spelunker's eye |
 | Run | ExpeditionsController | controller | UIController, ReplicaController | the Expeditions screen, distress markers and their edge arrows |
@@ -1526,3 +1559,9 @@ ClassShop, Account, Lobby).
   walking line (wide monsters jammed), and a build check for dev commands registered twice. The
   A10 art: four monsters, Boss_CrystalColossus, Kit_DoorSeal, Kit_CrystalSeam, eight cave
   pieces, 19 clips.
+* **Prompt 25 (2026-11-12)**: the Source (Run). Its stages, tendrils and roots in Lib.SourceFight
+  and `Rules.Boss`; the final Surge, the sleeper in its chamber, the Deep Victory and a boss that
+  waits in BossService; floor 10's rolls and the chamber in DeepService; Keep Going closing an
+  open Surge in CycleClock; the victories' moments in VictoryController (`StarterGui.Victory`).
+  The art: Boss_Source, Monster_SourceTendril, Cave_Source_Entry, 12 clips; the Blast Door kit's
+  hardware moved into its leaves.

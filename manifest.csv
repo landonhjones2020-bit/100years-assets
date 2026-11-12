@@ -36,9 +36,9 @@ Kit_Dug_SourceChamber,Kit,model,A1,34x18x35.176,2500,676,basalt;glow;rust,in_stu
 Kit_Shaft_L1,Kit,model,A1,32.582x22.798x8,3000,1072,chrome;cream;gunmetal;hazard;navy;rubber;steel,in_studio,96399748572169,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
 Kit_Shaft_L2,Kit,model,A1,32.582x22.798x28.75,3000,1500,chrome;cream;gunmetal;hazard;leaf;navy;rubber;signal;steel;teal,in_studio,114186285630988,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
 Kit_Shaft_L3,Kit,model,A1,32.582x22.798x28.75,3000,1988,brass;chrome;cream;gunmetal;hazard;leaf;navy;rubber;signal;steel;teal,in_studio,91995701349857,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
-Kit_BlastDoor_L1,Kit,model,A1,55.9x16.02x21.352,6000,3456,chrome;cream;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,exported,113063578633543,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
-Kit_BlastDoor_L2,Kit,model,A1,55.9x16.02x21.352,6000,4224,chrome;cream;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,exported,110643036646383,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
-Kit_BlastDoor_L3,Kit,model,A1,55.9x16.02x21.352,6000,4868,brass;chrome;cream;glow;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,exported,106077377495492,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
+Kit_BlastDoor_L1,Kit,model,A1,55.9x16.02x21.352,6000,3456,chrome;cream;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,verified,113063578633543,"A1; revision 2 (Prompt 25: the door's bands, bracing and wheel are part of Leaves, so the Century Victory lifts the whole door); size and pivot checked in Studio; ServerStorage.Assets.Kit; seen opening in the Prompt 25 playtest"
+Kit_BlastDoor_L2,Kit,model,A1,55.9x16.02x21.352,6000,4224,chrome;cream;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,in_studio,110643036646383,A1; revision 2 (Prompt 25: the door's hardware is part of Leaves); size and pivot checked in Studio; ServerStorage.Assets.Kit
+Kit_BlastDoor_L3,Kit,model,A1,55.9x16.02x21.352,6000,4868,brass;chrome;cream;glow;gunmetal;hazard;mint;olive;pine;rubber;rust;signal;steel;teal;walnut,in_studio,106077377495492,A1; revision 2 (Prompt 25: the door's hardware is part of Leaves); size and pivot checked in Studio; ServerStorage.Assets.Kit
 Kit_Vent,Kit,model,A1,4.6x3.975x0.904,900,208,chrome;gunmetal;hazard;rubber;steel,in_studio,117259272320694,A1; size and pivot checked in Studio; ServerStorage.Assets.Kit
 Room_ReactorCore_L1,Rooms,model,A1,30.13x16x27.45,3000,1708,chrome;copper;cream;crystal;gunmetal;hazard;leaf;rubber;rust;signal;steel;teal;walnut,in_studio,89303632975026,A1; size and pivot checked in Studio; ServerStorage.Assets.Rooms
 Room_ReactorCore_L2,Rooms,model,A1,30.13x16.17x27.46,3000,2580,chrome;copper;cream;crystal;gunmetal;hazard;leaf;mint;rubber;rust;signal;steel;teal;walnut,in_studio,111427292995246,A1; size and pivot checked in Studio; ServerStorage.Assets.Rooms
@@ -289,18 +289,18 @@ Cave_Crystal_Drop,Caves,model,A10,27.073x28.462x45.454,8000,5986,ash;basalt;bras
 Cave_Crystal_Junction,Caves,model,A10,64.895x21.117x39.043,8000,6958,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,in_studio,140320557322624,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
 Cave_Crystal_Cavern,Caves,model,A10,71.414x34.741x67.331,8000,7998,ash;basalt;brass;crystal;glow;gunmetal;plum,in_studio,117892511992627,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
 Cave_Crystal_CrewPocket,Caves,model,A10,42.146x22.764x44.106,8000,7848,ash;basalt;brass;cream;crystal;gunmetal;hazard;pine;plum;rubber;teal;walnut,in_studio,91698303854579,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
-Monster_SourceTendril,Monsters,model,A10,5.509x12.104x7.88,4000,3904,ash;basalt;blush;cream;glow;gunmetal;plum;rubber;stone,exported,,
-SourceTendril_Idle,Animations/SourceTendril,clip,,,,,,exported,,
-SourceTendril_Attack,Animations/SourceTendril,clip,,,,,,exported,,
-SourceTendril_Rise,Animations/SourceTendril,clip,,,,,,exported,,
-Boss_Source,Bosses,model,A10,23.479x14.043x19.595,15000,13236,ash;basalt;cream;forest;glow;gunmetal;murk;plum;rubber;rust;stone,exported,,
-Source_Idle,Animations/Source,clip,,,,,,exported,,
-Source_Open,Animations/Source,clip,,,,,,exported,,
-Source_OpenIdle,Animations/Source,clip,,,,,,exported,,
-Source_Close,Animations/Source,clip,,,,,,exported,,
-Source_Attack,Animations/Source,clip,,,,,,exported,,
-Source_Roar,Animations/Source,clip,,,,,,exported,,
-Source_Stagger,Animations/Source,clip,,,,,,exported,,
-Source_Death,Animations/Source,clip,,,,,,exported,,
-Source_Slam,Animations/Source,clip,,,,,,exported,,
-Cave_Source_Entry,Caves,model,A10,101.286x38.409x123.025,15000,14678,ash;basalt;blush;brass;cream;glow;gunmetal;hazard;pine;plum;rubber;rust;steel;teal;walnut,exported,,
+Monster_SourceTendril,Monsters,model,A10,5.509x12.104x7.88,4000,3904,ash;basalt;blush;cream;glow;gunmetal;plum;rubber;stone,verified,97585915789046,"A10 (Prompt 25): ServerStorage.Assets.Monsters (Run); size and pivot measured in Studio; Prompt 25 playtests: rose in rooms and in the chamber, turned, slammed, took real shots"
+SourceTendril_Idle,Animations/SourceTendril,clip,A10,,,,,in_studio,116697324036479,its Activity set in the Prompt 25 playtests (NPCAnimator plays it on clients); track length not read
+SourceTendril_Attack,Animations/SourceTendril,clip,A10,,,,,in_studio,139666151004098,its Activity set in the Prompt 25 playtests (NPCAnimator plays it on clients); track length not read
+SourceTendril_Rise,Animations/SourceTendril,clip,A10,,,,,in_studio,130729164866804,its Activity set in the Prompt 25 playtests (NPCAnimator plays it on clients); track length not read
+Boss_Source,Bosses,model,A10,23.479x14.043x19.595,15000,13236,ash;basalt;cream;forest;glow;gunmetal;murk;plum;rubber;rust;stone,verified,133747379920334,"A10 (Prompt 25): ServerStorage.Assets.Bosses (Run); size and pivot measured in Studio; Prompt 25 playtests: asleep in its chamber, both fights to its death, real shots on its eye"
+Source_Idle,Animations/Source,clip,A10,,,,,in_studio,92177314243693,played by BossService in the Prompt 25 playtests (asleep and in the tendril stages); track length not read
+Source_Open,Animations/Source,clip,A10,,,,,in_studio,103624325457194,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Source_OpenIdle,Animations/Source,clip,A10,,,,,in_studio,120477812269121,played by BossService in the Prompt 25 playtests (seen in the eye-open capture); track length not read
+Source_Close,Animations/Source,clip,A10,,,,,in_studio,86623244783953,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Source_Attack,Animations/Source,clip,A10,,,,,in_studio,71429369736907,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Source_Roar,Animations/Source,clip,A10,,,,,in_studio,94451380198995,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Source_Stagger,Animations/Source,clip,A10,,,,,in_studio,101309093476984,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Source_Death,Animations/Source,clip,A10,,,,,in_studio,74449751138479,played by BossService in the Prompt 25 playtests (seen in the Deep Victory capture); track length not read
+Source_Slam,Animations/Source,clip,A10,,,,,in_studio,95808762165394,played by BossService in the Prompt 25 playtests (its Activity read on the server); track length not read
+Cave_Source_Entry,Caves,model,A10,101.286x38.409x123.025,15000,14678,ash;basalt;blush;brass;cream;glow;gunmetal;hazard;pine;plum;rubber;rust;steel;teal;walnut,verified,104816413022471,"A10 (Prompt 25): ServerStorage.Assets.Caves (Run), revision 2 (the hall sunk under the gallery); size and pivot measured in Studio; Prompt 25 playtests: walked the ledge, the ramp and the hall"

@@ -51,7 +51,9 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 23: the Flooded Caverns: floods, gas leaks, hazard pockets, four monsters, The Deluge (Run) | ✅ done 2026-11-11 | Run playtests: water and gas measured on a player (13 health in 3 s, 6.0 a second), residents fleeing, Foam Burst, Decon Field, Sump Pumps, an Era II Surge with Murklings out of a flooded room, each monster's behaviour, The Deluge by its own Year 50 Surge to its death, real pistol shots at its crown (24) and neck (6); `game/reports/P23_FloodedCaverns.md` (9 Bible Questions) |
 | A8 Flooded Caverns monsters, The Deluge, the burst pipe and the vent | ✅ in Studio 2026-11-11 | 7 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips uploaded and in `Config.Animations` (The Deluge's and the Lurker's confirmed on the Animator in play); captures `previews/Game/P23_*.jpg` |
 | Prompt 24: the Crystal Hollows: radiation leaks, outbreaks, four monsters, the Crystal Colossus (Run) | ✅ done 2026-11-11 | Run playtests with real shots and E holds: a door leak measured on a player and sealed at its clamp, a Decon Room halving it, residents fleeing and Irradiated, an outbreak spreading, quarantined and cured, each monster's behaviour (2.4 against 34 a shot on the Golem), a Crystal Hollows cave and its radiation, the Colossus by its own Year 75 Surge to its death (6.8 unlit, 68 on a lit core, the stun, the stagger); `game/reports/P24_CrystalHollows.md` (13 Bible Questions) |
-| A10 Crystal Hollows monsters, the Colossus, the radiation fittings, the band's cave pieces | ✅ in Studio 2026-11-11 (the Source and its chamber are Prompt 25's) | 15 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips in `Config.Animations`, 18 of them read on the Animator in play; captures `previews/Game/P24_*.jpg` |
+| A10 Crystal Hollows monsters, the Colossus, the radiation fittings, the band's cave pieces | ✅ in Studio 2026-11-11 | 15 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips in `Config.Animations`, 18 of them read on the Animator in play; captures `previews/Game/P24_*.jpg` |
+| Prompt 25: the Source: its chamber, the final Surge, both victories, Endless (Run) | ✅ done 2026-11-12 | Run playtests: the chamber opened from a floor 10 cell with the Source asleep, woken by walking up and by a shot from the ledge, all four stages in its chamber and in the bunker, real shots on a tendril and on its eye (24 and 6), the Deep Victory and the Century Victory by its death, each one's moment and report, Keep Going into Endless from both; `game/reports/P25_TheSource.md` (11 Bible Questions) |
+| A10's last part: the Source, its tendril, the Source Chamber; the Blast Door kit's leaves | ✅ in Studio 2026-11-12 | 3 models set up in Run (size and pivot measured against their sidecars; 2 rigs), 12 clips in `Config.Animations` (played, their track lengths not read); Kit_BlastDoor_L1 to L3 revision 2; captures `previews/Game/P25_*.jpg` |
 | A3, A7, Digby, A11 | not started | |
 
 ## Ids
@@ -103,7 +105,46 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 24 fittings | Kit_DoorSeal 116537539059684, Kit_CrystalSeam 111950606351593 |
 | A10 cave pieces (Crystal Hollows) | Entry 95216540770603, Tunnel 83967828713485, Junction 140320557322624, Pocket 137720474401999, Chamber 136395288449065, Cavern 117892511992627, Drop 116981217365849, CrewPocket 91698303854579 |
 | Tooling (Prompt 24's setup batches) | ArtSetupBatch_P24 80245931735179 (revision 2), ArtSetupBatch_P24Caves 123342102974484 |
+| A10's last part (Run) | Boss_Source 133747379920334, Monster_SourceTendril 97585915789046, Cave_Source_Entry 104816413022471 (revision 2: the sunken hall) |
+| The Source's clips | Source Idle 92177314243693, Open 103624325457194, OpenIdle 120477812269121, Close 86623244783953, Attack 71429369736907, Slam 95808762165394, Roar 94451380198995, Stagger 101309093476984, Death 74449751138479; SourceTendril Idle 116697324036479, Attack 139666151004098, Rise 130729164866804 |
+| Tooling (Prompt 25) | ArtSetupBatch_P25 130187891230908, ArtSetupBatch_P25Chamber 73772406016191, ArtSetupBatch_P25Door 122618651060779, UI_Victory_P25 116974707787806 (revision 3: builds StarterGui.Victory in Run) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-12 (Chicago, morning): Prompt 25, the Source; A10's last part
+
+Game code build `p25-33ee455` (final for Prompt 25): code asset 95026446991297 revision 117,
+installed in Run and Lobby: StructureCheck 0 errors (Run 580 checks, Lobby 356), 132 data tests
+passed in each. Report: `game/reports/P25_TheSource.md` (11 Bible Questions).
+
+| What | Ids | Status | Notes |
+|---|---|---|---|
+| Boss_Source | 133747379920334 | verified | 13,236 tris, 11 bones, 23.5 x 14.0 x 19.6 studs; `Eye` is the WeakPoint part behind LidUpper and LidLower; sockets Eye, Slam, SlamLeft, SlamRight; nine clips (Attack and Slam: Hit 0.9 s) |
+| Monster_SourceTendril | 97585915789046 | verified | 3,904 tris, 12 bones (Body, Seg1 to Seg7, Tip, Hook1 to Hook3); pivot at the floor; sockets Slam, Eye; Idle, Attack (Hit 0.55 s), Rise |
+| Cave_Source_Entry | 104816413022471 (rev 2) | verified | 14,678 tris, 101 x 38 x 123 studs; sockets Entry, Core, Tendril1 to 4, Light1 to 5; box -17.5 to 16.5 high, so it lies under floor 9's caves |
+| Kit_BlastDoor_L1, L2, L3 | 113063578633543, 110643036646383, 106077377495492 (rev 2 each) | L1 verified, L2 and L3 in_studio | the door's bands, bracing, seam and wheel are in the `Leaves` part (13.9 x 11 x 1.57) |
+| StarterGui.Victory (Run) | UI_Victory_P25 116974707787806 | in Studio | `studio/ui/Victory.lua`; 12 instances |
+
+**Verified in Studio (Run playtests)**: see the report's testing checklist.
+
+**Findings**
+1. **A cave piece taller than a tunnel collides with the floor above's caves.** The chamber as
+   first built (30 studs high from floor 10's floor) stood in floor 9's caves' height; the planner
+   refuses a mouth whose box is already another cave's, so the chamber could have been refused.
+   Sunk under its gallery it fits inside its own floor's height. A Drop from floor 9 can still
+   reach it: every floor 10 cell rolls a cave opening until the chamber stands.
+2. **A kit part can only be moved by the game if it is its own part.** The Blast Door's bands and
+   wheel were merged into `Decor` (no collision, so merged by material); lifting `Leaves` left
+   them hanging in the doorway. Give what must move together one part name and a collision.
+3. **`execute_luau` can lose its answer and still have run** ("Target is not reachable"). Twice
+   today: once it had not run, once it had. Check the place's state before sending the chunk
+   again.
+4. **A screen spec must parent its ScreenGui itself** (`sg.Parent = StarterGui` and a return line
+   at the end, as `Cutscene.lua` does): the builder's `screen()` only makes it.
+5. **`bmesh` must be imported after `bpy`** in a generator (cavelib brings `bpy` in).
+6. **A `require` from `execute_luau` is not the running game's module** (a second copy of
+   CombatService knew no combatants). Use the DevTools commands.
+7. **Residents can't flee tendrils in a small bunker**: with one on each floor there is no room
+   "with no monster in or next to it". Their damage to residents is 8 for that reason.
 
 ## 2026-11-11 (Chicago, evening): Prompt 24, the Crystal Hollows; the A10 art
 

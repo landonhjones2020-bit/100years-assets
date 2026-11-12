@@ -183,6 +183,20 @@ Design Notes and Delivery Reports: `game/reports/`.
    `seamSpot`) instead of a fixed offset. A cave piece changed: re-export, PATCH, then
    `python3 tools/cave_config.py` (it writes `Config/CavePieces.luau`).
 
+7a. The Source (Prompt 25). `boss.start Source` is the bunker fight; for the chamber, dig a column
+   down with `grid.dig <floor> <column>` (it digs without rolls), then `deep.cave 10 <column>` opens
+   the Source Chamber with the Source asleep, `deep.tp 10 <column>` goes there, `boss.wake` wakes
+   it. `boss.cut` cuts its tendrils down (the stage moves on), `boss.hurt <n> [weak]` does the rest;
+   `boss.tendrils`, `boss.roots`, `boss.regrow`. `year 100` then `clock.next` brings the final
+   Surge. Client: `victory.play century|deep` plays a victory's moment without ending the run. A
+   `require` of a service from `execute_luau` is a second copy that knows nothing: use the dev
+   commands. `execute_luau` can answer "Target is not reachable" and still have run: check the
+   place before sending a chunk again (2026-11-12).
+7b. A screen spec (`studio/ui/<Screen>.lua`) parents its own ScreenGui at its end (`sg.Parent =
+   game:GetService("StarterGui")`, then a `return` line). A kit part the game must move (a door's
+   leaves) is one part name with a collision, hardware included: parts with no collision are
+   merged into `Decor` by material (2026-11-12, Kit_BlastDoor).
+
 ## 4e. The intro cutscene (Prompt 22)
 
 The cutscene is data made here. `generators/Cutscene/cutscene_plan.py` is the set's plan (where

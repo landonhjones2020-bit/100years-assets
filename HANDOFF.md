@@ -1,11 +1,11 @@
 # 100 Years Below: handoff for the next chat
 
-Written 2026-11-11 (evening, Chicago), after Prompt 24. The game was called 100 Years Of
+Written 2026-11-12 (morning, Chicago), after Prompt 25. The game was called 100 Years Of
 Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
 here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
-refreshed from it the same day). Nothing of Prompts 23 and 24 is in the bible yet: their 9 and 13
-questions wait for Landon in the reports.
+refreshed from it the same day). Nothing of Prompts 23, 24 and 25 is in the bible yet: their 9, 13 and
+11 questions wait for Landon in the reports.
 
 ## Start here
 
@@ -17,13 +17,28 @@ questions wait for Landon in the reports.
    them again instead of using a remembered id. Never touch the Night Shift studio. Studio asked
    for a restart on Nov 10 (its Assistant plugin changed version): ask Landon to restart it if
    tools misbehave.
-4. Work in this order unless Landon says otherwise: Prompt 25, Prompt 26, then the open work below.
+4. Work in this order unless Landon says otherwise: Prompt 26, Prompt 27, then the open work below.
 
 ## Where things stand
 
-* **Prompts 0 to 24 are built and tested in Studio.** Code build `p24-968bd49` (code asset
-  95026446991297, revision 113) is installed in both places: StructureCheck 0 errors (Lobby 356
-  checks, Run 577), 131 data tests.
+* **Prompts 0 to 25 are built and tested in Studio.** Code build `p25-33ee455` (code asset
+  95026446991297, revision 117) is installed in both places: StructureCheck 0 errors (Lobby 356
+  checks, Run 580), 132 data tests.
+* **Prompt 25 (the Source).** The century has an end, two ways. The first floor 10 cell dug opens
+  on the Source Chamber (one cave piece: the old mine's gallery comes out on a ledge high in a
+  hall 72 by 90 by 28 studs, sunk under the gallery so floor 9's caves can lie over it). The
+  Source sleeps there and wakes when a player comes within 44 studs or hurts it. Its fight
+  (40,000 health, four stages): tendrils in rooms spread over the floors with its eye shut (3,
+  then 5, one more a player; each cut down takes an even share of 15% of its health), then the
+  core with its eye open (the weak point; slams for 50, roots bursting up under survivors with a
+  ring 1.3 s before), twice. In its chamber some tendrils rise round it and the rest in the
+  deepest rooms. Killed in its chamber: the Deep Victory at once, in any year. Left alone: at
+  Year 100 the final Surge has no timer, it rises in the bunker's deepest tunnel (leaving its
+  chamber if it still slept there), and killing it is the Century Victory. Each victory has a
+  7-second moment before the report (the Blast Door lifting on daylight; the Source dying as its
+  light leaves the rock), and Keep Going carries either into Endless. Report:
+  `game/reports/P25_TheSource.md` (14 decisions, a "not tested" list, 11 Bible Questions);
+  captures `previews/Game/P25_*.jpg`.
 * **Prompt 24 (the Crystal Hollows).** Era III plays. Radiation leaks: from Era III each Surge's
   storm is rolled against the Blast Door (60%, 30%, 0% by its level, more when damaged); a clamp
   appears on the door's jamb and floor 1 fills with radiation (15 rising 2.5 a second) until a
@@ -115,8 +130,8 @@ questions wait for Landon in the reports.
    lobby's ten blocks are the same town before the bomb; the Run place needs them after 100 years
    (`Lib.BrightwaterMap` builds today's placeholder from the A5 kit; SurfaceService's containers,
    survivors, the raider camp, the checkpoint and the storms all hang off that map).
-2. **Prompts 25 and 26** (prep below) come first: Landon's instruction of Nov 11 (16:02) was the
-   recap and handoff, then the next three prompts: 24 is done, 25 and 26 are left.
+2. **Prompts 26 and 27** (prep below) come first: Landon's instruction of Nov 12 (06:31) was the
+   recap and handoff, then the next three prompts: 25 is done, 26 and 27 are left.
 3. **Digby the Gopher** (the mascot: the lobby's greeter and Prompt 31's tips) is still unmade.
 
 The bible was brought up to date on Nov 10 (it had been behind since Nov 9): the title, Landon's
@@ -139,37 +154,16 @@ Years Below — Game Bible v1.0".
 * Nov 11, 16:02: "I have to go to my afternoon classes. IF you finish before I return I want you
   to create the recap and handoff and then begin on the next 3 prompts". Read as: Prompt 23's
   recap and handoff (done), then Prompts 24, 25 and 26, keeping this file current.
+* Nov 12, 06:31: the same words again as he left for afternoon classes. Read as: Prompt 24's
+  recap and handoff were done, so Prompts 25, 26 and 27, keeping this file current.
 * His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
   detailed, bosses scary; art made in Blender here and it has to actually look good.
 
-## Next: Prompts 25 and 26
+## Next: Prompts 26 and 27
 
 Standing rules (bible Section 24): one system per prompt, the bible wins, never invent gameplay
 (suggest it in the Design Notes), content is data, a real playtest for timing, permissions and
 saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
-
-### Prompt 25: The Source: chamber fight, final Surge, both victories, Endless (Run)
-
-* Bible: Section 5 (Winning: "Century Victory: beat the Source in the final Surge, which comes
-  once the year counter reaches 100 and the Source rises into the bunker; that Surge lasts until
-  the Source is beaten. The blast door opens on a clearing sky." "Deep Victory: dig to depth 10
-  and destroy the Source in its chamber, at any point in the run. The run ends at once with the
-  biggest payout." Keep Going and Endless: "no more era bosses or final Surge, and stronger Surges
-  past Year 100"), Section 10 (the Source's row: "Rises into the bunker, or is fought earlier in
-  its chamber at depth 10. Several phases: tendrils in many rooms at once, then the core, so the
-  team has to split up and regroup"), Section 6 (floor 10 is the Source Chamber: "a living cavern
-  around the Source", ore none, opening it needs a Push Deeper vote), Section 16 (Century Victory
-  +15 Glowshards, Deep Victory +30, 3 a band so 12 for reaching the chamber).
-* Already in the code: `RunDirector` ends a run in victory or defeat and knows Keep Going and
-  Endless (Prompt 3: "Year 100, Endless" were playtested with `boss.beat`), `ResultsService` pays
-  and shows the report (Prompt 15), `Config.Bosses.Source`, the cutscene's `Cutscene_SourceGlimpse`
-  (its eyes). Read `RunDirector`, `CycleClock` (the final Surge), `ObjectiveService`,
-  `ResultsService` and `BossService`'s header before starting.
-* What Prompt 24 left ready to copy: a boss that walks out of a wall (`EMERGE`), marked attacks
-  with a warning ring (`shardMark`), a hit modifier that depends on the fight's state (`Lit`),
-  minions from an attack with a cap, a stun (`StunnedUntil`), reveal lights.
-* Art (A10's last part): the Source (a boss up to 15,000 triangles: scary) and its chamber on
-  floor 10; tendrils that come up in rooms.
 
 ### Prompt 26: Residents, phase 2: traits, gear, conditions, morale extremes (Run)
 
@@ -180,6 +174,14 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   (`Rules.Residents.ConditionHealth`) and the quarantine goal (Prompt 24); `Exhausted` (Prompt
   10); the Residents screen's card shows conditions. Prompt 23's question 8 (the Hardy trait and
   the gas-proof outfit against floods and gas) and Prompt 24's question 7 (quarantine) wait here.
+
+### Prompt 27: Talents and Legends
+
+* Bible: Section 15 and the talents section. `Config.TalentSlots`, `Config.Legends` and the
+  classes' `Talentable` and `TalentExclude` fields exist from Prompt 1; the Lobby's pads already
+  say "pick a class, talents and a Legend" (Section 5's flow). Read `ClassService` (how a class's
+  passive reaches `Rules.Modifiers`), `PartyService` and the run record (what the lobby writes for
+  a run) and the Class Shop's screen before starting.
 
 ## Waiting on Landon
 
@@ -198,6 +200,15 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   names (Prompt 21, question 11) and at the 15 new class looks
   (`previews/Residents/Class_Portraits.jpg`; questions 14 and 15).
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
+* **Prompt 25**: his answers to its 11 Bible Questions (the four stages; a tendril in the Reactor
+  Core; whether the chamber fight sends tendrils up into the bunker; whether it can sleep again;
+  a Deep Victory during the final Surge; monsters dying with it; minions of its own; what else
+  floor 10 holds; residents walking out at the Century Victory; a reward for finding the chamber;
+  how strong an early Endless is), and his look at the Source, its tendril and its chamber
+  (`previews/Game/P25_*.jpg`, `previews/Bosses/Boss_Source*.png`,
+  `previews/Monsters/Monster_SourceTendril.png`, `previews/Caves/Cave_Source_Entry*.png`). Not
+  tested by me, his to try: two or more players, a phone, a whole fight by real damage, digging
+  to floor 10 by hand with its vote, an era boss's Surge starting during the chamber fight.
 * **Prompt 24**: his answers to its 13 Bible Questions (what lights show a Prism Stalker; which
   guns are small; the Resonator's numbers; whether Surges may buy radiation leaks and outbreaks;
   radiation from a Crystal Hollows hazard pocket; quarantine by button or by itself; whether a
@@ -217,6 +228,14 @@ saved data, Design Notes and a Delivery Report in `game/reports/P##_*.md`.
   Lurker's grab, gunfire on The Deluge under the floor, patching and sealing by hand.
 
 ## Testing tips
+
+* **The Source.** The chamber: `grid.dig 3 2` down to `grid.dig 10 2` (it digs without rolls),
+  `deep.cave 10 2` (the chamber opens, the Source asleep), `deep.tp 10 2`, then walk down the ramp
+  or `boss.wake`. The bunker: `year 100`, `clock.resume`, `clock.next`, wait 20 s for the siren
+  and 8 for it to rise (or `boss.start Source`). In either: `boss.tendrils`, `boss.cut` (the
+  stage moves on), `boss.hurt <n> [weak]`, `boss.roots`, `boss.regrow`; `run.keepgoing` after a
+  victory. Client: `victory.play century|deep`. Tendrils left standing down residents: `boss.cut`
+  or `boss.end` before looking at anything else.
 
 * **Radiation, outbreaks and Era III.** `leak` (the door), `leak <room> [strength]` (a seam),
   `leak.storm` (the Surge's roll now), `leak.seal`, `leak.clear`; `outbreak [residentId]`,
