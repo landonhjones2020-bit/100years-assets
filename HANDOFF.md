@@ -191,8 +191,9 @@ A suggested way in (the next chat's call):
 2. **A ruin pass on the town kit**: the same buildings 100 years after the bomb, heavily ruined
    but still recognisable from the lobby (seeded: roofs and upper floors fallen in, walls down to
    their first floor, glass gone to dark holes, signs with missing letters, scorch and grey ash on
-   every swatch, rust, boarded doors, rubble mounds, dead and burnt trees, burnt-out cars). Do one block, render it beside the lobby's clean block, and
-   hold it to the lobby's finish before doing the rest.
+   every swatch, rust, boarded doors, rubble mounds, dead and burnt trees, burnt-out cars). Do
+   one block, render it beside the lobby's clean block, and hold it to the lobby's finish before
+   doing the rest.
 3. **Inside**: about 25 interiors that hold the containers, survivor spots and finds at sockets
    (`Socket_Container1..`, `Socket_Survivor1..`, `Socket_BigFind`), each one a real room (counters,
    shelves, stairs) that tells you what the place was.
@@ -231,7 +232,7 @@ What exists:
 
 * `Config.TalentSlots` (the three slots, their prices, the pass), `Config.Classes` (`Talentable`,
   17 of 19 true; `TalentExclude`), `Config.Legends` (the first twelve; its header says "the rest
-  arrive with Prompt 27", but the bible doesn't name them: ask Landon, never invent them),
+  arrive with Prompt 27", but the bible doesn't name them: draft them for Landon's OK, below),
   `Tuning.Legends` (`StartLevel` 5, `RenownMax` 5, `RenownStatBonus` 1, `StarterLegend`
   RosieKowalski), `Config.GamePasses.ExtraTalentSlot` (no `PassId` yet).
 * Saved data (`server/Lib/ProfileSchema.luau`): `Talents = { Slots, Equipped }` and
@@ -456,7 +457,8 @@ Prompt 27 unless Landon says otherwise; numbers refer to `game/reports/Answers_2
 
 * An undefended Tutorial Surge (a Spitter Grub and two Burrow Ticks) killed four of six founders
   in 90 seconds: two Ticks make a room flee, a latched Tick rides a fleeing resident, everyone
-  keeps fleeing (Prompt 12's behaviour; Prompt 26's question 12).
+  keeps fleeing (Prompt 12's behaviour). Landon's fix (answer 10): residents swat Burrow Ticks in
+  their room even when there are two or more.
 * The Command View's condition note (what to do about a fire, a leak) is set in very small type.
 * A crystal seam in a fully furnished room sits under the ceiling, across the pipe run.
 * Founders idle on floor 1 at the start, so a door leak that starts strong irradiates all six at
