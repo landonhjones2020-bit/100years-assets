@@ -107,10 +107,12 @@ refreshed from it the same day). Nothing of Prompts 23, 24 and 25 is in the bibl
   monsters and the Brood Mother, A5 surface kit, A6 cave pieces, both Ash Raiders after their
   detail pass, A8 (Murkling, Bloat Toad, Lurker, Tide Crab, The Deluge at 11,408 triangles with
   six clips, the burst pipe and the gas vent; ids in `exports/A8_ids.json` and `BUILD_LOG.md`;
-  sheets in `previews/Monsters`, `previews/Bosses`, `previews/Kit`), A10 except the Source
+  sheets in `previews/Monsters`, `previews/Bosses`, `previews/Kit`), A10
   (Shardling, Prism Stalker, Geode Golem, Resonator, the Crystal Colossus at 12,736 triangles with
-  seven clips, the door's clamp and the crystal seam, eight Crystal Hollows cave pieces; ids in
-  `exports/A10_ids.json`; sheets in the same folders and `previews/Caves`), and A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
+  seven clips, the door's clamp and the crystal seam, eight Crystal Hollows cave pieces, the
+  Source at 13,236 triangles with nine clips, its tendril with three, the Source Chamber at
+  14,678; ids in `exports/A10_ids.json`; sheets in the same folders and `previews/Caves`), and
+  A9's cutscene set (the lobby's blocks and the town's cars and trees again, plus
   seven new models in `ServerStorage.Assets.Cutscene`). Lobby place: A9's lobby half, 28 models
   (`ServerStorage.Assets.Lobby` and `.Town`).
   Class looks: all 19 (outfits on the resident rig in `generators/Residents/outfits.py`,
