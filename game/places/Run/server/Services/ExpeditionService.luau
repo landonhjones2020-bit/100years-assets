@@ -94,7 +94,7 @@ local ExpeditionService = {
 }
 
 -- loot nothing hands out yet: gear (Prompt 26), blueprints (Prompt 19); recruits are this service's
-local SKIP: { [string]: boolean } = { Gear = true } -- blueprints come home for the draft (Prompt 19)
+local SKIP: { [string]: boolean } = {} -- blueprints come home for the draft (Prompt 19), gear for the locker (Prompt 26)
 local HALL = Vector3.new(0, 0, 6) -- from the Blast Door's Door socket into the hall (where the elevator lets out)
 local BLAST_CONSOLE = Vector3.new(-10, 2.5, 1) -- the hall's console without the art kit's GuardDesk: left of the door
 local RADIO_CONSOLE_BACK = 5 -- a Radio Room's console: this far in from its back wall (or its Console socket)
@@ -124,6 +124,7 @@ type Expedition = {
 	Finds: { [string]: number },
 	Recruits: number,
 	Blueprints: number, -- Prompt 19: found blueprints, each a card for the draft once home
+	Gear: number, -- Prompt 26: found gear, each a piece for the gear locker once home
 	Log: { string },
 	State: string, -- Away, Calling, Distress, Reached, Home, Lost
 	CallIn: number?, -- running seconds until the call (Calling)
@@ -322,6 +323,7 @@ local function publish(e: Expedition)
 		Finds = table.clone(e.Finds),
 		Recruits = e.Recruits,
 		Blueprints = e.Blueprints,
+		Gear = e.Gear,
 		Food = e.Food,
 		Water = e.Water,
 		Medkits = e.Medkits,
@@ -332,7 +334,7 @@ local function publish(e: Expedition)
 	})
 end
 
-local function findsText(finds: { [string]: number }, recruits: number, blueprints: number?): string
+local function findsText(finds: { [string]: number }, recruits: number, blueprints: number?, gear: number?): string
 	local parts = {}
 	for _, id in Config.Ids("Resources") do
 		local amount = finds[id]
@@ -345,6 +347,9 @@ local function findsText(finds: { [string]: number }, recruits: number, blueprin
 	end
 	if blueprints and blueprints > 0 then
 		table.insert(parts, if blueprints == 1 then "A BLUEPRINT" else `{blueprints} BLUEPRINTS`)
+	end
+	if gear and gear > 0 then
+		table.insert(parts, if gear == 1 then "A PIECE OF GEAR" else `{gear} PIECES OF GEAR`)
 	end
 	return if #parts > 0 then table.concat(parts, " · ") else "NOTHING FOUND"
 end
@@ -508,6 +513,7 @@ function ExpeditionService:Send(destination: string, memberIds: { string }, cycl
 		Finds = {},
 		Recruits = 0,
 		Blueprints = 0,
+		Gear = 0,
 		Log = {},
 		State = "Away",
 		CallIn = nil,
@@ -576,7 +582,12 @@ local function deliver(e: Expedition): string
 	if blueprints > 0 then
 		ExpeditionService.BlueprintsHome:Fire(blueprints, e.Destination)
 	end
-	e.FindsText = findsText(got, recruits, blueprints)
+	local gear = e.Gear
+	e.Gear = 0
+	if gear > 0 then
+		residents:FindGear(nil, gear) -- into the gear locker, with its own line on the HUD
+	end
+	e.FindsText = findsText(got, recruits, blueprints, gear)
 	return e.FindsText :: string
 end
 
@@ -815,6 +826,8 @@ local function find(e: Expedition, away: { Member })
 			e.Recruits += 1
 		elseif drop.Special == "Blueprint" then
 			e.Blueprints += 1
+		elseif drop.Special == "Gear" then
+			e.Gear += drop.Count
 		end
 	end
 end
@@ -862,7 +875,7 @@ local function live(e: Expedition, forced: string?)
 	else
 		note(e, line(e, "Quiet", { names = Expeditions.Names(namesOf(e, { Away = true })), place = place }), away)
 	end
-	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Trip, event, findsText(e.Finds, e.Recruits, e.Blueprints))
+	log:Info("%s lived cycle %d of %d: %s (%s)", e.Id, e.Done, e.Trip, event, findsText(e.Finds, e.Recruits, e.Blueprints, e.Gear))
 	if #membersWith(e, "Away") == 0 and e.State == "Away" then
 		publish(e)
 		settle(e)
@@ -1071,7 +1084,7 @@ local function describe(): string
 			e.Id, e.Destination, if e.Band then ` ({e.Band})` else "", table.concat(members, ", "), e.Done, e.Trip,
 			if e.Trip < e.Cycles then ` (a fast team: {e.Cycles} picked)` else "", e.LeftAt, e.State,
 			if e.CallIn then string.format(" in %.0fs", e.CallIn) elseif e.Deadline then ` deadline cycle {e.Deadline} at {e.Where}` else "",
-			e.Food, e.Water, e.Medkits, findsText(e.Finds, e.Recruits, e.Blueprints)))
+			e.Food, e.Water, e.Medkits, findsText(e.Finds, e.Recruits, e.Blueprints, e.Gear)))
 		for _, entry in e.Log do
 			table.insert(lines, `    {entry}`)
 		end

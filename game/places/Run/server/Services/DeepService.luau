@@ -101,7 +101,7 @@ local DeepService = {
 
 local CAMERA_IGNORE_TAG = "CameraIgnore"
 -- loot nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18), the Lamp (placeables)
-local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Lamp = true } -- blueprints: Prompt 19 (DraftService)
+local SKIP: { [string]: boolean } = { Recruit = true, Lamp = true } -- blueprints: Prompt 19 (DraftService); gear: Prompt 26
 local LANTERN: { [string]: Color3 } = {
 	Mines = Color3.fromRGB(255, 178, 104),
 	FloodedCaverns = Color3.fromRGB(150, 232, 214),

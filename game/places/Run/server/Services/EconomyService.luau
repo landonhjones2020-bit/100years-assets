@@ -159,6 +159,20 @@ function EconomyService:Spend(costs: { [string]: number }, reason: string): (boo
 	return true, nil
 end
 
+-- Takes a little of a resource with no line in the log: a resident's shot from the shared Ammo
+-- pool (Section 11), many times a fight. False (and nothing taken) when there isn't enough.
+function EconomyService:Use(id: string, amount: number): boolean
+	if amount <= 0 then
+		return true
+	end
+	if (stock[id] or 0) < amount then
+		return false
+	end
+	stock[id] -= amount
+	publish(id)
+	return true
+end
+
 function EconomyService:Add(id: string, amount: number, reason: string): number
 	assert(stock[id] ~= nil, `EconomyService: {id} isn't a stocked resource`)
 	assert(amount >= 0 and amount == amount, "EconomyService: Add takes a positive amount (Spend takes away)")

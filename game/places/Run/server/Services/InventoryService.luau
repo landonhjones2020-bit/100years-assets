@@ -69,9 +69,10 @@ local InventoryService = {
 	CardsHome = Signal.new() :: Signal.Signal<Player, { string }>,
 }
 
--- Loot nothing hands out yet: gear (Prompt 26), recruits (18), the Lamp (placeables). Radio
--- logs, Glowshards (Prompt 17) and blueprints (Prompt 19) go to their handlers (SetSpecial).
-local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Lamp = true }
+-- Loot nothing hands out yet: recruits (18), the Lamp (placeables). Radio logs, Glowshards
+-- (Prompt 17), blueprints (Prompt 19) and gear (Prompt 26: the gear locker) go to their handlers
+-- (SetSpecial).
+local SKIP: { [string]: boolean } = { Recruit = true, Lamp = true }
 local HALL_UNLOAD = Vector3.new(15, 0, 1) -- from the Blast Door's Door socket, towards the shaft: far enough from
 -- RIDE UP (at the socket) that one prompt never hides the other (playtest: at 9 studs the elevator won the E press)
 local UNLOAD_RANGE = 8
@@ -914,17 +915,17 @@ local function registerCommands(dev: any)
 		end,
 	})
 	dev:Register("pack.add", {
-		Description = "Put resources in your backpack, or Blueprint (found as loot is: a card drawn for the draft, Prompt 19).",
-		Usage = "pack.add <resource|Blueprint> <n>",
+		Description = "Put resources in your backpack, or Blueprint (found as loot is: a card drawn for the draft, Prompt 19) or Gear (found as loot is: into the gear locker, Prompt 26).",
+		Usage = "pack.add <resource|Blueprint|Gear> <n>",
 		Run = function(player, args): string?
 			local p = target(player)
 			local id = tostring(args[1] or "")
-			if p and id == "Blueprint" then
-				local _, left = InventoryService:Give(p, { { Special = "Blueprint", Count = math.max(math.floor(tonumber(args[2]) or 1), 1) } })
+			if p and (id == "Blueprint" or id == "Gear") then
+				local _, left = InventoryService:Give(p, { { Special = id, Count = math.max(math.floor(tonumber(args[2]) or 1), 1) } })
 				return `{packLine(p)}: {Surface.Summary(packs[p] or {})}{if #left > 0 then ` (left over {Loot.Text(left)})` else ""}`
 			end
 			if not p or not Config.Find("Resources", id) then
-				return "pack.add <resource|Blueprint> <n>"
+				return "pack.add <resource|Blueprint|Gear> <n>"
 			end
 			local _, left = InventoryService:Give(p, { { Resource = id, Count = math.max(math.floor(tonumber(args[2]) or 10), 1) } })
 			return `{packLine(p)}: {Surface.Summary(packs[p] or {})}{if #left > 0 then ` (left over {Loot.Text(left)})` else ""}`

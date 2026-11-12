@@ -511,6 +511,8 @@ local function goDown(resident: Resident, how: string)
 	end
 	resident.State = "Down"
 	resident.Health = 0
+	resident.Panicked = nil -- nobody panics on the floor
+	panicUntil[resident.Id] = nil
 	downUntil[resident.Id] = workspace:GetServerTimeNow() + Config.Get("Tuning", "Residents").DeathReviveSeconds
 	downHow[resident.Id] = how
 	logLine(resident, `fell ({how})`)
@@ -537,6 +539,25 @@ local function die(resident: Resident, quiet: boolean?)
 	downUntil[resident.Id] = nil
 	downHow[resident.Id] = nil
 	resident.Job = nil
+	resident.Injured, resident.Panicked, resident.Refusing, resident.Lucky = nil, nil, nil, nil
+	panicUntil[resident.Id] = nil
+	if not quiet then
+		-- they died in the bunker: what they carried goes back in the gear locker (someone lost on
+		-- an expedition takes theirs with them)
+		local record = resident :: any
+		local back = false
+		for _, slot in { "Weapon", "Outfit", "Tool" } do
+			local piece = record[slot] :: string?
+			if piece then
+				locker[piece] = (locker[piece] or 0) + 1
+				record[slot] = nil
+				back = true
+			end
+		end
+		if back then
+			publishLocker()
+		end
+	end
 	logLine(resident, `died ({how})`)
 	publish(resident)
 	economy:RefreshCrew()

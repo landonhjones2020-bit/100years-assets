@@ -74,7 +74,7 @@ local log = Log.new("ResidentBrain")
 
 local ResidentBrain = {
 	Name = "ResidentBrain",
-	Dependencies = { "ResidentService", "BunkerGrid", "CycleClock", "CombatService", "DevService" },
+	Dependencies = { "ResidentService", "BunkerGrid", "CycleClock", "CombatService", "EconomyService", "DevService" },
 }
 
 local TICK = 0.2 -- 5 Hz (Section 23)
@@ -104,6 +104,9 @@ local residents: any = nil
 local grid: any = nil
 local clock: any = nil
 local combat: any = nil
+local economy: any = nil
+local DRY_ALERT_SECONDS = 30 -- how often the "guns are empty" alert may show
+local dryAt = -math.huge
 local fleeing: { [string]: { Until: number, Room: string? } } = {}
 local rallies: { [string]: { Until: number, Leader: Player, Bonus: number } } = {} -- Prompt 20
 local swattedAt: { [string]: number } = {}
@@ -714,12 +717,18 @@ local function step(body: Body, order: number)
 				if os.clock() - (swattedAt[body.Id] or 0) >= t.ResidentSwatSeconds then
 					swattedAt[body.Id] = os.clock()
 					local resident = residents:Get(body.Id)
-					local held = resident and resident.Weapon and Config.Find("Items", resident.Weapon)
+					local held = resident and resident.Weapon and Config.Find("Items", (Residents.Piece(resident.Weapon)) or "")
 					local damage = t.ResidentSwatDamage -- bare hands (the Brave)
 					if held and held.Melee then
 						damage = held.Melee.Damage
 					elseif held and held.Gun and resident then
-						damage = held.Gun.Damage * (Residents.Trait(resident, "GunDamage") or 1) -- a Sharpshooter's
+						-- Section 11: "using the shared Ammo pool". With none left they use their hands.
+						if economy:Use("Ammo", held.Gun.AmmoPerShot or 1) then
+							damage = held.Gun.Damage * (Residents.Trait(resident, "GunDamage") or 1) -- a Sharpshooter's
+						elseif os.clock() - dryAt > DRY_ALERT_SECONDS then
+							dryAt = os.clock()
+							Remotes.FireAllClients("Alert", "Warning", "THE RESIDENTS' GUNS ARE EMPTY: THE STOCKPILE HAS NO AMMO")
+						end
 					end
 					combat:Damage(monster.Id, damage, body.Id, "rallied")
 				end
@@ -882,6 +891,7 @@ function ResidentBrain:Init(registry)
 	grid = registry.BunkerGrid
 	clock = registry.CycleClock
 	combat = registry.CombatService
+	economy = registry.EconomyService
 	registry.DevService:Register("brains", {
 		Description = "Where every resident is going and what they are doing.",
 		Usage = "brains",

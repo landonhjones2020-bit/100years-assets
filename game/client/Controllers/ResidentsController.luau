@@ -91,12 +91,32 @@ local function bestJob(resident: any): string?
 	return pick
 end
 
-local function section(body: Instance, order: number, label: string, text: string)
-	local s = ui:Clone("Section")
+-- A titled block of the card. The kit's Section holds two lines of text; this one grows with what
+-- it says, so every line on the card is the same size (the kit's text scales to its box).
+local function section(body: Instance, order: number, label: string, text: string): any
+	local s: any = ui:Clone("Section")
+	local holder = body :: GuiObject
+	local base = s.Size.Y.Scale
+	local line = math.max(12, math.floor(holder.AbsoluteSize.Y * base * 0.3 * 0.9))
+	local width = math.max(1, holder.AbsoluteSize.X * s.Size.X.Scale)
+	local lines = 0
+	for _, paragraph in string.split(text, "\n") do
+		lines += math.max(1, math.ceil(#paragraph * line * 0.5 / width))
+	end
+	local factor = 0.4 + 0.3 * lines
 	s.LayoutOrder = order
+	s.Size = UDim2.fromScale(s.Size.X.Scale, base * factor)
+	s.Label.Size = UDim2.fromScale(1, 0.36 / factor)
 	s.Label.Text = string.upper(label)
+	s.Body.Position = UDim2.fromScale(0, 0.4 / factor)
+	s.Body.Size = UDim2.fromScale(1, 0.3 * lines / factor)
 	s.Body.Text = text
+	local limit = s.Body:FindFirstChildWhichIsA("UITextSizeConstraint")
+	if limit then
+		limit.MaxTextSize = line
+	end
 	s.Parent = body
+	return s
 end
 
 -- The gear locker (the Gear collection's "Locker": piece key -> count), as names for the card.
@@ -143,10 +163,18 @@ local function portrait(): string?
 	return if UIKit.Sprites["Portrait_Survivor"] then "Portrait_Survivor" else nil
 end
 
+local gearConnections: { RBXScriptConnection } = {}
+local shown: string? = nil
+
 local function showResident(id: string)
+	for _, connection in gearConnections do
+		connection:Disconnect()
+	end
+	table.clear(gearConnections)
 	local resident = replica:Get("Residents", id)
 	local detail: any = page:FindFirstChild("Detail")
 	if not resident then
+		shown = nil
 		detail:FindFirstChild("Name").Text = "NOBODY"
 		detail.Sub.Text = ""
 		ui:Clear(detail.Body)
@@ -162,18 +190,29 @@ local function showResident(id: string)
 	ui:SetRarity(detail, if resident.Tier == "Free" then "Common" else resident.Tier)
 	detail:FindFirstChild("Name").Text = string.upper(resident.Name)
 	detail.Sub.Text = `LEVEL {resident.Level}  ·  AGE {resident.Age}`
+	-- the same card again (a gear button's answer): stay where the reader had scrolled to
+	local scrolled = if shown == id then detail.Body.CanvasPosition else Vector2.zero
+	shown = id
 	local body = ui:Clear(detail.Body)
+	task.defer(function()
+		if shown == id and detail.Parent then
+			detail.Body.CanvasPosition = scrolled
+		end
+	end)
 	local job, stat = jobOf(resident)
-	section(body, 1, "Job", if resident.State == "Down" then "Down: revive them with a Medkit before it's too late."
+	section(body, 10, "Job", if resident.State == "Down" then "Down: revive them with a Medkit before it's too late."
 		elseif resident.State == "Away" then "Away on an expedition (the Expeditions screen's ACTIVE tab)."
 		elseif job then `{job}, on {stat} {resident.Stats[stat or ""] or 0}.`
 		else `Idle. Best at {best(resident)} ({resident.Stats[best(resident)]}).`)
+	local outfitStat, bonus, vest, noGas = ResidentRules.OutfitBonus(resident.Outfit)
 	local stats = {}
 	for _, s in STATS do
-		table.insert(stats, `{s} {resident.Stats[s]}`)
+		-- an outfit's bonus shows beside the stat it lifts (never past the cap)
+		local worn = if s == outfitStat then math.min(bonus, Config.Get("Tuning", "Residents").StatCap - (resident.Stats[s] or 0)) else 0
+		table.insert(stats, if worn > 0 then `{s} {resident.Stats[s]} +{worn}` else `{s} {resident.Stats[s]}`)
 	end
-	section(body, 2, "Stats", table.concat(stats, "  ·  "))
-	section(body, 3, "Needs", `Health {resident.Health} of {resident.MaxHealth}  ·  Rest {resident.Rest}  ·  Morale {resident.Morale} ({resident.Mood})`
+	section(body, 20, "Stats", table.concat(stats, "  ·  "))
+	section(body, 30, "Needs", `Health {resident.Health} of {resident.MaxHealth}  ·  Rest {resident.Rest}  ·  Morale {resident.Morale} ({resident.Mood})`
 		.. (if resident.Hungry then "  ·  Hungry" else "")
 		-- Prompt 26: the rest of Section 11's conditions
 		.. (if resident.Injured then "  ·  INJURED: works slowly until a Medbay or a Medic treats them" else "")
@@ -191,25 +230,47 @@ local function showResident(id: string)
 			table.insert(traits, `{trait.Name}: {trait.Text}`)
 		end
 	end
-	section(body, 4, "Traits", if #traits > 0 then table.concat(traits, "\n") else "None.")
-	local outfitStat, bonus, vest, noGas = ResidentRules.OutfitBonus(resident.Outfit)
-	local outfit = if resident.Outfit
-		then `{ResidentRules.PieceName(resident.Outfit)} ({outfitStat} +{bonus}{if vest > 0 then `, health +{vest}` else ""}{if noGas then ", ignores gas" else ""})`
-		else "none"
-	local toolItem = if resident.Tool then Config.Find("Items", (ResidentRules.Piece(resident.Tool)) or "") else nil
-	local tool = if toolItem then `{toolItem.Name} ({toolItem.ResidentUse or toolItem.Text})` else "none"
-	local weaponItem = if resident.Weapon then Config.Find("Items", resident.Weapon) else nil
+	section(body, 40, "Traits", if #traits > 0 then table.concat(traits, "\n") else "None.")
 	local stock = locker()
-	section(body, 5, "Gear", `Weapon: {if weaponItem then weaponItem.Name else "none"}\nOutfit: {outfit}\nTool: {tool}\n`
-		.. `Gear locker: {if #stock > 0 then table.concat(stock, ", ") else "empty (gear is found on the surface and in the Deep)"}`)
-	section(body, 6, "Experience", `{resident.XP} of {resident.XPNext} to level {resident.Level + 1}`)
+	section(body, 50, "Gear", if #stock > 0
+		then `Press a slot to fit the next piece from the gear locker: {table.concat(stock, ", ")}.`
+		else "The gear locker is empty. Gear is found on the surface and in the Deep.")
+	local toolItem = if resident.Tool then Config.Find("Items", (ResidentRules.Piece(resident.Tool)) or "") else nil
+	local weaponItem = if resident.Weapon then Config.Find("Items", (ResidentRules.Piece(resident.Weapon)) or "") else nil
+	local wearing = {
+		Weapon = if weaponItem then weaponItem.Name else nil,
+		Outfit = if resident.Outfit
+			then `{ResidentRules.PieceName(resident.Outfit)}  ·  {outfitStat} +{bonus}{if vest > 0 then `, health +{vest}` else ""}{if noGas then ", no gas" else ""}`
+			else nil,
+		Tool = if toolItem then `{toolItem.Name}{if toolItem.ResidentUse then `  ·  {toolItem.ResidentUse}` else ""}` else nil,
+	}
+	for i, slot in { "Weapon", "Outfit", "Tool" } do
+		local button = ui:Clone("FooterButton") :: ImageButton
+		button.Name = "Gear" .. slot
+		button.LayoutOrder = 50 + i
+		button.Size = UDim2.fromScale(0.97, 0.16)
+		local label = (button:FindFirstChild("Content") :: Frame):FindFirstChild("Label") :: TextLabel
+		label.Text = string.upper(`{slot}  ·  {wearing[slot] or "none"}`)
+		local ask = nextPiece(slot, resident[slot])
+		local can = resident.State == "Alive" and (resident[slot] ~= nil or #fitting(slot) > 0)
+		button.Active = can
+		button.AutoButtonColor = false
+		button.ImageTransparency = if can then 0 else 0.55
+		label.TextTransparency = if can then 0 else 0.4
+		if can then
+			table.insert(gearConnections, button.Activated:Connect(function()
+				Remotes.FireServer("EquipResident", id, slot, ask)
+			end))
+		end
+		button.Parent = body
+	end
+	section(body, 60, "Experience", `{resident.XP} of {resident.XPNext} to level {resident.Level + 1}`)
 	local history = resident.Log or {}
 	local lines = {}
 	for i = math.max(1, #history - 3), #history do
 		table.insert(lines, history[i])
 	end
-	section(body, 7, "Run log", if #lines > 0 then table.concat(lines, "\n") else "Nothing yet.")
-	footer() -- the gear buttons are this resident's
+	section(body, 70, "Run log", if #lines > 0 then table.concat(lines, "\n") else "Nothing yet.")
 	if resident.State ~= "Alive" then
 		ui:SetMainAction({ Label = if resident.State == "Away" then "Away" else "Down", Enabled = false })
 	elseif resident.Job then
@@ -347,24 +408,6 @@ footer = function()
 			Remotes.FireServer("ChooseLevelStat", nextStat)
 		end })
 	end
-	-- Prompt 26: a button for each of the shown resident's gear slots. Each press gives them the
-	-- next piece in the gear locker that fits, and after the last takes the slot's piece off.
-	local id = selected
-	local resident = if id then replica:Get("Residents", id) else nil
-	if id and type(resident) == "table" and resident.State == "Alive" then
-		for _, slot in { "Weapon", "Outfit", "Tool" } do
-			local options = fitting(slot)
-			if #options > 0 or resident[slot] then
-				local ask = nextPiece(slot, resident[slot])
-				table.insert(actions, {
-					Label = `{slot}: {if ask ~= "" then ResidentRules.PieceName(ask) else "Take off"}`,
-					OnPress = function()
-						Remotes.FireServer("EquipResident", id, slot, ask)
-					end,
-				})
-			end
-		end
-	end
 	ui:SetFooterActions(actions)
 end
 
@@ -397,6 +440,7 @@ function ResidentsController:Start()
 		end,
 		OnClose = function()
 			page = nil
+			shown = nil
 		end,
 	})
 	-- a level 2 Warden's LEVELS button follows the choice and the class

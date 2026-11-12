@@ -84,7 +84,7 @@ local SurfaceService = {
 }
 
 -- loot nothing hands out yet (radio logs play through InventoryService's handler, Prompt 17)
-local SKIP: { [string]: boolean } = { Gear = true, Recruit = true, Glowshards = true, Lamp = true } -- blueprints: Prompt 19
+local SKIP: { [string]: boolean } = { Recruit = true, Glowshards = true, Lamp = true } -- blueprints: Prompt 19; gear: Prompt 26
 local CAMP_TAG = "Camp"
 local CREW_TAG = "CrewSurface" -- the surface's Lost Crew (Config.Objectives)
 local SURFACE_TAG = "Surface"

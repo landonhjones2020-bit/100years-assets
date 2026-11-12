@@ -102,7 +102,7 @@ local AVAILABLE: { [string]: boolean } = {
 }
 -- Loot specials nothing hands out yet: gear (Prompt 26), blueprints (19), recruits (18). Radio logs
 -- go to InventoryService's handler (Prompt 17).
-local SKIP_SPECIALS: { [string]: boolean } = { Gear = true, Recruit = true, Glowshards = true } -- blueprints: Prompt 19 (DraftService)
+local SKIP_SPECIALS: { [string]: boolean } = { Recruit = true, Glowshards = true } -- blueprints: Prompt 19 (DraftService); gear: Prompt 26
 local CAMERA_IGNORE_TAG = "CameraIgnore"
 local MARK_COLOR = Color3.fromHex("#F2C14E") -- Hazard Yellow
 local FILL_COLOR = Color3.fromHex("#E8743B") -- Signal Orange
