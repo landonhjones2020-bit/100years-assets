@@ -1225,6 +1225,35 @@ and `Shared.Rules.Lobby` (pure), `Config.Pads`, `Tuning.ClassShop` and `Tuning.L
   pad.fill <id> <n>, pad.unlock <Hard|Nightmare|none>, products, purchase.test <Product>
   [receiptId], rejoin, rejoin.fake [Difficulty], rejoin.clear; in Run: party.
 
+## Residents, phase 2 (Run place, Prompt 26)
+
+* **Rules** (`Rules.Residents`): a resident has `Traits` (two ids), `Weapon`, `Outfit`, `Tool`
+  (piece keys: `Item` or `Item:Rarity`), and the flags `Injured`, `Panicked`, `Refusing`, `Lucky`,
+  `Low` (cycles at the bottom of morale). `Trait(resident, key, room?, scope?)` folds their traits'
+  modifiers for one `Config.Modifiers` key; `EffectiveStats` adds the outfit (capped at
+  `StatCap`); `Crew` multiplies each worker's stat by their conditions, traits, tool and luck and
+  leaves out the Panicked and the refusing; `Cycle` takes a `Morale` record (roommates, floor,
+  whether a Lounge works); `Miserable` returns "Leave", "Fight", "Refuse" or nil.
+* **The gear locker** is ResidentService's: `locker` (piece key to count), published as the `Gear`
+  collection's `Locker`. `AddGear`, `FindGear(finder, count)` (a loot `Gear` special: one of
+  `Tuning.Residents.GearPool`), `Equip(id, slot, piece?)` (the old piece goes back; max health
+  follows the outfit). The client asks through the `EquipResident` remote. A death in the bunker
+  returns gear; `Lose` (an expedition, or leaving, which returns it first) does not.
+* **Loot**: InventoryService hands a `Gear` special to `ResidentService:FindGear`
+  (`SetSpecial`); SurfaceService, DeepService and DigService no longer skip it; an expedition
+  counts `Gear` and hands it over when it comes home.
+* **Danger** (ResidentBrain): the armed and the Brave get `RallyFight:<monster>` for the nearest
+  monster in their own room; everyone else flees and `ResidentService:Panic` holds them Panicked
+  until `Rules.Residents.PanicSeconds` after. A gun takes Ammo with `EconomyService:Use` (no log
+  line); empty, they swat.
+* **The cycle** (ResidentService's `afterMeal`): Lucky rolls, Afraid of the Dark refusing, Wrench
+  and Tinkerer repairs through `BunkerGrid:SetHP`, Clumsy's `Accident` signal (DisasterService
+  starts a half-strength fire or a small flood), Scrounger's Scrap, the `Low` counter and the
+  Miserable outcomes, the Medbay treating the Injured.
+* **The card** (ResidentsController): `arrange` turns the Residents page's Detail into a personnel
+  file once; `section` sizes each block to its text at one line size; the gear slots are
+  `FooterButton` clones named `GearWeapon`, `GearOutfit`, `GearTool` in the Detail's Body.
+
 ## Saved data
 
 One profile per player (bible Section 23), shape and migrations in `Lib.ProfileSchema`, I/O in
@@ -1565,3 +1594,7 @@ ClassShop, Account, Lobby).
   open Surge in CycleClock; the victories' moments in VictoryController (`StarterGui.Victory`).
   The art: Boss_Source, Monster_SourceTendril, Cave_Source_Entry, 12 clips; the Blast Door kit's
   hardware moved into its leaves.
+* **Prompt 26 (2026-11-12)**: residents, phase 2. Traits (rolled by tier, acting through the
+  modifier vocabulary), the gear locker and three gear slots, found gear from every loot source,
+  residents' guns on the shared Ammo pool, Injured and Panicked, morale's bottom (refusing work,
+  fights, leaving for good), and the Residents screen's card as a personnel file.

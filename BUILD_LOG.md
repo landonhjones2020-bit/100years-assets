@@ -53,6 +53,7 @@ Newest first. Every "verified" line says how it was checked.
 | Prompt 24: the Crystal Hollows: radiation leaks, outbreaks, four monsters, the Crystal Colossus (Run) | ✅ done 2026-11-11 | Run playtests with real shots and E holds: a door leak measured on a player and sealed at its clamp, a Decon Room halving it, residents fleeing and Irradiated, an outbreak spreading, quarantined and cured, each monster's behaviour (2.4 against 34 a shot on the Golem), a Crystal Hollows cave and its radiation, the Colossus by its own Year 75 Surge to its death (6.8 unlit, 68 on a lit core, the stun, the stagger); `game/reports/P24_CrystalHollows.md` (13 Bible Questions) |
 | A10 Crystal Hollows monsters, the Colossus, the radiation fittings, the band's cave pieces | ✅ in Studio 2026-11-11 | 15 models set up in Run (size and pivot measured against their sidecars; 5 rigs with Motor6Ds), 19 clips in `Config.Animations`, 18 of them read on the Animator in play; captures `previews/Game/P24_*.jpg` |
 | Prompt 25: the Source: its chamber, the final Surge, both victories, Endless (Run) | ✅ done 2026-11-12 | Run playtests: the chamber opened from a floor 10 cell with the Source asleep, woken by walking up and by a shot from the ledge, all four stages in its chamber and in the bunker, real shots on a tendril and on its eye (24 and 6), the Deep Victory and the Century Victory by its death, each one's moment and report, Keep Going into Endless from both; `game/reports/P25_TheSource.md` (11 Bible Questions) |
+| Prompt 26: residents, phase 2: traits, gear, conditions, morale's bottom (Run) | ✅ done 2026-11-12 | Three Run playtests: founders rolling traits, outfits, tools and the Wrench changing output, health and room HP, the gear locker and its refusals, found gear, real clicks on the card's gear slots, Injured and the Medbay, armed and Brave residents killing a Hollow Miner on the shared Ammo, the rest fleeing Panicked, residents refusing work, fighting and leaving for good; `game/reports/P26_ResidentsPhase2.md` (a "not tested" list, 13 Bible Questions) |
 | A10's last part: the Source, its tendril, the Source Chamber; the Blast Door kit's leaves | ✅ in Studio 2026-11-12 | 3 models set up in Run (size and pivot measured against their sidecars; 2 rigs), 12 clips in `Config.Animations` (played, their track lengths not read); Kit_BlastDoor_L1 to L3 revision 2; captures `previews/Game/P25_*.jpg` |
 | A3, A7, Digby, A11 | not started | |
 
@@ -109,6 +110,29 @@ Newest first. Every "verified" line says how it was checked.
 | The Source's clips | Source Idle 92177314243693, Open 103624325457194, OpenIdle 120477812269121, Close 86623244783953, Attack 71429369736907, Slam 95808762165394, Roar 94451380198995, Stagger 101309093476984, Death 74449751138479; SourceTendril Idle 116697324036479, Attack 139666151004098, Rise 130729164866804 |
 | Tooling (Prompt 25) | ArtSetupBatch_P25 130187891230908, ArtSetupBatch_P25Chamber 73772406016191, ArtSetupBatch_P25Door 122618651060779, UI_Victory_P25 116974707787806 (revision 3: builds StarterGui.Victory in Run) |
 | Unused | model 131439621755660: a duplicate crate upload at 100x scale, left in Landon's inventory |
+
+## 2026-11-12 (Chicago, midday): Prompt 26, residents phase 2
+
+Game code build `p26-1cd0910` (final for Prompt 26): code asset 95026446991297 revision 122,
+installed in Run and Lobby (StructureCheck 0 errors, Run 580 checks, Lobby 356; 133 data tests).
+Builds on the way: `p26-b7e54e0` (rev 119), `p26-24d54fb` (rev 120), `p26-43bac2b` (rev 121).
+
+* Traits: every resident rolls two (`Rules.Residents.RollTraits`); they act through
+  `Config.Modifiers` keys on output, health, meals, rest, morale, panic, fights, fires, expeditions.
+* Gear: the bunker's gear locker (the `Gear` replication collection), three slots on a resident,
+  the `EquipResident` remote, found gear from every loot source that had a `Gear` line (it was
+  skipped until now), residents' guns on the shared Ammo pool (`EconomyService:Use`).
+* Conditions: Injured and Panicked. Morale's bottom: refuse work, a fight, leaving for good
+  (recorded as left, `Rules.Residents.LEFT`).
+* The Residents screen's card is a personnel file: small photo, the file below, gear slot buttons.
+* Captures: `previews/Game/P26_PersonnelFile.jpg`, `P26_GearSlots.jpg`.
+* Verified how: three playtests in the Run place (see the report's table). The last build's two
+  small changes (no experience while refusing, larger card labels) passed the installer's checks
+  and were not played again. An undefended Tutorial Surge killed four of six founders (Prompt 12's
+  behaviour; question 12 in the report).
+* Landon, 12:59: "just finish your testing and wrapp up. Create the handoff with the context for
+  prompt 27,28,29 and building the new outside city for when my fable limit resets". Prompt 27 was
+  not started. `HANDOFF.md` carries the context for 27, 28, 29 and the town.
 
 ## 2026-11-12 (Chicago, morning): Prompt 25, the Source; A10's last part
 

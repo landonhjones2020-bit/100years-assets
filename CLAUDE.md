@@ -192,6 +192,15 @@ Design Notes and Delivery Reports: `game/reports/`.
    `require` of a service from `execute_luau` is a second copy that knows nothing: use the dev
    commands. `execute_luau` can answer "Target is not reachable" and still have run: check the
    place before sending a chunk again (2026-11-12).
+7c. Residents, phase 2 (Prompt 26). `gear` shows the locker and who wears what; `gear.add <piece|random>
+   [n]`, `pack.add Gear <n>` (as loot gives it), `resident.equip <id> <Weapon|Outfit|Tool> <piece|none>`,
+   `resident.trait <id> <Trait> [Trait]`, `resident.morale <id|all> <0-100> [cycles low]`,
+   `resident.hurt <id> <n>`. A piece is `Item` or `Item:Rarity` (`LabCoat:Reinforced`). Rooms are
+   dark until the Reactor Core has a crew: assign two residents there before reading `production`.
+   `clock.next` does nothing while the clock is paused, and takes three presses a cycle (siren,
+   Surge, next day); `monsters.clear` after each during a test, or an undefended Surge kills
+   residents. The card's gear buttons are `...Pages.Residents.Detail.Body.GearOutfit` (and
+   `GearWeapon`, `GearTool`): scroll the Body to them before a click by instance path.
 7b. A screen spec (`studio/ui/<Screen>.lua`) parents its own ScreenGui at its end (`sg.Parent =
    game:GetService("StarterGui")`, then a `return` line). A kit part the game must move (a door's
    leaves) is one part name with a collision, hardware included: parts with no collision are
