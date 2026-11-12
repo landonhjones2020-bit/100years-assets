@@ -1337,6 +1337,20 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 	for _, stat in Residents.StatIds() do
 		expect(a.Stats[stat] >= t.StatMin and a.Stats[stat] <= t.StatMax, `{stat} rolls {t.StatMin} to {t.StatMax}`)
 	end
+	expectEqual(a.MaxHealth, Residents.MaxHealthOf(a), "max health from Grit and their traits")
+	expectEqual(#a.Traits, 2, "a resident rolls two traits")
+	-- the rest of this test is phase 1's rules: traits have their own test (Prompt 26)
+	local function strip(r: any): any
+		r.Traits = {}
+		r.MaxHealth = Residents.MaxHealthOf(r)
+		r.Health = r.MaxHealth
+		return r
+	end
+	local function plain(random: Random, id: string, tier: string, level: number, names: { [string]: boolean }): any
+		return strip(Residents.Roll(random, id, tier, level, names))
+	end
+	strip(a)
+	strip(b)
 	expectEqual(a.MaxHealth, t.HealthBase + a.Stats.Grit * t.HealthPerGrit, "max health from Grit")
 	expect(a.Health == a.MaxHealth and a.Morale == t.MoraleStart and a.Rest == 100 and a.State == "Alive", "a fresh resident")
 	expect(b.Level == 3, "a level 3 founder")
@@ -1349,8 +1363,8 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 	mood, effect = Residents.MoraleState(95)
 	expect(mood == "Inspired" and effect == 1.2, "95 is Inspired: +20%")
 	-- a crew: Speed 4 and 6 at morale 60 and 80
-	local cook1 = Residents.Roll(rng, "N3", "Common", 1, used)
-	local cook2 = Residents.Roll(rng, "N4", "Common", 1, used)
+	local cook1 = plain(rng, "N3", "Common", 1, used)
+	local cook2 = plain(rng, "N4", "Common", 1, used)
 	cook1.Stats.Speed, cook2.Stats.Speed, cook1.Morale, cook2.Morale = 4, 6, 60, 80
 	local crew = Residents.Crew({ cook1, cook2 }, "Kitchen") :: any
 	expect(crew.Workers == 2 and crew.StatSum == 10 and math.abs(crew.Morale - 1.05) < 1e-6, "a Kitchen crew: Speed 10, morale 1.05")
@@ -1366,7 +1380,7 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 	end
 	local free = {}
 	for i = 1, 6 do
-		table.insert(free, Residents.Roll(rng, `N{10 + i}`, "Common", 1, used))
+		table.insert(free, plain(rng, `N{10 + i}`, "Common", 1, used))
 	end
 	local plan = Residents.AutoAssign(rooms, {}, free)
 	local reactor = (bunker:RoomAt(2, 1) :: any).Id
@@ -1379,8 +1393,8 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 	end
 	expect(assigned == 6 and onReactor == 2 and #free == 0, `six jobs, two on the Reactor Core ({assigned}, {onReactor})`)
 	-- the best matches: a fast cook goes to the Kitchen, not the reactor
-	local cook = Residents.Roll(rng, "N40", "Common", 1, used)
-	local strong = Residents.Roll(rng, "N41", "Common", 1, used)
+	local cook = plain(rng, "N40", "Common", 1, used)
+	local strong = plain(rng, "N41", "Common", 1, used)
 	cook.Stats = { Strength = 7, Smarts = 1, Grit = 1, Speed = 10, Charm = 1 }
 	strong.Stats = { Strength = 6, Smarts = 1, Grit = 1, Speed = 2, Charm = 1 }
 	local kitchen = (bunker:RoomAt(2, -2) :: any).Id
@@ -1388,7 +1402,7 @@ test("Residents: rolls, levels, morale, crews, Auto-Assign and needs (Section 11
 		{ Id = kitchen, Type = "Kitchen", Level = 1, Span = 1 } }, { [reactor] = 1, [kitchen] = 1 }, { cook, strong })
 	expect(plan[cook.Id] == kitchen and plan[strong.Id] == reactor, "the Speed 10 resident cooks; the Strength 6 one runs the reactor")
 	-- needs: a worker with a bed, one without, one who missed the meal
-	local worker = Residents.Roll(rng, "N30", "Common", 1, used)
+	local worker = plain(rng, "N30", "Common", 1, used)
 	Residents.Cycle(worker, true, nil, true, true, false)
 	expectEqual(worker.Rest, 100, "work then a bed: rested")
 	Residents.Cycle(worker, true, nil, false, true, false)
