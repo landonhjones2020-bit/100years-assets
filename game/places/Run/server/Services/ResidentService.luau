@@ -558,10 +558,10 @@ local function die(resident: Resident, quiet: boolean?)
 			publishLocker()
 		end
 	end
-	logLine(resident, `died ({how})`)
+	logLine(resident, if how == Residents.LEFT then "left the bunker for good" else `died ({how})`)
 	publish(resident)
 	economy:RefreshCrew()
-	log:Warn("%s died (%s)", Residents.Name(resident), how)
+	log:Warn(if how == Residents.LEFT then "%s %s for good" else "%s died (%s)", Residents.Name(resident), how)
 	if not quiet then
 		announce("Danger", `{string.upper(Residents.Name(resident))} DIED`)
 	end
@@ -870,6 +870,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 			end
 			local accident = Residents.Trait(resident, "AccidentChance")
 			if accident and rng:NextNumber() < accident then
+				log:Info("%s had an accident in %s (Clumsy)", Residents.Name(resident), room.Id)
 				logLine(resident, "had an accident at work")
 				ResidentService.Accident:Fire(resident.Id, room.Id)
 			end
@@ -895,6 +896,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 				end
 			end
 			local m = Config.Get("Tuning", "Morale").Miserable
+			log:Info("%s started a fight with %s (Miserable)", Residents.Name(resident), Residents.Name(other))
 			logLine(resident, `started a fight with {Residents.Name(other)}`)
 			logLine(other, `was in a fight with {Residents.Name(resident)}`)
 			resident.Health = math.max(1, resident.Health - m.FightDamage)
@@ -903,6 +905,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 			announce("Warning", `{string.upper(Residents.Name(resident))} STARTED A FIGHT WITH {string.upper(Residents.Name(other))}: THEIR MORALE IS AT THE BOTTOM`)
 		elseif what == "Refuse" then
 			resident.Refusing = true
+			log:Info("%s refuses to work this cycle (Miserable)", Residents.Name(resident))
 			logLine(resident, "refused to work")
 			if room then
 				announce("Warning", `{string.upper(Residents.Name(resident))} REFUSES TO WORK: THEIR MORALE IS AT THE BOTTOM`)
@@ -948,7 +951,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 			for _, slot in { "Weapon", "Outfit", "Tool" } do
 				ResidentService:Equip(resident.Id, slot, nil) -- their gear stays
 			end
-			ResidentService:Lose(resident.Id, "left the bunker")
+			ResidentService:Lose(resident.Id, Residents.LEFT)
 		end
 	end
 	log:Info("cycle %d: needs for %d residents (%d hungry, %d beds)", cycle, #alive, short, beds())

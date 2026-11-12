@@ -538,7 +538,7 @@ function ResultsService:Start()
 	end)
 	residents.Died:Connect(function(id: string, how: string)
 		team.ResidentsLost += 1
-		story(`{residentName(id)} died ({how})`)
+		story(if how == Residents.LEFT then `{residentName(id)} left the bunker for good` else `{residentName(id)} died ({how})`)
 	end)
 	services.Dig.Dug:Connect(function(floor: number, _column: number, result: string, _cause: string, finisher: Player?)
 		team.CellsDug += 1

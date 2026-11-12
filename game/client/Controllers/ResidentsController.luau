@@ -91,25 +91,33 @@ local function bestJob(resident: any): string?
 	return pick
 end
 
--- A titled block of the card. The kit's Section holds two lines of text; this one grows with what
--- it says, so every line on the card is the same size (the kit's text scales to its box).
+-- The card's text: one size for every line, from the card's height (never under the bible's 12).
+local function lineSize(body: Instance): number
+	local detail = body.Parent :: GuiObject
+	return math.max(12, math.floor(detail.AbsoluteSize.Y * 0.027))
+end
+
+-- A titled block of the card, as tall as what it says (the kit's Section is two lines whatever it
+-- holds, and its text scales to the box: a long trait would shrink and a short job line swell).
 local function section(body: Instance, order: number, label: string, text: string): any
 	local s: any = ui:Clone("Section")
 	local holder = body :: GuiObject
-	local base = s.Size.Y.Scale
-	local line = math.max(12, math.floor(holder.AbsoluteSize.Y * base * 0.3 * 0.9))
+	local line = lineSize(body)
 	local width = math.max(1, holder.AbsoluteSize.X * s.Size.X.Scale)
 	local lines = 0
 	for _, paragraph in string.split(text, "\n") do
-		lines += math.max(1, math.ceil(#paragraph * line * 0.5 / width))
+		lines += math.max(1, math.ceil(#paragraph * line * 0.36 / width))
 	end
-	local factor = 0.4 + 0.3 * lines
+	local labelHeight = math.max(12, line * 0.8)
+	local gap = line * 0.2
+	local textHeight = lines * line * 1.15
+	local total = labelHeight + gap + textHeight
 	s.LayoutOrder = order
-	s.Size = UDim2.fromScale(s.Size.X.Scale, base * factor)
-	s.Label.Size = UDim2.fromScale(1, 0.36 / factor)
+	s.Size = UDim2.fromScale(s.Size.X.Scale, total / math.max(1, holder.AbsoluteSize.Y))
+	s.Label.Size = UDim2.fromScale(1, labelHeight / total)
 	s.Label.Text = string.upper(label)
-	s.Body.Position = UDim2.fromScale(0, 0.4 / factor)
-	s.Body.Size = UDim2.fromScale(1, 0.3 * lines / factor)
+	s.Body.Position = UDim2.fromScale(0, (labelHeight + gap) / total)
+	s.Body.Size = UDim2.fromScale(1, textHeight / total)
 	s.Body.Text = text
 	local limit = s.Body:FindFirstChildWhichIsA("UITextSizeConstraint")
 	if limit then
@@ -117,6 +125,28 @@ local function section(body: Instance, order: number, label: string, text: strin
 	end
 	s.Parent = body
 	return s
+end
+
+-- The Residents page's own card: a personnel file. The photo sits small at the top left with the
+-- name beside it, and the file below it takes the room (the kit's Detail gives half the card to
+-- the picture, which left two lines of a resident's stats, traits, gear, needs and log in view).
+local function arrange(p: Frame)
+	local detail: any = p:FindFirstChild("Detail")
+	if not detail or detail:GetAttribute("PersonnelFile") then
+		return
+	end
+	detail:SetAttribute("PersonnelFile", true)
+	detail.Hero.Position = UDim2.fromScale(0.07, 0.028)
+	detail.Hero.Size = UDim2.fromScale(0.36, 0.225)
+	local name: any = detail:FindFirstChild("Name")
+	name.Position = UDim2.fromScale(0.47, 0.04)
+	name.Size = UDim2.fromScale(0.46, 0.062)
+	detail.Sub.Position = UDim2.fromScale(0.47, 0.108)
+	detail.Sub.Size = UDim2.fromScale(0.46, 0.032)
+	detail.Sub.TextXAlignment = Enum.TextXAlignment.Left
+	detail.Tag.Position = UDim2.fromScale(0.47, 0.158)
+	detail.Body.Position = UDim2.fromScale(0.07, 0.275)
+	detail.Body.Size = UDim2.fromScale(0.86, 0.595)
 end
 
 -- The gear locker (the Gear collection's "Locker": piece key -> count), as names for the card.
@@ -248,7 +278,7 @@ local function showResident(id: string)
 		local button = ui:Clone("FooterButton") :: ImageButton
 		button.Name = "Gear" .. slot
 		button.LayoutOrder = 50 + i
-		button.Size = UDim2.fromScale(0.97, 0.16)
+		button.Size = UDim2.fromScale(0.97, lineSize(body) * 2.1 / math.max(1, (body :: GuiObject).AbsoluteSize.Y))
 		local label = (button:FindFirstChild("Content") :: Frame):FindFirstChild("Label") :: TextLabel
 		label.Text = string.upper(`{slot}  ·  {wearing[slot] or "none"}`)
 		local ask = nextPiece(slot, resident[slot])
@@ -430,12 +460,14 @@ function ResidentsController:Start()
 		OnOpen = function(p: Frame)
 			page = p
 			tab = "All"
+			arrange(p)
 			footer()
 			fill()
 		end,
 		OnTab = function(tabId: string, p: Frame)
 			page = p
 			tab = tabId
+			arrange(p)
 			fill()
 		end,
 		OnClose = function()

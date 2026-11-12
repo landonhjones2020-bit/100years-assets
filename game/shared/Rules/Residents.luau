@@ -72,6 +72,10 @@ local function tuning(): { [string]: any }
 end
 
 -- Armed residents defend their room and answer rally calls (Section 11; the Warden's Rally Call).
+-- How a Miserable resident who walked out is recorded (ResidentService:Lose's "how"): they are
+-- lost to the bunker like the dead, but the log, the results and the Memorial say they left.
+Residents.LEFT = "left the bunker"
+
 function Residents.Armed(resident: Resident): boolean
 	return resident.Weapon ~= nil
 end
