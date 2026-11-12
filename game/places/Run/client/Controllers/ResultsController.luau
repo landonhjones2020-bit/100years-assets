@@ -5,7 +5,8 @@
 	Return to Lobby). Run place only; Prompt 15. Everything comes from ResultsService's Results
 	collection and the Residents collection; the buttons only ask the server.
 
-	* It opens Tuning.Results.OpenDelaySeconds after the run ends (and again a little after it is
+	* It opens Tuning.Results.OpenDelaySeconds after the run ends (VictoryDelaySeconds after a victory,
+	  whose moment VictoryController plays first) (and again a little after it is
 	  closed while the run is over).
 	* Tabs: Summary (how it ended, the year and era, depth, time, the team's numbers, then the
 	  run's story), Residents (everyone who lived in the bunker: alive with their job and level, or
@@ -283,14 +284,20 @@ local function fill()
 	ui:SetHint(if me then `{title}  ·  +{commas(me.Glowshards or 0)} GLOWSHARDS` else title)
 end
 
+local shown = false -- this ending's report has opened once
 local function open()
 	if opening or ui:Current() == SCREEN then
 		return
 	end
 	opening = true
-	task.delay(Config.Get("Tuning", "Results").OpenDelaySeconds, function()
+	-- a victory's moment plays first (VictoryController, Prompt 25), once for each ending
+	local tuning = Config.Get("Tuning", "Results")
+	local outcome = RunState.Get("Outcome")
+	local moment = not shown and (outcome == "CenturyVictory" or outcome == "DeepVictory")
+	task.delay(if moment then tuning.VictoryDelaySeconds else tuning.OpenDelaySeconds, function()
 		opening = false
 		if RunState.Get("RunPhase") == "Ended" and results() and ui:Current() ~= SCREEN then
+			shown = true
 			ui:Open(SCREEN)
 		end
 	end)
@@ -341,6 +348,9 @@ function ResultsController:Start()
 		end
 	end)
 	RunState.Changed("RunPhase"):Connect(function()
+		if RunState.Get("RunPhase") ~= "Ended" then
+			shown = false -- Keep Going: the next ending is a new one
+		end
 		if RunState.Get("RunPhase") == "Ended" then
 			open()
 		elseif ui:Current() == SCREEN then

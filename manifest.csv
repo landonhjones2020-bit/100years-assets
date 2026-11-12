@@ -289,3 +289,18 @@ Cave_Crystal_Drop,Caves,model,A10,27.073x28.462x45.454,8000,5986,ash;basalt;bras
 Cave_Crystal_Junction,Caves,model,A10,64.895x21.117x39.043,8000,6958,ash;basalt;brass;crystal;glow;gunmetal;hazard;plum;rubber,in_studio,140320557322624,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
 Cave_Crystal_Cavern,Caves,model,A10,71.414x34.741x67.331,8000,7998,ash;basalt;brass;crystal;glow;gunmetal;plum,in_studio,117892511992627,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
 Cave_Crystal_CrewPocket,Caves,model,A10,42.146x22.764x44.106,8000,7848,ash;basalt;brass;cream;crystal;gunmetal;hazard;pine;plum;rubber;teal;walnut,in_studio,91698303854579,A10 (Prompt 24): ServerStorage.Assets.Caves (Run); size and pivot measured in Studio
+Monster_SourceTendril,Monsters,model,A10,5.509x12.104x7.88,4000,3904,ash;basalt;blush;cream;glow;gunmetal;plum;rubber;stone,exported,,
+SourceTendril_Idle,Animations/SourceTendril,clip,,,,,,exported,,
+SourceTendril_Attack,Animations/SourceTendril,clip,,,,,,exported,,
+SourceTendril_Rise,Animations/SourceTendril,clip,,,,,,exported,,
+Boss_Source,Bosses,model,A10,23.479x14.043x19.595,15000,13236,ash;basalt;cream;forest;glow;gunmetal;murk;plum;rubber;rust;stone,exported,,
+Source_Idle,Animations/Source,clip,,,,,,exported,,
+Source_Open,Animations/Source,clip,,,,,,exported,,
+Source_OpenIdle,Animations/Source,clip,,,,,,exported,,
+Source_Close,Animations/Source,clip,,,,,,exported,,
+Source_Attack,Animations/Source,clip,,,,,,exported,,
+Source_Roar,Animations/Source,clip,,,,,,exported,,
+Source_Stagger,Animations/Source,clip,,,,,,exported,,
+Source_Death,Animations/Source,clip,,,,,,exported,,
+Source_Slam,Animations/Source,clip,,,,,,exported,,
+Cave_Source_Entry,Caves,model,A10,101.286x38.409x123.025,15000,14678,ash;basalt;blush;brass;cream;glow;gunmetal;hazard;pine;plum;rubber;rust;steel;teal;walnut,exported,,

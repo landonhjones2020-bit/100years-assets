@@ -1,0 +1,674 @@
+{
+ "asset": "Cave_Source_Entry",
+ "category": "Caves",
+ "format": 1,
+ "size": [
+  101.286,
+  38.409,
+  123.025
+ ],
+ "tris": 14678,
+ "pivot": [
+  0.117,
+  20.409,
+  55.318
+ ],
+ "parts": [
+  {
+   "name": "Floor1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -0.5,
+    -7.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -7.0
+   ],
+   "size": [
+    14.0,
+    1.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Floor2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -16.5,
+    -59.0
+   ],
+   "size": [
+    72.0,
+    1.0,
+    90.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ceiling2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    12.5,
+    -59.0
+   ],
+   "size": [
+    72.0,
+    1.0,
+    90.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    21.5,
+    -2.0,
+    -13.5
+   ],
+   "size": [
+    29.0,
+    28.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -21.5,
+    -2.0,
+    -13.5
+   ],
+   "size": [
+    29.0,
+    28.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    -2.0,
+    -104.5
+   ],
+   "size": [
+    72.0,
+    28.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall4",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -36.5,
+    -2.0,
+    -59.0
+   ],
+   "size": [
+    1.0,
+    28.0,
+    90.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall5",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -7.5,
+    6.0,
+    -7.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall6",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    36.5,
+    -2.0,
+    -59.0
+   ],
+   "size": [
+    1.0,
+    28.0,
+    90.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall7",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    7.5,
+    6.0,
+    -7.0
+   ],
+   "size": [
+    1.0,
+    12.0,
+    14.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Wall8",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    -8.0,
+    -13.5
+   ],
+   "size": [
+    14.0,
+    16.0,
+    1.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ledge",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -8.0,
+    -18.0
+   ],
+   "size": [
+    20.0,
+    16.0,
+    8.0
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Ramp",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "hull",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "basalt"
+   ],
+   "offset": [
+    0.0,
+    -8.0,
+    -36.0
+   ],
+   "size": [
+    16.0,
+    16.0,
+    28.0
+   ],
+   "tris": 8
+  },
+  {
+   "name": "Decor",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "ash",
+    "basalt",
+    "blush",
+    "brass",
+    "cream",
+    "gunmetal",
+    "hazard",
+    "pine",
+    "plum",
+    "rubber",
+    "rust",
+    "steel",
+    "teal",
+    "walnut"
+   ],
+   "offset": [
+    -0.212,
+    -0.975,
+    -54.673
+   ],
+   "size": [
+    96.205,
+    35.752,
+    119.94
+   ],
+   "tris": 12422
+  },
+  {
+   "name": "Plate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    12.0,
+    8.0,
+    0.75
+   ],
+   "size": [
+    10.0,
+    20.0,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Plate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    -12.0,
+    8.0,
+    0.75
+   ],
+   "size": [
+    10.0,
+    20.0,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Plate3",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rubber"
+   ],
+   "offset": [
+    0.0,
+    15.0,
+    0.75
+   ],
+   "size": [
+    14.0,
+    6.0,
+    1.5
+   ],
+   "tris": 12
+  },
+  {
+   "name": "DecorNeon",
+   "material": "Neon",
+   "transparency": 0.0,
+   "collision": "none",
+   "castShadow": false,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "glow",
+    "hazard"
+   ],
+   "offset": [
+    0.143,
+    -1.115,
+    -55.096
+   ],
+   "size": [
+    74.09,
+    27.831,
+    100.753
+   ],
+   "tris": 1956
+  },
+  {
+   "name": "Cart1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "rust"
+   ],
+   "offset": [
+    6.4,
+    1.5,
+    -19.4
+   ],
+   "size": [
+    4.521,
+    4.699,
+    4.608
+   ],
+   "tris": 12
+  },
+  {
+   "name": "Crate1",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    -4.99,
+    0.99,
+    -3.565
+   ],
+   "size": [
+    2.2,
+    1.98,
+    2.2
+   ],
+   "tris": 44
+  },
+  {
+   "name": "Crate2",
+   "material": "SmoothPlastic",
+   "transparency": 0.0,
+   "collision": "box",
+   "castShadow": true,
+   "role": null,
+   "bone": null,
+   "tint": null,
+   "swatches": [
+    "pine"
+   ],
+   "offset": [
+    -5.096,
+    2.97,
+    -3.517
+   ],
+   "size": [
+    2.2,
+    1.98,
+    2.2
+   ],
+   "tris": 44
+  }
+ ],
+ "meta": {
+  "band": "SourceChamber",
+  "kind": "Entry",
+  "weight": 0,
+  "box": {
+   "min": [
+    -40.0,
+    -17.5,
+    -108.0
+   ],
+   "max": [
+    40.0,
+    16.5,
+    1.5
+   ]
+  }
+ },
+ "export": {
+  "blender": "5.2.3 LTS",
+  "fbx_scale": 0.01,
+  "forward": "Z",
+  "up": "Y"
+ },
+ "sockets": {
+  "Core": {
+   "p": [
+    0.0,
+    -16.0,
+    -78.0
+   ],
+   "yaw": 180.0
+  },
+  "Entry": {
+   "p": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw": 180.0
+  },
+  "Light1": {
+   "p": [
+    0.0,
+    10.4,
+    -5.0
+   ],
+   "yaw": 0.0
+  },
+  "Light2": {
+   "p": [
+    22.0,
+    6.0,
+    -40.0
+   ],
+   "yaw": 0.0
+  },
+  "Light3": {
+   "p": [
+    -22.0,
+    6.0,
+    -40.0
+   ],
+   "yaw": 0.0
+  },
+  "Light4": {
+   "p": [
+    20.0,
+    6.0,
+    -88.0
+   ],
+   "yaw": 0.0
+  },
+  "Light5": {
+   "p": [
+    -20.0,
+    6.0,
+    -88.0
+   ],
+   "yaw": 0.0
+  },
+  "Tendril1": {
+   "p": [
+    22.0,
+    -16.0,
+    -46.0
+   ],
+   "yaw": 180.0
+  },
+  "Tendril2": {
+   "p": [
+    -22.0,
+    -16.0,
+    -46.0
+   ],
+   "yaw": 180.0
+  },
+  "Tendril3": {
+   "p": [
+    26.0,
+    -16.0,
+    -92.0
+   ],
+   "yaw": 180.0
+  },
+  "Tendril4": {
+   "p": [
+    -26.0,
+    -16.0,
+    -92.0
+   ],
+   "yaw": 180.0
+  }
+ },
+ "fbx_sha1": "c9201e5eb28b2511"
+}

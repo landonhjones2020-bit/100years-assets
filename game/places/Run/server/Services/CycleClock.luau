@@ -387,6 +387,14 @@ function CycleClock:SetEndless(on: boolean)
 	if phase == "Day" then
 		surgeKind, surgeBoss = Clock.SurgeKind(state)
 		publishSurge()
+	elseif on and phase == "Surge" and openEnded then
+		-- A Deep Victory during a boss's Surge or the final one (the Source killed in its chamber,
+		-- Prompt 25): Endless has no era bosses and no final Surge, so that Surge is over, and the
+		-- cycle ends when the clock resumes.
+		log:Info("cycle %d: the %s Surge ends with Keep Going", state.Cycle, surgeKind)
+		openEnded = false
+		cycleEndPending = true
+		CycleClock.SurgeEnded:Fire(surgeKind, "Endless")
 	end
 end
 

@@ -14,6 +14,12 @@
 	  A boss can't fit through a doorway, so it fights in its arena.
 	* Hits: armour takes ArmourMultiplier, a weak point WeakPointMultiplier (or a class's own).
 	* Staggers: enough weak-point damage inside a short window staggers the boss.
+	* The Source (Prompt 25; Section 10: "tendrils in many rooms at once, then the core, so the team
+	  has to split up and regroup"): its fight is a list of stages (Tuning.Source.Stages), each
+	  Tendrils or Core. SourceTendrils is how many stand in a Tendrils stage (and how many of those
+	  in its own chamber when it is fought there), SourceRooms where in the bunker, SourceWound what
+	  each one cut down takes off the Source so the last ends the stage, SourceCoreOver when a Core
+	  stage is.
 ]]
 
 local Config = require(script.Parent.Parent.Config)
@@ -154,6 +160,117 @@ function Boss.Staggers(hits: { { At: number, Amount: number } }, now: number, wi
 		end
 	end
 	return sum >= threshold
+end
+
+-- The Source (Prompt 25) ---------------------------------------------------------------------------
+
+export type TendrilSpot = { Floor: number, Column: number, RoomId: string? }
+
+-- What a stage of the Source's fight is: "Tendrils" (its eye is shut) or "Core" (its eye is open).
+function Boss.SourceStage(stage: number): string
+	local stages = Config.Get("Tuning", "Source").Stages
+	return stages[math.clamp(math.floor(stage), 1, #stages)]
+end
+
+-- How many tendrils stand in this stage for a team of `players`, and how many of them rise in its
+-- own chamber when it is fought there (the rest are in the bunker's rooms).
+function Boss.SourceTendrils(stage: number, players: number, chamber: boolean): (number, number)
+	local t = Config.Get("Tuning", "Source")
+	local base = Boss.ByPhase(t.Tendrils, stage)
+	if Boss.SourceStage(stage) ~= "Tendrils" or base <= 0 then
+		return 0, 0
+	end
+	local total = math.min(base + t.TendrilsPerPlayer * (math.max(math.floor(players), 1) - 1), t.TendrilsMax)
+	local inChamber = if chamber then math.min(Boss.ByPhase(t.ChamberTendrils, stage), total) else 0
+	return total, inChamber
+end
+
+-- A tendril's health for the team (scaled like a boss's).
+function Boss.TendrilHealth(players: number): number
+	local scale = Config.Get("Tuning", "Threat").PlayerScale
+	local n = math.clamp(math.floor(players), 1, #scale)
+	return math.floor(Config.Get("Tuning", "Source").TendrilHealth * scale[n] + 0.5)
+end
+
+-- What a tendril cut down takes off the Source: an even share of the health still between it and
+-- the stage's end, over the tendrils left (this one counted), so the last one ends the stage.
+function Boss.SourceWound(health: number, max: number, stage: number, left: number): number
+	local untilFraction = Boss.ByPhase(Config.Get("Tuning", "Source").StageUntil, stage)
+	return math.max(health - untilFraction * max, 0) / math.max(left, 1)
+end
+
+-- Is a Core stage over at this health? The last stage ends only with its death.
+function Boss.SourceCoreOver(health: number, max: number, stage: number): boolean
+	local t = Config.Get("Tuning", "Source")
+	if stage >= #t.Stages then
+		return false
+	end
+	return health <= Boss.ByPhase(t.StageUntil, stage) * max
+end
+
+--[[
+	Where `count` tendrils stand in the bunker: one to a room (a cell of it picked by `pick`), never
+	a Shaft or the Reactor Core (a tendril there would be a meltdown nobody could answer in time),
+	never a cell in `avoid` ("floor,column" keys: the Source's own arena). Spread: rooms on floors
+	that have none yet come first, so the team has to split up; `deepest` (the chamber fight) takes
+	the deepest floors first instead, the rooms nearest the chamber. With fewer rooms than tendrils
+	the rest stand in dug cells; with none of those either, fewer come. `pick(n)` returns 1 to n.
+]]
+function Boss.SourceRooms(bunker: any, count: number, pick: (number) -> number, avoid: { [string]: boolean }?, deepest: boolean?): { TendrilSpot }
+	local out: { TendrilSpot } = {}
+	if count <= 0 then
+		return out
+	end
+	local candidates: { TendrilSpot } = {}
+	for _, room in bunker:AllRooms() do
+		if room.Type ~= "Shaft" and room.Type ~= "ReactorCore" then
+			local cells = {}
+			for c = room.Column, room.Column + room.Span - 1 do
+				if not (avoid and avoid[Grid.Key(room.Floor, c)]) then
+					table.insert(cells, c)
+				end
+			end
+			if #cells > 0 then
+				table.insert(candidates, { Floor = room.Floor, Column = cells[pick(#cells)], RoomId = room.Id })
+			end
+		end
+	end
+	-- a shuffle (Fisher-Yates with the caller's pick), then the order the rule asks for
+	table.sort(candidates, function(a, b)
+		return if a.Floor ~= b.Floor then a.Floor < b.Floor else a.Column < b.Column
+	end)
+	for i = #candidates, 2, -1 do
+		local j = pick(i)
+		candidates[i], candidates[j] = candidates[j], candidates[i]
+	end
+	local used: { [number]: number } = {}
+	while #out < count and #candidates > 0 do
+		local best, bestScore = 1, math.huge
+		for i, spot in candidates do
+			local score = if deepest then -spot.Floor else (used[spot.Floor] or 0)
+			if score < bestScore then
+				best, bestScore = i, score
+			end
+		end
+		local spot = table.remove(candidates, best) :: TendrilSpot
+		used[spot.Floor] = (used[spot.Floor] or 0) + 1
+		table.insert(out, spot)
+	end
+	if #out < count then
+		local t = Grid.Tuning()
+		local dug: { TendrilSpot } = {}
+		for floor = 1, bunker:DeepestFloor() do
+			for column = t.ColumnMin, t.ColumnMax do
+				if bunker:State(floor, column) == "Dug" and not (avoid and avoid[Grid.Key(floor, column)]) then
+					table.insert(dug, { Floor = floor, Column = column })
+				end
+			end
+		end
+		while #out < count and #dug > 0 do
+			table.insert(out, table.remove(dug, pick(#dug)) :: TendrilSpot)
+		end
+	end
+	return out
 end
 
 return table.freeze(Boss)

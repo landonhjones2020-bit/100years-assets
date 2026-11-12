@@ -2295,6 +2295,111 @@ test("Boss: the Crystal Colossus's fight (Section 10, Prompt 24)", function()
 	expectEqual(Config.Get("Monsters", "Resonator").AttackSeconds, 4, "a Resonator hums every 4 s (a Golem would out-heal a revolver at 1 s)")
 end)
 
+test("Boss: the Source's fight (Sections 5 and 10, Prompt 25)", function()
+	local entry = Config.Get("Bosses", "Source")
+	local t = Boss.Fight("Source") :: { [string]: any }
+	expect(t ~= nil, "its fight has numbers")
+	expectEqual(entry.Year, 100, "Year 100 (Section 5)")
+	expectEqual(Clock.FinalBoss(), "Source", "the final Surge's boss")
+	for _, key in { "Stages", "StageUntil", "Tendrils", "ChamberTendrils", "RegrowSeconds", "AttackSeconds", "EruptSeconds", "Eruptions", "Breaches" } do
+		expectEqual(#t[key], entry.Phases, `{key}: one for each stage`)
+	end
+	-- "tendrils in many rooms at once, then the core, so the team has to split up and regroup"
+	expectEqual(Boss.SourceStage(1), "Tendrils", "it opens with its tendrils")
+	expectEqual(Boss.SourceStage(2), "Core", "then its core")
+	expectEqual(Boss.SourceStage(entry.Phases), "Core", "and it dies with its eye open")
+	for stage = 1, entry.Phases do
+		local tendrils = Boss.SourceTendrils(stage, 1, false)
+		if Boss.SourceStage(stage) == "Tendrils" then
+			expect(tendrils >= 3, `stage {stage}: enough tendrils for many rooms at once`)
+			expectEqual(t.Eruptions[stage], 0, `stage {stage}: no roots while its eye is shut`)
+		else
+			expectEqual(tendrils, 0, `stage {stage}: no tendrils hold the core`)
+			expect(t.Eruptions[stage] > 0 and t.EruptSeconds[stage] > 0, `stage {stage}: roots burst up under the team`)
+		end
+		if stage > 1 then
+			expect(t.StageUntil[stage] < t.StageUntil[stage - 1], `stage {stage} ends at less health than the one before`)
+		end
+	end
+	expectEqual(t.StageUntil[entry.Phases], 0, "the last stage ends with its death")
+	local solo, six = Boss.SourceTendrils(1, 1, false), Boss.SourceTendrils(1, 6, false)
+	expect(six > solo and six <= t.TendrilsMax, "more tendrils for a bigger team, to a cap")
+	expect(Boss.SourceTendrils(3, 1, false) > solo, "more in its second tendril stage")
+	local total, inChamber = Boss.SourceTendrils(1, 1, true)
+	expectEqual(total, solo, "as many in its chamber as in the bunker")
+	expect(inChamber > 0 and inChamber < total, "in its chamber some rise round it and the rest in the rooms above")
+	expect(Boss.TendrilHealth(6) > Boss.TendrilHealth(1), "a tendril has more health for a bigger team")
+	-- each tendril cut down takes an even share off the Source, and the last ends the stage
+	local max = 40000
+	local health = max
+	for left = 3, 1, -1 do
+		health -= Boss.SourceWound(health, max, 1, left)
+	end
+	expect(math.abs(health - t.StageUntil[1] * max) < 0.001, "three tendrils cut down bring it to the stage's end")
+	expectEqual(Boss.SourceWound(max * 0.2, max, 1, 2), 0, "a tendril takes nothing off a Source already past the stage's end")
+	expect(not Boss.SourceCoreOver(max * 0.6, max, 2), "a core stage holds above its health")
+	expect(Boss.SourceCoreOver(max * 0.5, max, 2), "and is over at it")
+	expect(not Boss.SourceCoreOver(0, max, entry.Phases), "the last is over only with its death")
+	expect(t.ClosedMultiplier < Boss.Tuning().ArmourMultiplier, "shut, its eye is harder than any armour")
+	expect(t.EruptWarnSeconds >= 1, "a root can be seen coming")
+	expect(t.WakeRange > t.SlamReach, "it wakes before whoever woke it is in reach")
+	-- where its tendrils stand: one to a room, spread over the floors, never a Shaft or the Reactor Core
+	local bunker = Bunker.FromStart()
+	local n = 0
+	local function pick(count: number): number
+		n += 1
+		return (n * 7) % count + 1
+	end
+	local spots = Boss.SourceRooms(bunker, 3, pick, nil, false)
+	expectEqual(#spots, 3, "three rooms in the starting bunker")
+	local rooms, floors = {}, {}
+	for _, spot in spots do
+		local room = bunker:Room(spot.RoomId or "")
+		expect(room ~= nil, "a tendril stands in a room")
+		expect(room.Type ~= "Shaft" and room.Type ~= "ReactorCore", `never in a {room.Type}`)
+		expect(not rooms[room.Id], "one tendril to a room")
+		rooms[room.Id] = true
+		floors[spot.Floor] = true
+		expect(spot.Column >= room.Column and spot.Column < room.Column + room.Span, "in one of the room's own cells")
+	end
+	expect(floors[1] and floors[2], "spread over both floors: the team has to split up")
+	local avoid = {}
+	for _, spot in spots do
+		avoid[Grid.Key(spot.Floor, spot.Column)] = true
+	end
+	for _, spot in Boss.SourceRooms(bunker, 20, pick, avoid, false) do
+		expect(not avoid[Grid.Key(spot.Floor, spot.Column)], "never a cell it is told to keep clear of")
+		expect(bunker:IsOpen(spot.Floor, spot.Column), "only where there is floor to rise through")
+	end
+	local deepest = Boss.SourceRooms(bunker, 2, pick, nil, true)
+	expectEqual({ deepest[1].Floor, deepest[2].Floor }, { 2, 2 }, "the chamber's fight takes the deepest rooms first")
+	-- the art's clips, and its chamber
+	local clips = {}
+	for _, clip in Config.All("Animations") do
+		if clip.Rig == "Source" or clip.Rig == "SourceTendril" then
+			clips[`{clip.Rig}:{clip.Activity}`] = true
+		end
+	end
+	for _, name in { "Source:Idle", "Source:Open", "Source:OpenIdle", "Source:Close", "Source:Attack", "Source:Slam", "Source:Roar",
+		"Source:Stagger", "Source:Death", "SourceTendril:Idle", "SourceTendril:Attack", "SourceTendril:Rise" } do
+		expect(clips[name], `the {name} clip`)
+	end
+	local chamber = Deep.Pieces("SourceChamber", "Entry")
+	expectEqual(#chamber, 1, "the Source Chamber is one piece")
+	expectEqual(#chamber[1].Exits, 0, "with no way on")
+	expect(chamber[1].Box.Max[2] <= Config.Get("CavePieces", "MinesEntry").Box.Max[2],
+		"no taller than a tunnel, so a cave on floor 9 can lie over it")
+	local mouth = Deep.MouthCFrame(Grid.Tuning().FloorMax, 0)
+	expect(mouth.Position.Y + chamber[1].Box.Min[2] >= Deep.Tuning().LowestY, "its sunken hall is above the bottom of the world")
+	local plan = Deep.Plan("SourceChamber", mouth, Random.new(3), {}, {})
+	expectEqual(#plan.Pieces, 1, "the planner places the chamber alone")
+	expectEqual(#plan.Plugs, 0, "with nothing to plug")
+	expectEqual(Config.Get("GlowshardRewards", "DeepVictory").Amount > Config.Get("GlowshardRewards", "CenturyVictory").Amount, true,
+		"the Deep Victory pays most (Section 5)")
+	expect(Config.Get("Tuning", "Results").VictoryDelaySeconds > Config.Get("Tuning", "Results").OpenDelaySeconds,
+		"a victory's moment plays before the report")
+end)
+
 test("Deep: radiation in the Crystal Hollows' caves, and its Lost Crew (Section 12, Prompt 24)", function()
 	expect(Deep.CaveRadiation("CrystalHollows") > 0, "a Crystal Hollows cave raises radiation")
 	expectEqual(Deep.CaveRadiation("Mines"), 0, "the Mines' caves don't")

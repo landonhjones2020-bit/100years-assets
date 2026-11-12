@@ -6,7 +6,9 @@
   "Monster_Resonator": "139798192367537",
   "Boss_CrystalColossus": "100985849078817",
   "Kit_DoorSeal": "116537539059684",
-  "Kit_CrystalSeam": "111950606351593"
+  "Kit_CrystalSeam": "111950606351593",
+  "Boss_Source": 133747379920334,
+  "Monster_SourceTendril": 97585915789046
  },
  "clips": {
   "Shardling": {
@@ -37,6 +39,22 @@
    "Roar": "121631002445443",
    "Stagger": "103101122241503",
    "Death": "83559829469455"
+  },
+  "Source": {
+   "Idle": 92177314243693,
+   "Open": 103624325457194,
+   "OpenIdle": 120477812269121,
+   "Close": 86623244783953,
+   "Attack": 71429369736907,
+   "Slam": 95808762165394,
+   "Roar": 94451380198995,
+   "Stagger": 101309093476984,
+   "Death": 74449751138479
+  },
+  "SourceTendril": {
+   "Idle": 116697324036479,
+   "Attack": 139666151004098,
+   "Rise": 130729164866804
   }
  },
  "caves": {
@@ -47,6 +65,7 @@
   "Cave_Crystal_Entry": "95216540770603",
   "Cave_Crystal_Junction": "140320557322624",
   "Cave_Crystal_Pocket": "137720474401999",
-  "Cave_Crystal_Tunnel": "83967828713485"
+  "Cave_Crystal_Tunnel": "83967828713485",
+  "Cave_Source_Entry": 104816413022471
  }
 }

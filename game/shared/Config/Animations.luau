@@ -16,7 +16,8 @@ return {
 	Schema = Check.shape({
 		Rig = Check.enum({ "R15", "HollowMiner", "BurrowTick", "TunnelHound", "SpitterGrub", "BroodMother", "AshJackal", "AshWraith", "AshRaider", "AshRaiderMelee",
 			"Murkling", "BloatToad", "Lurker", "TideCrab", "Deluge",
-			"Shardling", "PrismStalker", "GeodeGolem", "Resonator", "CrystalColossus" }), -- a model's Rig attribute
+			"Shardling", "PrismStalker", "GeodeGolem", "Resonator", "CrystalColossus",
+			"Source", "SourceTendril" }), -- a model's Rig attribute
 		Activity = Check.enum({
 			"Walk", "Work", "Eat", "Sleep", "Idle", "Down", -- residents (NPCAnimator)
 			"GunHold", "GunAim", "Fire", "Reload", "Melee1", "Melee2", "Melee3", "MeleeHeavy", "MeleeCharge",
@@ -26,6 +27,7 @@ return {
 			"Roar", "LayEggs", "Stagger", "Death", -- bosses (A4: the Brood Mother; played from Prompt 15)
 			"Swim", -- The Deluge under the floor (A8, Prompt 23)
 			"Volley", -- the Crystal Colossus throwing its shards (A10, Prompt 24)
+			"Open", "OpenIdle", "Close", "Slam", "Rise", -- the Source's eye, its blow with the eye shut, a tendril coming up (A10, Prompt 25)
 		}),
 		AssetId = Check.string(40, { pattern = "^rbxassetid://%d+$" }), -- (Config adds Id: the entry's key)
 		Looped = Check.boolean(),
@@ -359,5 +361,32 @@ return {
 		-- The intro cutscene (Prompt 22): CutsceneController plays it on the party's avatars and the founders
 		IntroSprint = { Rig = "R15", Activity = "Run", AssetId = "rbxassetid://70631532326043", Looped = true,
 			Text = "A flat-out sprint, 0.4 s a stride, made for 27 studs a second (Prompt 22, R15_IntroSprint)" },
+		-- The Source (A10; Rig Source; BossService plays these on the server: Prompt 25. Attack and Slam:
+		-- Hit 0.9 s, the model's HitTime attribute says the same)
+		SourceIdle = { Rig = "Source", Activity = "Idle", AssetId = "rbxassetid://92177314243693", Looped = true,
+			Text = "The Source breathes with its great eye shut, its lesser eyes watching (A10, Source_Idle)" },
+		SourceOpen = { Rig = "Source", Activity = "Open", AssetId = "rbxassetid://103624325457194", Looped = false,
+			Text = "Its lids part and the Great Eye looks out (A10, Source_Open)" },
+		SourceOpenIdle = { Rig = "Source", Activity = "OpenIdle", AssetId = "rbxassetid://120477812269121", Looped = true,
+			Text = "The Great Eye open, its pupil hunting (A10, Source_OpenIdle)" },
+		SourceClose = { Rig = "Source", Activity = "Close", AssetId = "rbxassetid://86623244783953", Looped = false,
+			Text = "The lids slam shut over the eye (A10, Source_Close)" },
+		SourceAttack = { Rig = "Source", Activity = "Attack", AssetId = "rbxassetid://71429369736907", Looped = false,
+			Text = "It rears its arms and brings them down, its eye open (A10, Source_Attack; Hit 0.9 s)" },
+		SourceSlam = { Rig = "Source", Activity = "Slam", AssetId = "rbxassetid://95808762165394", Looped = false,
+			Text = "The same blow with its eye shut (A10, Source_Slam; Hit 0.9 s)" },
+		SourceRoar = { Rig = "Source", Activity = "Roar", AssetId = "rbxassetid://94451380198995", Looped = false,
+			Text = "Its arms spread, its lids gape and every eye flares (A10, Source_Roar)" },
+		SourceStagger = { Rig = "Source", Activity = "Stagger", AssetId = "rbxassetid://101309093476984", Looped = false,
+			Text = "It recoils, its eye wide and its lids fluttering (A10, Source_Stagger)" },
+		SourceDeath = { Rig = "Source", Activity = "Death", AssetId = "rbxassetid://74449751138479", Looped = false,
+			Text = "It sags into its crater, its eye rolls up and its lids fall shut (A10, Source_Death)" },
+		-- A tendril of the Source (A10; Rig SourceTendril; NPCAnimator: Prompt 25. Attack: Hit 0.55 s)
+		SourceTendrilIdle = { Rig = "SourceTendril", Activity = "Idle", AssetId = "rbxassetid://116697324036479", Looped = true,
+			Text = "A tendril sways over its crater, its eye turning (A10, SourceTendril_Idle)" },
+		SourceTendrilAttack = { Rig = "SourceTendril", Activity = "Attack", AssetId = "rbxassetid://139666151004098", Looped = false,
+			Text = "It coils back and whips its hooks down (A10, SourceTendril_Attack; Hit 0.55 s)" },
+		SourceTendrilRise = { Rig = "SourceTendril", Activity = "Rise", AssetId = "rbxassetid://130729164866804", Looped = false,
+			Text = "It bursts up out of the floor (A10, SourceTendril_Rise)" },
 	},
 }

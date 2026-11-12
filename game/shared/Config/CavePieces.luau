@@ -27,7 +27,7 @@ return {
 		Exits = Check.array(Check.shape({ P = Vec, Yaw = Check.number() }), 4),
 		Text = F.Short,
 	}),
-	Order = { "MinesEntry", "MinesTunnel", "MinesJunction", "MinesPocket", "MinesChamber", "MinesCavern", "MinesDrop", "MinesCrewPocket", "FloodedEntry", "FloodedTunnel", "FloodedJunction", "FloodedPocket", "FloodedChamber", "FloodedCavern", "FloodedDrop", "FloodedCrewPocket", "CrystalEntry", "CrystalTunnel", "CrystalJunction", "CrystalPocket", "CrystalChamber", "CrystalCavern", "CrystalDrop", "CrystalCrewPocket" },
+	Order = { "MinesEntry", "MinesTunnel", "MinesJunction", "MinesPocket", "MinesChamber", "MinesCavern", "MinesDrop", "MinesCrewPocket", "FloodedEntry", "FloodedTunnel", "FloodedJunction", "FloodedPocket", "FloodedChamber", "FloodedCavern", "FloodedDrop", "FloodedCrewPocket", "CrystalEntry", "CrystalTunnel", "CrystalJunction", "CrystalPocket", "CrystalChamber", "CrystalCavern", "CrystalDrop", "CrystalCrewPocket", "SourceEntry" },
 	Entries = {
 		MinesEntry = { Name = "Mines entry", Band = "Mines", Kind = "Entry", Asset = "Cave_Mines_Entry",
 			Weight = 0, Finds = 0, Box = { Min = { -11, -1.5, -28 }, Max = { 11, 16.5, 1.5 } },
@@ -101,5 +101,8 @@ return {
 		CrystalCrewPocket = { Name = "Crystal crewpocket", Band = "CrystalHollows", Kind = "CrewPocket", Asset = "Cave_Crystal_CrewPocket",
 			Weight = 0, Finds = 1, Box = { Min = { -19, -1.5, -36 }, Max = { 19, 18.5, 0 } },
 			Exits = {  }, Text = "Where a Lost Crew is trapped, guarded." },
+		SourceEntry = { Name = "The Source Chamber", Band = "SourceChamber", Kind = "Entry", Asset = "Cave_Source_Entry",
+			Weight = 0, Finds = 0, Box = { Min = { -40, -17.5, -108 }, Max = { 40, 16.5, 1.5 } },
+			Exits = {  }, Text = "The end of the old mine: the hall the miners broke into, and what was waiting in it." },
 	},
 }

@@ -26,7 +26,11 @@ TEXT = {
     "CrewPocket": "Where a Lost Crew is trapped, guarded.",
 }
 ORDER = ["Entry", "Tunnel", "Junction", "Pocket", "Chamber", "Cavern", "Drop", "CrewPocket"]
-BANDS = {"Mines": "Mines", "FloodedCaverns": "Flooded", "CrystalHollows": "Crystal"}
+BANDS = {"Mines": "Mines", "FloodedCaverns": "Flooded", "CrystalHollows": "Crystal", "SourceChamber": "Source"}
+# A piece with its own name and words (the Source Chamber is one piece, not a cave of several).
+SPECIAL = {
+    "Cave_Source_Entry": ("The Source Chamber", "The end of the old mine: the hall the miners broke into, and what was waiting in it."),
+}
 
 
 def num(v: float) -> str:
@@ -57,10 +61,11 @@ def main() -> str:
             order.append(ident)
             ex = ", ".join("{ P = " + vec(v["p"]) + f", Yaw = {num(v['yaw'])} " + "}" for _, v in exits)
             finds = sum(1 for k in d["sockets"] if k.startswith("Find"))
+            name, text = SPECIAL.get(asset, (f"{band} {kind.lower()}", TEXT[kind]))
             lines.append(
-                f"\t\t{ident} = {{ Name = \"{band} {kind.lower()}\", Band = \"{band_id}\", Kind = \"{kind}\", Asset = \"{asset}\",\n"
+                f"\t\t{ident} = {{ Name = \"{name}\", Band = \"{band_id}\", Kind = \"{kind}\", Asset = \"{asset}\",\n"
                 f"\t\t\tWeight = {num(meta['weight'])}, Finds = {finds}, Box = {{ Min = {vec(meta['box']['min'])}, Max = {vec(meta['box']['max'])} }},\n"
-                f"\t\t\tExits = {{ {ex} }}, Text = \"{TEXT[kind]}\" }},")
+                f"\t\t\tExits = {{ {ex} }}, Text = \"{text}\" }},")
     body = "\n".join(lines)
     order_s = ", ".join(f'"{o}"' for o in order)
     src = f'''--!strict

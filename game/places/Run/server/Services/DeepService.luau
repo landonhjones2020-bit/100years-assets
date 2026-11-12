@@ -66,6 +66,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
@@ -105,7 +106,9 @@ local LANTERN: { [string]: Color3 } = {
 	Mines = Color3.fromRGB(255, 178, 104),
 	FloodedCaverns = Color3.fromRGB(150, 232, 214),
 	CrystalHollows = Color3.fromRGB(180, 255, 205),
+	SourceChamber = Color3.fromRGB(124, 255, 155), -- the Source's own light
 }
+local CHAMBER_LAMP = 2.6 -- the Source Chamber is a hall, not a tunnel: its lamps reach this many times as far
 local OWN_LIGHT = Color3.fromRGB(255, 236, 206)
 local PLUG_SCALE = 1.45 -- the doorway rubble (8 x 10) over a cave's 14 x 12 opening
 local FIND_PROMPT: { [string]: { Action: string, Object: string, Hold: string } } = {
@@ -797,6 +800,64 @@ local function setupCrews()
 	end
 end
 
+-- The Source Chamber (Prompt 25; Section 6: floor 10 is the Source Chamber). Whichever floor 10 cell
+-- the team digs first opens on it: every one of them rolls a cave opening until the chamber stands
+-- (a cell whose rock is already another cave's stays a dark mouth, and the next cell tries again).
+local chamberKey: string? = nil
+
+local function setupChamber()
+	local floor = Grid.Tuning().FloorMax
+	if Deep.Band(floor) ~= "SourceChamber" or #Deep.Pieces("SourceChamber", "Entry") == 0 then
+		return
+	end
+	for column = Grid.Tuning().ColumnMin, Grid.Tuning().ColumnMax do
+		if not crewCells[Grid.Key(floor, column)] then
+			dig:SetRoll(floor, column, "CaveOpening")
+		end
+	end
+end
+
+local function chamberOpened(key: string)
+	chamberKey = key
+	local floor = Grid.Tuning().FloorMax
+	for column = Grid.Tuning().ColumnMin, Grid.Tuning().ColumnMax do
+		local other = Grid.Key(floor, column)
+		if other ~= key and not crewCells[other] then
+			dig:SetRoll(floor, column, nil) -- the rest of floor 10 is plain rock again
+		end
+	end
+end
+
+-- The Source Chamber once it is open: where the Source sits and where its tendrils can rise.
+function DeepService:SourceChamber(): { Key: string, Model: Model, Core: CFrame, Tendrils: { CFrame } }?
+	local c = if chamberKey then caves[chamberKey] else nil
+	local piece = if c then c.Pieces[1] else nil
+	if not c or not piece then
+		return nil
+	end
+	local core = sockets(piece.Model, "^Core$")[1]
+	if not core then
+		return nil
+	end
+	return { Key = c.Key, Model = piece.Model, Core = core, Tendrils = sockets(piece.Model, "^Tendril") }
+end
+
+-- The Source is dead in its chamber: its light goes out of the rock over `seconds`.
+function DeepService:DimChamber(seconds: number)
+	local chamber = DeepService:SourceChamber()
+	if not chamber then
+		return
+	end
+	local info = TweenInfo.new(seconds, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	for _, d in chamber.Model:GetDescendants() do
+		if d:IsA("PointLight") then
+			TweenService:Create(d, info, { Brightness = d.Brightness * 0.12, Color = Color3.fromRGB(196, 120, 96) }):Play()
+		elseif d:IsA("BasePart") and d.Material == Enum.Material.Neon and d.Name ~= "Lantern" then
+			TweenService:Create(d, info, { Color = Color3.fromRGB(38, 58, 46) }):Play()
+		end
+	end
+end
+
 local function crewArrived(r: any, leader: Player?, _residentId: string)
 	local objectiveId = r.Tag
 	local objective = if type(objectiveId) == "string" then Config.Find("Objectives", objectiveId) else nil
@@ -937,8 +998,9 @@ local function placePiece(c: Cave, placement: Deep.Placement, index: number, fin
 		Posts = sockets(model, "^Spawn"),
 		Woken = false,
 	}
+	local reach = if c.Band == "SourceChamber" then CHAMBER_LAMP else 1
 	for _, at in sockets(model, "^Light") do
-		lightAt(model, at, LANTERN[c.Band] or LANTERN.Mines, t().LampRange, t().LampBrightness)
+		lightAt(model, at, LANTERN[c.Band] or LANTERN.Mines, t().LampRange * reach, t().LampBrightness)
 	end
 	local era = eraNumber()
 	for _, at in sockets(model, "^Find") do
@@ -1124,6 +1186,9 @@ local function buildCave(floor: number, column: number)
 	end
 	set("Caves", DeepService:Caves())
 	log:Info("a cave opened at %s (%s): %d pieces, %d plugs%s", key, band, #c.Pieces, #plan.Plugs, if crew then ", the Lost Crew" else "")
+	if band == "SourceChamber" then
+		chamberOpened(key)
+	end
 	DeepService.CaveOpened:Fire(key, band, #c.Pieces)
 end
 
@@ -1531,6 +1596,10 @@ function DeepService:Start()
 	local ok, err = pcall(setupCrews)
 	if not ok then
 		log:Error("the Lost Crews: %s", tostring(err))
+	end
+	ok, err = pcall(setupChamber)
+	if not ok then
+		log:Error("the Source Chamber: %s", tostring(err))
 	end
 	task.spawn(loop)
 	local placed = 0

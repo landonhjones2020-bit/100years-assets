@@ -127,6 +127,17 @@ local Schemas: { [string]: Check.Checker } = {
 		StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S, ArenaMargin = N,
 		TurnDegreesPerSecond = N, EmergeSeconds = S,
 	}),
+	Source = shape({
+		Stages = list(Check.enum({ "Tendrils", "Core" }), 4), StageUntil = list(Fr, 4),
+		Tendrils = list(I, 4), TendrilsPerPlayer = I, TendrilsMax = I, ChamberTendrils = list(I, 4),
+		TendrilHealth = N, TendrilDamage = N, TendrilRadius = N, TendrilReach = N, TendrilSense = N, TendrilAttackSeconds = S,
+		TendrilRoomDamage = N, TendrilTurnDegreesPerSecond = N, TendrilRiseSeconds = S, TendrilRiseDepth = N,
+		RegrowSeconds = list(N, 4), RegrowMax = I,
+		ClosedMultiplier = Fr, AttackSeconds = list(S, 4), SlamDamage = N, SlamRadius = N, SlamReach = N,
+		EruptSeconds = list(N, 4), Eruptions = list(I, 4), EruptWarnSeconds = S, EruptDamage = N, EruptRadius = N, EruptRange = N,
+		Breaches = list(I, 4), StaggerFraction = Fr, StaggerWindowSeconds = S, StaggerSeconds = S, RoarSeconds = S,
+		OpenSeconds = S, CloseSeconds = S, ArenaMargin = N, TurnDegreesPerSecond = N, WakeRange = N, LeaveSeconds = S,
+	}),
 	Deluge = shape({
 		SwimSpeed = list(N, 4), SwimSeconds = list(S, 4), SurfaceSeconds = list(S, 4), SurfaceRiseSeconds = S, DiveSeconds = S,
 		AttackSeconds = list(S, 4), BiteDamage = N, BiteRadius = N, BiteReach = N, Murklings = list(I, 4),
@@ -134,7 +145,7 @@ local Schemas: { [string]: Check.Checker } = {
 		StaggerSeconds = S, RoarSeconds = S, ArenaMargin = N, TurnDegreesPerSecond = N, AloneSeconds = S,
 	}),
 	Results = shape({
-		OpenDelaySeconds = S, StoriesMax = I,
+		OpenDelaySeconds = S, VictoryDelaySeconds = S, StoriesMax = I,
 		MVP = shape({ Damage = N, Kills = N, Revives = N, CellsDug = N, Repairs = N, BossDamage = N, Hauled = N, Rescues = N }),
 	}),
 	Threat = shape({
@@ -462,6 +473,39 @@ return {
 			StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.5, RoarSeconds = 2.6, ArenaMargin = 9,
 			TurnDegreesPerSecond = 35, EmergeSeconds = 3,
 		},
+		Source = { -- Section 10: "Rises into the bunker, or is fought earlier in its chamber at depth 10.
+			-- Several phases: tendrils in many rooms at once, then the core, so the team has to split up
+			-- and regroup." Prompt 25, prov. Lists are by stage (Config.Bosses' Phases: 4): Stages says
+			-- what each is. In a Tendrils stage its eye is shut (hits on it do ClosedMultiplier) and
+			-- Tendrils of them (TendrilsPerPlayer more for each player after the first, at most
+			-- TendrilsMax) stand in rooms all over the bunker; in its chamber ChamberTendrils of them
+			-- rise round it instead. Each tendril cut down takes an even share of the health between the
+			-- stage's start and StageUntil off the Source, so the last one ends the stage. A tendril
+			-- (TendrilHealth, scaled like the Source's for the team) rises over TendrilRiseSeconds, turns
+			-- (TendrilTurnDegreesPerSecond) to whoever comes within TendrilSense and slams every
+			-- TendrilAttackSeconds: TendrilDamage within TendrilRadius of the blow when someone is within
+			-- TendrilReach, else TendrilRoomDamage to its room. In a Core stage its eye opens (the weak
+			-- point; the rest of it is armour) until its health reaches StageUntil: it slams whoever is
+			-- within SlamReach of its front every AttackSeconds (SlamDamage within SlamRadius), and every
+			-- EruptSeconds Eruptions roots burst up under survivors within EruptRange, EruptWarnSeconds
+			-- after their mark shows, for EruptDamage within EruptRadius. In a stage with RegrowSeconds it
+			-- grows a tendril back that often (never more than RegrowMax standing; those take nothing off
+			-- it). A stage with Breaches opens that many extra breaches as it starts. StaggerFraction of
+			-- its health dealt to its eye within StaggerWindowSeconds drops it for StaggerSeconds. It
+			-- turns TurnDegreesPerSecond and never walks. In its chamber it sleeps until someone comes
+			-- within WakeRange of it or hurts it; left asleep until Year 100, it leaves the chamber over
+			-- LeaveSeconds and rises in the bunker.
+			Stages = { "Tendrils", "Core", "Tendrils", "Core" }, StageUntil = { 0.85, 0.5, 0.35, 0 },
+			Tendrils = { 3, 0, 5, 0 }, TendrilsPerPlayer = 1, TendrilsMax = 10, ChamberTendrils = { 2, 0, 4, 0 },
+			TendrilHealth = 900, TendrilDamage = 22, TendrilRadius = 5, TendrilReach = 12, TendrilSense = 30,
+			TendrilAttackSeconds = 3.2, TendrilRoomDamage = 18, TendrilTurnDegreesPerSecond = 120, TendrilRiseSeconds = 1.5,
+			TendrilRiseDepth = 13, RegrowSeconds = { 0, 0, 0, 14 }, RegrowMax = 2,
+			ClosedMultiplier = 0.05, AttackSeconds = { 6, 5, 5, 3.8 }, SlamDamage = 50, SlamRadius = 10, SlamReach = 17,
+			EruptSeconds = { 0, 8, 0, 6 }, Eruptions = { 0, 2, 0, 3 }, EruptWarnSeconds = 1.3, EruptDamage = 20, EruptRadius = 5.5,
+			EruptRange = 60, Breaches = { 0, 0, 1, 0 }, StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.2,
+			RoarSeconds = 2.6, OpenSeconds = 1.2, CloseSeconds = 1.0, ArenaMargin = 12, TurnDegreesPerSecond = 30, WakeRange = 44,
+			LeaveSeconds = 3,
+		},
 		Deluge = { -- Section 10: "A giant eel surging up the flooded tunnels. Floods every room it passes;
 			-- strike its head when it surfaces and drain the rooms behind it." Prompt 23, prov. Lists are
 			-- by phase (Config.Bosses' Phases: 3, a new one at each third of its health). It swims under
@@ -484,7 +528,7 @@ return {
 		Results = { -- Prompt 15, prov. (Section 18: Results; Section 16's payouts are Config.GlowshardRewards)
 			-- The screen opens OpenDelaySeconds after the run ends; StoriesMax lines of the run's story.
 			-- MVP: a player's score adds each stat times its weight.
-			OpenDelaySeconds = 4, StoriesMax = 8,
+			OpenDelaySeconds = 4, VictoryDelaySeconds = 7, StoriesMax = 8, -- a victory's moment (VictoryController) plays first
 			MVP = { Damage = 0.1, Kills = 10, Revives = 25, CellsDug = 15, Repairs = 0.05, BossDamage = 0.1, Hauled = 0.3, Rescues = 40 }, -- Hauled, Rescues: Prompt 16
 		},
 		Threat = { -- Section 10 lists the inputs; weights prov. First-run Era I is 30% easier (Section 22)
@@ -726,7 +770,7 @@ return {
 		Deep = { -- Section 12 (Prompt 17), all prov.
 			-- caves: pieces after the mouth, tries per exit, the gap kept between pieces; nothing in front of
 			-- the grid's back (z -17) and nothing below the Source Chamber's floor
-			CavePieces = { Min = 3, Max = 6 }, PlannerTries = 6, Margin = 1, GridBack = -17.5, LowestY = -300,
+			CavePieces = { Min = 3, Max = 6 }, PlannerTries = 6, Margin = 1, GridBack = -17.5, LowestY = -330,
 			-- what a Find spot holds (weights; cryo pods from Era II, as in DigResults)
 			FindOdds = { OreVein = 30, Cache = 18, RadioLog = 10, TrappedMiner = 8, CryoPod = 4, GlowshardChest = 2, Nothing = 28 },
 			-- a cavern holds a nest (else a cache); guards come out when a player is WakeRange from their piece,

@@ -2,7 +2,7 @@
 --[[
 	BossService: boss fights (bible Sections 5, 10 and 22). Run place only; Prompt 15 brings the
 	Era I boss, the Brood Mother, Prompt 23 the Era II boss, The Deluge, Prompt 24 the Era III
-	boss, the Crystal Colossus. The arithmetic is
+	boss, the Crystal Colossus, Prompt 25 the Source. The arithmetic is
 	Shared.Rules.Boss; the numbers are Config.Bosses, Tuning.Bosses and Tuning.<BossId> (provisional).
 
 	* A boss Surge (CycleClock.SurgeStarted with kind Boss) starts its boss's fight. Section 5: the
@@ -57,10 +57,29 @@
 	  movement and their hands; residents are slowed); from its second phase Shardlings crawl out
 	  of the first Shardlings of them.
 
+	* The Source (Prompt 25; Section 10: "Rises into the bunker, or is fought earlier in its chamber at
+	  depth 10. Several phases: tendrils in many rooms at once, then the core, so the team has to
+	  split up and regroup."; Tuning.Source; its stages, tendrils and roots are Lib.SourceFight).
+	  - In the bunker: the final Surge (CycleClock's kind Final) starts its fight like an era
+	    boss's: it rises through the floor of Rules.Boss.Arena and never walks. Beating it ends the
+	    final Surge (ObjectiveService:BossBeaten), which is the Century Victory (CycleClock,
+	    RunDirector).
+	  - In its chamber: when the Source Chamber opens (DeepService.CaveOpened, band SourceChamber)
+	    it is there asleep on the piece's Core socket (a model with the Asleep attribute; no fight,
+	    so an era boss can still come). It wakes when a player comes within WakeRange or hurts it:
+	    the same fight, its tendrils round it and in the deepest rooms. Killing it there is the
+	    Deep Victory: RunDirector:Win("Deep") at once (Section 5), whatever the year.
+	  - Left asleep until the final Surge, it sinks out of its chamber and rises in the bunker.
+	  - Its eye (the model's WeakPoint part) is shut in a Tendrils stage: every hit does
+	    ClosedMultiplier. Open, the eye is the weak point and the rest armour.
+	* Two bosses never fight at once. A boss whose Surge starts while another fight is on (the
+	  Source woken in its chamber) waits, and comes when that fight is over.
+
 	Replication: the Boss collection, "Fight" -> { Id, Name, Health, Max, Phase, Phases, State,
 	At = { X, Y, Z } (where it breaks in; The Deluge: where it is), ArriveAt (server time), Sacs,
-	Mode (The Deluge: Up, Diving, Swim, Surfacing), Lit (the Crystal Colossus: its cores show) }
-	while a fight is on.
+	Mode (The Deluge: Up, Diving, Swim, Surfacing), Lit (the Crystal Colossus: its cores show),
+	Stage ("Tendrils" | "Core"), Tendrils (how many still hold the stage), Places (where they
+	stand), Rooms (those rooms' ids) and Chamber (the Source) } while a fight is on.
 	The model is in workspace.Monsters with Rig, Activity and AttackAt attributes. Unlike other
 	monsters (Section 23: clips play on clients), her clips play here on the server and replicate
 	(ServerAnimated, which NPCAnimator skips): one model, and the server must see her belly where
@@ -74,13 +93,15 @@
 		BossService:IsEggSac(combatId): boolean         -- one of its egg sacs (a broken sac isn't a kill)
 		BossService.Started: Signal<string>             -- bossId
 		BossService.Defeated: Signal<string, Player?>   -- bossId, who struck the last blow
+		BossService:Sleeping(): boolean                 -- the Source is asleep in its chamber
 	Dev: boss, boss.start, boss.hurt, boss.lay, boss.freeze, boss.end, boss.dive, boss.surface,
-	boss.volley, boss.light.
+	boss.volley, boss.light, boss.wake, boss.tendrils, boss.cut, boss.roots, boss.regrow, boss.stage.
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage.Shared
@@ -91,6 +112,7 @@ local Log = require(Shared.Utilities.Log)
 local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Utilities.Signal)
+local SourceFight = require(ServerScriptService.Lib.SourceFight)
 
 local log = Log.new("BossService")
 
@@ -98,7 +120,7 @@ local BossService = {
 	Name = "BossService",
 	Dependencies = {
 		"CycleClock", "RunDirector", "BunkerGrid", "SessionService", "CombatService", "MonsterService", "WeaponService",
-		"ObjectiveService", "ThreatDirector", "DisasterService", "ReplicationService", "DevService",
+		"ObjectiveService", "ThreatDirector", "DisasterService", "DeepService", "ReplicationService", "DevService",
 	},
 	Started = Signal.new() :: Signal.Signal<string>,
 	Defeated = Signal.new() :: Signal.Signal<string, Player?>,
@@ -106,6 +128,8 @@ local BossService = {
 
 local RISE_DEPTH = 13 -- how far under the floor she starts
 local DELUGE_RISE_DEPTH = 15 -- The Deluge stands 14.5 studs to the tips of its hood
+local SOURCE_RISE_DEPTH = 15 -- the Source stands 14 studs to the tips of its crown
+local SLEEP_HEALTH = 1e9 -- asleep it only has to notice being hurt
 local HATCH_TAG_PREFIX = "Boss:"
 
 -- How each boss's arrival and glow look, and the words for it. Water: its bursts are water, not rock.
@@ -135,6 +159,14 @@ local LOOK: { [string]: {
 		Up = "TEARS OUT OF THE ROCK! LIGHT IT WITH A FLARE, THEN HIT ITS GLOWING CORES",
 		Phase = "CRACKS: MORE SHARDS, AND SHARDLINGS CRAWL OUT OF THEM",
 	},
+	Source = {
+		-- in front of its eye, so whoever it looks at sees what is looking
+		Glow = Color3.fromRGB(124, 255, 155), GlowAt = Vector3.new(0, 7, -10), GlowRange = 48, GlowBrightness = 2.4,
+		Dust = Color3.fromRGB(96, 70, 92), Chips = Color3.fromRGB(124, 255, 155), Water = false,
+		Clips = { "Idle", "Open", "OpenIdle", "Close", "Attack", "Slam", "Roar", "Stagger", "Death" },
+		Up = "RISES INTO THE BUNKER!",
+		Phase = "", -- its stages have their own words (Lib.SourceFight)
+	},
 }
 
 -- Where a boss starts from as it arrives, from where it will stand: under the floor, or (the
@@ -143,6 +175,7 @@ local EMERGE: { [string]: Vector3 } = {
 	BroodMother = Vector3.new(0, -RISE_DEPTH, 0),
 	Deluge = Vector3.new(0, -DELUGE_RISE_DEPTH, 0),
 	CrystalColossus = Vector3.new(0, 0, -22),
+	Source = Vector3.new(0, -SOURCE_RISE_DEPTH, 0),
 }
 
 type Sac = { CombatId: string, Model: Model, HatchAt: number }
@@ -195,7 +228,13 @@ type Fight = {
 	NextVolley: number,
 	WantX: number,
 	Moving: boolean,
+	-- The Source
+	Source: SourceFight.State?,
+	Chamber: boolean, -- fought in its chamber: its death is the Deep Victory
 }
+
+-- The Source asleep in its chamber (no fight yet).
+type Sleeper = { Model: Model, Root: BasePart, At: CFrame, CombatId: string?, Sockets: { CFrame }, Idle: AnimationTrack? }
 
 local clock: any = nil
 local director: any = nil
@@ -207,10 +246,15 @@ local weapons: any = nil
 local objectives: any = nil
 local threat: any = nil
 local disasters: any = nil
+local deep: any = nil
 local collection: any = nil
 local rng = Random.new()
 
 local fight: Fight? = nil
+local sleeper: Sleeper? = nil
+local chamberEmpty = false -- the Source has left its chamber or died: nothing sleeps there again
+local waiting: string? = nil -- a boss whose Surge started while another fight was on
+local sourceCtx: any = nil
 local sacIds: { [string]: boolean } = {} -- every egg sac's combatant id this run (ids aren't reused)
 
 -- Helpers --------------------------------------------------------------------------------------------
@@ -245,6 +289,24 @@ local function socket(model: Model, name: string): CFrame
 	return model:GetPivot() * (if typeof(value) == "CFrame" then value else CFrame.identity)
 end
 
+local function loadClip(animator: Animator, rig: string, activity: string): AnimationTrack?
+	for _, clip in Config.All("Animations") do
+		if clip.Rig == rig and clip.Activity == activity then
+			local animation = Instance.new("Animation")
+			animation.AnimationId = clip.AssetId
+			local ok, loaded = pcall(function()
+				return animator:LoadAnimation(animation)
+			end)
+			if ok and loaded then
+				loaded.Looped = clip.Looped
+				return loaded
+			end
+			log:Warn("couldn't load the %s %s clip: %s", rig, activity, tostring(loaded))
+		end
+	end
+	return nil
+end
+
 -- Her clips, played here (see the header); Config.Animations' clips for her Rig.
 local function track(f: Fight, activity: string): AnimationTrack?
 	local cached = f.Tracks[activity]
@@ -257,22 +319,11 @@ local function track(f: Fight, activity: string): AnimationTrack?
 	if not animator then
 		return nil
 	end
-	for _, clip in Config.All("Animations") do
-		if clip.Rig == f.BossId and clip.Activity == activity then
-			local animation = Instance.new("Animation")
-			animation.AnimationId = clip.AssetId
-			local ok, loaded = pcall(function()
-				return (animator :: Animator):LoadAnimation(animation)
-			end)
-			if ok and loaded then
-				loaded.Looped = clip.Looped
-				f.Tracks[activity] = loaded
-				return loaded
-			end
-			log:Warn("couldn't load her %s clip: %s", activity, tostring(loaded))
-		end
+	local loaded = loadClip(animator, f.BossId, activity)
+	if loaded then
+		f.Tracks[activity] = loaded
 	end
-	return nil
+	return loaded
 end
 
 local function play(f: Fight, activity: string, restart: boolean?)
@@ -326,7 +377,12 @@ local function publish(force: boolean?)
 	for _ in f.Sacs do
 		count += 1
 	end
-	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}|{f.Mode}|{f.Floor}|{f.Column}|{f.Lit}`
+	local holds, places = 0, nil
+	if f.Source then
+		holds = (SourceFight.counts(f))
+		places = SourceFight.places(f)
+	end
+	local sent = `{math.ceil(health)}|{f.Phase}|{f.State}|{count}|{f.Mode}|{f.Floor}|{f.Column}|{f.Lit}|{holds}|{if places then table.concat(places, ";") else ""}|{SourceFight.open(f)}`
 	if not force and (sent == f.Sent or os.clock() - f.PublishedAt < Boss.Tuning().PublishSeconds) then
 		return
 	end
@@ -341,11 +397,16 @@ local function publish(force: boolean?)
 		Phase = f.Phase,
 		Phases = Config.Get("Bosses", f.BossId).Phases,
 		State = f.State,
-		At = { X = f.X, Y = if f.Mode ~= "" then f.Y else at.Y, Z = f.Z },
+		At = { X = f.X, Y = if f.Mode ~= "" or f.Chamber then f.Y else at.Y, Z = f.Z },
 		ArriveAt = f.ArriveAt,
 		Sacs = count,
 		Mode = if f.Mode ~= "" then f.Mode else nil,
 		Lit = if f.BossId == "CrystalColossus" then f.Lit else nil,
+		Stage = if f.Source and f.Source.Stage > 0 then f.Source.Kind else nil,
+		Tendrils = if f.Source then holds else nil,
+		Places = places,
+		Rooms = if f.Source then SourceFight.rooms(f) else nil,
+		Chamber = if f.Chamber then true else nil,
 	})
 end
 
@@ -511,11 +572,12 @@ local function grayboxEel(bossId: string): Model
 	return model
 end
 
-local function makeModel(f: Fight): (Model, BasePart)
-	local entry = Config.Get("Bosses", f.BossId)
+local function makeModel(bossId: string): (Model, BasePart)
+	local entry = Config.Get("Bosses", bossId)
 	local template = art(entry.Asset)
-	local model = if template then template:Clone() elseif f.BossId == "Deluge" then grayboxEel(f.BossId) else graybox(f.BossId)
-	model.Name = f.BossId
+	local model = if template then template:Clone() elseif bossId == "Deluge" then grayboxEel(bossId) else graybox(bossId)
+	local colours = LOOK[bossId] or LOOK.BroodMother
+	model.Name = bossId
 	local root = (model:FindFirstChild("HumanoidRootPart") or model.PrimaryPart) :: BasePart
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
@@ -539,17 +601,17 @@ local function makeModel(f: Fight): (Model, BasePart)
 	-- Her glow lights the tunnel around her, so her body reads in the dark (the art has no lights).
 	local glowAt = Instance.new("Attachment")
 	glowAt.Name = "BossGlow"
-	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * look(f).GlowAt)
+	glowAt.Position = root.CFrame:PointToObjectSpace(model:GetPivot() * colours.GlowAt)
 	glowAt.Parent = root
 	local glow = Instance.new("PointLight")
-	glow.Color = look(f).Glow
-	glow.Range = look(f).GlowRange
-	glow.Brightness = look(f).GlowBrightness
+	glow.Color = colours.Glow
+	glow.Range = colours.GlowRange
+	glow.Brightness = colours.GlowBrightness
 	glow.Shadows = false
 	glow.Parent = glowAt
-	model:SetAttribute("Rig", f.BossId)
-	model:SetAttribute("MonsterType", f.BossId)
-	model:SetAttribute("Boss", f.BossId)
+	model:SetAttribute("Rig", bossId)
+	model:SetAttribute("MonsterType", bossId)
+	model:SetAttribute("Boss", bossId)
 	model:SetAttribute("Activity", "Roar")
 	model:SetAttribute("ServerAnimated", true) -- NPCAnimator leaves her to the server
 	return model, root
@@ -700,10 +762,10 @@ local function slamPoint(f: Fight): Vector3
 	return if model then socket(model, "Slam").Position else Vector3.new(f.X, f.Y, f.Z)
 end
 
-local function attack(f: Fight)
+local function attack(f: Fight, clip: string?)
 	local model = f.Model :: Model
 	local hitTime = (model:GetAttribute("HitTime") :: number?) or 0.8
-	setActivity("Attack", true)
+	setActivity(clip or "Attack", true)
 	model:SetAttribute("AttackAt", now())
 	f.Busy = os.clock() + hitTime + 0.8
 	f.NextAttack = os.clock() + Boss.ByPhase(f.T.AttackSeconds, f.Phase)
@@ -1383,12 +1445,47 @@ local function frameColossus(f: Fight, dt: number)
 	end
 end
 
+-- The Source ------------------------------------------------------------------------------------------------
+
+-- Its stages, tendrils and roots are Lib.SourceFight's; its own body does what every boss's does:
+-- it turns to whoever is nearest and slams whoever comes within reach of its arms. It never walks.
+local function tickSource(f: Fight, dt: number)
+	if not f.Model or not f.CombatId then
+		return
+	end
+	SourceFight.tick(sourceCtx, f, dt)
+	publish()
+	if fight ~= f or f.State ~= "Fighting" or os.clock() < f.Busy then
+		return
+	end
+	local base = SourceFight.base(f)
+	local target, position = nearestPlayer(f)
+	if not target or not position then
+		setActivity(base)
+		return
+	end
+	turnTowards(f, position, dt)
+	local flat = Vector3.new(position.X - f.X, 0, position.Z - f.Z)
+	if flat.Magnitude <= f.T.SlamReach and math.abs(position.Y - f.Y) < 12 and os.clock() >= f.NextAttack then
+		local facing = (pivot(f)).LookVector
+		if flat.Magnitude < 0.5 or flat.Unit:Dot(Vector3.new(facing.X, 0, facing.Z).Unit) > 0.7 then
+			f.Model:PivotTo(pivot(f))
+			attack(f, if SourceFight.open(f) then "Attack" else "Slam")
+			return
+		end
+	end
+	setActivity(base)
+	f.Model:PivotTo(pivot(f))
+end
+
 local function tick(dt: number)
 	local f = fight
 	if not f or f.State ~= "Fighting" then
 		return
 	end
-	if f.BossId == "Deluge" then
+	if f.BossId == "Source" then
+		tickSource(f, dt)
+	elseif f.BossId == "Deluge" then
 		tickDeluge(f, dt)
 	elseif f.BossId == "CrystalColossus" then
 		tickColossus(f, dt)
@@ -1403,6 +1500,9 @@ local function cleanup(f: Fight)
 	end
 	for id in table.clone(f.Sacs) do
 		removeSac(f, id, "Gone")
+	end
+	if f.Source then
+		SourceFight.cleanup(sourceCtx, f, false)
 	end
 	for _, effect in f.Effects do
 		effect:Destroy()
@@ -1420,7 +1520,7 @@ local function rise(f: Fight)
 	if fight ~= f then
 		return
 	end
-	local model, root = makeModel(f)
+	local model, root = makeModel(f.BossId)
 	f.Model = model
 	f.Root = root
 	f.State = "Rising"
@@ -1483,6 +1583,8 @@ local function rise(f: Fight)
 		floodPassed(f)
 	elseif colossus then
 		f.NextVolley = f.Busy + Boss.ByPhase(f.T.VolleySeconds, 1) * 0.5
+	elseif f.BossId == "Source" then
+		SourceFight.start(sourceCtx, f)
 	else
 		f.NextLay = os.clock() + Boss.ByPhase(f.T.LaySeconds, 1) * 0.5
 	end
@@ -1490,41 +1592,26 @@ local function rise(f: Fight)
 	log:Info("%s is up (%d health, arena floor %d, columns %d to %d)", f.Name, f.Max, f.Arena.Floor, f.Arena.From, f.Arena.To)
 end
 
-function BossService:BeginFight(bossId: string): (boolean, string?)
-	if fight then
-		return false, `{fight.Name} is already here`
-	end
-	local entry = Config.Find("Bosses", bossId)
-	local t = Boss.Fight(bossId)
-	if not entry or not t then
-		return false, `no fight for {bossId} yet`
-	end
-	local arena = Boss.Arena(grid:Bunker())
-	if not arena then
-		return false, "no open cell for her to break into"
-	end
+local function newFight(bossId: string, name: string, t: { [string]: any }, arena: Boss.Arena, at: Vector3, yaw: number, max: number): Fight
 	local left, right = Boss.ArenaSpan(arena, t.ArenaMargin)
-	local cell = Grid.CellPosition(arena.Floor, Boss.ArenaMiddle(arena))
-	local players = math.max(#session:ReadyPlayers(), 1)
-	local warningSeconds = Boss.Tuning().ArrivalWarningSeconds
-	local f: Fight = {
+	return {
 		BossId = bossId,
-		Name = entry.Name,
+		Name = name,
 		T = t,
 		Arena = arena,
 		Left = left,
 		Right = right,
-		X = math.clamp(cell.X, left, right),
-		Y = cell.Y,
-		Z = cell.Z - 2, -- a little towards the back of the cell, so her front has room
-		Yaw = math.pi, -- facing the front of the bunker
+		X = at.X,
+		Y = at.Y,
+		Z = at.Z,
+		Yaw = yaw,
 		Model = nil,
 		Root = nil,
 		CombatId = nil,
-		Max = Boss.Health(bossId, players, threat:IsFirstRun()),
+		Max = max,
 		Phase = 1,
 		State = "Warning",
-		ArriveAt = now() + warningSeconds,
+		ArriveAt = now(),
 		Busy = 0,
 		NextAttack = 0,
 		NextLay = 0,
@@ -1552,11 +1639,203 @@ function BossService:BeginFight(bossId: string): (boolean, string?)
 		Lit = true, -- as the art has them; rise() darkens them
 		LitUntil = 0,
 		NextVolley = 0,
-		WantX = cell.X,
+		WantX = at.X,
 		Moving = false,
+		Source = nil,
+		Chamber = false,
 	}
-	if bossId == "Deluge" then
-		f.X, f.Z = cell.X, cell.Z -- it comes up in the middle of its cell
+end
+
+-- The Source asleep in its chamber --------------------------------------------------------------------
+
+-- Left asleep until the final Surge, it sinks out of its chamber: "Rises into the bunker".
+local function leaveChamber()
+	local s = sleeper
+	if not s then
+		return
+	end
+	sleeper = nil
+	chamberEmpty = true
+	if s.CombatId then
+		combat:Unregister(s.CombatId)
+	end
+	if s.Idle then
+		s.Idle:Stop(0.3)
+	end
+	local model = s.Model
+	model:SetAttribute("Asleep", nil)
+	rockBurst(s.At.Position, 30)
+	local seconds = Config.Get("Tuning", "Source").LeaveSeconds
+	task.spawn(function()
+		local started = os.clock()
+		while model.Parent and os.clock() - started < seconds do
+			local k = (os.clock() - started) / seconds
+			model:PivotTo(s.At + Vector3.new(0, -(SOURCE_RISE_DEPTH + 4) * k * k, 0))
+			task.wait()
+		end
+		model:Destroy()
+	end)
+	announce("Danger", "THE SOURCE HAS LEFT ITS CHAMBER")
+	log:Info("the Source left its chamber asleep")
+end
+
+-- The Source Chamber is open: the Source is in it, asleep, until someone comes close or hurts it.
+local function placeSleeper()
+	if sleeper or chamberEmpty or objectives:IsBossBeaten("Source") or (fight and fight.BossId == "Source") then
+		return
+	end
+	local chamber = deep:SourceChamber()
+	if not chamber or not Boss.Fight("Source") then
+		return
+	end
+	local model, root = makeModel("Source")
+	model:SetAttribute("Activity", "Idle")
+	model:SetAttribute("Asleep", true)
+	model:PivotTo(chamber.Core)
+	model.Parent = holder()
+	local id = combat:Register(model, {
+		Kind = "Monster", Team = "Monsters", Health = SLEEP_HEALTH, MonsterType = "Source", Root = root, KeepModel = true,
+	})
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	local idle = if animator then loadClip(animator, "Source", "Idle") else nil
+	if idle then
+		idle:Play(0)
+	end
+	sleeper = { Model = model, Root = root, At = chamber.Core, CombatId = id, Sockets = chamber.Tendrils, Idle = idle }
+	log:Info("the Source sleeps in its chamber (%s)", chamber.Key)
+end
+
+-- It wakes where it sleeps: the same fight as in the bunker, and its death is the Deep Victory.
+local function wake(why: string): (boolean, string?)
+	local s = sleeper
+	if not s then
+		return false, "the Source isn't asleep in its chamber"
+	end
+	if fight then
+		return false, `{fight.Name} is here`
+	end
+	if director:Phase() ~= "Playing" then
+		return false, "the run isn't being played"
+	end
+	local entry = Config.Get("Bosses", "Source")
+	local t = Boss.Fight("Source") :: { [string]: any }
+	local arena: Boss.Arena = Boss.Arena(grid:Bunker()) or { Floor = 10, From = 0, To = 0, Kind = "Cell" }
+	sleeper = nil
+	chamberEmpty = true
+	if s.CombatId then
+		combat:Unregister(s.CombatId)
+	end
+	local players = math.max(#session:ReadyPlayers(), 1)
+	local _, yaw = s.At:ToOrientation()
+	local f = newFight("Source", entry.Name, t, arena, s.At.Position, yaw, Boss.Health("Source", players, threat:IsFirstRun()))
+	f.Chamber = true
+	f.Left, f.Right = f.X, f.X
+	f.Source = SourceFight.new(s.Sockets)
+	f.Model = s.Model
+	f.Root = s.Root
+	s.Model:SetAttribute("Asleep", nil)
+	local id = combat:Register(s.Model, {
+		Kind = "Monster", Team = "Monsters", Health = f.Max, MonsterType = "Source", Root = s.Root, KeepModel = true,
+	})
+	if not id then
+		log:Warn("the Source couldn't register")
+		s.Model:Destroy()
+		return false, "it couldn't register"
+	end
+	f.CombatId = id
+	s.Model.Name = `Source_{id}`
+	if s.Idle then
+		f.Tracks.Idle = s.Idle
+		f.Playing = s.Idle
+	end
+	fight = f
+	for _, activity in look(f).Clips do
+		track(f, activity)
+	end
+	f.State = "Fighting"
+	f.Busy = os.clock() + t.RoarSeconds
+	f.NextAttack = f.Busy + 1
+	setActivity("Roar", true)
+	rockBurst(s.At.Position, 30, f)
+	announce("Danger", "THE SOURCE WAKES · KILL IT HERE AND THE RUN IS WON")
+	log:Info("the Source wakes in its chamber (%s): %d health, %d players", why, f.Max, players)
+	BossService.Started:Fire("Source")
+	SourceFight.start(sourceCtx, f)
+	publish(true)
+	return true, nil
+end
+
+function BossService:Sleeping(): boolean
+	return sleeper ~= nil
+end
+
+-- With no fight on: the sleeper wakes when a player comes close, and a boss that waited comes.
+local function between()
+	if fight or director:Phase() ~= "Playing" then
+		return
+	end
+	local pending = waiting
+	if pending then
+		waiting = nil
+		local kind, bossId = clock:Surge()
+		if (kind == "Boss" or kind == "Final") and bossId == pending and not objectives:IsBossBeaten(pending) then
+			local ok, why = BossService:BeginFight(pending)
+			if not ok then
+				log:Warn("the %s Surge has no fight: %s", pending, tostring(why))
+			end
+			return
+		end
+	end
+	local s = sleeper
+	if s then
+		local range = Config.Get("Tuning", "Source").WakeRange
+		for _, player in session:ReadyPlayers() do
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") and player:GetAttribute("Life") == "Alive"
+				and (root.Position - s.At.Position).Magnitude <= range then
+				wake(`{player.Name} came close`)
+				return
+			end
+		end
+	end
+end
+
+function BossService:BeginFight(bossId: string): (boolean, string?)
+	if fight then
+		return false, `{fight.Name} is already here`
+	end
+	local entry = Config.Find("Bosses", bossId)
+	local t = Boss.Fight(bossId)
+	if not entry or not t then
+		return false, `no fight for {bossId} yet`
+	end
+	local arena = Boss.Arena(grid:Bunker())
+	if not arena then
+		return false, "no open cell for her to break into"
+	end
+	if bossId == "Source" then
+		if objectives:IsBossBeaten("Source") then
+			return false, "the Source is dead"
+		end
+		leaveChamber() -- if it is still asleep down there
+		chamberEmpty = true
+	end
+	local left, right = Boss.ArenaSpan(arena, t.ArenaMargin)
+	local cell = Grid.CellPosition(arena.Floor, Boss.ArenaMiddle(arena))
+	local players = math.max(#session:ReadyPlayers(), 1)
+	local warningSeconds = Boss.Tuning().ArrivalWarningSeconds
+	-- a little towards the back of the cell, so her front has room; facing the front of the bunker
+	local at = Vector3.new(math.clamp(cell.X, left, right), cell.Y, cell.Z - 2)
+	if bossId == "Deluge" or bossId == "Source" then
+		at = Vector3.new(cell.X, cell.Y, cell.Z) -- they come up in the middle of their cell
+	end
+	local f = newFight(bossId, entry.Name, t, arena, at, math.pi, Boss.Health(bossId, players, threat:IsFirstRun()))
+	f.ArriveAt = now() + warningSeconds
+	f.WantX = cell.X
+	if bossId == "Source" then
+		f.Source = SourceFight.new(nil)
 	end
 	fight = f
 	warning(f, warningSeconds)
@@ -1613,6 +1892,9 @@ local function onDied(id: string)
 		log:Info("an egg sac was broken")
 		return
 	end
+	if f.Source and SourceFight.onDied(sourceCtx, f, id) then
+		return -- one of its tendrils
+	end
 	if id ~= f.CombatId or f.State == "Dying" then
 		return
 	end
@@ -1644,6 +1926,9 @@ local function onDied(id: string)
 	for sacId in table.clone(f.Sacs) do
 		removeSac(f, sacId, "Withered")
 	end
+	if f.Source then
+		SourceFight.cleanup(sourceCtx, f, true) -- its tendrils and roots die with it
+	end
 	publish(true)
 	local killer: Player? = nil
 	for _, player in Players:GetPlayers() do
@@ -1656,6 +1941,15 @@ local function onDied(id: string)
 	-- Defeated first: BossBeaten ends the Surge and the year moves on, and the run's story
 	-- should say the year she fell.
 	BossService.Defeated:Fire(f.BossId, killer)
+	if f.Chamber then
+		-- Section 5: "destroy the Source in its chamber, at any point in the run. The run ends at
+		-- once". The win first: beaten in the final Surge too, this is the Deep Victory, not the
+		-- Century's (CycleClock ends that Surge on BossBeaten only while the run is being played).
+		deep:DimChamber(Boss.Tuning().DeathSeconds)
+		if not director:Win("Deep") then
+			log:Warn("the Source died in its chamber but the run couldn't be won (%s)", director:Phase())
+		end
+	end
 	objectives:BossBeaten(f.BossId)
 	task.delay(Boss.Tuning().DeathSeconds, function()
 		if fight == f then
@@ -1667,7 +1961,17 @@ local function onDied(id: string)
 end
 
 local function onDamaged(id: string, amount: number, source: string?, how: string?)
+	local s = sleeper
+	if s and id == s.CombatId then
+		if amount > 0 and source and not fight then
+			task.defer(wake, "hurt") -- after this hit is done with the sleeper's combatant
+		end
+		return
+	end
 	local f = fight
+	if f and f.Source then
+		SourceFight.onDamaged(f, id, source)
+	end
 	if not f or id ~= f.CombatId then
 		return
 	end
@@ -1688,6 +1992,10 @@ end
 
 -- Armour, weak points and burning sacs (WeaponService's hit modifier).
 local function hitModifier(target: any, point: Vector3?, how: string, player: Player): (number, string?)
+	local s = sleeper
+	if s and target.Id == s.CombatId then
+		return Config.Get("Tuning", "Source").ClosedMultiplier, nil -- asleep, its eye shut
+	end
 	local f = fight
 	if not f then
 		return 1, nil
@@ -1695,6 +2003,9 @@ local function hitModifier(target: any, point: Vector3?, how: string, player: Pl
 	if target.Id == f.CombatId and f.Model then
 		if f.Mode == "Swim" or f.Mode == "Diving" then
 			return f.T.SubmergedMultiplier, nil -- only its back fin shows
+		end
+		if f.Source and not SourceFight.open(f) then
+			return f.T.ClosedMultiplier, nil -- its eye is shut: cut its tendrils down
 		end
 		if f.BossId == "CrystalColossus" and not f.Lit then
 			return f.T.ArmourMultiplier, nil -- all armour until a light shows its cores
@@ -1727,7 +2038,12 @@ end
 local function describe(): string
 	local f = fight
 	if not f then
-		return "no boss fight"
+		local s = sleeper
+		if s then
+			local p = s.At.Position
+			return string.format("no boss fight; the Source sleeps in its chamber at (%.0f, %.0f, %.0f)", p.X, p.Y, p.Z)
+		end
+		return "no boss fight" .. (if waiting then ` ({waiting} waits)` else "")
 	end
 	local health, max = 0, f.Max
 	if f.CombatId then
@@ -1748,6 +2064,12 @@ local function describe(): string
 	if f.BossId == "CrystalColossus" then
 		line ..= string.format(", cores %s, next volley in %.0f s", if f.Lit then "LIT" else "dark", math.max(f.NextVolley - os.clock(), 0))
 	end
+	if f.Source then
+		local holds, all = SourceFight.counts(f)
+		line ..= string.format("\nstage %d (%s), eye %s, %s, tendrils %d holding of %d: %s", f.Source.Stage, f.Source.Kind,
+			if SourceFight.open(f) then "OPEN" else "shut", if f.Chamber then "in its chamber" else "in the bunker", holds, all,
+			table.concat(SourceFight.places(f), "; "))
+	end
 	return line
 end
 
@@ -1760,7 +2082,7 @@ local function registerCommands(dev: any)
 	})
 	dev:Register("boss.start", {
 		Description = "Start a boss's fight now, outside its Surge (Studio testing).",
-		Usage = "boss.start [BroodMother|Deluge|CrystalColossus]",
+		Usage = "boss.start [BroodMother|Deluge|CrystalColossus|Source]",
 		Run = function(_player, args): string?
 			local ok, why = BossService:BeginFight(tostring(args[1] or "BroodMother"))
 			return if ok then describe() else `can't: {why}`
@@ -1857,6 +2179,62 @@ local function registerCommands(dev: any)
 			return describe()
 		end,
 	})
+	dev:Register("boss.wake", {
+		Description = "Wake the Source asleep in its chamber (Studio testing).",
+		Run = function(): string?
+			local ok, why = wake("dev")
+			return if ok then describe() else `can't: {why}`
+		end,
+	})
+	dev:Register("boss.tendrils", {
+		Description = "The Source's tendrils: where each stands and its health.",
+		Run = function(): string?
+			local f = fight
+			if not f or not f.Source then
+				return "the Source isn't fighting"
+			end
+			local lines = {}
+			for id, tendril in f.Source.Tendrils do
+				local health, max = combat:HealthOf(id)
+				local p = tendril.At
+				table.insert(lines, string.format("%s %s (%.0f, %.0f, %.0f) %d/%d%s %s", id, tendril.Where, p.X, p.Y, p.Z, math.ceil(health), max,
+					if tendril.Holds then "" else " regrown", tostring(tendril.Model:GetAttribute("Activity"))))
+			end
+			table.sort(lines)
+			return if #lines > 0 then table.concat(lines, "\n") else "no tendrils"
+		end,
+	})
+	dev:Register("boss.cut", {
+		Description = "Cut every tendril of the Source down now (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or not f.Source then
+				return "the Source isn't fighting"
+			end
+			local n = SourceFight.skip(sourceCtx, f)
+			return `cut {n} down\n{describe()}`
+		end,
+	})
+	dev:Register("boss.roots", {
+		Description = "The Source's roots burst up under the survivors near it now (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or not f.Source or f.State ~= "Fighting" then
+				return "the Source isn't fighting"
+			end
+			return `{SourceFight.erupt(sourceCtx, f)} roots`
+		end,
+	})
+	dev:Register("boss.regrow", {
+		Description = "The Source grows a tendril back now (Studio testing).",
+		Run = function(): string?
+			local f = fight
+			if not f or not f.Source or f.State ~= "Fighting" then
+				return "the Source isn't fighting"
+			end
+			return if SourceFight.regrow(sourceCtx, f) then describe() else "nowhere for one to rise"
+		end,
+	})
 	dev:Register("boss.end", {
 		Description = "Take the boss away without beating her (cleanup).",
 		Run = function(): string?
@@ -1866,6 +2244,7 @@ local function registerCommands(dev: any)
 			end
 			cleanup(f)
 			fight = nil
+			waiting = nil
 			publish(true)
 			return "the boss is gone"
 		end,
@@ -1885,24 +2264,67 @@ function BossService:Init(registry)
 	objectives = registry.ObjectiveService
 	threat = registry.ThreatDirector
 	disasters = registry.DisasterService
+	deep = registry.DeepService
 	collection = registry.ReplicationService:Collection("Boss")
+	sourceCtx = {
+		combat = combat,
+		monsters = monsters,
+		session = session,
+		grid = grid,
+		threat = threat,
+		rng = rng,
+		announce = announce,
+		holder = holder,
+		socket = socket,
+		rockBurst = rockBurst,
+		effectPart = effectPart,
+		setActivity = setActivity,
+		publish = publish,
+		now = now,
+		current = function(): Fight?
+			return fight
+		end,
+	}
 	registerCommands(registry.DevService)
 end
 
 function BossService:Start()
+	local function begin(bossId: string)
+		local ok, why = BossService:BeginFight(bossId)
+		if not ok and fight then
+			-- the Source was woken in its chamber: this boss comes when that fight is over
+			waiting = bossId
+			log:Info("the %s Surge waits: %s", bossId, tostring(why))
+		elseif not ok then
+			log:Warn("the %s Surge has no fight: %s", bossId, tostring(why))
+		end
+	end
 	clock.SurgeStarted:Connect(function(kind: string, bossId: string?)
-		if kind == "Boss" and bossId then
-			local ok, why = BossService:BeginFight(bossId)
-			if not ok then
-				log:Warn("the %s Surge has no fight: %s", bossId, tostring(why))
-			end
+		-- an era's boss, or the final Surge's Source ("the Source rises into the bunker")
+		if (kind == "Boss" or kind == "Final") and bossId then
+			begin(bossId)
 		end
 	end)
 	director.PhaseChanged:Connect(function(new: string)
-		if new == "Ended" and fight then
-			cleanup(fight)
-			fight = nil
-			publish(true)
+		if new == "Ended" then
+			waiting = nil
+			local f = fight
+			if f and f.State == "Dying" then
+				return -- it died to end the run (the Deep Victory): its death plays out
+			end
+			if f then
+				cleanup(f)
+				fight = nil
+				publish(true)
+			end
+		end
+	end)
+	deep.CaveOpened:Connect(function(_key: string, band: string)
+		if band == "SourceChamber" then
+			local ok, err = pcall(placeSleeper)
+			if not ok then
+				log:Warn("the Source's chamber: %s", tostring(err))
+			end
 		end
 	end)
 	combat.Died:Connect(onDied)
@@ -1921,6 +2343,11 @@ function BossService:Start()
 			if not ok then
 				log:Warn("frame: %s", tostring(err))
 			end
+		elseif f and f.Source then
+			local ok, err = pcall(SourceFight.frame, sourceCtx, f, math.min(dt, 0.1))
+			if not ok then
+				log:Warn("frame: %s", tostring(err))
+			end
 		end
 		acc += dt
 		local step = Boss.Tuning().TickSeconds
@@ -1930,6 +2357,10 @@ function BossService:Start()
 			local ok, err = pcall(tick, elapsed)
 			if not ok then
 				log:Warn("tick: %s", tostring(err))
+			end
+			ok, err = pcall(between)
+			if not ok then
+				log:Warn("between fights: %s", tostring(err))
 			end
 		end
 	end)

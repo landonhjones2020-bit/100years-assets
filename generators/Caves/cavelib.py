@@ -489,7 +489,7 @@ def interior_preview(asset, band, layout, res=640, samples=24):
     world = bpy.context.scene.world.node_tree
     world.nodes["Background"].inputs[1].default_value = 0.05
     world.nodes["SF_CamBG"].inputs[0].default_value = (0.0, 0.0, 0.0, 1)
-    colour = (1.0, 0.78, 0.45) if band == "Mines" else (0.6, 0.95, 0.95)
+    colour = (1.0, 0.78, 0.45) if band == "Mines" else (0.5, 1.0, 0.62) if band == "Source" else (0.6, 0.95, 0.95)
     for name, value in layout["sockets"].items():
         if name.startswith("Light"):
             ld = bpy.data.lights.new(name, type="POINT")
