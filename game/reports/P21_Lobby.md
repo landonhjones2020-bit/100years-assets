@@ -109,6 +109,9 @@ a Run server and back has only been tested up to the record (see "Live test" bel
   (Prompt 28).
 
 **Bible Questions**
+
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
 1. **Buying.** Built: only today's four can be bought. Right, or should every class always be
    buyable with the shop only choosing what is on show?
 2. **The roll's odds.** Built: even. Should rarer classes turn up less often?
@@ -317,6 +320,9 @@ a Legendary is one of a kind.
    `Lib.ClassArt` already used `Portrait_<Class>` when the kit had it.
 
 **Bible Questions**
+
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
 14. **The class looks.** Any of the 15 can change: the review sheets are
     `previews/Residents/Outfit_<Class>.png` and all 19 cards are on
     `previews/Residents/Class_Portraits.jpg`. The Medic and the Spelunker are women, the other 13

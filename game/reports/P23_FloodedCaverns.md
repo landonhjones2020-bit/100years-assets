@@ -232,6 +232,9 @@ marked)
 
 ## Bible Questions
 
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
+
 1. **"Air the room out"**: I read it as the leak running out after 90 seconds if nobody seals the
    vent. Is there meant to be something players do (open a door, run a fan)?
 2. **Water stays out of bare tunnels** (dug cells with no room). Should it fill them too?

@@ -4,32 +4,35 @@ Written 2026-11-12 (afternoon, Chicago), after Prompt 26. The game was called 10
 Fallout until 2026-11-09; the Project and its docs keep that name. The game bible (live doc
 https://claude.ai/artifact/MsqvLxaU96vVv127RyLtVU and the two project parts) wins over everything
 here. It is in step with Landon's decisions up to Nov 10 (live doc rev 174; both project parts
-refreshed from it the same day). Nothing of Prompts 23 to 26 is in the bible yet: their 9, 13, 11
-and 13 questions wait for Landon in the reports.
+refreshed from it the same day). **Landon answered every open Bible Question of Prompts 19 to 26
+on Nov 12 (78 answers): `game/reports/Answers_2026-11-12.md`** (also in the Project as
+`claude/100-years-of-fallout-answers-2026-11-12.md`). None of them is in the bible yet.
 
 ## Landon's instruction for the next chat
 
 Nov 12, 12:59: "just finish your testing and wrapp up. Create the handoff with the context for
 prompt 27,28,29 and building the new outside city for when my fable limit resets". Prompt 26 is
 finished and wrapped up; Prompt 27 was **not** started. The next chat's work is the four items
-below under "Next": **Prompts 27, 28 and 29, and the new outside city** (Brightwater Ruins as a
-large, real town). If Landon is there, ask which comes first; if not, take them in his order
-(27, 28, 29, the city), keeping this file current as each lands.
+below under "Next". At 13:07 Landon chose the order: **the new outside city first** (Brightwater
+Ruins as a large, real town), **then Prompts 27, 28 and 29**. Keep this file current as each lands.
 
 ## Start here
 
 1. Clone the repo `landonhjones2020-bit/100years-assets` (private) and read `CLAUDE.md` (the
    runbook) and `BUILD_LOG.md` (status, every id, what is open).
-2. Start installing Blender in the background (`pip install --break-system-packages bpy==5.2.3`).
+2. Read `game/reports/Answers_2026-11-12.md` (Landon's 78 answers of Nov 12, and what each one
+   changes, grouped by where it gets built). Put them into the live bible first, as small edits
+   marked "(Landon)" (`CLAUDE.md` 4d), then refresh the Project's two parts.
+3. Start installing Blender in the background (`pip install --break-system-packages bpy==5.2.3`).
    The city needs it from the first hour; the prompts need it for icons and Legend art.
-3. Studio: `list_roblox_studios` shows "100 Years Of Fallout" (the Lobby) and "run" (the Run
+4. Studio: `list_roblox_studios` shows "100 Years Of Fallout" (the Lobby) and "run" (the Run
    place). Their ids change when a Studio restarts or reconnects: list them again instead of
    using a remembered id (on Nov 12 they were Lobby `a1743569-516c-4130-a698-4861fafeaf05`, Run
    `f2a97815-9af1-451e-827f-f7b3c078b796`). Never touch the Night Shift studio. Ask Landon to
    restart Studio if tools misbehave.
-4. Tool schemas: after a long chat, load the Studio tools again with ToolSearch
+5. Tool schemas: after a long chat, load the Studio tools again with ToolSearch
    (`select:mcp__remote-devices__Roblox_Studio__execute_luau,...open_cloud_invoke,...start_stop_play,...screen_capture,...get_console_output,...list_roblox_studios,...user_mouse_input,...user_keyboard_input,mcp__remote-devices__device_commit_files`).
-5. No local Luau linter: a download of the Luau tools was refused on Nov 12 and must not be worked
+6. No local Luau linter: a download of the Luau tools was refused on Nov 12 and must not be worked
    around. Syntax and types are checked by installing the build in Studio (the installer's
    StructureCheck and data tests) and reading the first playtest's console.
 
@@ -122,6 +125,86 @@ The three prompts lean on each other: talent slot 1 opens at account level 5 (Pr
 can come from the Extra Talent Slot pass (Prompt 28), eight Legends come from badges (Prompt 29).
 Build each prompt's side of a link and give the other side a dev command until its prompt lands.
 
+### First: the new outside city, Brightwater Ruins as a large, real town (Run place)
+
+Landon, Nov 9: "The town is a fine place holder right now but needs to be much more detailed. I
+want it to feel like a large town that was actually real"; "make the town parts in your own
+blender environment it needs to actually look good". Bible Section 12: the map is the lobby's
+town after the bomb, so players recognise it; about 1,400 by 1,100 studs with about 25 places to
+enter (his number for buildings in all was about 120). Places to search: Main Street diner,
+hardware store, grocery, gas station, motel, radio tower, water tower, rail yard with a wrecked
+train, the ruined Steadfast showroom, a military checkpoint that opens in Era III. Reached by the
+elevator behind the Blast Door; trips happen in the 3-minute day (the storm comes with every
+Surge); threats are Ash Raiders, Ash Jackals and storm-only Ash Wraiths.
+
+What exists:
+
+* **Today's placeholder**: `game/server/Lib/BrightwaterMap.luau`, a tool run in Studio (Edit:
+  `require(game.ServerScriptService.Lib.BrightwaterMap).Build()`), builds `workspace.Surface`
+  about 640 by 520 studs at `GROUND` = 200, from `ServerStorage.Assets.Surface.<Asset>` (the A5
+  buildings, `generators/Surface/Bldg_*.py` on `townlib.py`, much plainer than the town kit) or
+  graybox stand-ins. Main Street runs along X at Z = 0, -Z is north, the bunker entrance is in the
+  north hill, the rail bed at Z = 168. A rebuild keeps places where they were moved in Studio and
+  leaves `workspace.Surface.Decor` alone (Landon's dressing).
+* **The contract SurfaceService reads** (keep it, or change both sides together): markers
+  `ElevatorExit`, `ElevatorCall`, `SurvivorSpot`, `BigFindSpot`, `SpawnPoint`, `CampSpot` (where
+  the raider camp may stand, each with a `Hint` for the radio logs); containers with `Container`
+  and `Location` attributes; gates with `MinEra` (the checkpoint). Today: 43 containers, 11
+  survivor spots, 8 find spots, 18 spawn points, 4 camp spots, 1 gate.
+  `Config.SurfaceLocations` has the bible's ten places, each with a loot table in
+  `Config.LootTables`; the other fifteen places to enter need rows of their own (amounts
+  provisional, said so in the report).
+* **The town kit** (`generators/Town/`): `buildings.py` has `commercial`, `bank`, `cinema`,
+  `diner`, `gas_station`, `market` and the details (sash windows, awnings, cornices, blade signs,
+  fire escapes, wall ads, roof units), `props.py` the street furniture and cars, `townkit.py` the
+  merge, colliders, lights, lettering and renders. The lobby's clean Main Street
+  (`generators/Lobby/Lobby_Blocks.py`, `street_plan.py`: ten blocks between Elm St and Oak St
+  and four beyond) is the same street before the bomb.
+* **The pipeline for a scripted world**: `tools/lobby_world.py` prints the Luau that builds the
+  lobby from a plan in Blender space ((x, y, z) to Studio (-x, z, y)), sent as a module through
+  `tools/chunk_module.py` and one PATCHed Model asset (`CLAUDE.md` 4a). The city should work the
+  same way.
+
+**Landon's answers for the city (Nov 12)**: **heavily ruined** (fallen roofs and walls, rubble
+everywhere, few buildings intact); **an ash wasteland** (grey ash, dead and burnt trees, nothing
+green); **full size, simpler far away** (about 1,400 by 1,100 studs and 120 buildings, detailed
+where players walk, plain shells beyond, streamed in); **all four districts** beyond Main Street
+and the bible's places: houses and side streets (yards, porches, a school or church), an
+industrial edge (warehouses, a factory, the rail yard, a power substation), a waterfront (a lake
+or river, docks, a bridge: the town is Brightwater) and outskirts (farms, a drive-in, a highway
+out of town). The shelter entrance on Mine Hill matches the intro's blast door (two steel leaves
+on an overhead rail, sunburst, "STEAD / FAST", "SHELTER / No. 1", a wheel, a SEALED lamp; the
+steps, arch, landings and terrace of the intro's hill path). The names on the lobby's street and
+the intro's set are canon (Brightwater Savings Bank, the Atomic, the Comet diner, Starlite gas,
+the Gazette, the Hotel, Elm St and Oak St, "Brightwater Community Shelter", "BRIGHTWATER RADIO",
+"BRIGHTWATER MINE, CLOSED 1931"), so the ruins carry them, half-burnt. He also wants the residents
+to walk out of the Blast Door at the Century Victory, which needs the outside of the door: build
+it with the city.
+
+A suggested way in (the next chat's call):
+
+1. **A plan first**: a `generators/Surface/town_plan.py` (like `street_plan.py`) with the street
+   grid over 1,400 by 1,100 (Main Street on the lobby's line, cross streets, a residential
+   quarter, the rail yard and an industrial edge, the north hill with the bunker's door), every
+   lot's building, whether it can be entered and which `SurfaceLocations` row it is. Render a top
+   view and show Landon before modelling 120 buildings.
+2. **A ruin pass on the town kit**: the same buildings 100 years after the bomb, heavily ruined
+   but still recognisable from the lobby (seeded: roofs and upper floors fallen in, walls down to
+   their first floor, glass gone to dark holes, signs with missing letters, scorch and grey ash on
+   every swatch, rust, boarded doors, rubble mounds, dead and burnt trees, burnt-out cars). Do one block, render it beside the lobby's clean block, and
+   hold it to the lobby's finish before doing the rest.
+3. **Inside**: about 25 interiors that hold the containers, survivor spots and finds at sockets
+   (`Socket_Container1..`, `Socket_Survivor1..`, `Socket_BigFind`), each one a real room (counters,
+   shelves, stairs) that tells you what the place was.
+4. **Triangles**: the bible's budget is 6,000 a surface building and about 150,000 seen at once on
+   a phone; a lobby block is about 12,000 and the lobby is already about 330,000. Plan two levels
+   of detail from the start (full fronts on the streets players walk, plain shells beyond), stream
+   surface buildings as Atomic models (bible Section 23), and measure in Studio.
+5. **Studio**: upload and set up through `setup_batch.py` (colliders and lights from the
+   sidecar), build `workspace.Surface` from the plan with the markers above, and playtest the
+   surface loop for real: ride up, loot, a rescue, the raider camp, a storm, the Era III gate,
+   ride down.
+
 ### Prompt 27: Talents and Legends (Lobby and Run)
 
 What the bible says:
@@ -162,6 +245,11 @@ What exists:
   gear locker and slots, and `Lose`/`die`; `ResultsService` pays at the run's end (where Renown
   would rise). Residents phase 3 (aging) is Prompt 36, so "never ages" costs nothing yet.
 
+Landon's answers (Nov 12): **draft Legends 13 to 24** (names, signature traits, how to get each:
+the bible says 8 from badges, 12 for Glowshards at 150 to 400, 4 from events) **for his OK** before
+any goes in; **Rosie first**: the free starter Legend at full Legendary quality in Prompt 27, the
+other eleven as an art step of their own after it.
+
 To decide or ask: what a Legend's signature trait is in modifier keys (each of the twelve needs a
 system that exists: Rosie repairs rooms on her floor, Big Earl guards the Blast Door, Ivy stops
 fire spreading, Dutch's digs, Wren's radio recruits, Ingrid's Lab); how a Legend shows in the
@@ -201,6 +289,13 @@ What exists:
   Pack (a Rare class of the player's choice, a cosmetic). The Helper Drone (picks up loot, lights
   dark rooms, never fights) is a new system with a model: the biggest piece of this prompt.
 * The banner: the HUD's full-width banner under the vote banner (`hud.banner` dev command).
+* Landon's answers (Nov 12): **create the products and passes through Open Cloud as needed**, and
+  ask him before anything that costs Robux. **The Class Shop changes**: every class can be bought
+  at any time; the daily shop becomes **four deals a day at 20 to 40% off** ("deals similar to 99
+  nights", shown where classes are bought in the lobby); rarer classes turn up as deals less often;
+  the 99 Robux reroll (after the free one) rerolls the deals; the wishlist and the free trial stay.
+  **Hub features go along Main Street**: the Store in a shop, the Brightwater Hotel as the VIP
+  lounge.
 * Testing: a Studio purchase is a test purchase; Roblox's purchase prompt is in CoreGui and its
   Buy button is clickable by instance path (`CLAUDE.md` 4c.6).
 
@@ -229,70 +324,36 @@ What exists:
   before making any, and tell Landon. Leaderboards are OrderedDataStores (weekly keys by UTC week)
   shown on billboards in the lobby (`tools/lobby_world.py` builds the lobby's world). Codes must
   live on the server only (never in `ReplicatedStorage`), redeemed once per profile.
+* Landon's answers (Nov 12): create the badges (ask him first if they cost Robux); finding the
+  Source Chamber pays **a one-off Glowshard bonus** of its own (`Config.GlowshardRewards`);
+  leaderboards in **the Gazette's window** and quests along Main Street.
 
-### The new outside city: Brightwater Ruins as a large, real town (Run place)
+### Landon's answers that change systems already built
 
-Landon, Nov 9: "The town is a fine place holder right now but needs to be much more detailed. I
-want it to feel like a large town that was actually real"; "make the town parts in your own
-blender environment it needs to actually look good". Bible Section 12: the map is the lobby's
-town after the bomb, so players recognise it; about 1,400 by 1,100 studs with about 25 places to
-enter (his number for buildings in all was about 120). Places to search: Main Street diner,
-hardware store, grocery, gas station, motel, radio tower, water tower, rail yard with a wrecked
-train, the ruined Steadfast showroom, a military checkpoint that opens in Era III. Reached by the
-elevator behind the Blast Door; trips happen in the 3-minute day (the storm comes with every
-Surge); threats are Ash Raiders, Ash Jackals and storm-only Ash Wraiths.
+Build them as one pass (as Prompt 19 built the Prompt 13 to 17 answers), after the city and before
+Prompt 27 unless Landon says otherwise; numbers refer to `game/reports/Answers_2026-11-12.md`:
 
-What exists:
-
-* **Today's placeholder**: `game/server/Lib/BrightwaterMap.luau`, a tool run in Studio (Edit:
-  `require(game.ServerScriptService.Lib.BrightwaterMap).Build()`), builds `workspace.Surface`
-  about 640 by 520 studs at `GROUND` = 200, from `ServerStorage.Assets.Surface.<Asset>` (the A5
-  buildings, `generators/Surface/Bldg_*.py` on `townlib.py`, much plainer than the town kit) or
-  graybox stand-ins. Main Street runs along X at Z = 0, -Z is north, the bunker entrance is in the
-  north hill, the rail bed at Z = 168. A rebuild keeps places where they were moved in Studio and
-  leaves `workspace.Surface.Decor` alone (Landon's dressing).
-* **The contract SurfaceService reads** (keep it, or change both sides together): markers
-  `ElevatorExit`, `ElevatorCall`, `SurvivorSpot`, `BigFindSpot`, `SpawnPoint`, `CampSpot` (where
-  the raider camp may stand, each with a `Hint` for the radio logs); containers with `Container`
-  and `Location` attributes; gates with `MinEra` (the checkpoint). Today: 43 containers, 11
-  survivor spots, 8 find spots, 18 spawn points, 4 camp spots, 1 gate.
-  `Config.SurfaceLocations` has the bible's ten places, each with a loot table in
-  `Config.LootTables`; the other fifteen places to enter need rows of their own (amounts
-  provisional, said so in the report).
-* **The town kit** (`generators/Town/`): `buildings.py` has `commercial`, `bank`, `cinema`,
-  `diner`, `gas_station`, `market` and the details (sash windows, awnings, cornices, blade signs,
-  fire escapes, wall ads, roof units), `props.py` the street furniture and cars, `townkit.py` the
-  merge, colliders, lights, lettering and renders. The lobby's clean Main Street
-  (`generators/Lobby/Lobby_Blocks.py`, `street_plan.py`: ten blocks between Elm St and Oak St
-  and four beyond) is the same street before the bomb.
-* **The pipeline for a scripted world**: `tools/lobby_world.py` prints the Luau that builds the
-  lobby from a plan in Blender space ((x, y, z) to Studio (-x, z, y)), sent as a module through
-  `tools/chunk_module.py` and one PATCHed Model asset (`CLAUDE.md` 4a). The city should work the
-  same way.
-
-A suggested way in (the next chat's call):
-
-1. **A plan first**: a `generators/Surface/town_plan.py` (like `street_plan.py`) with the street
-   grid over 1,400 by 1,100 (Main Street on the lobby's line, cross streets, a residential
-   quarter, the rail yard and an industrial edge, the north hill with the bunker's door), every
-   lot's building, whether it can be entered and which `SurfaceLocations` row it is. Render a top
-   view and show Landon before modelling 120 buildings.
-2. **A ruin pass on the town kit**: the same buildings 100 years after the bomb, so the lobby's
-   street reads through the damage (seeded: roofs and upper floors fallen in, glass gone to dark
-   holes, signs with missing letters, scorch and ash on the swatches, rust, boarded doors, rubble
-   and dead trees, burnt-out cars). Do one block, render it beside the lobby's clean block, and
-   hold it to the lobby's finish before doing the rest.
-3. **Inside**: about 25 interiors that hold the containers, survivor spots and finds at sockets
-   (`Socket_Container1..`, `Socket_Survivor1..`, `Socket_BigFind`), each one a real room (counters,
-   shelves, stairs) that tells you what the place was.
-4. **Triangles**: the bible's budget is 6,000 a surface building and about 150,000 seen at once on
-   a phone; a lobby block is about 12,000 and the lobby is already about 330,000. Plan two levels
-   of detail from the start (full fronts on the streets players walk, plain shells beyond), stream
-   surface buildings as Atomic models (bible Section 23), and measure in Studio.
-5. **Studio**: upload and set up through `setup_batch.py` (colliders and lights from the
-   sidecar), build `workspace.Surface` from the plan with the markers above, and playtest the
-   surface loop for real: ride up, loot, a rescue, the raider camp, a storm, the Era III gate,
-   ride down.
+* **Residents**: residents swat Burrow Ticks in their room even two or more (10); an alert the cycle
+  before a Miserable resident may leave (11); the personnel-file detail layout on the other
+  screens too (12); Rares' second form, one good trait and +2 to every stat, for half of them (13);
+  armed residents at half a player's damage (14); Hardy and the Hazmat Suit also cut drowning (16).
+* **The Source**: a third round of tendrils before the end (18); a tendril may grow in the Reactor
+  Core on Hard and Nightmare (19); it falls asleep again and heals fully if left alone (21); mixed
+  monsters from every band pour out of it as its minions (24); floor 10's other cells hold rich
+  Crystal and rare finds (25); the residents walk out at the Century Victory (26, with the city).
+* **The Crystal Hollows**: a powered room's lights reveal a Prism Stalker (29); Surges can choose a
+  radiation leak (32) and an outbreak (34); a Crystal hazard pocket leaks radiation or gas (33); a
+  Quarantine button on the resident card (35); the sick walk to the Medbay (36); the Colossus's
+  stun and slam scale with the number of players (38).
+* **The Flooded Caverns**: a prompt at a gassed room's door vents it faster (42); bare tunnels flood
+  (43); the Lurker grabs players too, mash to break free (44); The Deluge's flooding scales with the
+  party (46).
+* **The intro**: the Source's glimpse has one great eye (55); Skip is press and hold (58).
+* **The lobby and classes**: a leader with Hard or Nightmare brings friends who lack it (65); about
+  half of the 19 class looks become women (72: propose which, then re-render); the Cook's melee
+  weapon is a frying pan (73: a new item and model).
+* **The draft**: an Endless pool of cards for late and Endless runs (76): draft the cards for his
+  OK first.
 
 ## Open work after that
 
@@ -310,29 +371,26 @@ A suggested way in (the next chat's call):
   recap and handoff and then begin on the next 3 prompts" (Nov 10, Nov 11 twice, Nov 12 06:31 and
   12:47). Prompts 22 to 26 came out of those.
 * Nov 12, 12:59: finish testing, wrap up, and write this handoff for Prompts 27, 28, 29 and the
-  new outside city (above). 13:06: "finish where fable left off with the handoff".
+  new outside city (above). 13:06: "finish where fable left off with the handoff". 13:07: "also
+  ask me any questions fable had left open ended for me to answer so you can add it to the
+  nesscary context": he answered all 78 open Bible Questions of Prompts 19 to 26 and chose the city
+  first (`game/reports/Answers_2026-11-12.md`).
 * His standing bar: beat 99 Nights in the Forest on finish; UI themed, never generic; monsters
   detailed, bosses scary; art made in Blender here and it has to actually look good.
 
 ## Waiting on Landon
 
-* **Prompt 26**: his answers to its 13 Bible Questions (Rares' second form; the gear locker; the
-  gear pool and odds; tool sizes; residents' guns and Ammo; Injured; panic times; morale's bottom
-  and a warning before someone leaves; gear at a death; Clumsy; Hardy and the Hazmat Suit;
-  an undefended Tutorial Surge killed four of six founders; the card's new layout), and his look
-  at the card (`previews/Game/P26_*.jpg`, or the Residents screen in a Run playtest).
-* **Prompt 25**: its 11 Bible Questions, and his look at the Source, its tendril and its chamber
-  (`previews/Game/P25_*.jpg`, `previews/Bosses/Boss_Source*.png`,
-  `previews/Monsters/Monster_SourceTendril.png`, `previews/Caves/Cave_Source_Entry*.png`).
-* **Prompt 24**: its 13 Bible Questions, and his look at the A10 art (`previews/Game/P24_*.jpg`,
-  `previews/Monsters/*.png`, `previews/Bosses/Boss_CrystalColossus*.png`,
-  `previews/Caves/Cave_Crystal_*.png`).
-* **Prompt 23**: its 9 Bible Questions, and his look at the A8 art.
-* **Prompts 19 to 22**: their 7, 15, 15 and 9 Bible Questions.
+* **Nothing is waiting on his answers**: every Bible Question of Prompts 19 to 26 was answered on
+  Nov 12. Two things will need his OK when they are drafted: Legends 13 to 24 (Prompt 27) and the
+  Endless draft cards.
+* **His look at the art and screens**: the resident card (`previews/Game/P26_*.jpg`), the Source,
+  its tendril and chamber (`previews/Game/P25_*.jpg`, `previews/Bosses/Boss_Source*.png`,
+  `previews/Caves/Cave_Source_Entry*.png`), the A10 and A8 art (`previews/Monsters`,
+  `previews/Bosses`, `previews/Caves`, `previews/Game/P23_*.jpg`, `P24_*.jpg`), the intro, the
+  lobby and the class looks.
 * **The live test of Prompt 21** in the published game (the list is in `game/reports/P21_Lobby.md`):
   a pad to a real Run server, rejoin, Play Again, Return to Lobby, a friend on a private pad, one
   real 99 Robux reroll.
-* His look at the intro, the lobby, the town's names (Prompt 21, question 11) and the class looks.
 * The AutoScale Lite pass on The Frame and HUD (Prompt 6).
 * Things only he can test: two or more players, a phone, a gamepad on the screens, a whole boss
   fight by real damage.

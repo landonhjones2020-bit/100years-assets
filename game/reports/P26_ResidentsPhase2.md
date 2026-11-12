@@ -133,6 +133,9 @@ Suggestions (not built, for Landon to accept or drop):
 
 ## Bible Questions
 
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
+
 1. Rares: the bible says "two good, or one good with higher stats". Only "two good" is built.
    Do you want the second form, and how much higher should the stats be?
 2. The gear locker: one bunker-wide store, used from a resident's card anywhere. Should gear live

@@ -266,6 +266,9 @@ hot cave through a player attribute (`CaveRadiation`), as DisasterService does w
 
 ## Bible Questions
 
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
+
 1. **What lights show a Prism Stalker?** Built: a flare, a cave lantern, the Scout's Flare Ping,
    and it shows for 1.5 s when it strikes or is hit. A room's own lights don't. The placeable Lamp
    will count once players can carry one. Should a powered room's lights show it?

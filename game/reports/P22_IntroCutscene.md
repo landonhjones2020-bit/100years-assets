@@ -95,6 +95,9 @@ The light goes from the lobby's morning to the flash, the blast's orange and the
 * Digby is not in it. Section 4 does not ask for him; the billboard would be his place.
 
 **Bible Questions** (each is how it is built now; say the word and it changes)
+
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
 1. **The hillside path** is a broad flight of steps straight up Mine Hill from the east end of
    Main Street, with a "STEADFAST SHELTER / Built to Last a Century" arch at its foot, lamps, three
    landings and a terrace in front of the door. Is that the path you pictured?

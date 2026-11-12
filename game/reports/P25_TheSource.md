@@ -208,6 +208,9 @@ clock and to stand in for a team's damage). Size and pivot of every new model we
 
 ## Bible Questions
 
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
+
 1. **The stages.** Tendrils, core, tendrils, core, with the tendrils worth 15% of its health each
    time. Is that the fight you meant by "tendrils in many rooms at once, then the core"?
 2. **Should a tendril ever stand in the Reactor Core?** I kept them out: one there is a meltdown

@@ -94,6 +94,9 @@ see "Landon's answers" at the end.
   runs out of cards; after that no draft opens (logged).
 
 **Bible Questions**
+
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
 1. **DraftService.** Section 23 gives drafts to VoteService and has no service for the cards. Built:
    VoteService runs the vote; a new DraftService owns the cards, their effects and found blueprints.
    Add DraftService to Section 23?

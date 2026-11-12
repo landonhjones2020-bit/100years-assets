@@ -107,6 +107,9 @@ Raider's detail pass.
   remaining 15 class looks are made with Prompt 21's Class Shop.
 
 **Bible Questions**
+
+(Landon answered these on 2026-11-12: `game/reports/Answers_2026-11-12.md`.)
+
 1. **Armed residents.** Rally Call needs armed residents, and residents get weapons with Prompt
    26's gear. Until then nobody answers a rally in a real run (dev `resident.arm` arms them for
    tests). Right to wait, or should founders start with a weapon?
