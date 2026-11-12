@@ -15,9 +15,12 @@ new("Frame", sg, "Bottom", { pos = { 0, 1 }, anchor = { 0, 0 }, size = { 1, 0.11
 local card = new("ImageLabel", sg, "Card", { pos = { 0.5, 0.27 }, anchor = { 0.5, 0.5 }, size = { 0.44, 0.22 }, aspect = 3.7,
 	sprite = "Panel_Navy", visible = false, z = 3 })
 text(card, "Kicker", "YEAR 100 · THE BUNKER HELD", { pos = { 0.06, 0.1 }, size = { 0.88, 0.16 }, font = F.label, color = COL.hazard,
-	alignX = CENTER, z = 4, max = 60 })
+	alignX = CENTER, z = 4, max = 44 })
 text(card, "Title", "CENTURY VICTORY", { pos = { 0.06, 0.26 }, size = { 0.88, 0.4 }, font = F.title, color = COL.cream,
-	alignX = CENTER, z = 4, max = 30 })
+	alignX = CENTER, z = 4, max = 160 })
 local rule = new("Frame", card, "Rule", { pos = { 0.5, 0.69 }, anchor = { 0.5, 0.5 }, size = { 0.5, 0.012 }, bg = COL.hazard, z = 4 })
 rule.BorderSizePixel = 0
 text(card, "Line", "", { pos = { 0.06, 0.73 }, size = { 0.88, 0.17 }, font = F.typed, color = COL.cream, alignX = CENTER, z = 4, max = 80 })
+
+sg.Parent = game:GetService("StarterGui")
+return "Victory built: " .. #sg:GetDescendants() .. " instances"

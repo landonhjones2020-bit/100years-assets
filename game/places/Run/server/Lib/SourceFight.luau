@@ -556,7 +556,8 @@ local function strike(ctx: any, f: any, tendril: Tendril, room: boolean)
 		for _, c in ctx.combat:All("Survivors") do
 			local offset = c.Root.Position - at
 			if c.State == "Alive" and Vector3.new(offset.X, 0, offset.Z).Magnitude <= t().TendrilRadius + c.Reach and math.abs(offset.Y) < 9 then
-				if ctx.combat:Damage(c.Id, t().TendrilDamage, tendril.Id, "slammed") > 0 then
+				local amount = if c.Kind == "Player" then t().TendrilDamage else t().TendrilResidentDamage
+				if ctx.combat:Damage(c.Id, amount, tendril.Id, "slammed") > 0 then
 					hit += 1
 				end
 			end

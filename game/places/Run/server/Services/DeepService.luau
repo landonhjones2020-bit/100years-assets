@@ -106,9 +106,11 @@ local LANTERN: { [string]: Color3 } = {
 	Mines = Color3.fromRGB(255, 178, 104),
 	FloodedCaverns = Color3.fromRGB(150, 232, 214),
 	CrystalHollows = Color3.fromRGB(180, 255, 205),
-	SourceChamber = Color3.fromRGB(124, 255, 155), -- the Source's own light
+	SourceChamber = Color3.fromRGB(150, 226, 172), -- the Source's own light, paler than its veins
 }
-local CHAMBER_LAMP = 2.6 -- the Source Chamber is a hall, not a tunnel: its lamps reach this many times as far
+-- The Source Chamber is a hall, not a tunnel: its lamps reach further and burn lower (the first
+-- playtest's hall was one flat green: the rock's red and the Source's own glow have to read).
+local CHAMBER_LAMP = { Range = 2.2, Brightness = 0.5 }
 local OWN_LIGHT = Color3.fromRGB(255, 236, 206)
 local PLUG_SCALE = 1.45 -- the doorway rubble (8 x 10) over a cave's 14 x 12 opening
 local FIND_PROMPT: { [string]: { Action: string, Object: string, Hold: string } } = {
@@ -998,9 +1000,18 @@ local function placePiece(c: Cave, placement: Deep.Placement, index: number, fin
 		Posts = sockets(model, "^Spawn"),
 		Woken = false,
 	}
-	local reach = if c.Band == "SourceChamber" then CHAMBER_LAMP else 1
-	for _, at in sockets(model, "^Light") do
-		lightAt(model, at, LANTERN[c.Band] or LANTERN.Mines, t().LampRange * reach, t().LampBrightness)
+	if c.Band == "SourceChamber" then
+		-- the miners' own lantern in the gallery, then the chamber's glow
+		for _, at in sockets(model, "^Light1$") do
+			lightAt(model, at, LANTERN.Mines, t().LampRange, t().LampBrightness)
+		end
+		for _, at in sockets(model, "^Light[2-9]$") do
+			lightAt(model, at, LANTERN.SourceChamber, t().LampRange * CHAMBER_LAMP.Range, t().LampBrightness * CHAMBER_LAMP.Brightness)
+		end
+	else
+		for _, at in sockets(model, "^Light") do
+			lightAt(model, at, LANTERN[c.Band] or LANTERN.Mines, t().LampRange, t().LampBrightness)
+		end
 	end
 	local era = eraNumber()
 	for _, at in sockets(model, "^Find") do

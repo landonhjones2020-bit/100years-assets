@@ -2162,7 +2162,6 @@ test("Boss: the Brood Mother's health, phases and hits (Sections 5 and 22, Promp
 	for _, key in { "MoveSpeed", "AttackSeconds", "LaySeconds", "SacsPerLay" } do
 		expectEqual(#fight[key], phases, `{key}: one value per phase`)
 	end
-	expectEqual(Boss.Fight("Source"), nil, "no fight yet for the Source (Prompt 25)")
 end)
 
 test("Boss: The Deluge's fight and the way it swims (Section 10, Prompt 23)", function()
@@ -2342,6 +2341,7 @@ test("Boss: the Source's fight (Sections 5 and 10, Prompt 25)", function()
 	expect(not Boss.SourceCoreOver(0, max, entry.Phases), "the last is over only with its death")
 	expect(t.ClosedMultiplier < Boss.Tuning().ArmourMultiplier, "shut, its eye is harder than any armour")
 	expect(t.EruptWarnSeconds >= 1, "a root can be seen coming")
+	expect(t.TendrilResidentDamage < t.TendrilDamage, "a tendril is harder on a player than on a resident")
 	expect(t.WakeRange > t.SlamReach, "it wakes before whoever woke it is in reach")
 	-- where its tendrils stand: one to a room, spread over the floors, never a Shaft or the Reactor Core
 	local bunker = Bunker.FromStart()

@@ -161,7 +161,7 @@ local LOOK: { [string]: {
 	},
 	Source = {
 		-- in front of its eye, so whoever it looks at sees what is looking
-		Glow = Color3.fromRGB(124, 255, 155), GlowAt = Vector3.new(0, 7, -10), GlowRange = 48, GlowBrightness = 2.4,
+		Glow = Color3.fromRGB(124, 255, 155), GlowAt = Vector3.new(0, 7, -10), GlowRange = 44, GlowBrightness = 1.5,
 		Dust = Color3.fromRGB(96, 70, 92), Chips = Color3.fromRGB(124, 255, 155), Water = false,
 		Clips = { "Idle", "Open", "OpenIdle", "Close", "Attack", "Slam", "Roar", "Stagger", "Death" },
 		Up = "RISES INTO THE BUNKER!",

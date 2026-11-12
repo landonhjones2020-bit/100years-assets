@@ -130,7 +130,7 @@ local Schemas: { [string]: Check.Checker } = {
 	Source = shape({
 		Stages = list(Check.enum({ "Tendrils", "Core" }), 4), StageUntil = list(Fr, 4),
 		Tendrils = list(I, 4), TendrilsPerPlayer = I, TendrilsMax = I, ChamberTendrils = list(I, 4),
-		TendrilHealth = N, TendrilDamage = N, TendrilRadius = N, TendrilReach = N, TendrilSense = N, TendrilAttackSeconds = S,
+		TendrilHealth = N, TendrilDamage = N, TendrilResidentDamage = N, TendrilRadius = N, TendrilReach = N, TendrilSense = N, TendrilAttackSeconds = S,
 		TendrilRoomDamage = N, TendrilTurnDegreesPerSecond = N, TendrilRiseSeconds = S, TendrilRiseDepth = N,
 		RegrowSeconds = list(N, 4), RegrowMax = I,
 		ClosedMultiplier = Fr, AttackSeconds = list(S, 4), SlamDamage = N, SlamRadius = N, SlamReach = N,
@@ -484,7 +484,9 @@ return {
 			-- (TendrilHealth, scaled like the Source's for the team) rises over TendrilRiseSeconds, turns
 			-- (TendrilTurnDegreesPerSecond) to whoever comes within TendrilSense and slams every
 			-- TendrilAttackSeconds: TendrilDamage within TendrilRadius of the blow when someone is within
-			-- TendrilReach, else TendrilRoomDamage to its room. In a Core stage its eye opens (the weak
+			-- TendrilReach (TendrilResidentDamage to a resident: the first playtest's three tendrils,
+			-- left alone, downed four of six in four minutes at a player's 22), else TendrilRoomDamage to
+			-- its room (10: a 500 HP room is wrecked in under three minutes, not one and a half). In a Core stage its eye opens (the weak
 			-- point; the rest of it is armour) until its health reaches StageUntil: it slams whoever is
 			-- within SlamReach of its front every AttackSeconds (SlamDamage within SlamRadius), and every
 			-- EruptSeconds Eruptions roots burst up under survivors within EruptRange, EruptWarnSeconds
@@ -497,8 +499,8 @@ return {
 			-- LeaveSeconds and rises in the bunker.
 			Stages = { "Tendrils", "Core", "Tendrils", "Core" }, StageUntil = { 0.85, 0.5, 0.35, 0 },
 			Tendrils = { 3, 0, 5, 0 }, TendrilsPerPlayer = 1, TendrilsMax = 10, ChamberTendrils = { 2, 0, 4, 0 },
-			TendrilHealth = 900, TendrilDamage = 22, TendrilRadius = 5, TendrilReach = 12, TendrilSense = 30,
-			TendrilAttackSeconds = 3.2, TendrilRoomDamage = 18, TendrilTurnDegreesPerSecond = 120, TendrilRiseSeconds = 1.5,
+			TendrilHealth = 900, TendrilDamage = 22, TendrilResidentDamage = 8, TendrilRadius = 5, TendrilReach = 12, TendrilSense = 30,
+			TendrilAttackSeconds = 3.2, TendrilRoomDamage = 10, TendrilTurnDegreesPerSecond = 120, TendrilRiseSeconds = 1.5,
 			TendrilRiseDepth = 13, RegrowSeconds = { 0, 0, 0, 14 }, RegrowMax = 2,
 			ClosedMultiplier = 0.05, AttackSeconds = { 6, 5, 5, 3.8 }, SlamDamage = 50, SlamRadius = 10, SlamReach = 17,
 			EruptSeconds = { 0, 8, 0, 6 }, Eruptions = { 0, 2, 0, 3 }, EruptWarnSeconds = 1.3, EruptDamage = 20, EruptRadius = 5.5,
