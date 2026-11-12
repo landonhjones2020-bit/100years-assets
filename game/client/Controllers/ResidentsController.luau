@@ -108,7 +108,7 @@ local function section(body: Instance, order: number, label: string, text: strin
 	for _, paragraph in string.split(text, "\n") do
 		lines += math.max(1, math.ceil(#paragraph * line * 0.36 / width))
 	end
-	local labelHeight = math.max(12, line * 0.8)
+	local labelHeight = math.max(12, line * 0.95)
 	local gap = line * 0.2
 	local textHeight = lines * line * 1.15
 	local total = labelHeight + gap + textHeight

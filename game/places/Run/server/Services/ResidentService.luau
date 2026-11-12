@@ -911,7 +911,7 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 				announce("Warning", `{string.upper(Residents.Name(resident))} REFUSES TO WORK: THEIR MORALE IS AT THE BOTTOM`)
 			end
 		end
-		if room and jobStat then
+		if room and jobStat and not resident.Refusing then -- no work, no experience
 			local levels = Residents.AddXP(resident, t.XPPerWorkCycle * xpMultiplier(), levelStat or jobStat)
 			if levels > 0 then
 				logLine(resident, `reached level {resident.Level}`)
