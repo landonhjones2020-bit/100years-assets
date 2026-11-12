@@ -106,6 +106,13 @@ local DEFINITIONS: { [string]: Definition } = {
 		Rate = { Burst = 8, PerSecond = 3 },
 		Doc = "Give a resident a job (a room id) or take it away (\"\"); no vote (Section 8). ResidentService checks the room has a job and a free slot.",
 	},
+	EquipResident = {
+		To = "Server",
+		Place = "Run",
+		Args = { Check.string(12, { pattern = "^N%d+$", min = 2 }), Check.enum({ "Weapon", "Outfit", "Tool" }), Check.string(48, { pattern = "^[%w_:]*$" }) },
+		Rate = { Burst = 8, PerSecond = 3 },
+		Doc = "Give a resident a gear piece from the bunker's gear locker (\"\": take the slot's piece off); no vote. ResidentService checks the piece is in the locker and fits the slot (Prompt 26).",
+	},
 	AutoAssign = {
 		To = "Server",
 		Place = "Run",

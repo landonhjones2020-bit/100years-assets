@@ -367,6 +367,23 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 		fleeing[id] = nil
 		return `Swat:{near[1].Id}`, nil, nil, "Fight"
 	end
+	-- Prompt 26 (Section 11: "armed and brave residents fight in their room and the rest flee"):
+	-- whoever carries a weapon, or is Brave, takes on the nearest monster in the room they are in
+	local person = residents:Get(id)
+	if #near > 0 and person and (Residents.Armed(person) or Residents.Has(person, "DefendsUnarmed")) then
+		local mine = unitAt(body.Root.Position)
+		local best: any, bestDistance = nil, math.huge
+		for _, c in near do
+			local distance = (c.Root.Position - body.Root.Position).Magnitude
+			if mine ~= nil and unitAt(c.Root.Position) == mine and distance < bestDistance then
+				best, bestDistance = c, distance
+			end
+		end
+		if best then
+			fleeing[id] = nil
+			return `RallyFight:{best.Id}`, nil, nil, "Fight"
+		end
+	end
 	local flee = fleeing[id]
 	if #near > 0 then
 		local room = if flee then flee.Room else nil
@@ -376,6 +393,19 @@ local function danger(id: string): (string?, string?, CFrame?, string?)
 		end
 		flee = { Until = os.clock() + t.ResidentCalmSeconds, Room = room }
 		fleeing[id] = flee
+		-- they are Panicked while they run and for a while after (Config.Conditions.Panicked: no
+		-- work); a Cool Head in their room calms them sooner, and the Brave and Cool Heads never are
+		if person then
+			local calmed = false
+			if person.Job then
+				for _, mate in residents:Workers(person.Job) do
+					if mate.Id ~= id and Residents.Has(mate, "CalmsRoommates") then
+						calmed = true
+					end
+				end
+			end
+			residents:Panic(id, t.ResidentCalmSeconds + Residents.PanicSeconds(person, calmed), "monsters")
+		end
 	end
 	-- fire where they stand (Prompt 13): fight it while they can, else get out
 	local here = unitAt(body.Root.Position)
@@ -684,8 +714,13 @@ local function step(body: Body, order: number)
 				if os.clock() - (swattedAt[body.Id] or 0) >= t.ResidentSwatSeconds then
 					swattedAt[body.Id] = os.clock()
 					local resident = residents:Get(body.Id)
-					local melee = resident and resident.Weapon and Config.Find("Items", resident.Weapon)
-					local damage = if melee and melee.Melee then melee.Melee.Damage else t.ResidentSwatDamage
+					local held = resident and resident.Weapon and Config.Find("Items", resident.Weapon)
+					local damage = t.ResidentSwatDamage -- bare hands (the Brave)
+					if held and held.Melee then
+						damage = held.Melee.Damage
+					elseif held and held.Gun and resident then
+						damage = held.Gun.Damage * (Residents.Trait(resident, "GunDamage") or 1) -- a Sharpshooter's
+					end
 					combat:Damage(monster.Id, damage, body.Id, "rallied")
 				end
 			end

@@ -26,6 +26,7 @@ local Constants = require(Shared.Constants)
 local Log = require(Shared.Utilities.Log)
 local Modifiers = require(Shared.Rules.Modifiers)
 local Remotes = require(Shared.Remotes)
+local ResidentRules = require(Shared.Rules.Residents)
 local RunState = require(Shared.RunState)
 local UIKit = require(script.Parent.Parent:WaitForChild("Lib"):WaitForChild("UIKit"))
 
@@ -98,6 +99,46 @@ local function section(body: Instance, order: number, label: string, text: strin
 	s.Parent = body
 end
 
+-- The gear locker (the Gear collection's "Locker": piece key -> count), as names for the card.
+local function locker(): { string }
+	local stock = replica:Get("Gear", "Locker")
+	local list = {}
+	if type(stock) == "table" then
+		for piece, count in stock do
+			table.insert(list, if count > 1 then `{ResidentRules.PieceName(piece)} x{count}` else ResidentRules.PieceName(piece))
+		end
+		table.sort(list)
+	end
+	return list
+end
+
+-- The locker's pieces that go in a slot, in a steady order.
+local function fitting(slot: string): { string }
+	local stock = replica:Get("Gear", "Locker")
+	local list = {}
+	if type(stock) == "table" then
+		for piece in stock do
+			if ResidentRules.Slot((ResidentRules.Piece(piece))) == slot then
+				table.insert(list, piece)
+			end
+		end
+		table.sort(list)
+	end
+	return list
+end
+
+-- What a press of a slot's button asks for: the locker's next piece after the one they have, or
+-- nothing ("") once they have had the last.
+local function nextPiece(slot: string, current: string?): string
+	local options = fitting(slot)
+	for _, piece in options do
+		if not current or piece > current then
+			return piece
+		end
+	end
+	return if current then "" else (options[1] or "")
+end
+
 local function portrait(): string?
 	return if UIKit.Sprites["Portrait_Survivor"] then "Portrait_Survivor" else nil
 end
@@ -134,16 +175,41 @@ local function showResident(id: string)
 	section(body, 2, "Stats", table.concat(stats, "  ·  "))
 	section(body, 3, "Needs", `Health {resident.Health} of {resident.MaxHealth}  ·  Rest {resident.Rest}  ·  Morale {resident.Morale} ({resident.Mood})`
 		.. (if resident.Hungry then "  ·  Hungry" else "")
+		-- Prompt 26: the rest of Section 11's conditions
+		.. (if resident.Injured then "  ·  INJURED: works slowly until a Medbay or a Medic treats them" else "")
+		.. (if resident.Panicked then "  ·  Panicked: no work until they calm down" else "")
+		.. (if resident.Refusing then "  ·  REFUSING TO WORK" else "")
+		.. (if resident.Mood == "Miserable" then "  ·  Miserable: may refuse work, start fights or leave for good" else "")
 		-- Prompt 24: an Outbreak's sickness and a leak's radiation
 		.. (if resident.Sick then (if resident.Quarantined then "  ·  Sick, in quarantine" else "  ·  SICK: take them off work to quarantine them") else "")
 		.. (if resident.Irradiated then "  ·  Irradiated: a Decon Room clears it" else ""))
-	section(body, 4, "Experience", `{resident.XP} of {resident.XPNext} to level {resident.Level + 1}`)
+	-- Prompt 26: their two traits, and their three gear slots (Section 11)
+	local traits = {}
+	for _, traitId in resident.Traits or {} do
+		local trait = Config.Find("Traits", traitId)
+		if trait then
+			table.insert(traits, `{trait.Name}: {trait.Text}`)
+		end
+	end
+	section(body, 4, "Traits", if #traits > 0 then table.concat(traits, "\n") else "None.")
+	local outfitStat, bonus, vest, noGas = ResidentRules.OutfitBonus(resident.Outfit)
+	local outfit = if resident.Outfit
+		then `{ResidentRules.PieceName(resident.Outfit)} ({outfitStat} +{bonus}{if vest > 0 then `, health +{vest}` else ""}{if noGas then ", ignores gas" else ""})`
+		else "none"
+	local toolItem = if resident.Tool then Config.Find("Items", (ResidentRules.Piece(resident.Tool)) or "") else nil
+	local tool = if toolItem then `{toolItem.Name} ({toolItem.ResidentUse or toolItem.Text})` else "none"
+	local weaponItem = if resident.Weapon then Config.Find("Items", resident.Weapon) else nil
+	local stock = locker()
+	section(body, 5, "Gear", `Weapon: {if weaponItem then weaponItem.Name else "none"}\nOutfit: {outfit}\nTool: {tool}\n`
+		.. `Gear locker: {if #stock > 0 then table.concat(stock, ", ") else "empty (gear is found on the surface and in the Deep)"}`)
+	section(body, 6, "Experience", `{resident.XP} of {resident.XPNext} to level {resident.Level + 1}`)
 	local history = resident.Log or {}
 	local lines = {}
 	for i = math.max(1, #history - 3), #history do
 		table.insert(lines, history[i])
 	end
-	section(body, 5, "Run log", if #lines > 0 then table.concat(lines, "\n") else "Nothing yet.")
+	section(body, 7, "Run log", if #lines > 0 then table.concat(lines, "\n") else "Nothing yet.")
+	footer() -- the gear buttons are this resident's
 	if resident.State ~= "Alive" then
 		ui:SetMainAction({ Label = if resident.State == "Away" then "Away" else "Down", Enabled = false })
 	elseif resident.Job then
@@ -281,6 +347,24 @@ footer = function()
 			Remotes.FireServer("ChooseLevelStat", nextStat)
 		end })
 	end
+	-- Prompt 26: a button for each of the shown resident's gear slots. Each press gives them the
+	-- next piece in the gear locker that fits, and after the last takes the slot's piece off.
+	local id = selected
+	local resident = if id then replica:Get("Residents", id) else nil
+	if id and type(resident) == "table" and resident.State == "Alive" then
+		for _, slot in { "Weapon", "Outfit", "Tool" } do
+			local options = fitting(slot)
+			if #options > 0 or resident[slot] then
+				local ask = nextPiece(slot, resident[slot])
+				table.insert(actions, {
+					Label = `{slot}: {if ask ~= "" then ResidentRules.PieceName(ask) else "Take off"}`,
+					OnPress = function()
+						Remotes.FireServer("EquipResident", id, slot, ask)
+					end,
+				})
+			end
+		end
+	end
 	ui:SetFooterActions(actions)
 end
 
@@ -324,6 +408,11 @@ function ResidentsController:Start()
 			end
 		end)
 	end
+	replica:Changed("Gear"):Connect(function()
+		if page then
+			fill() -- the locker's line and the gear buttons
+		end
+	end)
 	local pending = false
 	replica:Changed("Residents"):Connect(function()
 		if page and not pending then

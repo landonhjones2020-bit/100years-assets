@@ -2294,6 +2294,151 @@ test("Boss: the Crystal Colossus's fight (Section 10, Prompt 24)", function()
 	expectEqual(Config.Get("Monsters", "Resonator").AttackSeconds, 4, "a Resonator hums every 4 s (a Golem would out-heal a revolver at 1 s)")
 end)
 
+test("Residents, phase 2: traits, gear, conditions, morale's bottom (Section 11, Prompt 26)", function()
+	local t = Config.Get("Tuning", "Residents")
+	local m = Config.Get("Tuning", "Morale")
+	expectEqual(#Config.Ids("Traits"), 30, "30 traits at launch")
+	-- "Commons roll one good and one bad trait. Rares roll two good"
+	local rng = Random.new(26)
+	for i = 1, 40 do
+		local common = Residents.RollTraits(rng, "Common")
+		expectEqual(#common, 2, "two traits each")
+		expectEqual(Config.Get("Traits", common[1]).Type, "Good", "a Common's first is good")
+		expectEqual(Config.Get("Traits", common[2]).Type, "Bad", "and its second bad")
+		local rare = Residents.RollTraits(rng, "Rare")
+		expect(Config.Get("Traits", rare[1]).Type == "Good" and Config.Get("Traits", rare[2]).Type == "Good", "a Rare's are both good")
+		expect(rare[1] ~= rare[2], "and not the same one twice")
+	end
+	local function person(traits: { string }, stats: { [string]: number }?): any
+		local r = Residents.Roll(Random.new(3), "N1", "Common", 1, {})
+		r.Traits = traits
+		r.Stats = stats or { Strength = 5, Smarts = 5, Grit = 5, Speed = 5, Charm = 5 }
+		r.MaxHealth = Residents.MaxHealthOf(r)
+		r.Health = r.MaxHealth
+		return r
+	end
+	local plain = person({})
+	expectEqual(Residents.MaxHealthOf(plain), 100, "Grit 5 is 100 health")
+	expectEqual(Residents.MaxHealthOf(person({ "Tough" })), 125, "Tough: +25%")
+	expectEqual(Residents.MaxHealthOf(person({ "Frail" })), 75, "Frail: -25%")
+	expectEqual(Residents.FoodUse(person({ "IronStomach" })), 0.5, "Iron Stomach eats half")
+	expectEqual(Residents.FoodUse(person({ "Glutton" })), 2, "a Glutton twice")
+	expectEqual(Residents.FoodUse(plain), 1, "the rest one meal")
+	-- output: the crew counts each worker's stat times what their traits and tool do for them
+	local base = (Residents.Crew({ plain }, "Kitchen") :: any).StatSum
+	expectEqual(base, 5, "a Speed 5 cook")
+	expect(math.abs((Residents.Crew({ person({ "GreenThumb" }) }, "Kitchen") :: any).StatSum - 6) < 1e-6, "Green Thumb: +20% in the Kitchen")
+	expectEqual((Residents.Crew({ person({ "GreenThumb" }) }, "Medbay") :: any).StatSum, 5, "and nothing in the Medbay")
+	expect(math.abs((Residents.Crew({ person({ "HardWorker" }) }, "Medbay") :: any).StatSum - 5.5) < 1e-6, "Hard Worker: +10% anywhere")
+	expect(math.abs((Residents.Crew({ person({ "Lazy" }) }, "Medbay") :: any).StatSum - 4.25) < 1e-6, "Lazy: -15%")
+	local led = Residents.Crew({ person({ "NaturalLeader" }), plain }, "Kitchen") :: any
+	expectEqual(led.StatSum, 10, "a Natural Leader's own work is no more")
+	expect(math.abs((led.Multiplier or 1) - 1.1) < 1e-6, "but everyone in the room does 10% more")
+	local lucky = person({ "Lucky" })
+	lucky.Lucky = true
+	expectEqual((Residents.Crew({ lucky }, "Kitchen") :: any).StatSum, 10, "a lucky cycle is double output")
+	-- gear: three slots, an outfit's +1 to +3 by rarity, tools in their rooms
+	expectEqual(Residents.Slot("LabCoat"), "Outfit", "an outfit")
+	expectEqual(Residents.Slot("Ladle"), "Tool", "a tool")
+	expectEqual(Residents.Slot("Wrench"), "Tool", "the Wrench is a resident's tool (repairs)")
+	expectEqual(Residents.Slot("ServiceRevolver"), "Weapon", "a weapon")
+	expectEqual(Residents.Slot("Medkit"), nil, "a Medkit isn't gear")
+	expectEqual({ Residents.Piece("LabCoat:Reinforced") }, { "LabCoat", "Reinforced" }, "a piece is an item and a rarity")
+	expectEqual({ Residents.Piece("Ladle") }, { "Ladle", "Standard" }, "Standard when it says none")
+	expectEqual(Residents.PieceKey("LabCoat", "Standard"), "LabCoat", "and Standard isn't written")
+	expectEqual(Residents.PieceName("LabCoat:Prototype"), "Lab Coat (Prototype)", "its name on the card")
+	for rarity, bonus in { Standard = 1, Reinforced = 2, Prototype = 3 } do
+		local worn = person({})
+		worn.Outfit = Residents.PieceKey("LabCoat", rarity)
+		expectEqual(Residents.EffectiveStats(worn).Smarts, 5 + bonus, `a {rarity} Lab Coat: Smarts +{bonus}`)
+		expectEqual(worn.Stats.Smarts, 5, "their own stat is untouched")
+	end
+	local capped = person({}, { Strength = 15, Smarts = 5, Grit = 5, Speed = 5, Charm = 5 })
+	capped.Outfit = "WorkOveralls:Prototype"
+	expectEqual(Residents.EffectiveStats(capped).Strength, t.StatCap, "gear never takes a stat past 15")
+	local guard = person({})
+	guard.Outfit = "SecurityVest"
+	expectEqual(Residents.MaxHealthOf(guard), 100 + 6 + 20, "a Security Vest: Grit +1 and 20 health")
+	local suited = person({})
+	suited.Outfit = "HazmatSuit"
+	expectEqual(Residents.GasTaken(suited), 0, "a Hazmat Suit ignores gas")
+	expectEqual(Residents.GasTaken(person({ "Hardy" })), 0.5, "the Hardy take half")
+	expectEqual(Residents.GasTaken(plain), 1, "the rest all of it")
+	local cook = person({})
+	cook.Tool = "Ladle"
+	expect(math.abs((Residents.Crew({ cook }, "Kitchen") :: any).StatSum - 5 * t.ToolOutput) < 1e-6, "a Ladle helps in the Kitchen")
+	expectEqual((Residents.Crew({ cook }, "Medbay") :: any).StatSum, 5, "and nowhere else")
+	local fitter = person({})
+	fitter.Tool = "Wrench"
+	expect(Residents.Repairs(fitter) and Residents.Repairs(person({ "Tinkerer" })) and not Residents.Repairs(plain),
+		"a Wrench or the Tinkerer's trait mends their room")
+	for _, itemId in t.GearPool do
+		expect(Residents.Slot(itemId) ~= nil, `{itemId} in the gear pool goes in a slot`)
+	end
+	for i = 0, 9 do
+		local piece = Residents.RollGear(i / 10, (i * 7 % 10) / 10)
+		local itemId, rarity = Residents.Piece(piece)
+		expect(itemId ~= nil and table.find(t.GearPool, itemId) ~= nil, "found gear is from the pool")
+		expect(Residents.Slot(itemId) == "Outfit" or rarity == "Standard", "only an outfit carries a rarity")
+	end
+	-- conditions
+	expect(Residents.InjuredAt(30, 100) and not Residents.InjuredAt(40, 100) and not Residents.InjuredAt(0, 100),
+		"Injured below 35% of their health, while they stand")
+	expect(Residents.Recovered(75, 100) and not Residents.Recovered(60, 100), "over it at 75%")
+	local hurt = person({})
+	hurt.Injured = true
+	expect(math.abs((Residents.Crew({ hurt }, "Kitchen") :: any).StatSum - 5 * Config.Get("Conditions", "Injured").OutputMultiplier) < 1e-6,
+		"the Injured work slowly")
+	local scared = person({})
+	scared.Panicked = true
+	expectEqual(Residents.Crew({ scared }, "Kitchen"), nil, "the Panicked don't work")
+	expectEqual((Residents.Crew({ scared, plain }, "Kitchen") :: any).Workers, 1, "and don't count in a crew")
+	expectEqual(Residents.PanicSeconds(person({ "Brave" }), false), 0, "the Brave never panic")
+	expectEqual(Residents.PanicSeconds(person({ "CoolHead" }), false), 0, "nor a Cool Head")
+	expectEqual(Residents.PanicSeconds(plain, false), t.PanicSeconds, "the rest for a while")
+	expectEqual(Residents.PanicSeconds(person({ "Coward" }), false), t.PanicSeconds * 2, "a Coward twice as long")
+	expectEqual(Residents.PanicSeconds(person({ "Jumpy" }), false), t.PanicSeconds * 3, "the Jumpy three times")
+	expectEqual(Residents.PanicSeconds(plain, true), t.PanicSeconds * t.CalmedMultiplier, "a Cool Head in the room calms them sooner")
+	-- the cycle: morale from traits
+	local function cycle(traits: { string }, dark: boolean, where: any): number
+		local r = person(traits)
+		r.Morale = 50
+		Residents.Cycle(r, true, nil, true, true, dark, where)
+		return r.Morale - 50 - m.FedCycle
+	end
+	local alone = { Workers = {}, Floor = 2, Lounge = false }
+	expectEqual(cycle({}, true, alone), m.DarkRoom, "a dark room costs morale")
+	expectEqual(cycle({ "NightVision" }, true, alone), 0, "not with Night Vision")
+	expectEqual(cycle({ "AfraidOfTheDark" }, true, alone), m.AfraidOfDark, "and crashes it for those afraid of the dark")
+	expectEqual(cycle({ "Claustrophobic" }, false, { Workers = {}, Floor = 4, Lounge = true }), m.Claustrophobic, "Claustrophobic at depth 4")
+	expectEqual(cycle({ "Claustrophobic" }, false, { Workers = {}, Floor = 3, Lounge = true }), 0, "not at depth 3")
+	expectEqual(cycle({ "Homesick" }, false, alone), m.Homesick, "Homesick with no Lounge")
+	expectEqual(cycle({ "Homesick" }, false, { Workers = {}, Floor = 2, Lounge = true }), 0, "not with time in one")
+	expectEqual(cycle({}, false, { Workers = { person({ "Chatterbox" }) }, Floor = 2, Lounge = true }), 3, "a Chatterbox lifts a roommate")
+	expectEqual(cycle({}, false, { Workers = { person({ "Grumpy" }) }, Floor = 2, Lounge = true }), -3, "a Grumpy one lowers them")
+	local sleepy, rested = person({ "Sleepyhead" }), person({})
+	sleepy.Rest, rested.Rest = 100, 100
+	Residents.Cycle(sleepy, true, nil, false, true, false, alone)
+	Residents.Cycle(rested, true, nil, false, true, false, alone)
+	expect(sleepy.Rest < rested.Rest, "a Sleepyhead tires faster")
+	-- morale's bottom
+	local low = person({})
+	low.Morale = 10
+	low.Low = 1
+	expectEqual(Residents.Miserable(low, true, 0, 0), "Fight", "a Miserable resident may start a fight")
+	expectEqual(Residents.Miserable(low, false, 0, 0), "Refuse", "or, with nobody to fight, refuse work")
+	expectEqual(Residents.Miserable(low, true, 0, 0.99), nil, "or get through the cycle")
+	low.Low = m.Miserable.LeaveAfterCycles
+	expectEqual(Residents.Miserable(low, true, 0, 0.99), "Leave", "after cycles at the bottom they may leave for good")
+	expectEqual(Residents.Miserable(low, true, 0.99, 0.99), nil, "or stay")
+	low.Morale = 30
+	expectEqual(Residents.Miserable(low, true, 0, 0), nil, "the merely Unhappy do none of it")
+	local refuser = person({})
+	refuser.Refusing = true
+	expectEqual(Residents.Crew({ refuser }, "Kitchen"), nil, "someone refusing work isn't in the crew")
+	expectEqual(select(2, Residents.MoraleState(95)), 1.2, "Inspired: +20% output")
+end)
+
 test("Boss: the Source's fight (Sections 5 and 10, Prompt 25)", function()
 	local entry = Config.Get("Bosses", "Source")
 	local t = Boss.Fight("Source") :: { [string]: any }

@@ -220,16 +220,25 @@ local function statsOf(members: { Member }): { Expeditions.Stats }
 	local list = {}
 	for _, m in members do
 		local resident = residents:Get(m.Id)
-		table.insert(list, if resident then resident.Stats else {})
+		table.insert(list, if resident then Residents.EffectiveStats(resident) else {}) -- with their outfit on
 	end
 	return list
 end
 
--- A member's own effects (traits from Prompt 26, a Legend's signature from Prompt 27): none yet.
+-- A member's own effects: their traits' modifiers (Prompt 26: a Strong Back carries more, the
+-- Lucky find more, a Scrounger more Scrap); a Legend's signature is Prompt 27.
 local function effectsOf(members: { Member }): { { any } }
 	local list = {}
-	for _ in members do
-		table.insert(list, {})
+	for _, m in members do
+		local own = {}
+		local resident = residents:Get(m.Id)
+		for _, traitId in (if resident then resident.Traits or {} else {}) do
+			local trait = Config.Find("Traits", traitId)
+			for _, modifier in (if trait then trait.Modifiers else {}) do
+				table.insert(own, modifier)
+			end
+		end
+		table.insert(list, own)
 	end
 	return list
 end

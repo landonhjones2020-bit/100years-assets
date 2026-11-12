@@ -62,7 +62,7 @@ local InventoryService = {
 	Name = "InventoryService",
 	Dependencies = {
 		"SessionService", "BunkerGrid", "EconomyService", "CombatService", "WeaponService", "MonsterService", "RunDirector",
-		"DevService",
+		"ResidentService", "DevService",
 	},
 	Unloaded = Signal.new() :: Signal.Signal<Player, { [string]: number }>,
 	Delivered = Signal.new() :: Signal.Signal<Player, string, { Loot.Drop }>,
@@ -94,6 +94,7 @@ type Find = {
 type Bag = { Id: string, Model: Model, Pack: Surface.Pack, Prompt: ProximityPrompt, Owner: string }
 type Hit = { Player: Player?, Zone: string, At: number }
 
+local residentService: any = nil
 local grid: any = nil
 local economy: any = nil
 local combat: any = nil
@@ -972,6 +973,7 @@ local function registerCommands(dev: any)
 end
 
 function InventoryService:Init(registry)
+	residentService = registry.ResidentService
 	grid = registry.BunkerGrid
 	economy = registry.EconomyService
 	combat = registry.CombatService
@@ -982,6 +984,10 @@ function InventoryService:Init(registry)
 end
 
 function InventoryService:Start()
+	-- Prompt 26: gear found in a container or on a raider goes to the bunker's gear locker
+	InventoryService:SetSpecial("Gear", function(player: Player, count: number): number
+		return residentService:FindGear(player, count)
+	end)
 	local function joined(player: Player)
 		packs[player] = packs[player] or {}
 		pills[player] = pills[player] or 0

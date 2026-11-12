@@ -217,6 +217,10 @@ local Schemas: { [string]: Check.Checker } = {
 		XPPerExpeditionCycle = N, XPToLevelBase = N, XPToLevelStep = N,
 		RareStatBonus = I, HealthBase = N, HealthPerGrit = N, MedbayHealPerCycle = N,
 		AutoAssignOrder = list(Check.ref("Rooms"), 21), MealSeconds = S, WalkSpeedBase = N, WalkSpeedPerSpeed = N,
+		ToolRooms = Check.map(Check.ref("Items"), list(Check.ref("Rooms"), 3), 8), ToolOutput = N,
+		RepairTools = list(Check.ref("Items"), 4), RepairPerCycle = N,
+		GearPool = list(Check.ref("Items"), 30), GearRarity = Check.map(Check.ref("ItemRarities"), N, 5),
+		InjuredBelow = Fr, InjuredClearAt = Fr, PanicSeconds = S, CalmedMultiplier = Fr,
 	}),
 	Aging = shape({
 		StartAge = F.Range, YoungUntil = I, YoungXP = N, VeteranFrom = I, VeteranSpeed = N,
@@ -225,6 +229,10 @@ local Schemas: { [string]: Check.Checker } = {
 	Morale = shape({
 		JobFit = F.Number, PoorFit = F.Number, FriendInRoom = F.Number, FedCycle = F.Number, Hungry = F.Number,
 		DarkRoom = F.Number, NoBed = F.Number, Injured = F.Number,
+		AfraidOfDark = F.Number, Claustrophobic = F.Number, ClaustrophobicFloor = I, Homesick = F.Number,
+		Miserable = shape({
+			RefuseChance = Fr, FightChance = Fr, FightDamage = N, FightMorale = F.Number, LeaveAfterCycles = I, LeaveChance = Fr,
+		}),
 	}),
 	Trader = shape({
 		EveryCycles = I, EveryCyclesWithPost = I, PostDiscount = N,
@@ -697,6 +705,20 @@ return {
 			-- MealSeconds of each day at the Kitchen, the rest of the day at work, the Surge in bed; walking
 			-- speed grows with Speed (Section 11: Speed affects moving)
 			MealSeconds = 20, WalkSpeedBase = 8, WalkSpeedPerSpeed = 0.6,
+			-- Prompt 26 (phase 2), prov. Gear (Section 11): a tool gives ToolOutput to its holder's work in
+			-- its rooms; a repair tool (the Wrench: "repairs") or the Tinkerer's trait mends RepairPerCycle
+			-- HP of their room each cycle. Found gear (the loot tables' Gear) is one of GearPool at a rarity
+			-- weighted by GearRarity, and goes in the bunker's gear locker.
+			ToolRooms = { Stethoscope = { "Medbay" }, HandDrill = { "DrillBay" }, RadioHeadset = { "RadioRoom" }, Ladle = { "Kitchen" } },
+			ToolOutput = 1.2, RepairTools = { "Wrench" }, RepairPerCycle = 15,
+			GearPool = { "WorkOveralls", "LabCoat", "SecurityVest", "TrackJacket", "SundayBest", "HazmatSuit",
+				"Wrench", "Stethoscope", "HandDrill", "RadioHeadset", "Ladle", "LeadPipe", "PocketPistol", "ServiceRevolver" },
+			GearRarity = { Standard = 60, Reinforced = 30, Prototype = 10 },
+			-- Conditions: hurt below InjuredBelow of their health a resident is Injured until a working
+			-- Medbay treats them at the next cycle or healing brings them back over InjuredClearAt. One
+			-- who flees danger is Panicked for PanicSeconds after it is gone (times their PanicChance: a
+			-- Coward's 2, a Jumpy one's 3; times CalmedMultiplier with a Cool Head in the room).
+			InjuredBelow = 0.35, InjuredClearAt = 0.75, PanicSeconds = 12, CalmedMultiplier = 0.5,
 		},
 		Aging = { -- Section 11
 			StartAge = { Min = 18, Max = 50 }, YoungUntil = 29, YoungXP = 1.1, VeteranFrom = 55, VeteranSpeed = 0.9,
@@ -704,6 +726,15 @@ return {
 		},
 		Morale = { -- Section 11 lists the causes; amounts prov. (Grieving is a Condition)
 			JobFit = 2, PoorFit = -2, FriendInRoom = 2, FedCycle = 1, Hungry = -10, DarkRoom = -5, NoBed = -5, Injured = -5,
+			-- Prompt 26, prov.: the traits whose amounts the bible leaves open. Afraid of the Dark
+			-- ("Morale crashes in dark rooms"), Claustrophobic ("Morale drops at depth 4 and below"),
+			-- Homesick ("slowly drains unless they spend time in the Lounge"), each a cycle.
+			AfraidOfDark = -15, Claustrophobic = -4, ClaustrophobicFloor = 4, Homesick = -2,
+			-- A Miserable resident (0 to 19: "May refuse work, start fights or leave the bunker for
+			-- good"), rolled once a cycle: refuses that cycle's work RefuseChance of the time; starts a
+			-- fight with a roommate FightChance of the time (FightDamage to both, FightMorale to the
+			-- other); after LeaveAfterCycles cycles in a row leaves LeaveChance of the time.
+			Miserable = { RefuseChance = 0.4, FightChance = 0.15, FightDamage = 10, FightMorale = -5, LeaveAfterCycles = 3, LeaveChance = 0.25 },
 		},
 		Trader = { -- Section 13; what he pays in Scrap per unit prov.
 			EveryCycles = 3, EveryCyclesWithPost = 2, PostDiscount = 0.85,

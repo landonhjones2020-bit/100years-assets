@@ -82,6 +82,7 @@ local ResidentService = {
 	Changed = Signal.new() :: Signal.Signal<string>,
 	Assigned = Signal.new() :: Signal.Signal<string, string?>,
 	Died = Signal.new() :: Signal.Signal<string, string>,
+	Accident = Signal.new() :: Signal.Signal<string, string>, -- a Clumsy resident's: their id, their room's id (DisasterService)
 }
 
 local grid: any = nil
@@ -98,6 +99,9 @@ local usedNames: { [string]: boolean } = {}
 local downUntil: { [string]: number } = {}
 local downHow: { [string]: string } = {}
 local jobCells: { [string]: { number } } = {} -- room id -> { floor, column } of the rooms people work in
+local locker: { [string]: number } = {} -- the bunker's gear locker: piece key -> how many (Prompt 26)
+local gearCollection: any = nil
+local panicUntil: { [string]: number } = {} -- resident id -> os.clock() they calm down at
 
 local function announce(kind: string, text: string)
 	Remotes.FireClients("Alert", session:ReadyPlayers(), kind, text)
@@ -148,6 +152,13 @@ local function publish(resident: Resident)
 		Trapped = resident.Trapped == true,
 		DownUntil = downUntil[resident.Id],
 		Weapon = resident.Weapon,
+		-- Phase 2 (Prompt 26)
+		Traits = table.clone(resident.Traits or {}),
+		Outfit = resident.Outfit,
+		Tool = resident.Tool,
+		Injured = resident.Injured == true or nil,
+		Panicked = resident.Panicked == true or nil,
+		Refusing = resident.Refusing == true or nil,
 		Sick = resident.Sick == true or nil,
 		Irradiated = resident.Irradiated == true or nil,
 		Quarantined = Residents.Quarantined(resident) or nil,
@@ -191,13 +202,18 @@ function ResidentService:Heal(id: string, amount: number): number
 	end
 	local before = resident.Health
 	resident.Health = math.min(resident.MaxHealth, resident.Health + amount)
+	if resident.Injured and Residents.Recovered(resident.Health, resident.MaxHealth) then
+		resident.Injured = nil -- treated (Section 11: "works slowly until treated")
+		logLine(resident, "was patched up")
+		economy:RefreshCrew()
+	end
 	publish(resident)
 	return resident.Health - before
 end
 
 -- Conditions (Prompt 24: Sick from an Outbreak, Irradiated from a radiation leak; the rest of
 -- Section 11's conditions are Prompt 26). Returns true when it changed.
-local CONDITIONS: { [string]: boolean } = { Sick = true, Irradiated = true }
+local CONDITIONS: { [string]: boolean } = { Sick = true, Irradiated = true, Injured = true, Panicked = true }
 function ResidentService:SetCondition(id: string, condition: string, on: boolean, why: string?): boolean
 	local resident = residents[id]
 	if not resident or not CONDITIONS[condition] or resident.State == "Dead" then
@@ -216,6 +232,14 @@ function ResidentService:SetCondition(id: string, condition: string, on: boolean
 			logLine(resident, `got over the sickness{if why then ` ({why})` else ""}`)
 		end
 		economy:RefreshCrew() -- the sick work slowly
+	elseif condition == "Injured" then
+		logLine(resident, if on then `was injured{if why then ` ({why})` else ""}` else "was patched up")
+		economy:RefreshCrew() -- the injured work slowly
+	elseif condition == "Panicked" then
+		if on then
+			logLine(resident, `panicked{if why then ` ({why})` else ""}`)
+		end
+		economy:RefreshCrew() -- the panicked don't work
 	elseif on then
 		logLine(resident, `was caught in the radiation{if why then ` ({why})` else ""}`)
 	end
@@ -224,13 +248,26 @@ function ResidentService:SetCondition(id: string, condition: string, on: boolean
 	return true
 end
 
+-- ResidentBrain: a resident is fleeing danger. They are Panicked (no work) until `seconds` after
+-- the last call; the Brave and Cool Heads never are (seconds 0).
+function ResidentService:Panic(id: string, seconds: number, why: string?)
+	local resident = residents[id]
+	if not resident or resident.State ~= "Alive" or seconds <= 0 then
+		return
+	end
+	panicUntil[id] = os.clock() + seconds
+	if not resident.Panicked then
+		ResidentService:SetCondition(id, "Panicked", true, why)
+	end
+end
+
 function ResidentService:HasCondition(id: string, condition: string): boolean
 	local resident = residents[id]
 	return resident ~= nil and (resident :: any)[condition] == true
 end
 
--- The weapon a resident carries (nil: none). Gear and how residents get it are Prompt 26; until
--- then DevTools arms them, to try the Warden's Rally Call.
+-- The weapon a resident carries (nil: none), put there without the locker (DevTools, to try the
+-- Warden's Rally Call). In play gear comes from the locker: Equip.
 function ResidentService:Arm(id: string, itemId: string?): boolean
 	local resident = residents[id]
 	if not resident or (itemId ~= nil and not Config.Find("Items", itemId)) then
@@ -239,6 +276,93 @@ function ResidentService:Arm(id: string, itemId: string?): boolean
 	resident.Weapon = itemId
 	publish(resident)
 	return true
+end
+
+-- Gear (Prompt 26; Section 11: three slots, Weapon, Outfit and Tool) --------------------------------
+-- Found gear goes in the bunker's gear locker (the Gear collection's "Locker": piece key -> count);
+-- a player gives a resident a piece from it on the resident's card, and what they wore goes back.
+
+local function publishLocker()
+	gearCollection:Set("Locker", table.clone(locker))
+end
+
+function ResidentService:Locker(): { [string]: number }
+	return table.clone(locker)
+end
+
+function ResidentService:AddGear(piece: string, count: number?): boolean
+	local itemId = Residents.Piece(piece)
+	if not itemId or not Residents.Slot(itemId) then
+		return false
+	end
+	locker[piece] = (locker[piece] or 0) + math.max(1, math.floor(count or 1))
+	publishLocker()
+	return true
+end
+
+-- Gear found in the world (InventoryService's Gear special): `count` pieces into the locker.
+function ResidentService:FindGear(finder: Player?, count: number): number
+	local found = {}
+	for _ = 1, count do
+		local piece = Residents.RollGear(rng:NextNumber(), rng:NextNumber())
+		ResidentService:AddGear(piece, 1)
+		table.insert(found, string.upper(Residents.PieceName(piece)))
+	end
+	if #found > 0 then
+		announce("Info", `{if finder then string.upper(finder.DisplayName) .. " FOUND GEAR" else "GEAR FOUND"}: {table.concat(found, ", ")} · IN THE GEAR LOCKER`)
+		log:Info("gear found (%s): %s", if finder then finder.Name else "-", table.concat(found, ", "))
+	end
+	return #found
+end
+
+-- Puts a piece from the locker in a resident's slot (nil: takes the slot's piece off). What was in
+-- the slot goes back in the locker.
+function ResidentService:Equip(id: string, slot: string, piece: string?): (boolean, string?)
+	local resident = residents[id]
+	if not resident or resident.State == "Dead" then
+		return false, "Nobody to give it to."
+	end
+	if slot ~= "Weapon" and slot ~= "Outfit" and slot ~= "Tool" then
+		return false, "No such slot."
+	end
+	if piece == "" then
+		piece = nil
+	end
+	if piece then
+		local itemId = Residents.Piece(piece)
+		if Residents.Slot(itemId) ~= slot then
+			return false, "That doesn't go there."
+		end
+		if (locker[piece] or 0) <= 0 then
+			return false, "None of those in the gear locker."
+		end
+	end
+	local record = resident :: any
+	local old = record[slot] :: string?
+	if old == piece then
+		return true, nil
+	end
+	if piece then
+		locker[piece] -= 1
+		if locker[piece] <= 0 then
+			locker[piece] = nil
+		end
+	end
+	if old then
+		locker[old] = (locker[old] or 0) + 1
+	end
+	record[slot] = piece
+	if slot == "Weapon" and piece then
+		resident.Weapon = (Residents.Piece(piece)) -- a weapon is its item (WeaponService arms them by it)
+	end
+	local share = if resident.MaxHealth > 0 then resident.Health / resident.MaxHealth else 1
+	resident.MaxHealth = Residents.MaxHealthOf(resident)
+	resident.Health = math.min(resident.MaxHealth, math.max(if resident.Health > 0 then 1 else 0, math.floor(resident.MaxHealth * share + 0.5)))
+	publishLocker()
+	publish(resident)
+	economy:RefreshCrew()
+	log:Info("%s: %s %s", Residents.Name(resident), slot, if piece then Residents.PieceName(piece) else "off")
+	return true, nil
 end
 
 -- Queries ------------------------------------------------------------------------------------------
@@ -432,6 +556,8 @@ function ResidentService:Hurt(id: string, amount: number, how: string)
 	resident.Health = math.max(0, resident.Health - amount)
 	if resident.Health <= 0 then
 		goDown(resident, how)
+	elseif not resident.Injured and Residents.InjuredAt(resident.Health, resident.MaxHealth) then
+		ResidentService:SetCondition(id, "Injured", true, how) -- Section 11: works slowly until treated
 	else
 		publish(resident)
 	end
@@ -462,6 +588,7 @@ function ResidentService:Revive(id: string, player: Player?): (boolean, string?)
 	end
 	resident.State = "Alive"
 	resident.Health = math.max(1, math.floor(resident.MaxHealth * 0.25))
+	resident.Injured = true -- back on their feet, not well: the Medbay or a Medic treats them
 	downUntil[id] = nil
 	downHow[id] = nil
 	logLine(resident, if player then `revived by {player.DisplayName}` else "revived")
@@ -674,6 +801,20 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 		end
 	end
 	local conditionDown: string? = nil
+	local lounge = false
+	for _, room in grid:RoomsOfType("Lounge") do
+		if not room.Wrecked and not power:IsDark(room.Id) then
+			lounge = true
+		end
+	end
+	local byRoom: { [string]: { Resident } } = {}
+	for _, resident in alive do
+		if resident.Job then
+			byRoom[resident.Job] = byRoom[resident.Job] or {}
+			table.insert(byRoom[resident.Job], resident)
+		end
+	end
+	local leaving: { Resident } = {}
 	for _, resident in alive do
 		local room = if resident.Job then grid:Room(resident.Job) else nil
 		local jobStat = if room then Residents.JobStat(room.Type) else nil
@@ -681,10 +822,70 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 		if bed then
 			bedsLeft -= 1
 		end
-		local notes = Residents.Cycle(resident, room ~= nil, jobStat, bed, not hungry[resident.Id],
-			room ~= nil and power:IsDark(room.Id))
+		local dark = room ~= nil and power:IsDark(room.Id)
+		local mates = if resident.Job then byRoom[resident.Job] else {}
+		-- Homesick: time in the Lounge is a job there, or no job with a working Lounge to sit in
+		local inLounge = lounge and (room == nil or room.Type == "Lounge")
+		local worked = room ~= nil and not resident.Refusing
+		local notes = Residents.Cycle(resident, worked, jobStat, bed, not hungry[resident.Id], dark,
+			{ Workers = mates, Floor = if room then room.Floor else nil, Lounge = inLounge })
 		for _, note in notes do
 			logLine(resident, note)
+		end
+		-- Phase 2 (Prompt 26): what their traits do each cycle
+		resident.Lucky = nil
+		resident.Refusing = nil
+		if room then
+			local luck = Residents.Trait(resident, "DoubleOutputChance")
+			if luck and rng:NextNumber() < luck then
+				resident.Lucky = true
+				logLine(resident, "had a lucky shift")
+			end
+			if dark and Residents.Has(resident, "AfraidOfDark") then
+				resident.Refusing = true -- "refuses to work there"
+			end
+			if Residents.Repairs(resident) and room.HP < room.MaxHP and not room.Wrecked then
+				grid:SetHP(room.Id, math.min(room.MaxHP, room.HP + t.RepairPerCycle))
+			end
+			local accident = Residents.Trait(resident, "AccidentChance")
+			if accident and rng:NextNumber() < accident then
+				logLine(resident, "had an accident at work")
+				ResidentService.Accident:Fire(resident.Id, room.Id)
+			end
+		end
+		local scrap = Residents.Trait(resident, "ScrapPerCycle")
+		if scrap and scrap > 0 then
+			economy:Add("Scrap", scrap, `{Residents.Name(resident)} scrounged`)
+		end
+		-- morale's bottom: refusing work, a fight, leaving for good
+		if Residents.MoraleState(resident.Morale) == "Miserable" then
+			resident.Low = (resident.Low or 0) + 1
+		else
+			resident.Low = nil
+		end
+		local what = Residents.Miserable(resident, #mates > 1, rng:NextNumber(), rng:NextNumber())
+		if what == "Leave" then
+			table.insert(leaving, resident)
+		elseif what == "Fight" then
+			local other = mates[1]
+			for _, mate in mates do
+				if mate ~= resident then
+					other = mate
+				end
+			end
+			local m = Config.Get("Tuning", "Morale").Miserable
+			logLine(resident, `started a fight with {Residents.Name(other)}`)
+			logLine(other, `was in a fight with {Residents.Name(resident)}`)
+			resident.Health = math.max(1, resident.Health - m.FightDamage)
+			other.Health = math.max(1, other.Health - m.FightDamage)
+			other.Morale = math.clamp(other.Morale + m.FightMorale, 0, 100)
+			announce("Warning", `{string.upper(Residents.Name(resident))} STARTED A FIGHT WITH {string.upper(Residents.Name(other))}: THEIR MORALE IS AT THE BOTTOM`)
+		elseif what == "Refuse" then
+			resident.Refusing = true
+			logLine(resident, "refused to work")
+			if room then
+				announce("Warning", `{string.upper(Residents.Name(resident))} REFUSES TO WORK: THEIR MORALE IS AT THE BOTTOM`)
+			end
 		end
 		if room and jobStat then
 			local levels = Residents.AddXP(resident, t.XPPerWorkCycle * xpMultiplier(), levelStat or jobStat)
@@ -695,6 +896,10 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 		end
 		if heals and resident.Health > 0 and resident.Health < resident.MaxHealth then
 			resident.Health = math.min(resident.MaxHealth, resident.Health + t.MedbayHealPerCycle)
+		end
+		if heals and resident.Injured then
+			resident.Injured = nil -- "works slowly until treated": a working Medbay treats them
+			logLine(resident, "was treated in the Medbay")
 		end
 		-- Prompt 24: a working Decon Room clears the irradiated (Section 6: "Clears radiation from
 		-- players and residents"); the sick and the irradiated lose health until they are treated
@@ -713,6 +918,16 @@ local function afterMeal(cycle: number, _taken: { [string]: number }, missing: {
 			goDown(resident, conditionDown or (if hungry[resident.Id] then "hunger" else "weakness"))
 		else
 			publish(resident)
+		end
+	end
+	-- Section 11: a Miserable resident may "leave the bunker for good"
+	for _, resident in leaving do
+		if resident.State == "Alive" then
+			announce("Danger", `{string.upper(Residents.Name(resident))} HAS LEFT THE BUNKER FOR GOOD: THEY WERE MISERABLE TOO LONG`)
+			for _, slot in { "Weapon", "Outfit", "Tool" } do
+				ResidentService:Equip(resident.Id, slot, nil) -- their gear stays
+			end
+			ResidentService:Lose(resident.Id, "left the bunker")
 		end
 	end
 	log:Info("cycle %d: needs for %d residents (%d hungry, %d beds)", cycle, #alive, short, beds())
@@ -738,12 +953,23 @@ local function describe(resident: Resident): string
 		table.insert(stats, `{string.sub(stat, 1, 3)} {resident.Stats[stat]}`)
 	end
 	local room = if resident.Job then grid:Room(resident.Job) else nil
-	return string.format("%s %s, %d, L%d (%d/%d xp): %s; job %s; HP %d/%d, rest %d, morale %d (%s)%s%s%s%s",
+	local flags = ""
+	for _, flag in { "Injured", "Panicked", "Refusing", "Lucky" } do
+		if (resident :: any)[flag] then
+			flags ..= `, {string.upper(flag)}`
+		end
+	end
+	local gear = ""
+	if resident.Weapon or resident.Outfit or resident.Tool then
+		gear = `; gear {resident.Weapon or "-"}/{resident.Outfit or "-"}/{resident.Tool or "-"}`
+	end
+	return string.format("%s %s, %d, L%d (%d/%d xp): %s; %s; job %s; HP %d/%d, rest %d, morale %d (%s)%s%s%s%s%s%s",
 		resident.Id, Residents.Name(resident), resident.Age, resident.Level, resident.XP, Residents.XPToLevel(resident.Level),
-		table.concat(stats, ", "), if room then `{room.Id} {room.Type}` else "none", resident.Health, resident.MaxHealth,
+		table.concat(stats, ", "), table.concat(resident.Traits or {}, "+"), if room then `{room.Id} {room.Type}` else "none",
+		resident.Health, resident.MaxHealth,
 		resident.Rest, resident.Morale, (Residents.MoraleState(resident.Morale)),
 		if resident.Hungry then ", HUNGRY" else "", if resident.Sick then ", SICK" else "",
-		if resident.Irradiated then ", IRRADIATED" else "", if resident.State ~= "Alive" then `, {string.upper(resident.State)}` else "")
+		if resident.Irradiated then ", IRRADIATED" else "", flags, if resident.State ~= "Alive" then `, {string.upper(resident.State)}` else "", gear)
 end
 
 local function describeAll(): string
@@ -762,6 +988,17 @@ function ResidentService:Init(registry)
 	director = registry.RunDirector
 	session = registry.SessionService
 	collection = registry.ReplicationService:Collection("Residents")
+	gearCollection = registry.ReplicationService:Collection("Gear")
+	publishLocker()
+	Remotes.OnServer("EquipResident", function(player: Player, id: string, slot: string, piece: string)
+		if not session:IsReady(player) or director:Phase() ~= "Playing" then
+			return
+		end
+		local ok, why = ResidentService:Equip(id, slot, if piece == "" then nil else piece)
+		if not ok and why then
+			Remotes.FireClient("Alert", player, "Warning", string.upper(why))
+		end
+	end)
 	Remotes.OnServer("AssignResident", function(player: Player, id: string, roomId: string)
 		local ok, why = ResidentService:Assign(id, if roomId == "" then nil else roomId)
 		if not ok and why then
@@ -802,6 +1039,87 @@ function ResidentService:Init(registry)
 				ResidentService:Add(if args[2] then tostring(args[2]) else nil, tonumber(args[3]))
 			end
 			return describeAll()
+		end,
+	})
+	dev:Register("gear", {
+		Description = "The gear locker, and what each resident wears.",
+		Run = function(): string?
+			local lines = {}
+			for piece, count in locker do
+				table.insert(lines, `{Residents.PieceName(piece)} x{count} [{piece}]`)
+			end
+			table.sort(lines)
+			local out = { "locker: " .. (if #lines > 0 then table.concat(lines, ", ") else "empty") }
+			for _, resident in sorted() do
+				if resident.Weapon or resident.Outfit or resident.Tool then
+					table.insert(out, `{resident.Id} {Residents.Name(resident)}: weapon {resident.Weapon or "-"}, outfit {resident.Outfit or "-"}, tool {resident.Tool or "-"}`)
+				end
+			end
+			return table.concat(out, "\n")
+		end,
+	})
+	dev:Register("gear.add", {
+		Description = "Put a gear piece in the locker (Item or Item:Rarity), or find random gear as loot would.",
+		Usage = "gear.add <piece|random> [count]",
+		Run = function(player, args): string?
+			local piece = tostring(args[1] or "random")
+			local count = math.max(1, math.floor(tonumber(args[2]) or 1))
+			if piece == "random" then
+				return `{ResidentService:FindGear(player, count)} found`
+			end
+			return if ResidentService:AddGear(piece, count) then `{Residents.PieceName(piece)} x{count} in the locker` else "not a resident's gear"
+		end,
+	})
+	dev:Register("resident.equip", {
+		Description = "Give a resident a piece from the locker (none: take the slot's piece off).",
+		Usage = "resident.equip <id> <Weapon|Outfit|Tool> <piece|none>",
+		Run = function(_player, args): string?
+			local piece = tostring(args[3] or "none")
+			local ok, why = ResidentService:Equip(tostring(args[1]), tostring(args[2]), if piece == "none" then nil else piece)
+			local resident = residents[tostring(args[1])]
+			return if ok and resident then describe(resident) else `can't: {why}`
+		end,
+	})
+	dev:Register("resident.trait", {
+		Description = "Set a resident's two traits (Studio testing).",
+		Usage = "resident.trait <id> <Trait> [Trait]",
+		Run = function(_player, args): string?
+			local resident = residents[tostring(args[1])]
+			if not resident or not Config.Find("Traits", tostring(args[2])) then
+				return "usage: resident.trait <id> <Trait> [Trait] (Config.Traits ids)"
+			end
+			local traits = { tostring(args[2]) }
+			if args[3] and Config.Find("Traits", tostring(args[3])) then
+				table.insert(traits, tostring(args[3]))
+			end
+			resident.Traits = traits
+			local share = resident.Health / math.max(resident.MaxHealth, 1)
+			resident.MaxHealth = Residents.MaxHealthOf(resident)
+			resident.Health = math.floor(resident.MaxHealth * share + 0.5)
+			publish(resident)
+			economy:RefreshCrew()
+			return describe(resident)
+		end,
+	})
+	dev:Register("resident.morale", {
+		Description = "Set a resident's morale (and how many cycles they have been Miserable).",
+		Usage = "resident.morale <id|all> <0-100> [cycles low]",
+		Run = function(_player, args): string?
+			local value = tonumber(args[2])
+			if not value then
+				return "usage: resident.morale <id|all> <0-100> [cycles low]"
+			end
+			local n = 0
+			for id, resident in residents do
+				if (args[1] == "all" or id == tostring(args[1])) and resident.State == "Alive" then
+					resident.Morale = math.clamp(value, 0, 100)
+					resident.Low = tonumber(args[3])
+					publish(resident)
+					n += 1
+				end
+			end
+			economy:RefreshCrew()
+			return `{n} set to {value}`
 		end,
 	})
 	dev:Register("resident.assign", {
@@ -903,13 +1221,25 @@ function ResidentService:Start()
 			local list = {}
 			for _, resident in sorted() do
 				if resident.State == "Alive" then
-					table.insert(list, { Id = resident.Id })
+					table.insert(list, { Id = resident.Id, FoodUse = Residents.FoodUse(resident) })
 				end
 			end
 			return list
 		end,
 	})
 	economy.Ate:Connect(afterMeal)
+	-- the Panicked calm down (ResidentBrain panics them while they flee)
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			for id, at in panicUntil do
+				if os.clock() >= at then
+					panicUntil[id] = nil
+					ResidentService:SetCondition(id, "Panicked", false)
+				end
+			end
+		end
+	end)
 	clock.SurgeEnded:Connect(afterSurge)
 	grid.RoomChanged:Connect(roomChanged)
 	RunService.Heartbeat:Connect(function()

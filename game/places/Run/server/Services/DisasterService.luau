@@ -128,6 +128,7 @@ local Disasters = require(Shared.Rules.Disasters)
 local Grid = require(Shared.Rules.Grid)
 local Log = require(Shared.Utilities.Log)
 local Modifiers = require(Shared.Rules.Modifiers)
+local ResidentRules = require(Shared.Rules.Residents)
 local Remotes = require(Shared.Remotes)
 local RunState = require(Shared.RunState)
 local Signal = require(Shared.Utilities.Signal)
@@ -449,7 +450,9 @@ local function tickFires(dt: number, t: number, inside: { [string]: { any } })
 		local fighters = 0
 		for _, c in people do
 			if c.Kind == "Resident" and c.Model:GetAttribute("Activity") == "Extinguish" then
-				fighters += 1
+				-- Prompt 26: the Firefighter trait "Puts out fires 3x faster"
+				local person = if c.ResidentId then residents:Get(c.ResidentId) else nil
+				fighters += if person then ResidentRules.Trait(person, "ExtinguishSpeed") or 1 else 1
 			end
 		end
 		fire.Strength = Disasters.FireStep(fire.Strength, dt, fighters, 0)
@@ -1517,7 +1520,12 @@ local function tickGas(dt: number, t: number, inside: { [string]: { any } })
 		end
 		for _, c in inside[roomId] or {} do
 			if c.Kind == "Resident" then
-				combat:Damage(c.Id, Disasters.GasResidentDamage(gas.Strength, dt, strength), nil, "gas")
+				-- Prompt 26: a Hazmat Suit ignores gas, the Hardy take half
+				local person = if c.ResidentId then residents:Get(c.ResidentId) else nil
+				local taken = if person then ResidentRules.GasTaken(person) else 1
+				if taken > 0 then
+					combat:Damage(c.Id, Disasters.GasResidentDamage(gas.Strength, dt, strength) * taken, nil, "gas")
+				end
 			elseif c.Kind == "Player" and c.Player then
 				local immune = flagOn(Modifiers.PlayerValue(c.Player, "GasImmune"))
 				local taken = Modifiers.PlayerValue(c.Player, "GasDamageTaken")
@@ -1766,8 +1774,11 @@ local function tickRadiation(dt: number, t: number, inside: { [string]: { any } 
 			Hazards.SetRadiation(unit, leak.Strength)
 			for _, c in inside[unit] or {} do
 				if c.Kind == "Resident" then
-					combat:Damage(c.Id, Disasters.RadiationResidentDamage(leak.Strength, dt), nil, "radiation")
-					if leak.Strength >= r.IrradiateAt and c.ResidentId then
+					-- Prompt 26: the Hardy "resist radiation": half the harm, and Irradiated only at twice the strength
+					local person = if c.ResidentId then residents:Get(c.ResidentId) else nil
+					local taken = if person then ResidentRules.Trait(person, "RadiationGain") or 1 else 1
+					combat:Damage(c.Id, Disasters.RadiationResidentDamage(leak.Strength, dt) * taken, nil, "radiation")
+					if leak.Strength * taken >= r.IrradiateAt and c.ResidentId then
 						residents:SetCondition(c.ResidentId, "Irradiated", true, "the leak")
 					end
 				end
@@ -2659,6 +2670,25 @@ end
 
 function DisasterService:Start()
 	Hazards.Clear()
+	-- Prompt 26: a Clumsy resident's accident ("a minor fire or flood in their room"): half a fire's
+	-- starting strength, or a puddle with no burst pipe to patch
+	residents.Accident:Connect(function(residentId: string, roomId: string)
+		local person = residents:Get(residentId)
+		local who = if person then ResidentRules.Name(person) else "a resident"
+		local d = Config.Get("Tuning", "Disasters")
+		local ok, err = pcall(function()
+			if rng:NextNumber() < 0.5 then
+				DisasterService:StartFire(roomId, "Clumsy", d.Fire.StartStrength * 0.5)
+			else
+				DisasterService:StartFlood(roomId, "Clumsy", d.Flood.ResidentFleeLevel * 0.5, false)
+			end
+		end)
+		if not ok then
+			log:Warn("%s's accident in %s: %s", who, roomId, tostring(err))
+		else
+			log:Info("%s had an accident in %s", who, roomId)
+		end
+	end)
 	-- Section 10 (Landon, 2026-11-08): a Reactor Core at 0 HP starts the meltdown
 	grid.Wrecked:Connect(function(roomId: string)
 		local room = grid:Room(roomId)
