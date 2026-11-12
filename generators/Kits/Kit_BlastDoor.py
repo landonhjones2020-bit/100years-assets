@@ -63,29 +63,31 @@ def frame(level: int):
 
 
 def leaves(level: int, depth: float):
+    # Everything on the door is one part with the leaves themselves (Leaves), so the game can open it:
+    # the Century Victory lifts it (Prompt 25: its bands, bracing and wheel used to stay behind in Decor).
     y = BACK - depth * 0.55
     sw = "gunmetal" if level < 3 else "steel"
     for side in (-1, 1):
         cx = side * DOOR_W / 4
         t(sf.box((DOOR_W / 2 - 0.1, 0.9, DOOR_H), loc=(cx, y, DOOR_H / 2), bevel=0.1, segments=1), "Leaves", sw, collision="box")
         for z in (2.0, 5.5, 9.0):           # steel bands with rivets
-            t(sf.box((DOOR_W / 2 - 0.4, 0.2, 0.6), loc=(cx, y - 0.5, z), bevel=0.04, segments=1), "Bands", "steel")
+            t(sf.box((DOOR_W / 2 - 0.4, 0.2, 0.6), loc=(cx, y - 0.5, z), bevel=0.04, segments=1), "Leaves", "steel", collision="box")
             for k in range(4):
                 x = cx - DOOR_W / 4 + 0.8 + k * (DOOR_W / 2 - 1.6) / 3
-                t(sf.cyl(0.12, 0.12, loc=(x, y - 0.62, z), rot=(90, 0, 0), verts=6, bevel=0.0), "Rivets", "chrome")
+                t(sf.cyl(0.12, 0.12, loc=(x, y - 0.62, z), rot=(90, 0, 0), verts=6, bevel=0.0), "Leaves", "chrome", collision="box")
         if level >= 2:                       # X-bracing
             ln = math.hypot(DOOR_W / 2 - 1.0, DOOR_H - 2.0)
             ang = math.degrees(math.atan2(DOOR_H - 2.0, DOOR_W / 2 - 1.0))
             for s2 in (-1, 1):
                 t(sf.box((ln, 0.25, 0.45), loc=(cx, y - 0.55, DOOR_H / 2), rot=(0, s2 * ang, 0), bevel=0.04, segments=1),
-                  "Bracing", "steel")
+                  "Leaves", "steel", collision="box")
     # the seam and the hatch wheel across it (a ring and four spokes)
-    t(sf.box((0.15, 0.2, DOOR_H), loc=(0, y - 0.46, DOOR_H / 2), bevel=0.0), "Seam", "rubber")
+    t(sf.box((0.15, 0.2, DOOR_H), loc=(0, y - 0.46, DOOR_H / 2), bevel=0.0), "Leaves", "rubber", collision="box")
     wheel_sw = "steel" if level < 3 else "brass"
-    t(sf.torus(1.6, 0.22, loc=(0, y - 0.9, DOOR_H * 0.52), rot=(90, 0, 0), major_segs=14, minor_segs=4), "Wheel", wheel_sw)
-    t(sf.cyl(0.45, 0.6, loc=(0, y - 0.8, DOOR_H * 0.52), rot=(90, 0, 0), verts=8, bevel=0.0), "Wheel", wheel_sw)
+    t(sf.torus(1.6, 0.22, loc=(0, y - 0.9, DOOR_H * 0.52), rot=(90, 0, 0), major_segs=14, minor_segs=4), "Leaves", wheel_sw, collision="box")
+    t(sf.cyl(0.45, 0.6, loc=(0, y - 0.8, DOOR_H * 0.52), rot=(90, 0, 0), verts=8, bevel=0.0), "Leaves", wheel_sw, collision="box")
     for a in range(4):
-        t(sf.box((3.1, 0.14, 0.22), loc=(0, y - 0.88, DOOR_H * 0.52), rot=(0, 45 + a * 45, 0), bevel=0.0), "Wheel", wheel_sw)
+        t(sf.box((3.1, 0.14, 0.22), loc=(0, y - 0.88, DOOR_H * 0.52), rot=(0, 45 + a * 45, 0), bevel=0.0), "Leaves", wheel_sw, collision="box")
 
 
 def rams(level: int):

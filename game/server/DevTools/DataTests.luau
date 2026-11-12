@@ -2341,6 +2341,8 @@ test("Boss: the Source's fight (Sections 5 and 10, Prompt 25)", function()
 	expect(not Boss.SourceCoreOver(0, max, entry.Phases), "the last is over only with its death")
 	expect(t.ClosedMultiplier < Boss.Tuning().ArmourMultiplier, "shut, its eye is harder than any armour")
 	expect(t.EruptWarnSeconds >= 1, "a root can be seen coming")
+	local hall = Config.Get("CavePieces", "SourceEntry").Box
+	expect(t.EruptRange >= -hall.Min[3] - 30, "its roots reach the ledge of its chamber: nowhere in it is safe")
 	expect(t.TendrilResidentDamage < t.TendrilDamage, "a tendril is harder on a player than on a resident")
 	expect(t.WakeRange > t.SlamReach, "it wakes before whoever woke it is in reach")
 	-- where its tendrils stand: one to a room, spread over the floors, never a Shaft or the Reactor Core

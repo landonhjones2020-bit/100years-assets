@@ -57,7 +57,6 @@
     "rubber",
     "rust",
     "signal",
-    "steel",
     "teal",
     "walnut"
    ],
@@ -71,7 +70,7 @@
     16.02,
     21.352
    ],
-   "tris": 3432
+   "tris": 2312
   },
   {
    "name": "Leaves",
@@ -83,19 +82,22 @@
    "bone": null,
    "tint": null,
    "swatches": [
-    "gunmetal"
+    "chrome",
+    "gunmetal",
+    "rubber",
+    "steel"
    ],
    "offset": [
     0.0,
     5.5,
-    14.9
+    14.565
    ],
    "size": [
     13.9,
     11.0,
-    0.9
+    1.57
    ],
-   "tris": 88
+   "tris": 1208
   },
   {
    "name": "DecorNeon",
@@ -318,5 +320,5 @@
    "yaw": 0.0
   }
  },
- "fbx_sha1": "2516748cd99362c1"
+ "fbx_sha1": "20ff4365b834d527"
 }

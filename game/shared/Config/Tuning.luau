@@ -489,7 +489,8 @@ return {
 			-- its room (10: a 500 HP room is wrecked in under three minutes, not one and a half). In a Core stage its eye opens (the weak
 			-- point; the rest of it is armour) until its health reaches StageUntil: it slams whoever is
 			-- within SlamReach of its front every AttackSeconds (SlamDamage within SlamRadius), and every
-			-- EruptSeconds Eruptions roots burst up under survivors within EruptRange, EruptWarnSeconds
+			-- EruptSeconds Eruptions roots burst up under survivors within EruptRange (90: the whole of its
+			-- chamber, so nobody shoots its eye from the ledge in safety, which 60 allowed), EruptWarnSeconds
 			-- after their mark shows, for EruptDamage within EruptRadius. In a stage with RegrowSeconds it
 			-- grows a tendril back that often (never more than RegrowMax standing; those take nothing off
 			-- it). A stage with Breaches opens that many extra breaches as it starts. StaggerFraction of
@@ -504,7 +505,7 @@ return {
 			TendrilRiseDepth = 13, RegrowSeconds = { 0, 0, 0, 14 }, RegrowMax = 2,
 			ClosedMultiplier = 0.05, AttackSeconds = { 6, 5, 5, 3.8 }, SlamDamage = 50, SlamRadius = 10, SlamReach = 17,
 			EruptSeconds = { 0, 8, 0, 6 }, Eruptions = { 0, 2, 0, 3 }, EruptWarnSeconds = 1.3, EruptDamage = 20, EruptRadius = 5.5,
-			EruptRange = 60, Breaches = { 0, 0, 1, 0 }, StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.2,
+			EruptRange = 90, Breaches = { 0, 0, 1, 0 }, StaggerFraction = 0.04, StaggerWindowSeconds = 4, StaggerSeconds = 3.2,
 			RoarSeconds = 2.6, OpenSeconds = 1.2, CloseSeconds = 1.0, ArenaMargin = 12, TurnDegreesPerSecond = 30, WakeRange = 44,
 			LeaveSeconds = 3,
 		},
