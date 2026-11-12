@@ -1928,6 +1928,9 @@ local function onDied(id: string)
 	end
 	if f.Source then
 		SourceFight.cleanup(sourceCtx, f, true) -- its tendrils and roots die with it
+		-- and so does everything it made: the run is over or about to be, and nobody should lose a
+		-- resident behind the victory's moment and the report (the second playtest did)
+		monsters:Clear()
 	end
 	publish(true)
 	local killer: Player? = nil

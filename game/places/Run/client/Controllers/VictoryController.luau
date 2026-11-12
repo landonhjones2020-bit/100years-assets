@@ -64,25 +64,30 @@ local function tween(object: Instance, seconds: number, goal: { [string]: any },
 	TweenService:Create(object, TweenInfo.new(seconds, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), goal):Play()
 end
 
--- The Blast Door's room, its door (the kit's Door socket) and the leaves that close it.
-local function blastDoor(): (CFrame?, BasePart?)
+-- The Blast Door's room: where its door stands (the kit's Door socket), which way the hall lies
+-- from it, and the leaves that close it.
+local function blastDoor(): (Vector3?, Vector3?, BasePart?)
 	local bunker = workspace:FindFirstChild("Bunker")
 	local rooms = bunker and bunker:FindFirstChild("Rooms")
 	if not rooms then
-		return nil, nil
+		return nil, nil, nil
 	end
 	for _, room in rooms:GetChildren() do
 		if room:IsA("Model") and room:GetAttribute("RoomType") == "BlastDoor" then
+			local middle = room:GetBoundingBox().Position
 			for _, d in room:GetDescendants() do
 				local socket = d:GetAttribute("Socket_Door")
 				if d:IsA("Model") and typeof(socket) == "CFrame" then
+					local at = (d:GetPivot() * socket).Position
 					local leaves = d:FindFirstChild("Leaves", true)
-					return d:GetPivot() * socket, if leaves and leaves:IsA("BasePart") then leaves else nil
+					-- the door is in the hall's back wall: the hall lies towards the room's middle
+					local inward = Vector3.new(0, 0, if middle.Z >= at.Z then 1 else -1)
+					return at, inward, if leaves and leaves:IsA("BasePart") then leaves else nil
 				end
 			end
 		end
 	end
-	return nil, nil
+	return nil, nil, nil
 end
 
 -- The Source where it is dying: the boss's model in workspace.Monsters.
@@ -119,28 +124,30 @@ end
 -- The shot for a victory: where the camera starts and ends and what it looks at; nil when the
 -- place it needs isn't there (the moment is then the card alone, over the player's own view).
 local function centuryShot(seconds: number): (CFrame?, CFrame?)
-	local door, leaves = blastDoor()
-	if not door then
+	local at, inward, leaves = blastDoor()
+	if not at or not inward then
 		return nil, nil
 	end
-	-- the hall is in front of the door (the door's socket looks back into the rock)
-	local inward = -door.LookVector
-	local right = door.RightVector
-	local at = door.Position
+	local right = inward:Cross(Vector3.yAxis)
+	local open = at + Vector3.new(0, 5.5, 0) -- the middle of the doorway
+	local behind = at - inward * 3.4
 	if leaves then
 		local home = leaves.CFrame
+		open = Vector3.new(leaves.Position.X, leaves.Position.Y, at.Z)
+		behind = leaves.Position - inward * 1.1
 		table.insert(undo, function()
 			leaves.CFrame = home
 		end)
 		task.delay(0.9, function()
 			if playing then
-				tween(leaves, seconds * 0.5, { CFrame = home + Vector3.new(0, 15, 0) }, Enum.EasingStyle.Quad)
+				tween(leaves, seconds * 0.5, { CFrame = home + Vector3.new(0, leaves.Size.Y + 1.5, 0) }, Enum.EasingStyle.Quad)
 			end
 		end)
 	end
 	-- the sky behind the leaves, and its light over the hall's floor
-	local sky = local_(Instance.new("Part"), CFrame.lookAt(at - inward * 1.6 + Vector3.new(0, 7, 0), at + Vector3.new(0, 7, 0)),
-		Vector3.new(22, 15, 0.4), Color3.fromRGB(214, 236, 255), Enum.Material.Neon)
+	local sky = local_(Instance.new("Part"), CFrame.lookAt(behind, behind + inward),
+		Vector3.new(if leaves then leaves.Size.X + 0.6 else 14.5, if leaves then leaves.Size.Y + 0.6 else 11.6, 0.4),
+		Color3.fromRGB(214, 236, 255), Enum.Material.Neon)
 	local lamp = Instance.new("SpotLight")
 	lamp.Face = Enum.NormalId.Front
 	lamp.Angle = 110
@@ -154,8 +161,8 @@ local function centuryShot(seconds: number): (CFrame?, CFrame?)
 			tween(lamp, seconds * 0.55, { Brightness = 9 }, Enum.EasingStyle.Quad)
 		end
 	end)
-	local from = CFrame.lookAt(at + inward * 26 + right * 7 + Vector3.new(0, 5.5, 0), at + Vector3.new(0, 6.5, 0))
-	local to = CFrame.lookAt(at + inward * 15 + right * 2 + Vector3.new(0, 5, 0), at + Vector3.new(0, 8, 0))
+	local from = CFrame.lookAt(at + inward * 27 + right * 8 + Vector3.new(0, 6, 0), open + Vector3.new(0, 0.5, 0))
+	local to = CFrame.lookAt(at + inward * 17 + right * 2.5 + Vector3.new(0, 4.5, 0), open + Vector3.new(0, 1.5, 0))
 	return from, to
 end
 
